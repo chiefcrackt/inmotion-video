@@ -12,6 +12,7 @@ Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages 
 | River Run Recorder | `/river-run/` | The link-page night scene: the runner jogs along the river under a gold sun, with jumps, rim light and footstrike ripples; green screen and navy for overlays |
 | Mile Marker Maker | `/mile-marker/` | A trail-sign pop-up for any distance, with a climbing ding |
 | Special Post Maker | `/special-post/` | Birthday, congrats, race-day and thank-you posts: 1–3 runners (pick whole runners or mix any pieces) jog in and finish with a jump, high-five or arms up; show/hide every piece; add-ins: Hooper, fireworks, streamers, sparkles, number balloons, stat card, zoom punch; video with sound, still PNG, WAV |
+| Celebration Maker | `/celebrate/` | Shout-out posts without runners: name card, cake + candles, race bib or finisher medal, with confetti, balloons, number balloons, fireworks, streamers and sparkles; video with sound, still PNG, WAV |
 | Animation Downloads | `/downloads/` | Finished animations (trailer pack, River Run, Portal, The Loop, The Drop): MP4, green screen MP4, transparent WebM, WAV, and a zip per pack |
 
 Each tool is a single self-contained HTML page. It draws on a canvas, synthesizes its sounds with the Web Audio API, and records the result with MediaRecorder (MP4 on Safari, WebM where MP4 isn't available). Recordings save through the share sheet on iPhone ("Save Video" puts them in Photos) or as a normal download on a computer.
