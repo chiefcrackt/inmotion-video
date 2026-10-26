@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>T.im Video Tools</title>
+<meta name="description" content="Recording tools for tristan.inmotion videos: mile markers, the start line runner and cyber-kit titles.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="icon" href="favicon.png" type="image/png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0E1A2E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;500&display=swap">
+<style>
+/* Layout: a short hub. Brand header, then one card per tool, stacking on phones. */
+:root{--navy:#0E1A2E;--panel:#13233D;--line:#25395C;--gold:#E8C96A;--teal:#2E9BAD;--paper:#F6F4EF;--muted:#9FB0C8;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;--body:"Barlow","Helvetica Neue",Arial,sans-serif;color-scheme:dark;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--navy);color:var(--paper);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:36px 56px;
+  background-image:repeating-linear-gradient(135deg,rgba(246,244,239,.025) 0 2px,transparent 2px 52px)}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font-family:var(--display);font-weight:700;letter-spacing:4px;color:var(--gold);font-size:15px;text-transform:uppercase;margin:0}
+h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(40px,8vw,72px);line-height:.95;margin:6px 0 0;text-wrap:balance}
+.rule{display:flex;gap:10px;margin-top:14px}.rule i{display:block;height:6px;background:var(--teal);width:180px}.rule i+i{background:var(--gold);width:60px}
+.lede{color:var(--muted);max-width:60ch;margin:14px 0 0}
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+a.tool{display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;color:inherit;text-decoration:none;position:relative;overflow:hidden;min-width:0}
+a.tool::before{content:"";position:absolute;inset:0 0 auto 0;height:7px;background:var(--gold)}
+a.tool:hover,a.tool:focus-visible{border-color:var(--teal);outline:none}
+a.tool:focus-visible{box-shadow:0 0 0 3px var(--teal)}
+a.tool .k{font-family:var(--display);font-weight:700;letter-spacing:3px;font-size:13px;color:var(--teal);text-transform:uppercase;margin-top:6px}
+a.tool h2{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:32px;line-height:1;margin:0}
+a.tool p{margin:0;color:var(--muted);font-size:15px}
+a.tool .go{margin-top:auto;font-family:var(--display);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-size:15px}
+.how{border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:14px;max-width:70ch}
+.how b{color:var(--paper);font-weight:500}
+footer{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;letter-spacing:3px;font-size:14px;text-transform:uppercase}
+footer i{width:10px;height:10px;border-radius:50%;background:var(--teal);display:block}
+footer a{color:var(--paper);text-decoration:none}footer a:hover{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">tristan.inmotion</p>
+    <h1>T.im Video Tools</h1>
+    <div class="rule"><i></i><i></i></div>
+    <p class="lede">Pick a tool, set it up, and record a clip with the sound built in. Each one saves a video you can drop straight into CapCut.</p>
+  </header>
+  <div class="tools">
+    <a class="tool" href="title-maker/"><span class="k">Every video</span><h2>Title Maker</h2><p>Cyber-kit title cards, lower thirds and word tags. Type the text, pick a sound, record.</p><span class="go">Open →</span></a>
+    <a class="tool" href="start-line/"><span class="k">Runner</span><h2>Start Line Recorder</h2><p>The runner walks to the line, gets set, hears the countdown and takes off. Pick the countdown sound and scene.</p><span class="go">Open →</span></a>
+    <a class="tool" href="mile-marker/"><span class="k">Easter egg</span><h2>Mile Marker Maker</h2><p>A trail sign pops up for any distance, with a ding that climbs as the miles go up.</p><span class="go">Open →</span></a>
+  </div>
+  <p class="how"><b>Saving on iPhone:</b> after you record, tap Save video and choose <b>Save Video</b> in the share sheet to put it in Photos. On a computer it downloads. <b>Green screen:</b> in CapCut, add the clip as an overlay, then use Chroma Key and pick the green.</p>
+  <footer><i></i><a href="https://chiefcrackt.github.io/links-inMotion/">tristan.inmotion</a></footer>
+</div>
+</body>
+</html>
