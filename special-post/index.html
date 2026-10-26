@@ -259,7 +259,7 @@ var OCC=[
   {id:'welcome',name:'Welcome',headline:'WELCOME',sub:'',signTop:'MILE',balloons:false},
   {id:'custom',name:'Custom',headline:'',sub:'',signTop:'MILE',balloons:false}];
 var SOUNDS=[
-  {id:'party',name:'Cyber Party',desc:'Birthday synth groove that drops at the tape, party horns'},
+  {id:'party',name:'Cyber Party',desc:'Birthday synth groove that drops at the tape'},
   {id:'celebrate',name:'Celebrate',desc:'Fanfare, poppers, tape snap, ding'},
   {id:'cyber',name:'Cyber',desc:'Synth pad and arps with the hits'},
   {id:'soft',name:'Soft',desc:'Warm pad and chimes'},
@@ -534,10 +534,10 @@ function makeSynth(AC,out){
     for(var i=0;i<n;i++){var v=(i?0.55:1)*(kind==='party'?0.6:1);strikes(P,i).forEach(function(s){step(t0+s.t,soft,s.far,v)});whoosh(t0+P.jump[i]+0.1,v);thud(t0+P.land[i],v)}
     snap(t0+P.tTape);
     if(S.confetti){popper(t0+P.tTape+0.04,1);popper(t0+P.tTape+0.16,0.7);popper(t0+P.tTape+0.3,0.55)}
-    if(kind==='party'){horn(t0+P.tTape+0.08,0.4)}else if(soft)chimes(t0+P.tTitle+0.2);else fanfare(t0+P.tTitle+0.2,kind);
+    if(kind==='party'){}else if(soft)chimes(t0+P.tTitle+0.2);else fanfare(t0+P.tTitle+0.2,kind);
     if(String(S.signNum||'').trim())bell(t0+P.tSign+0.38,kind==='soft'?1046.5:1318.5,1);
     if(S.tag)bell(t0+P.tTag+0.05,783.99,0.6)}
-  function preview(t0,kind){if(kind==='none')return;if(kind==='party'){var fp={L:4.2,tTape:0.6,tTitle:0.6};partyTrack(t0,fp);snap(t0+0.6);horn(t0+0.68,0.4);popper(t0+0.62,1);return}pad(t0,2.6,kind);for(var i=0;i<3;i++)step(t0+0.1+i*CYC/2,kind==='soft',i%2,1);snap(t0+0.9);popper(t0+0.95,1);
+  function preview(t0,kind){if(kind==='none')return;if(kind==='party'){var fp={L:4.2,tTape:0.6,tTitle:0.6};partyTrack(t0,fp);snap(t0+0.6);popper(t0+0.62,1);return}pad(t0,2.6,kind);for(var i=0;i<3;i++)step(t0+0.1+i*CYC/2,kind==='soft',i%2,1);snap(t0+0.9);popper(t0+0.95,1);
     if(kind==='soft')chimes(t0+1.1);else fanfare(t0+1.1,kind);bell(t0+2.3,1318.5,0.8)}
   return {schedule:schedule,preview:preview}}
 var AC=null,master=null,comp=null,SYN=null,recDest=null;
