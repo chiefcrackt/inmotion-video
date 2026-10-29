@@ -12,7 +12,8 @@
     "test:carousel": "node --test carousel-maker/tests/model.test.mjs",
     "test:carousel:browser": "node carousel-maker/tests/browser.cjs",
     "test:carousel:editor": "node carousel-maker/tests/editor.cjs",
-    "test:carousel:background": "node carousel-maker/tests/background.cjs"
+    "test:carousel:background": "node carousel-maker/tests/background.cjs",
+    "test:carousel:stacking": "node carousel-maker/tests/stacking.cjs"
   },
   "repository": {
     "type": "git",

@@ -34,3 +34,7 @@ Grouping, automatic distribution, saved logo assets and a multi-template library
 Upload a primary photo and choose **Photo placement → Full-slide background**. This fills every edge of portrait or square slides, including blank layouts and behind the footer. Background mode uses fill/crop; zoom, position, rotation and flip still apply. Photo-frame height and panel-opacity settings do not apply to backgrounds.
 
 For readable text, choose a background tint color and strength, a top/bottom/left dark gradient, and white/black/palette template text. Hide template text and/or the footer to create photo-only slides or compose your own independent text layers. Independent elements keep their own colors. Framing and readability settings persist, duplicate and export with each slide. Reset framing also resets background mode and effects. `npm run test:carousel:background` validates full-bleed coverage, tint/gradient pixels, persistence and PNG export.
+
+## Stacking around template text
+
+Select an added element and choose **Stacking → Below template text** to keep built-in headlines, body text and footer above it. The Layers list shows the template-text boundary; Forward/Backward can move elements across that boundary as well as reorder them within either group. Existing elements default to above-text. Placement survives duplication, project saves/imports and PNG/ZIP export. Blank slides preserve the same below/above ordering even without template text.
