@@ -38,3 +38,13 @@ For readable text, choose a background tint color and strength, a top/bottom/lef
 ## Stacking around template text
 
 Select an added element and choose **Stacking → Below template text** to keep built-in headlines, body text and footer above it. The Layers list shows the template-text boundary; Forward/Backward can move elements across that boundary as well as reorder them within either group. Existing elements default to above-text. Placement survives duplication, project saves/imports and PNG/ZIP export. Blank slides preserve the same below/above ordering even without template text.
+
+## Position existing template elements
+
+Use **Move template text** at the top of the inspector. Select the eyebrow, headline, description/list/table, highlight/stat or footer to enter horizontal/vertical pixel offsets. Enable tap & drag to move labeled boxes directly on the preview using mouse or touch. This mode temporarily gives template text priority over added-element hit targets; choose Finish moving text to return to dragging added elements. Snapping follows the existing 10px toggle. Left/center/right alignment, reset-selected and reset-all-position controls are provided; arrow keys nudge while this mode is enabled (Shift for 10px).
+
+Offsets apply per slide, survive duplication and saved/imported projects, support undo/redo, and render identically in thumbnails and PNG/ZIP exports. Existing drafts default to their original positions. Moving a headline does not move its description automatically. Description lists/tables move as one block; footer handle and slide number move as one block. Hidden/unused groups and blank-slide template controls are unavailable. Primary photos retain their existing crop/position controls; added elements use Elements & layers.
+
+Run `npm run test:carousel:positioning` for mouse and real touch-event dragging, numeric offsets, undo/redo, persistence, duplication, reset, blank slides, mobile and PNG export coverage.
+
+The settings panel starts with Move template text. Elements & layers (including brand/layout tools) is at the bottom, after slide content, photo framing and carousel style settings.
