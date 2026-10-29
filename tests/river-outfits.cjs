@@ -135,7 +135,7 @@ const assert = require('node:assert/strict');
         return c.toDataURL();
       }, time);
       frames.push({ outfit, time, data });
-      if ((outfit === 'race' || outfit === 'trail') && time === 0.375) {
+      if (outfit !== 'original' && time === 0.375) {
         const detail = await page.evaluate(() => {
           const c = document.createElement('canvas');
           c.width = 720;

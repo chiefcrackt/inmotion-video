@@ -1,5 +1,7 @@
 # Tristan outfits
 
+Race-day and winter torsos now have a flatter front profile instead of the original hydration-vest outline. A local deformation affects only the front of the torso; neck, shoulder joints, back edge, and outfit texture details are retained. Trail's actual hydration vest is unchanged. The fit test checks the flatter chest and unchanged shoulder region.
+
 Final overlap fix: race-day hips are now a compact pelvis underlay; the animated thighs supply both shorts legs, avoiding a third stationary lobe. Trail upper arms use only the new sleeve artwork, without copying back the original gold sleeve. The fabric/skin seam detector now distinguishes gold from skin and crops before the first skin pixel in the race shorts texture. The race pelvis intentionally differs from the original silhouette below the hip; the other joint masks and animation curves are retained. `tests/river-outfits.cjs` checks the missing hip lobe and absence of gold sleeve pixels and exports `race-detail.png` and `trail-detail.png`.
 
 Latest cleanup: `race-atlas-v2.png` and `trail-atlas-v2.png` remove skin from the hip sprites; the trail torso also removes the painted sleeve and upper arm. Only `race/shorts-v2.png`, `trail/shorts-v2.png`, and `trail/torso-v2.png` are consumed from these revised atlases. Rebuild those three files with `node build-outfit-assets.cjs --cleanup`. Exact built-in imagegen edit prompts are in `cleanup-prompts.json`. Cold-weather assets and fitting are unchanged.

@@ -84,10 +84,33 @@ const assert = require('node:assert/strict');
       }
       for (const n of Object.keys(original)) {
         if (id === 'race' && n === 'shorts') continue;
+        if (id !== 'trail' && n === 'torso') continue;
         const a = pixels(original[n]),
           b = pixels(fit[n]);
         for (let p = 3; p < a.length; p += 4)
           maxAlphaError = Math.max(maxAlphaError, Math.abs(a[p] - b[p]));
+      }
+      if (id !== 'trail') {
+        const torso = pixels(fit.torso),
+          base = pixels(original.torso),
+          w = fit.torso.width,
+          h = fit.torso.height;
+        let removed = 0;
+        for (let y = 0; y < h; y++)
+          for (let col = 0; col < w; col++) {
+            const p = (y * w + col) * 4 + 3;
+            if (col < Math.floor(w * 0.4) && torso[p] !== base[p])
+              throw Error('Shoulder moved');
+            if (
+              y >= h * 0.28 &&
+              y < h * 0.65 &&
+              col >= Math.ceil(w * 0.9) &&
+              torso[p] > 64
+            )
+              throw Error('Vest chest bulge remains');
+            if (base[p] > 64 && torso[p] < 32) removed++;
+          }
+        if (removed < 10) throw Error('Torso profile was not slimmed');
       }
       const baseline = makePuppet(original, parts, { imgScale: 0.5 }),
         puppet = makePuppet(fit, parts, { imgScale: 0.5 });
@@ -126,7 +149,7 @@ const assert = require('node:assert/strict');
       result[id] = {
         maxAlphaError,
         movingAlphaError,
-        pelvisTrimmed: id === 'race',
+        profileChanged: id !== 'trail',
         originalHead: fit.head === original.head,
         originalForearms:
           id === 'winter' ||
@@ -138,7 +161,7 @@ const assert = require('node:assert/strict');
   });
   for (const r of Object.values(result)) {
     assert.equal(r.maxAlphaError, 0);
-    if (!r.pelvisTrimmed) assert(r.movingAlphaError <= 1);
+    if (!r.profileChanged) assert(r.movingAlphaError <= 1);
     assert(r.originalHead);
     assert(r.originalForearms);
   }

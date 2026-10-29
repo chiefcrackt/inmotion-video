@@ -117,6 +117,33 @@ window.fitRiverOutfit = function (generated, original, id) {
       x.closePath();
       x.fill();
     }
+    if (name === 'torso' && (id === 'race' || id === 'winter')) {
+      // These clothes have no hydration vest. Flatten its inherited front
+      // contour without cutting off the jacket zipper or moving the shoulder.
+      var slim = canvas(src),
+        sx = slim.getContext('2d');
+      var hinge = Math.floor(w * 0.45);
+      for (var row = 0; row < h; row++) {
+        var chest = Math.max(0, Math.min(1, (row / h - 0.12) / 0.2));
+        var waist = Math.max(0, Math.min(1, (row / h - 0.55) / 0.45));
+        chest = chest * chest * (3 - 2 * chest);
+        waist = waist * waist * (3 - 2 * waist);
+        var reduction = w * 0.16 * chest * (1 - waist);
+        sx.drawImage(c, 0, row, hinge, 1, 0, row, hinge, 1);
+        sx.drawImage(
+          c,
+          hinge,
+          row,
+          w - hinge,
+          1,
+          hinge,
+          row,
+          w - hinge - reduction,
+          1,
+        );
+      }
+      c = slim;
+    }
     fitted[name] = c;
   });
   return fitted;
