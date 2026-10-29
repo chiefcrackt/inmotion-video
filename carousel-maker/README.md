@@ -14,3 +14,5 @@ Validation:
 - `node carousel-maker/tests/browser.cjs` (requires Playwright and Chromium; set CHROME_PATH if necessary)
 
 The browser check covers hub discovery, editing, duplication, reordering, reload persistence, photo uploads, all templates, PNG dimensions, ZIP download and mobile widths. No shared sound or activity behavior is changed.
+
+Photo framing controls are per slide: fill/crop or fit the whole image, 1–3× zoom, horizontal/vertical positioning, 90° rotation, horizontal flip, frame height on non-photo layouts and text-panel opacity on photo layouts. Reset framing restores defaults; replacing a photo also resets framing. Controls persist in drafts, copy with duplicate slides and use the same renderer for previews, thumbnails and PNG/ZIP exports. Existing drafts default to their original framing.
