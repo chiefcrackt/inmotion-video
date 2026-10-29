@@ -1,350 +1,1585 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon.png" type="image/png"><link rel="apple-touch-icon" href="../apple-touch-icon.png"><meta name="theme-color" content="#0E1A2E"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}a.home{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:13px;color:#9FB0C8;text-decoration:none;flex-basis:100%}a.home:hover{color:#E8C96A}</style><title>Mile Marker Maker</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;900&family=Barlow:wght@400;500;600&display=swap">
-</head><body><style>
-/* Layout: a two-column studio. Live sign preview on the left, grouped controls on the right; stacks to one column on phones.
+<!doctype html>
+<html lang="en"
+  ><head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    /><link rel="icon" href="../favicon.svg" type="image/svg+xml" /><link
+      rel="icon"
+      href="../favicon.png"
+      type="image/png"
+    /><link rel="apple-touch-icon" href="../apple-touch-icon.png" /><meta
+      name="theme-color"
+      content="#0E1A2E"
+    /><style>
+      :root {
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      body {
+        margin: 0;
+      }
+      img {
+        max-width: 100%;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      a.home {
+        font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-size: 13px;
+        color: #9fb0c8;
+        text-decoration: none;
+        flex-basis: 100%;
+      }
+      a.home:hover {
+        color: #e8c96a;
+      }</style
+    ><title>Mile Marker Maker</title>
+    <meta name="claude:viewport-fit-sides" content="cover" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
+    /> </head
+  ><body
+    ><style>
+      /* Layout: a two-column studio. Live sign preview on the left, grouped controls on the right; stacks to one column on phones.
    Single dark look on purpose: the T.im navy is the brand ground. */
-:root{
-  --navy:#0E1A2E; --panel:#13233D; --panel-2:#182B49; --line:#25395C;
-  --gold:#E8C96A; --teal:#2E9BAD; --paper:#F6F4EF; --muted:#9FB0C8; --danger:#F08A7A;
-  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
-  --body:"Barlow","Helvetica Neue",Arial,sans-serif;
-  color-scheme:dark;
-}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-body{background:var(--navy);color:var(--paper);font-family:var(--body);font-size:15px;line-height:1.45;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
-.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-header h1{font-family:var(--display);font-weight:900;font-size:clamp(30px,5vw,44px);letter-spacing:.5px;margin:0;text-transform:uppercase;text-wrap:balance}
-header .eyebrow{font-family:var(--display);font-weight:700;letter-spacing:3px;color:var(--gold);font-size:14px;text-transform:uppercase}
-header p{margin:0;color:var(--muted);flex-basis:100%;max-width:62ch}
-.studio{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:860px){.studio{grid-template-columns:minmax(0,1fr)}}
-.stagebox{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;position:sticky;top:max(12px,env(safe-area-inset-top,0px))}
-@media (max-width:860px){.stagebox{position:static}}
-.stage{width:100%;display:flex;justify-content:center;align-items:center;background:
-  repeating-linear-gradient(45deg,#0B1526 0 12px,#0D182B 12px 24px);border-radius:6px;overflow:hidden;min-height:200px}
-#cv{display:block;max-width:100%;height:auto;max-height:62vh;border-radius:3px}
-.stagebar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.readout{font-family:var(--display);font-weight:600;letter-spacing:2px;color:var(--muted);font-size:13px;text-transform:uppercase;margin-left:auto;font-variant-numeric:tabular-nums}
-.controls{display:flex;flex-direction:column;gap:14px;min-width:0}
-fieldset{border:1px solid var(--line);border-radius:10px;padding:14px 14px 16px;margin:0;background:var(--panel);display:flex;flex-direction:column;gap:12px;min-width:0}
-legend{font-family:var(--display);font-weight:700;letter-spacing:3px;color:var(--gold);font-size:14px;text-transform:uppercase;padding:0 6px}
-.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.lab{font-family:var(--display);font-weight:600;letter-spacing:1.5px;font-size:13px;color:var(--muted);text-transform:uppercase;min-width:84px}
-.chip{appearance:none;border:1px solid var(--line);background:var(--panel-2);color:var(--paper);font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:1px;
-  padding:7px 13px;border-radius:999px;cursor:pointer;line-height:1;min-height:36px}
-.chip:hover{border-color:var(--teal)}
-.chip[aria-pressed="true"]{background:var(--gold);color:var(--navy);border-color:var(--gold)}
-.chip.sm{font-size:15px;padding:6px 11px;min-height:32px}
-.chip:focus-visible,.btn:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
-input[type=text],input[type=number]{background:var(--navy);border:1px solid var(--line);color:var(--paper);font-family:var(--display);font-weight:700;font-size:18px;
-  padding:7px 10px;border-radius:8px;width:110px;letter-spacing:1px}
-input#label{width:150px;text-transform:uppercase}
-.toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--paper)}
-.toggle input{width:18px;height:18px;accent-color:var(--teal)}
-.sounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-.snd{appearance:none;text-align:left;border:1px solid var(--line);background:var(--panel-2);color:var(--paper);border-radius:8px;padding:9px 11px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
-.snd b{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.5px}
-.snd span{font-size:12.5px;color:var(--muted)}
-.snd[aria-pressed="true"]{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
-.snd[aria-pressed="true"] b{color:var(--gold)}
-.btn{appearance:none;border:0;border-radius:8px;font-family:var(--display);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-size:17px;padding:11px 16px;cursor:pointer;min-height:44px}
-.btn.primary{background:var(--gold);color:var(--navy)}
-.btn.rec{background:#D9534F;color:#fff}
-.btn.rec.on{background:#7a2b29}
-.btn.ghost{background:transparent;color:var(--paper);border:1px solid var(--line)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.result{border:1px solid var(--teal);border-radius:10px;background:var(--panel);padding:14px;display:flex;flex-direction:column;gap:10px}
-.result video{width:100%;max-height:46vh;background:#000;border-radius:6px}
-.note{font-size:13px;color:var(--muted);margin:0}
-.msg{font-size:14px;margin:0;color:var(--paper)}
-.msg.err{color:var(--danger)}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#D9534F;margin-right:6px;vertical-align:middle;animation:blink 1s steps(2) infinite}
-@keyframes blink{50%{opacity:.2}}
-@media (prefers-reduced-motion:reduce){.dot{animation:none}}
-</style>
+      :root {
+        --navy: #0e1a2e;
+        --panel: #13233d;
+        --panel-2: #182b49;
+        --line: #25395c;
+        --gold: #e8c96a;
+        --teal: #2e9bad;
+        --paper: #f6f4ef;
+        --muted: #9fb0c8;
+        --danger: #f08a7a;
+        --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+        --body: 'Barlow', 'Helvetica Neue', Arial, sans-serif;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        background: var(--navy);
+        color: var(--paper);
+        font-family: var(--body);
+        font-size: 15px;
+        line-height: 1.45;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-block: 20px 40px;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      header {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      header h1 {
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: clamp(30px, 5vw, 44px);
+        letter-spacing: 0.5px;
+        margin: 0;
+        text-transform: uppercase;
+        text-wrap: balance;
+      }
+      header .eyebrow {
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: var(--gold);
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        flex-basis: 100%;
+        max-width: 62ch;
+      }
+      .studio {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+      @media (max-width: 860px) {
+        .studio {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .stagebox {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: sticky;
+        top: max(12px, env(safe-area-inset-top, 0px));
+      }
+      @media (max-width: 860px) {
+        .stagebox {
+          position: static;
+        }
+      }
+      .stage {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: repeating-linear-gradient(
+          45deg,
+          #0b1526 0 12px,
+          #0d182b 12px 24px
+        );
+        border-radius: 6px;
+        overflow: hidden;
+        min-height: 200px;
+      }
+      #cv {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        max-height: 62vh;
+        border-radius: 3px;
+      }
+      .stagebar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .readout {
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: 2px;
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+      }
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+      }
+      fieldset {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px 14px 16px;
+        margin: 0;
+        background: var(--panel);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+      }
+      legend {
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: var(--gold);
+        font-size: 14px;
+        text-transform: uppercase;
+        padding: 0 6px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .lab {
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        font-size: 13px;
+        color: var(--muted);
+        text-transform: uppercase;
+        min-width: 84px;
+      }
+      .chip {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--paper);
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 17px;
+        letter-spacing: 1px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        cursor: pointer;
+        line-height: 1;
+        min-height: 36px;
+      }
+      .chip:hover {
+        border-color: var(--teal);
+      }
+      .chip[aria-pressed='true'] {
+        background: var(--gold);
+        color: var(--navy);
+        border-color: var(--gold);
+      }
+      .chip.sm {
+        font-size: 15px;
+        padding: 6px 11px;
+        min-height: 32px;
+      }
+      .chip:focus-visible,
+      .btn:focus-visible,
+      input:focus-visible {
+        outline: 3px solid var(--teal);
+        outline-offset: 2px;
+      }
+      input[type='text'],
+      input[type='number'] {
+        background: var(--navy);
+        border: 1px solid var(--line);
+        color: var(--paper);
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 18px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        width: 110px;
+        letter-spacing: 1px;
+      }
+      input#label {
+        width: 150px;
+        text-transform: uppercase;
+      }
+      .toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--paper);
+      }
+      .toggle input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--teal);
+      }
+      .sounds {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+      }
+      .snd {
+        appearance: none;
+        text-align: left;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--paper);
+        border-radius: 8px;
+        padding: 9px 11px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .snd b {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 17px;
+        letter-spacing: 0.5px;
+      }
+      .snd span {
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .snd[aria-pressed='true'] {
+        border-color: var(--gold);
+        box-shadow: inset 0 0 0 1px var(--gold);
+      }
+      .snd[aria-pressed='true'] b {
+        color: var(--gold);
+      }
+      .btn {
+        appearance: none;
+        border: 0;
+        border-radius: 8px;
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-size: 17px;
+        padding: 11px 16px;
+        cursor: pointer;
+        min-height: 44px;
+      }
+      .btn.primary {
+        background: var(--gold);
+        color: var(--navy);
+      }
+      .btn.rec {
+        background: #d9534f;
+        color: #fff;
+      }
+      .btn.rec.on {
+        background: #7a2b29;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--paper);
+        border: 1px solid var(--line);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .result {
+        border: 1px solid var(--teal);
+        border-radius: 10px;
+        background: var(--panel);
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .result video {
+        width: 100%;
+        max-height: 46vh;
+        background: #000;
+        border-radius: 6px;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .msg {
+        font-size: 14px;
+        margin: 0;
+        color: var(--paper);
+      }
+      .msg.err {
+        color: var(--danger);
+      }
+      .dot {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #d9534f;
+        margin-right: 6px;
+        vertical-align: middle;
+        animation: blink 1s steps(2) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.2;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .dot {
+          animation: none;
+        }
+      }
+    </style>
 
-<div class="wrap">
-  <header>
-    <a class="home" href="../">← All T.im video tools</a>
-    <span class="eyebrow">T.im · Easter egg</span>
-    <h1>Mile Marker Maker</h1>
-    <p>Pick a distance and a sound, preview it, then record a 3 or 5 second clip with the sound built in. Drop it on top of your run footage in CapCut. On green screen, use Chroma Key to remove the green.</p>
-  </header>
+    <div class="wrap">
+      <header>
+        <a class="home" href="../">← All T.im video tools</a>
+        <span class="eyebrow">T.im · Easter egg</span>
+        <h1>Mile Marker Maker</h1>
+        <p
+          >Pick a distance and a sound, preview it, then record a 3 or 5 second
+          clip with the sound built in. Drop it on top of your run footage in
+          CapCut. On green screen, use Chroma Key to remove the green.</p
+        >
+      </header>
 
-  <div class="studio">
-    <div class="stagebox">
-      <div class="stage"><canvas id="cv" width="1080" height="1920" aria-label="Mile marker preview"></canvas></div>
-      <div class="stagebar">
-        <button class="btn primary" id="play" type="button">▶ Play preview</button>
-        <button class="btn rec" id="rec" type="button">● Record video</button>
-        <span class="readout" id="readout">9:16 · 3s · 1080×1920</span>
-      </div>
-      <p class="msg" id="msg" role="status"></p>
-      <div class="result" id="result" hidden>
-        <video id="vid" controls playsinline></video>
-        <div class="row">
-          <button class="btn primary" id="save" type="button">Save video</button>
-          <button class="btn ghost" id="again" type="button">Record again</button>
+      <div class="studio">
+        <div class="stagebox">
+          <div class="stage"
+            ><canvas
+              id="cv"
+              width="1080"
+              height="1920"
+              aria-label="Mile marker preview"
+            ></canvas
+          ></div>
+          <div class="stagebar">
+            <button class="btn primary" id="play" type="button"
+              >▶ Play preview</button
+            >
+            <button class="btn rec" id="rec" type="button"
+              >● Record video</button
+            >
+            <span class="readout" id="readout">9:16 · 3s · 1080×1920</span>
+          </div>
+          <p class="msg" id="msg" role="status"></p>
+          <div class="result" id="result" hidden>
+            <video id="vid" controls playsinline></video>
+            <div class="row">
+              <button class="btn primary" id="save" type="button"
+                >Save video</button
+              >
+              <button class="btn ghost" id="again" type="button"
+                >Record again</button
+              >
+            </div>
+            <p class="note" id="savenote"></p>
+          </div>
         </div>
-        <p class="note" id="savenote"></p>
+
+        <div class="controls">
+          <fieldset>
+            <legend>Distance</legend>
+            <div class="row" id="presets"></div>
+            <div class="row">
+              <span class="lab">Custom</span>
+              <input
+                type="number"
+                id="custom"
+                min="0"
+                step="0.1"
+                inputmode="decimal"
+                placeholder="26.2"
+                aria-label="Custom distance"
+              />
+              <button
+                class="chip sm"
+                id="u_mi"
+                type="button"
+                aria-pressed="true"
+                >Miles</button
+              >
+              <button
+                class="chip sm"
+                id="u_km"
+                type="button"
+                aria-pressed="false"
+                >KM</button
+              >
+            </div>
+            <div class="row">
+              <span class="lab">Top word</span>
+              <input
+                type="text"
+                id="label"
+                maxlength="12"
+                placeholder="auto"
+                aria-label="Top word on the sign"
+              />
+              <span class="note"
+                >Leave blank for MILE, KM, HALF or MARATHON.</span
+              >
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Sound</legend>
+            <div class="sounds" id="sounds"></div>
+            <div class="row">
+              <label class="toggle"
+                ><input type="checkbox" id="climb" checked /> Pitch climbs with
+                distance</label
+              >
+              <label class="toggle"
+                ><input type="checkbox" id="moves" checked /> Pop-up and
+                tuck-away swooshes</label
+              >
+            </div>
+            <div class="row">
+              <span class="lab">Volume</span>
+              <input
+                type="range"
+                id="vol"
+                min="0"
+                max="100"
+                value="80"
+                aria-label="Volume"
+                style="flex: 1; min-width: 120px; accent-color: var(--teal)"
+              />
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Look</legend>
+            <div class="row"
+              ><span class="lab">Background</span>
+              <button class="chip sm" data-g="bg" data-v="green" type="button"
+                >Green screen</button
+              >
+              <button class="chip sm" data-g="bg" data-v="navy" type="button"
+                >Navy</button
+              ></div
+            >
+            <div class="row"
+              ><span class="lab">Format</span>
+              <button class="chip sm" data-g="fmt" data-v="v" type="button"
+                >9:16</button
+              >
+              <button class="chip sm" data-g="fmt" data-v="h" type="button"
+                >16:9</button
+              ></div
+            >
+            <div class="row"
+              ><span class="lab">Position</span>
+              <button class="chip sm" data-g="pos" data-v="bl" type="button"
+                >Bottom left</button
+              >
+              <button class="chip sm" data-g="pos" data-v="c" type="button"
+                >Center</button
+              >
+              <button class="chip sm" data-g="pos" data-v="br" type="button"
+                >Bottom right</button
+              ></div
+            >
+            <div class="row"
+              ><span class="lab">Size</span>
+              <button class="chip sm" data-g="size" data-v="0.8" type="button"
+                >S</button
+              >
+              <button class="chip sm" data-g="size" data-v="1" type="button"
+                >M</button
+              >
+              <button class="chip sm" data-g="size" data-v="1.3" type="button"
+                >L</button
+              ></div
+            >
+            <div class="row"
+              ><span class="lab">Length</span>
+              <button class="chip sm" data-g="dur" data-v="3" type="button"
+                >3 sec</button
+              >
+              <button class="chip sm" data-g="dur" data-v="5" type="button"
+                >5 sec</button
+              ></div
+            >
+            <div class="row"
+              ><span class="lab">Celebrate</span>
+              <button class="chip sm" data-g="cel" data-v="auto" type="button"
+                >Auto (50+)</button
+              >
+              <button class="chip sm" data-g="cel" data-v="on" type="button"
+                >Always</button
+              >
+              <button class="chip sm" data-g="cel" data-v="off" type="button"
+                >Never</button
+              ></div
+            >
+            <div class="row">
+              <button class="btn ghost" id="png" type="button"
+                >Save still image (transparent PNG)</button
+              >
+            </div>
+          </fieldset>
+        </div>
       </div>
     </div>
 
-    <div class="controls">
-      <fieldset>
-        <legend>Distance</legend>
-        <div class="row" id="presets"></div>
-        <div class="row">
-          <span class="lab">Custom</span>
-          <input type="number" id="custom" min="0" step="0.1" inputmode="decimal" placeholder="26.2" aria-label="Custom distance">
-          <button class="chip sm" id="u_mi" type="button" aria-pressed="true">Miles</button>
-          <button class="chip sm" id="u_km" type="button" aria-pressed="false">KM</button>
-        </div>
-        <div class="row">
-          <span class="lab">Top word</span>
-          <input type="text" id="label" maxlength="12" placeholder="auto" aria-label="Top word on the sign">
-          <span class="note">Leave blank for MILE, KM, HALF or MARATHON.</span>
-        </div>
-      </fieldset>
+    <script>
+      (function () {
+        'use strict';
+        // ---------- state
+        var PRESETS = [
+          { v: 5, t: '5' },
+          { v: 10, t: '10' },
+          { v: 13.1, t: 'HALF' },
+          { v: 20, t: '20' },
+          { v: 30, t: '30' },
+          { v: 40, t: '40' },
+          { v: 50, t: '50' },
+          { v: 75, t: '75' },
+          { v: 100, t: '100' },
+        ];
+        var SOUNDS = [
+          { id: 'bell', name: 'Trail bell', desc: 'Soft, clear bell' },
+          { id: 'cowbell', name: 'Race cowbell', desc: 'Aid-station cowbell' },
+          { id: 'coin', name: 'Coin', desc: 'Two-note video game blip' },
+          { id: 'plip', name: 'Water plip', desc: 'Droplet, like The Drop' },
+          { id: 'cyber', name: 'Cyber hit', desc: 'Matches the video kit' },
+          { id: 'horn', name: 'Air horn', desc: 'Loud. Use for the big ones' },
+          { id: 'none', name: 'No sound', desc: 'Silent clip' },
+        ];
+        var S = {
+          miles: 10,
+          custom: '',
+          unit: 'mi',
+          label: '',
+          sound: 'bell',
+          climb: true,
+          moves: true,
+          vol: 80,
+          bg: 'green',
+          fmt: 'v',
+          pos: 'br',
+          size: '1',
+          dur: '3',
+          cel: 'auto',
+        };
+        try {
+          var saved = JSON.parse(
+            localStorage.getItem('tim_mile_marker') || 'null',
+          );
+          if (saved) for (var k in saved) if (k in S) S[k] = saved[k];
+        } catch (e) {}
+        function persist() {
+          try {
+            localStorage.setItem('tim_mile_marker', JSON.stringify(S));
+          } catch (e) {}
+        }
 
-      <fieldset>
-        <legend>Sound</legend>
-        <div class="sounds" id="sounds"></div>
-        <div class="row">
-          <label class="toggle"><input type="checkbox" id="climb" checked> Pitch climbs with distance</label>
-          <label class="toggle"><input type="checkbox" id="moves" checked> Pop-up and tuck-away swooshes</label>
-        </div>
-        <div class="row">
-          <span class="lab">Volume</span>
-          <input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume" style="flex:1;min-width:120px;accent-color:var(--teal)">
-        </div>
-      </fieldset>
+        var cv = document.getElementById('cv'),
+          ctx = cv.getContext('2d');
+        var $ = function (id) {
+          return document.getElementById(id);
+        };
+        var msg = $('msg');
+        function say(t, err) {
+          msg.textContent = t || '';
+          msg.className = 'msg' + (err ? ' err' : '');
+        }
 
-      <fieldset>
-        <legend>Look</legend>
-        <div class="row"><span class="lab">Background</span>
-          <button class="chip sm" data-g="bg" data-v="green" type="button">Green screen</button>
-          <button class="chip sm" data-g="bg" data-v="navy" type="button">Navy</button></div>
-        <div class="row"><span class="lab">Format</span>
-          <button class="chip sm" data-g="fmt" data-v="v" type="button">9:16</button>
-          <button class="chip sm" data-g="fmt" data-v="h" type="button">16:9</button></div>
-        <div class="row"><span class="lab">Position</span>
-          <button class="chip sm" data-g="pos" data-v="bl" type="button">Bottom left</button>
-          <button class="chip sm" data-g="pos" data-v="c" type="button">Center</button>
-          <button class="chip sm" data-g="pos" data-v="br" type="button">Bottom right</button></div>
-        <div class="row"><span class="lab">Size</span>
-          <button class="chip sm" data-g="size" data-v="0.8" type="button">S</button>
-          <button class="chip sm" data-g="size" data-v="1" type="button">M</button>
-          <button class="chip sm" data-g="size" data-v="1.3" type="button">L</button></div>
-        <div class="row"><span class="lab">Length</span>
-          <button class="chip sm" data-g="dur" data-v="3" type="button">3 sec</button>
-          <button class="chip sm" data-g="dur" data-v="5" type="button">5 sec</button></div>
-        <div class="row"><span class="lab">Celebrate</span>
-          <button class="chip sm" data-g="cel" data-v="auto" type="button">Auto (50+)</button>
-          <button class="chip sm" data-g="cel" data-v="on" type="button">Always</button>
-          <button class="chip sm" data-g="cel" data-v="off" type="button">Never</button></div>
-        <div class="row">
-          <button class="btn ghost" id="png" type="button">Save still image (transparent PNG)</button>
-        </div>
-      </fieldset>
-    </div>
-  </div>
-</div>
+        // ---------- what the sign says
+        function distance() {
+          var c = parseFloat(S.custom);
+          if (S.custom !== '' && isFinite(c) && c >= 0)
+            return { v: c, unit: S.unit, custom: true };
+          return { v: S.miles, unit: 'mi', custom: false };
+        }
+        function fmtNum(v) {
+          var r = Math.round(v * 10) / 10;
+          return r % 1 === 0 ? String(r) : r.toFixed(1);
+        }
+        function signText() {
+          var d = distance(),
+            big,
+            top;
+          if (!d.custom && d.v === 13.1) {
+            big = '13.1';
+            top = 'HALF';
+          } else {
+            big = fmtNum(d.v);
+            top = d.unit === 'km' ? 'KM' : 'MILE';
+            if (d.unit === 'mi' && Math.abs(d.v - 13.1) < 0.01) top = 'HALF';
+            if (d.unit === 'mi' && Math.abs(d.v - 26.2) < 0.01)
+              top = 'MARATHON';
+            if (d.unit === 'km' && Math.abs(d.v - 21.1) < 0.05) top = 'HALF';
+            if (d.unit === 'km' && Math.abs(d.v - 42.2) < 0.05)
+              top = 'MARATHON';
+          }
+          var lab = (S.label || '').trim().toUpperCase();
+          if (lab) top = lab;
+          return {
+            big: big,
+            top: top,
+            miles: d.unit === 'km' ? d.v * 0.621371 : d.v,
+          };
+        }
+        function celebrating() {
+          var m = signText().miles;
+          return S.cel === 'on' || (S.cel === 'auto' && m >= 50);
+        }
+        // pitch: each preset is one step up the E minor scale; customs slot in between
+        var SCALE = [
+          'E4',
+          'F#4',
+          'G4',
+          'A4',
+          'B4',
+          'C5',
+          'D5',
+          'E5',
+          'F#5',
+          'G5',
+          'A5',
+          'B5',
+          'C6',
+          'D6',
+          'E6',
+        ];
+        var NOTE = {};
+        (function () {
+          var n = [
+            'C',
+            'C#',
+            'D',
+            'D#',
+            'E',
+            'F',
+            'F#',
+            'G',
+            'G#',
+            'A',
+            'A#',
+            'B',
+          ];
+          for (var o = 2; o < 8; o++)
+            n.forEach(function (x, i) {
+              NOTE[x + o] = 440 * Math.pow(2, (o * 12 + i - 57) / 12);
+            });
+        })();
+        function pitch() {
+          if (!S.climb) return NOTE['B4'];
+          var m = signText().miles,
+            i = 0;
+          while (i < PRESETS.length && PRESETS[i].v < m - 1e-6) i++;
+          return NOTE[SCALE[Math.min(SCALE.length - 1, 2 + i)]];
+        }
 
-<script>
-(function(){
-"use strict";
-// ---------- state
-var PRESETS=[{v:5,t:'5'},{v:10,t:'10'},{v:13.1,t:'HALF'},{v:20,t:'20'},{v:30,t:'30'},{v:40,t:'40'},{v:50,t:'50'},{v:75,t:'75'},{v:100,t:'100'}];
-var SOUNDS=[
-  {id:'bell',name:'Trail bell',desc:'Soft, clear bell'},
-  {id:'cowbell',name:'Race cowbell',desc:'Aid-station cowbell'},
-  {id:'coin',name:'Coin',desc:'Two-note video game blip'},
-  {id:'plip',name:'Water plip',desc:'Droplet, like The Drop'},
-  {id:'cyber',name:'Cyber hit',desc:'Matches the video kit'},
-  {id:'horn',name:'Air horn',desc:'Loud. Use for the big ones'},
-  {id:'none',name:'No sound',desc:'Silent clip'}];
-var S={miles:10,custom:'',unit:'mi',label:'',sound:'bell',climb:true,moves:true,vol:80,bg:'green',fmt:'v',pos:'br',size:'1',dur:'3',cel:'auto'};
-try{var saved=JSON.parse(localStorage.getItem('tim_mile_marker')||'null');if(saved)for(var k in saved)if(k in S)S[k]=saved[k]}catch(e){}
-function persist(){try{localStorage.setItem('tim_mile_marker',JSON.stringify(S))}catch(e){}}
+        // ---------- drawing
+        var C = {
+          navy: '#0E1A2E',
+          sign: '#13233D',
+          gold: '#E8C96A',
+          teal: '#2E9BAD',
+          paper: '#F6F4EF',
+          post: '#C9A24A',
+          postDark: '#9C7B33',
+        };
+        function clamp(x, a, b) {
+          return Math.max(a, Math.min(b, x));
+        }
+        function eOut(x) {
+          return 1 - Math.pow(1 - x, 3);
+        }
+        function eIn(x) {
+          return x * x * x;
+        }
+        function eBack(x) {
+          var c1 = 1.7,
+            c3 = c1 + 1;
+          return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+        }
+        function rr(c, x, y, w, h, r) {
+          c.beginPath();
+          c.moveTo(x + r, y);
+          c.arcTo(x + w, y, x + w, y + h, r);
+          c.arcTo(x + w, y + h, x, y + h, r);
+          c.arcTo(x, y + h, x, y, r);
+          c.arcTo(x, y, x + w, y, r);
+          c.closePath();
+        }
+        function setFont(c, w, s, track) {
+          c.font =
+            w + ' ' + s + 'px "Barlow Condensed","Arial Narrow",sans-serif';
+          try {
+            c.letterSpacing = (track || 0) + 'px';
+          } catch (e) {}
+        }
+        function geom(W, H) {
+          var V = H > W,
+            k = parseFloat(S.size) * (V ? 1.15 : 1),
+            txt = signText();
+          setFont(ctx, 900, 120 * k, 0);
+          var nw = ctx.measureText(txt.big).width;
+          setFont(ctx, 700, 34 * k, 6 * k);
+          var tw = ctx.measureText(txt.top).width;
+          var bw = Math.max(230 * k, nw + 80 * k, tw + 70 * k),
+            bh = 196 * k,
+            post = 150 * k,
+            margin = (V ? 90 : 120) * k;
+          var gy = V ? H - 430 : H - 110,
+            gx;
+          if (S.pos === 'bl') gx = margin + bw / 2;
+          else if (S.pos === 'c') {
+            gx = W / 2;
+            gy = V ? H * 0.6 : H * 0.66;
+          } else gx = W - margin - bw / 2;
+          return { k: k, bw: bw, bh: bh, post: post, gx: gx, gy: gy, txt: txt };
+        }
+        function drawSign(c, g, t, T, clean) {
+          var kin = clamp(t / 0.45, 0, 1),
+            s = t < 0.45 ? eBack(kin) : 1,
+            o0 = T - 0.5;
+          if (t > o0) s *= 1 - eIn(clamp((t - o0) / 0.4, 0, 1));
+          if (s <= 0.001) return;
+          var rot =
+            t > 0.3 && t < o0
+              ? 7 * Math.exp(-3.4 * (t - 0.3)) * Math.sin(13 * (t - 0.3))
+              : 0;
+          var sx = s < 1 ? 0.75 + 0.25 * s : 1 - (s - 1) * 0.6;
+          c.save();
+          c.translate(g.gx, g.gy);
+          c.rotate((rot * Math.PI) / 180);
+          c.scale(sx, s);
+          var k = g.k,
+            pw = 16 * k;
+          // post
+          c.fillStyle = C.post;
+          c.fillRect(-pw / 2, -g.post - 8 * k, pw, g.post + 8 * k);
+          c.fillStyle = C.postDark;
+          c.fillRect(pw / 2 - 5 * k, -g.post - 8 * k, 5 * k, g.post + 8 * k);
+          // board
+          var bx = -g.bw / 2,
+            by = -g.post - g.bh;
+          c.fillStyle = C.sign;
+          rr(c, bx, by, g.bw, g.bh, 12 * k);
+          c.fill();
+          // gold wave along the top edge (brand motif), clipped to the board
+          c.save();
+          rr(c, bx, by, g.bw, g.bh, 12 * k);
+          c.clip();
+          c.fillStyle = C.gold;
+          c.beginPath();
+          c.moveTo(bx, by);
+          for (var i = 0; i <= g.bw; i += 4) {
+            c.lineTo(
+              bx + i,
+              by + 9 * k + 4 * k * Math.sin((i / g.bw) * Math.PI * 2.4 + t * 2),
+            );
+          }
+          c.lineTo(bx + g.bw, by);
+          c.closePath();
+          c.fill();
+          c.restore();
+          c.lineWidth = 5 * k;
+          c.strokeStyle = C.gold;
+          rr(c, bx, by, g.bw, g.bh, 12 * k);
+          c.stroke();
+          c.lineWidth = 2 * k;
+          c.strokeStyle = C.teal;
+          rr(c, bx + 10 * k, by + 20 * k, g.bw - 20 * k, g.bh - 30 * k, 7 * k);
+          c.stroke();
+          // bolts
+          c.fillStyle = C.gold;
+          [
+            [bx + 22 * k, by + 34 * k],
+            [bx + g.bw - 22 * k, by + 34 * k],
+          ].forEach(function (p) {
+            c.beginPath();
+            c.arc(p[0], p[1], 4 * k, 0, Math.PI * 2);
+            c.fill();
+          });
+          // text
+          c.textAlign = 'center';
+          c.textBaseline = 'alphabetic';
+          setFont(c, 700, 34 * k, 6 * k);
+          c.fillStyle = C.gold;
+          c.fillText(g.txt.top, 3 * k, by + 70 * k);
+          var pop = clamp((t - 0.38) / 0.25, 0, 1),
+            ps = t < 0.38 ? 0.85 : 1 + 0.08 * Math.sin(Math.PI * pop);
+          c.save();
+          c.translate(0, by + 168 * k);
+          c.scale(ps, ps);
+          setFont(c, 900, 120 * k, 0);
+          c.fillStyle = C.paper;
+          c.fillText(g.txt.big, 0, 0);
+          c.restore();
+          c.restore();
+          // celebration burst (solid colors so green screen keys cleanly; it shrinks instead of fading)
+          if (celebrating()) {
+            [
+              [0.42, C.gold, 1],
+              [0.62, C.teal, 0.8],
+            ].forEach(function (b) {
+              var a = t - b[0];
+              if (a < 0 || a > 0.75) return;
+              var q = a / 0.75,
+                cx = g.gx,
+                cy = g.gy - g.post - g.bh / 2,
+                r = (40 + g.bw * 0.75 * eOut(q)) * b[2];
+              c.save();
+              c.strokeStyle = b[1];
+              c.lineCap = 'round';
+              c.lineWidth = Math.max(0.5, 8 * g.k * (1 - q));
+              c.beginPath();
+              c.arc(cx, cy, r, 0, Math.PI * 2);
+              if (!clean || q < 0.97) c.stroke();
+              c.lineWidth = Math.max(0.5, 6 * g.k * (1 - q));
+              for (var i = 0; i < 12; i++) {
+                var an = (i / 12) * Math.PI * 2 + 0.26,
+                  r1 = r * 1.08,
+                  r2 = r * 1.08 + 34 * g.k * (1 - q);
+                c.beginPath();
+                c.moveTo(cx + Math.cos(an) * r1, cy + Math.sin(an) * r1);
+                c.lineTo(cx + Math.cos(an) * r2, cy + Math.sin(an) * r2);
+                c.stroke();
+              }
+              c.restore();
+            });
+          }
+        }
+        function paint(t, transparent) {
+          var W = cv.width,
+            H = cv.height,
+            T = parseFloat(S.dur);
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, W, H);
+          if (!transparent) {
+            if (S.bg === 'green') {
+              ctx.fillStyle = '#00FF00';
+              ctx.fillRect(0, 0, W, H);
+            } else {
+              ctx.fillStyle = C.navy;
+              ctx.fillRect(0, 0, W, H);
+              ctx.strokeStyle = 'rgba(246,244,239,0.035)';
+              ctx.lineWidth = 2;
+              for (var i = -H; i < W; i += 52) {
+                ctx.beginPath();
+                ctx.moveTo(i, H);
+                ctx.lineTo(i + H, 0);
+                ctx.stroke();
+              }
+            }
+          }
+          drawSign(ctx, geom(W, H), t, T, S.bg === 'green' && !transparent);
+        }
 
-var cv=document.getElementById('cv'),ctx=cv.getContext('2d');
-var $=function(id){return document.getElementById(id)};
-var msg=$('msg');function say(t,err){msg.textContent=t||'';msg.className='msg'+(err?' err':'')}
+        // ---------- sound (Web Audio, synthesized; nothing to download)
+        var AC = null,
+          master = null,
+          NOISE = null,
+          recDest = null;
+        function audio() {
+          if (AC) return AC;
+          var A = window.AudioContext || window.webkitAudioContext;
+          if (!A) return null;
+          AC = new A();
+          var comp = AC.createDynamicsCompressor();
+          comp.threshold.value = -10;
+          comp.ratio.value = 4;
+          master = AC.createGain();
+          master.gain.value = S.vol / 100;
+          master.connect(comp);
+          comp.connect(AC.destination);
+          master._comp = comp;
+          var n = AC.sampleRate * 2;
+          NOISE = AC.createBuffer(1, n, AC.sampleRate);
+          var d = NOISE.getChannelData(0);
+          for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+          return AC;
+        }
+        function env(g, t, a, peak, decay) {
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(peak, t + a);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + a + decay);
+        }
+        function osc(type, f, t, dur, dest) {
+          var o = AC.createOscillator();
+          o.type = type;
+          o.frequency.setValueAtTime(f, t);
+          o.connect(dest);
+          o.start(t);
+          o.stop(t + dur + 0.05);
+          return o;
+        }
+        function vgain(dest) {
+          var g = AC.createGain();
+          g.connect(dest || master);
+          return g;
+        }
+        function noise(t, dur, dest) {
+          var s = AC.createBufferSource();
+          s.buffer = NOISE;
+          s.connect(dest);
+          s.start(t, Math.random());
+          s.stop(t + dur);
+          return s;
+        }
+        function bell(t, f, amp) {
+          [
+            [1, 1, 1.3],
+            [2, 0.4, 0.6],
+            [3.01, 0.22, 0.35],
+            [4.2, 0.1, 0.2],
+          ].forEach(function (p) {
+            var g = vgain();
+            env(g, t, 0.004, 0.32 * p[1] * (amp || 1), p[2]);
+            osc('sine', f * p[0], t, p[2] + 0.2, g);
+          });
+        }
+        function cowbell(t, f) {
+          var r = f / NOTE['B4'];
+          var bp = AC.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.frequency.value = 1100 * r;
+          bp.Q.value = 1.2;
+          bp.connect(master);
+          var g = AC.createGain();
+          g.connect(bp);
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.5, t + 0.002);
+          g.gain.exponentialRampToValueAtTime(0.12, t + 0.06);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+          osc('square', 540 * r, t, 0.6, g);
+          osc('square', 800 * r, t, 0.6, g);
+        }
+        function coin(t, f) {
+          var g1 = vgain();
+          env(g1, t, 0.002, 0.13, 0.09);
+          osc('square', f * 2, t, 0.12, g1);
+          var g2 = vgain();
+          env(g2, t + 0.075, 0.002, 0.13, 0.32);
+          osc('square', f * 2 * 1.3348, t + 0.075, 0.4, g2);
+        }
+        function plip(t, f) {
+          var g = vgain();
+          env(g, t, 0.002, 0.5, 0.12);
+          var o = AC.createOscillator();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(f * 0.55, t);
+          o.frequency.exponentialRampToValueAtTime(f * 1.4, t + 0.05);
+          o.connect(g);
+          o.start(t);
+          o.stop(t + 0.3);
+          var hp = AC.createBiquadFilter();
+          hp.type = 'highpass';
+          hp.frequency.value = 4000;
+          hp.connect(master);
+          var g2 = AC.createGain();
+          g2.connect(hp);
+          env(g2, t, 0.0005, 0.2, 0.004);
+          noise(t, 0.03, g2);
+        }
+        function cyber(t, f) {
+          var lp = AC.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.setValueAtTime(3200, t);
+          lp.frequency.exponentialRampToValueAtTime(700, t + 0.3);
+          lp.connect(master);
+          var g = AC.createGain();
+          g.connect(lp);
+          env(g, t, 0.003, 0.16, 0.28);
+          [-7, 0, 7].forEach(function (dt) {
+            var o = osc('sawtooth', f, t, 0.4, g);
+            o.detune.value = dt;
+          });
+          osc('sawtooth', f * 1.5, t, 0.4, g);
+          var gs = vgain();
+          env(gs, t, 0.004, 0.6, 0.35);
+          var s = AC.createOscillator();
+          s.type = 'sine';
+          s.frequency.setValueAtTime(90, t);
+          s.frequency.exponentialRampToValueAtTime(38, t + 0.4);
+          s.connect(gs);
+          s.start(t);
+          s.stop(t + 0.5);
+          var hp = AC.createBiquadFilter();
+          hp.type = 'highpass';
+          hp.frequency.value = 3000;
+          hp.connect(master);
+          var gn = AC.createGain();
+          gn.connect(hp);
+          env(gn, t, 0.0005, 0.25, 0.02);
+          noise(t, 0.06, gn);
+        }
+        function horn(t, f, len) {
+          len = len || 0.55;
+          var r = f / NOTE['B4'];
+          var lp = AC.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.value = 2600;
+          lp.connect(master);
+          var g = AC.createGain();
+          g.connect(lp);
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.11, t + 0.02);
+          g.gain.setValueAtTime(0.11, t + len - 0.06);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+          [415, 417, 622, 830].forEach(function (fr, i) {
+            var o = osc('sawtooth', fr * r, t, len, g);
+            o.frequency.setValueAtTime(fr * r * 0.97, t);
+            o.frequency.linearRampToValueAtTime(fr * r, t + 0.06);
+          });
+        }
+        function thunk(t) {
+          var g = vgain();
+          env(g, t, 0.002, 0.5, 0.09);
+          var o = AC.createOscillator();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(150, t);
+          o.frequency.exponentialRampToValueAtTime(55, t + 0.1);
+          o.connect(g);
+          o.start(t);
+          o.stop(t + 0.2);
+          var lp = AC.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.value = 900;
+          lp.connect(master);
+          var g2 = AC.createGain();
+          g2.connect(lp);
+          env(g2, t, 0.001, 0.3, 0.04);
+          noise(t, 0.1, g2);
+        }
+        function swish(t, up) {
+          var bp = AC.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.Q.value = 1.4;
+          bp.frequency.setValueAtTime(up ? 500 : 2600, t);
+          bp.frequency.exponentialRampToValueAtTime(up ? 2800 : 450, t + 0.32);
+          bp.connect(master);
+          var g = AC.createGain();
+          g.connect(bp);
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.22, t + 0.14);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.34);
+          noise(t, 0.36, g);
+        }
+        function hit(t, f) {
+          var id = S.sound,
+            cel = celebrating();
+          if (id === 'bell') {
+            bell(t, f);
+            if (cel) {
+              bell(t + 0.09, f * 1.26, 0.7);
+              bell(t + 0.18, f * 1.5, 0.7);
+            }
+          } else if (id === 'cowbell') {
+            cowbell(t, f);
+            if (cel) {
+              cowbell(t + 0.16, f);
+              cowbell(t + 0.32, f);
+            }
+          } else if (id === 'coin') {
+            coin(t, f);
+            if (cel) coin(t + 0.2, f * 1.5);
+          } else if (id === 'plip') {
+            plip(t, f * 2);
+            if (cel) {
+              plip(t + 0.12, f * 2.52);
+              plip(t + 0.24, f * 3);
+            }
+          } else if (id === 'cyber') {
+            cyber(t, f);
+            if (cel) bell(t + 0.05, f * 2, 0.5);
+          } else if (id === 'horn') {
+            if (cel) {
+              horn(t, f, 0.28);
+              horn(t + 0.36, f, 0.28);
+              horn(t + 0.72, f, 0.7);
+            } else horn(t, f);
+          }
+        }
+        function scheduleSounds(t0) {
+          var T = parseFloat(S.dur),
+            f = pitch();
+          master.gain.setValueAtTime(S.vol / 100, t0);
+          if (S.moves) {
+            swish(t0, true);
+            thunk(t0 + 0.33);
+            swish(t0 + T - 0.5, false);
+          }
+          if (S.sound !== 'none') hit(t0 + 0.38, f);
+        }
 
-// ---------- what the sign says
-function distance(){var c=parseFloat(S.custom);if(S.custom!==''&&isFinite(c)&&c>=0)return {v:c,unit:S.unit,custom:true};return {v:S.miles,unit:'mi',custom:false}}
-function fmtNum(v){var r=Math.round(v*10)/10;return (r%1===0?String(r):r.toFixed(1))}
-function signText(){var d=distance(),big,top;
-  if(!d.custom&&d.v===13.1){big='13.1';top='HALF'}
-  else{big=fmtNum(d.v);top=d.unit==='km'?'KM':'MILE';
-    if(d.unit==='mi'&&Math.abs(d.v-13.1)<0.01)top='HALF';
-    if(d.unit==='mi'&&Math.abs(d.v-26.2)<0.01)top='MARATHON';
-    if(d.unit==='km'&&Math.abs(d.v-21.1)<0.05)top='HALF';
-    if(d.unit==='km'&&Math.abs(d.v-42.2)<0.05)top='MARATHON'}
-  var lab=(S.label||'').trim().toUpperCase();if(lab)top=lab;return {big:big,top:top,miles:d.unit==='km'?d.v*0.621371:d.v}}
-function celebrating(){var m=signText().miles;return S.cel==='on'||(S.cel==='auto'&&m>=50)}
-// pitch: each preset is one step up the E minor scale; customs slot in between
-var SCALE=['E4','F#4','G4','A4','B4','C5','D5','E5','F#5','G5','A5','B5','C6','D6','E6'];
-var NOTE={};(function(){var n=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];for(var o=2;o<8;o++)n.forEach(function(x,i){NOTE[x+o]=440*Math.pow(2,(o*12+i-57)/12)})})();
-function pitch(){if(!S.climb)return NOTE['B4'];var m=signText().miles,i=0;while(i<PRESETS.length&&PRESETS[i].v<m-1e-6)i++;return NOTE[SCALE[Math.min(SCALE.length-1,2+i)]]}
+        // ---------- animation loop
+        var playing = null; // {start, onDone}
+        function frame(now) {
+          if (!playing) {
+            paint(1.4);
+            return;
+          }
+          var t = (now - playing.start) / 1000,
+            T = parseFloat(S.dur);
+          paint(Math.max(0, t));
+          if (t < T + 0.05) requestAnimationFrame(frame);
+          else {
+            var cb = playing.onDone;
+            playing = null;
+            paint(1.4);
+            if (cb) cb();
+          }
+        }
+        function run(onDone, lead) {
+          var A = audio();
+          lead = lead || 0.08;
+          var wall = performance.now() + lead * 1000;
+          if (A) {
+            if (A.state === 'suspended') A.resume();
+            scheduleSounds(A.currentTime + lead);
+          }
+          playing = { start: wall, onDone: onDone };
+          requestAnimationFrame(frame);
+        }
 
-// ---------- drawing
-var C={navy:'#0E1A2E',sign:'#13233D',gold:'#E8C96A',teal:'#2E9BAD',paper:'#F6F4EF',post:'#C9A24A',postDark:'#9C7B33'};
-function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
-function eOut(x){return 1-Math.pow(1-x,3)}
-function eIn(x){return x*x*x}
-function eBack(x){var c1=1.7,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}
-function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
-function setFont(c,w,s,track){c.font=w+' '+s+'px "Barlow Condensed","Arial Narrow",sans-serif';try{c.letterSpacing=(track||0)+'px'}catch(e){}}
-function geom(W,H){var V=H>W,k=parseFloat(S.size)*(V?1.15:1),txt=signText();
-  setFont(ctx,900,120*k,0);var nw=ctx.measureText(txt.big).width;setFont(ctx,700,34*k,6*k);var tw=ctx.measureText(txt.top).width;
-  var bw=Math.max(230*k,nw+80*k,tw+70*k),bh=196*k,post=150*k,margin=(V?90:120)*k;
-  var gy=V?H-430:H-110,gx;if(S.pos==='bl')gx=margin+bw/2;else if(S.pos==='c'){gx=W/2;gy=V?H*0.6:H*0.66}else gx=W-margin-bw/2;
-  return {k:k,bw:bw,bh:bh,post:post,gx:gx,gy:gy,txt:txt}}
-function drawSign(c,g,t,T,clean){
-  var kin=clamp(t/0.45,0,1),s=t<0.45?eBack(kin):1,o0=T-0.5;
-  if(t>o0)s*=1-eIn(clamp((t-o0)/0.4,0,1));if(s<=0.001)return;
-  var rot=t>0.3&&t<o0?7*Math.exp(-3.4*(t-0.3))*Math.sin(13*(t-0.3)):0;
-  var sx=s<1?0.75+0.25*s:1-(s-1)*0.6;
-  c.save();c.translate(g.gx,g.gy);c.rotate(rot*Math.PI/180);c.scale(sx,s);
-  var k=g.k,pw=16*k;
-  // post
-  c.fillStyle=C.post;c.fillRect(-pw/2,-g.post-8*k,pw,g.post+8*k);c.fillStyle=C.postDark;c.fillRect(pw/2-5*k,-g.post-8*k,5*k,g.post+8*k);
-  // board
-  var bx=-g.bw/2,by=-g.post-g.bh;
-  c.fillStyle=C.sign;rr(c,bx,by,g.bw,g.bh,12*k);c.fill();
-  // gold wave along the top edge (brand motif), clipped to the board
-  c.save();rr(c,bx,by,g.bw,g.bh,12*k);c.clip();c.fillStyle=C.gold;c.beginPath();c.moveTo(bx,by);
-  for(var i=0;i<=g.bw;i+=4){c.lineTo(bx+i,by+9*k+4*k*Math.sin(i/g.bw*Math.PI*2.4+t*2))}c.lineTo(bx+g.bw,by);c.closePath();c.fill();c.restore();
-  c.lineWidth=5*k;c.strokeStyle=C.gold;rr(c,bx,by,g.bw,g.bh,12*k);c.stroke();
-  c.lineWidth=2*k;c.strokeStyle=C.teal;rr(c,bx+10*k,by+20*k,g.bw-20*k,g.bh-30*k,7*k);c.stroke();
-  // bolts
-  c.fillStyle=C.gold;[[bx+22*k,by+34*k],[bx+g.bw-22*k,by+34*k]].forEach(function(p){c.beginPath();c.arc(p[0],p[1],4*k,0,Math.PI*2);c.fill()});
-  // text
-  c.textAlign='center';c.textBaseline='alphabetic';
-  setFont(c,700,34*k,6*k);c.fillStyle=C.gold;c.fillText(g.txt.top,3*k,by+70*k);
-  var pop=clamp((t-0.38)/0.25,0,1),ps=t<0.38?0.85:1+0.08*Math.sin(Math.PI*pop);
-  c.save();c.translate(0,by+168*k);c.scale(ps,ps);setFont(c,900,120*k,0);c.fillStyle=C.paper;c.fillText(g.txt.big,0,0);c.restore();
-  c.restore();
-  // celebration burst (solid colors so green screen keys cleanly; it shrinks instead of fading)
-  if(celebrating()){[[0.42,C.gold,1],[0.62,C.teal,0.8]].forEach(function(b){var a=t-b[0];if(a<0||a>0.75)return;var q=a/0.75,cx=g.gx,cy=g.gy-g.post-g.bh/2,r=(40+g.bw*0.75*eOut(q))*b[2];
-    c.save();c.strokeStyle=b[1];c.lineCap='round';c.lineWidth=Math.max(0.5,8*g.k*(1-q));c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);if(!clean||q<0.97)c.stroke();
-    c.lineWidth=Math.max(0.5,6*g.k*(1-q));for(var i=0;i<12;i++){var an=i/12*Math.PI*2+0.26,r1=r*1.08,r2=r*1.08+34*g.k*(1-q);c.beginPath();c.moveTo(cx+Math.cos(an)*r1,cy+Math.sin(an)*r1);c.lineTo(cx+Math.cos(an)*r2,cy+Math.sin(an)*r2);c.stroke()}
-    c.restore()})}}
-function paint(t,transparent){var W=cv.width,H=cv.height,T=parseFloat(S.dur);ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,H);
-  if(!transparent){if(S.bg==='green'){ctx.fillStyle='#00FF00';ctx.fillRect(0,0,W,H)}
-    else{ctx.fillStyle=C.navy;ctx.fillRect(0,0,W,H);ctx.strokeStyle='rgba(246,244,239,0.035)';ctx.lineWidth=2;for(var i=-H;i<W;i+=52){ctx.beginPath();ctx.moveTo(i,H);ctx.lineTo(i+H,0);ctx.stroke()}}}
-  drawSign(ctx,geom(W,H),t,T,S.bg==='green'&&!transparent)}
+        // ---------- recording
+        function pickType() {
+          if (!window.MediaRecorder) return null;
+          var c = [
+            'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+            'video/mp4;codecs=avc1,mp4a',
+            'video/mp4',
+            'video/webm;codecs=vp9,opus',
+            'video/webm;codecs=vp8,opus',
+            'video/webm',
+          ];
+          for (var i = 0; i < c.length; i++) {
+            try {
+              if (MediaRecorder.isTypeSupported(c[i])) return c[i];
+            } catch (e) {}
+          }
+          return '';
+        }
+        var lastBlob = null,
+          lastName = '',
+          lastURL = null;
+        function fileStem() {
+          var t = signText();
+          return (
+            'tim-' +
+            (t.top + '-' + t.big).toLowerCase().replace(/[^a-z0-9.]+/g, '-') +
+            '-' +
+            (S.fmt === 'v' ? '9x16' : '16x9') +
+            '-' +
+            (S.bg === 'green' ? 'greenscreen' : 'navy')
+          ).replace(/-+/g, '-');
+        }
+        function record() {
+          if (playing) return;
+          var type = pickType();
+          if (type === null || !cv.captureStream) {
+            say(
+              'This browser can’t record video. Try Safari on iPhone or Chrome on a computer.',
+              true,
+            );
+            return;
+          }
+          var A = audio();
+          if (A && A.state === 'suspended') A.resume();
+          var stream = cv.captureStream(30),
+            tracks = stream.getVideoTracks().slice();
+          if (A) {
+            if (!recDest) {
+              recDest = A.createMediaStreamDestination();
+              master._comp.connect(recDest);
+            }
+            recDest.stream.getAudioTracks().forEach(function (tr) {
+              tracks.push(tr);
+            });
+          }
+          var mr;
+          try {
+            mr = new MediaRecorder(
+              new MediaStream(tracks),
+              type
+                ? {
+                    mimeType: type,
+                    videoBitsPerSecond: 12e6,
+                    audioBitsPerSecond: 192e3,
+                  }
+                : { videoBitsPerSecond: 12e6 },
+            );
+          } catch (e) {
+            say(
+              'Recording couldn’t start in this browser (' + e.name + ').',
+              true,
+            );
+            return;
+          }
+          var chunks = [];
+          mr.ondataavailable = function (e) {
+            if (e.data && e.data.size) chunks.push(e.data);
+          };
+          mr.onstop = function () {
+            stream.getVideoTracks().forEach(function (tr) {
+              tr.stop();
+            });
+            var mt = (mr.mimeType || type || 'video/webm').split(';')[0];
+            var ext = mt.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
+            lastBlob = new Blob(chunks, { type: mt });
+            lastName = fileStem() + '.' + ext;
+            if (lastURL) URL.revokeObjectURL(lastURL);
+            lastURL = URL.createObjectURL(lastBlob);
+            $('vid').src = lastURL;
+            $('result').hidden = false;
+            $('savenote').textContent =
+              lastName + ' · ' + (lastBlob.size / 1048576).toFixed(1) + ' MB';
+            setRec(false);
+            say('Recorded. Check it, then save it.');
+          };
+          setRec(true);
+          say('');
+          paint(0);
+          mr.start();
+          // short pre-roll so the first frame is already in the file, then play the animation and its sounds together
+          setTimeout(function () {
+            run(function () {
+              setTimeout(function () {
+                try {
+                  mr.stop();
+                } catch (e) {}
+              }, 250);
+            }, 0.05);
+          }, 250);
+        }
+        function setRec(on) {
+          var b = $('rec');
+          b.classList.toggle('on', on);
+          b.disabled = on;
+          $('play').disabled = on;
+          b.innerHTML = on
+            ? '<span class="dot"></span>Recording…'
+            : '● Record video';
+        }
 
-// ---------- sound (Web Audio, synthesized; nothing to download)
-var AC=null,master=null,NOISE=null,recDest=null;
-function audio(){if(AC)return AC;var A=window.AudioContext||window.webkitAudioContext;if(!A)return null;AC=new A();
-  var comp=AC.createDynamicsCompressor();comp.threshold.value=-10;comp.ratio.value=4;master=AC.createGain();master.gain.value=S.vol/100;master.connect(comp);comp.connect(AC.destination);
-  master._comp=comp;var n=AC.sampleRate*2;NOISE=AC.createBuffer(1,n,AC.sampleRate);var d=NOISE.getChannelData(0);for(var i=0;i<n;i++)d[i]=Math.random()*2-1;return AC}
-function env(g,t,a,peak,decay){g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(0.0001,t+a+decay)}
-function osc(type,f,t,dur,dest){var o=AC.createOscillator();o.type=type;o.frequency.setValueAtTime(f,t);o.connect(dest);o.start(t);o.stop(t+dur+0.05);return o}
-function vgain(dest){var g=AC.createGain();g.connect(dest||master);return g}
-function noise(t,dur,dest){var s=AC.createBufferSource();s.buffer=NOISE;s.connect(dest);s.start(t,Math.random());s.stop(t+dur);return s}
-function bell(t,f,amp){[[1,1,1.3],[2,0.4,0.6],[3.01,0.22,0.35],[4.2,0.1,0.2]].forEach(function(p){var g=vgain();env(g,t,0.004,0.32*p[1]*(amp||1),p[2]);osc('sine',f*p[0],t,p[2]+0.2,g)})}
-function cowbell(t,f){var r=f/NOTE['B4'];var bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1100*r;bp.Q.value=1.2;bp.connect(master);
-  var g=AC.createGain();g.connect(bp);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.5,t+0.002);g.gain.exponentialRampToValueAtTime(0.12,t+0.06);g.gain.exponentialRampToValueAtTime(0.0001,t+0.55);
-  osc('square',540*r,t,0.6,g);osc('square',800*r,t,0.6,g)}
-function coin(t,f){var g1=vgain();env(g1,t,0.002,0.13,0.09);osc('square',f*2,t,0.12,g1);var g2=vgain();env(g2,t+0.075,0.002,0.13,0.32);osc('square',f*2*1.3348,t+0.075,0.4,g2)}
-function plip(t,f){var g=vgain();env(g,t,0.002,0.5,0.12);var o=AC.createOscillator();o.type='sine';o.frequency.setValueAtTime(f*0.55,t);o.frequency.exponentialRampToValueAtTime(f*1.4,t+0.05);o.connect(g);o.start(t);o.stop(t+0.3);
-  var hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=4000;hp.connect(master);var g2=AC.createGain();g2.connect(hp);env(g2,t,0.0005,0.2,0.004);noise(t,0.03,g2)}
-function cyber(t,f){var lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(3200,t);lp.frequency.exponentialRampToValueAtTime(700,t+0.3);lp.connect(master);
-  var g=AC.createGain();g.connect(lp);env(g,t,0.003,0.16,0.28);[-7,0,7].forEach(function(dt){var o=osc('sawtooth',f,t,0.4,g);o.detune.value=dt});osc('sawtooth',f*1.5,t,0.4,g);
-  var gs=vgain();env(gs,t,0.004,0.6,0.35);var s=AC.createOscillator();s.type='sine';s.frequency.setValueAtTime(90,t);s.frequency.exponentialRampToValueAtTime(38,t+0.4);s.connect(gs);s.start(t);s.stop(t+0.5);
-  var hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=3000;hp.connect(master);var gn=AC.createGain();gn.connect(hp);env(gn,t,0.0005,0.25,0.02);noise(t,0.06,gn)}
-function horn(t,f,len){len=len||0.55;var r=f/NOTE['B4'];var lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;lp.connect(master);var g=AC.createGain();g.connect(lp);
-  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.11,t+0.02);g.gain.setValueAtTime(0.11,t+len-0.06);g.gain.exponentialRampToValueAtTime(0.0001,t+len);
-  [415,417,622,830].forEach(function(fr,i){var o=osc('sawtooth',fr*r,t,len,g);o.frequency.setValueAtTime(fr*r*0.97,t);o.frequency.linearRampToValueAtTime(fr*r,t+0.06)})}
-function thunk(t){var g=vgain();env(g,t,0.002,0.5,0.09);var o=AC.createOscillator();o.type='sine';o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(55,t+0.1);o.connect(g);o.start(t);o.stop(t+0.2);
-  var lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;lp.connect(master);var g2=AC.createGain();g2.connect(lp);env(g2,t,0.001,0.3,0.04);noise(t,0.1,g2)}
-function swish(t,up){var bp=AC.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.4;bp.frequency.setValueAtTime(up?500:2600,t);bp.frequency.exponentialRampToValueAtTime(up?2800:450,t+0.32);bp.connect(master);
-  var g=AC.createGain();g.connect(bp);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.22,t+0.14);g.gain.exponentialRampToValueAtTime(0.0001,t+0.34);noise(t,0.36,g)}
-function hit(t,f){var id=S.sound,cel=celebrating();
-  if(id==='bell'){bell(t,f);if(cel){bell(t+0.09,f*1.26,0.7);bell(t+0.18,f*1.5,0.7)}}
-  else if(id==='cowbell'){cowbell(t,f);if(cel){cowbell(t+0.16,f);cowbell(t+0.32,f)}}
-  else if(id==='coin'){coin(t,f);if(cel)coin(t+0.2,f*1.5)}
-  else if(id==='plip'){plip(t,f*2);if(cel){plip(t+0.12,f*2.52);plip(t+0.24,f*3)}}
-  else if(id==='cyber'){cyber(t,f);if(cel)bell(t+0.05,f*2,0.5)}
-  else if(id==='horn'){if(cel){horn(t,f,0.28);horn(t+0.36,f,0.28);horn(t+0.72,f,0.7)}else horn(t,f)}}
-function scheduleSounds(t0){var T=parseFloat(S.dur),f=pitch();master.gain.setValueAtTime(S.vol/100,t0);
-  if(S.moves){swish(t0,true);thunk(t0+0.33);swish(t0+T-0.5,false)}if(S.sound!=='none')hit(t0+0.38,f)}
+        // ---------- saving through the artifact's downloads capability
+        var downloads = null;
+        if (window.claude && claude.use) {
+          claude
+            .use('downloads')
+            .then(function (d) {
+              downloads = d;
+              if (!d) {
+                $('save').hidden = true;
+                $('png').hidden = true;
+              }
+            })
+            .catch(function () {});
+        }
+        function fallbackSave(name, data, note) {
+          var blob = data instanceof Blob ? data : new Blob([data]),
+            type =
+              blob.type ||
+              (/\.png$/.test(name)
+                ? 'image/png'
+                : /\.mp4$/.test(name)
+                  ? 'video/mp4'
+                  : 'video/webm'),
+            file = null;
+          try {
+            file = new File([blob], name, { type: type });
+          } catch (e) {}
+          function anchor() {
+            var u = URL.createObjectURL(blob),
+              a = document.createElement('a');
+            a.href = u;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(function () {
+              URL.revokeObjectURL(u);
+            }, 5000);
+            note.textContent = 'Downloaded ' + name + '.';
+          }
+          if (
+            file &&
+            navigator.canShare &&
+            navigator.canShare({ files: [file] })
+          ) {
+            navigator
+              .share({ files: [file] })
+              .then(function () {
+                note.textContent =
+                  'Done. If you picked Save Video, it’s in Photos.';
+              })
+              .catch(function (e) {
+                if (e && e.name === 'AbortError')
+                  note.textContent = 'Not saved.';
+                else anchor();
+              });
+            return;
+          }
+          anchor();
+        }
+        function saveFile(name, data, note) {
+          if (!downloads) {
+            fallbackSave(name, data, note);
+            return;
+          }
+          downloads
+            .save({ filename: name, data: data })
+            .then(function (r) {
+              note.textContent =
+                r && r.status === 'saved'
+                  ? 'Saved ' + name + '.'
+                  : 'Sent ' + name + '.';
+            })
+            .catch(function (e) {
+              var c = e && e.code;
+              note.textContent =
+                c === 'declined'
+                  ? 'Not saved.'
+                  : c === 'rate_limited'
+                    ? 'A save is already open. Finish that one first.'
+                    : c === 'too_large'
+                      ? 'That file is too large to save here.'
+                      : 'Couldn’t save the file here.';
+            });
+        }
+        $('save').onclick = function () {
+          if (lastBlob) saveFile(lastName, lastBlob, $('savenote'));
+        };
+        $('again').onclick = function () {
+          $('result').hidden = true;
+          record();
+        };
+        $('png').onclick = function () {
+          if (playing) return;
+          paint(1.4, true);
+          cv.toBlob(function (b) {
+            paint(1.4);
+            if (b)
+              saveFile(
+                fileStem().replace(/-(greenscreen|navy)$/, '') + '-still.png',
+                b,
+                msg,
+              );
+          }, 'image/png');
+        };
 
-// ---------- animation loop
-var playing=null;   // {start, onDone}
-function frame(now){if(!playing){paint(1.4);return}var t=(now-playing.start)/1000,T=parseFloat(S.dur);
-  paint(Math.max(0,t));if(t<T+0.05)requestAnimationFrame(frame);else{var cb=playing.onDone;playing=null;paint(1.4);if(cb)cb()}}
-function run(onDone,lead){var A=audio();lead=lead||0.08;var wall=performance.now()+lead*1000;
-  if(A){if(A.state==='suspended')A.resume();scheduleSounds(A.currentTime+lead)}
-  playing={start:wall,onDone:onDone};requestAnimationFrame(frame)}
-
-// ---------- recording
-function pickType(){if(!window.MediaRecorder)return null;var c=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1,mp4a','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
-  for(var i=0;i<c.length;i++){try{if(MediaRecorder.isTypeSupported(c[i]))return c[i]}catch(e){}}return ''}
-var lastBlob=null,lastName='',lastURL=null;
-function fileStem(){var t=signText();return ('tim-'+(t.top+'-'+t.big).toLowerCase().replace(/[^a-z0-9.]+/g,'-')+'-'+(S.fmt==='v'?'9x16':'16x9')+'-'+(S.bg==='green'?'greenscreen':'navy')).replace(/-+/g,'-')}
-function record(){if(playing)return;var type=pickType();
-  if(type===null||!cv.captureStream){say('This browser can’t record video. Try Safari on iPhone or Chrome on a computer.',true);return}
-  var A=audio();if(A&&A.state==='suspended')A.resume();
-  var stream=cv.captureStream(30),tracks=stream.getVideoTracks().slice();
-  if(A){if(!recDest){recDest=A.createMediaStreamDestination();master._comp.connect(recDest)}recDest.stream.getAudioTracks().forEach(function(tr){tracks.push(tr)})}
-  var mr;try{mr=new MediaRecorder(new MediaStream(tracks),type?{mimeType:type,videoBitsPerSecond:12e6,audioBitsPerSecond:192e3}:{videoBitsPerSecond:12e6})}catch(e){say('Recording couldn’t start in this browser ('+e.name+').',true);return}
-  var chunks=[];mr.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data)};
-  mr.onstop=function(){stream.getVideoTracks().forEach(function(tr){tr.stop()});var mt=(mr.mimeType||type||'video/webm').split(';')[0];var ext=mt.indexOf('mp4')>=0?'mp4':'webm';
-    lastBlob=new Blob(chunks,{type:mt});lastName=fileStem()+'.'+ext;if(lastURL)URL.revokeObjectURL(lastURL);lastURL=URL.createObjectURL(lastBlob);
-    $('vid').src=lastURL;$('result').hidden=false;$('savenote').textContent=lastName+' · '+(lastBlob.size/1048576).toFixed(1)+' MB';setRec(false);say('Recorded. Check it, then save it.')};
-  setRec(true);say('');paint(0);mr.start();
-  // short pre-roll so the first frame is already in the file, then play the animation and its sounds together
-  setTimeout(function(){run(function(){setTimeout(function(){try{mr.stop()}catch(e){}},250)},0.05)},250)}
-function setRec(on){var b=$('rec');b.classList.toggle('on',on);b.disabled=on;$('play').disabled=on;b.innerHTML=on?'<span class="dot"></span>Recording…':'● Record video'}
-
-// ---------- saving through the artifact's downloads capability
-var downloads=null;
-if(window.claude&&claude.use){claude.use('downloads').then(function(d){downloads=d;if(!d){$('save').hidden=true;$('png').hidden=true}}).catch(function(){})}
-function fallbackSave(name,data,note){var blob=data instanceof Blob?data:new Blob([data]),type=blob.type||(/\.png$/.test(name)?'image/png':/\.mp4$/.test(name)?'video/mp4':'video/webm'),file=null;
-  try{file=new File([blob],name,{type:type})}catch(e){}
-  function anchor(){var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},5000);note.textContent='Downloaded '+name+'.'}
-  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file]}).then(function(){note.textContent='Done. If you picked Save Video, it’s in Photos.'}).catch(function(e){if(e&&e.name==='AbortError')note.textContent='Not saved.';else anchor()});return}
-  anchor()}
-function saveFile(name,data,note){if(!downloads){fallbackSave(name,data,note);return}
-  downloads.save({filename:name,data:data}).then(function(r){note.textContent=r&&r.status==='saved'?'Saved '+name+'.':'Sent '+name+'.'}).catch(function(e){var c=e&&e.code;
-    note.textContent=c==='declined'?'Not saved.':c==='rate_limited'?'A save is already open. Finish that one first.':c==='too_large'?'That file is too large to save here.':'Couldn’t save the file here.'})}
-$('save').onclick=function(){if(lastBlob)saveFile(lastName,lastBlob,$('savenote'))};
-$('again').onclick=function(){$('result').hidden=true;record()};
-$('png').onclick=function(){if(playing)return;paint(1.4,true);cv.toBlob(function(b){paint(1.4);if(b)saveFile(fileStem().replace(/-(greenscreen|navy)$/,'')+'-still.png',b,msg)},'image/png')};
-
-// ---------- controls
-function chip(label,pressed,onclick,cls){var b=document.createElement('button');b.type='button';b.className='chip'+(cls?' '+cls:'');b.textContent=label;b.setAttribute('aria-pressed',pressed?'true':'false');b.onclick=onclick;return b}
-function renderPresets(){var box=$('presets');box.innerHTML='';PRESETS.forEach(function(p){box.appendChild(chip(p.t,S.custom===''&&S.miles===p.v,function(){S.miles=p.v;S.custom='';$('custom').value='';update()}))})}
-function renderSounds(){var box=$('sounds');box.innerHTML='';SOUNDS.forEach(function(s){var b=document.createElement('button');b.type='button';b.className='snd';b.setAttribute('aria-pressed',S.sound===s.id?'true':'false');
-  b.innerHTML='<b></b><span></span>';b.firstChild.textContent=s.name;b.lastChild.textContent=s.desc;
-  b.onclick=function(){S.sound=s.id;update();var A=audio();if(A&&s.id!=='none'){if(A.state==='suspended')A.resume();master.gain.setValueAtTime(S.vol/100,A.currentTime);hit(A.currentTime+0.03,pitch())}};box.appendChild(b)})}
-function syncGroups(){document.querySelectorAll('[data-g]').forEach(function(b){b.setAttribute('aria-pressed',String(S[b.dataset.g])===b.dataset.v?'true':'false')})}
-document.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){S[b.dataset.g]=b.dataset.v;update()}});
-$('custom').addEventListener('input',function(e){S.custom=e.target.value;update()});
-$('label').addEventListener('input',function(e){S.label=e.target.value;update()});
-$('u_mi').onclick=function(){S.unit='mi';update()};$('u_km').onclick=function(){S.unit='km';update()};
-$('climb').onchange=function(e){S.climb=e.target.checked;persist()};$('moves').onchange=function(e){S.moves=e.target.checked;persist()};
-$('vol').oninput=function(e){S.vol=+e.target.value;if(master)master.gain.value=S.vol/100;persist()};
-$('play').onclick=function(){if(!playing)run(null)};
-$('rec').onclick=record;
-function update(){var W=S.fmt==='v'?1080:1920,H=S.fmt==='v'?1920:1080;if(cv.width!==W){cv.width=W;cv.height=H}
-  renderPresets();renderSounds();syncGroups();$('u_mi').setAttribute('aria-pressed',S.unit==='mi'?'true':'false');$('u_km').setAttribute('aria-pressed',S.unit==='km'?'true':'false');
-  $('readout').textContent=(S.fmt==='v'?'9:16':'16:9')+' · '+S.dur+'s · '+W+'×'+H;persist();if(!playing)paint(1.4)}
-$('custom').value=S.custom;$('label').value=S.label;$('climb').checked=S.climb;$('moves').checked=S.moves;$('vol').value=S.vol;
-update();
-// redraw once the brand font arrives so the first frame isn't in a fallback face
-if(document.fonts&&document.fonts.load){Promise.all([document.fonts.load('900 120px "Barlow Condensed"'),document.fonts.load('700 34px "Barlow Condensed"')]).then(function(){if(!playing)paint(1.4)}).catch(function(){})}
-})();
-</script>
-</body></html>
+        // ---------- controls
+        function chip(label, pressed, onclick, cls) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'chip' + (cls ? ' ' + cls : '');
+          b.textContent = label;
+          b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+          b.onclick = onclick;
+          return b;
+        }
+        function renderPresets() {
+          var box = $('presets');
+          box.innerHTML = '';
+          PRESETS.forEach(function (p) {
+            box.appendChild(
+              chip(p.t, S.custom === '' && S.miles === p.v, function () {
+                S.miles = p.v;
+                S.custom = '';
+                $('custom').value = '';
+                update();
+              }),
+            );
+          });
+        }
+        function renderSounds() {
+          var box = $('sounds');
+          box.innerHTML = '';
+          SOUNDS.forEach(function (s) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'snd';
+            b.setAttribute('aria-pressed', S.sound === s.id ? 'true' : 'false');
+            b.innerHTML = '<b></b><span></span>';
+            b.firstChild.textContent = s.name;
+            b.lastChild.textContent = s.desc;
+            b.onclick = function () {
+              S.sound = s.id;
+              update();
+              var A = audio();
+              if (A && s.id !== 'none') {
+                if (A.state === 'suspended') A.resume();
+                master.gain.setValueAtTime(S.vol / 100, A.currentTime);
+                hit(A.currentTime + 0.03, pitch());
+              }
+            };
+            box.appendChild(b);
+          });
+        }
+        function syncGroups() {
+          document.querySelectorAll('[data-g]').forEach(function (b) {
+            b.setAttribute(
+              'aria-pressed',
+              String(S[b.dataset.g]) === b.dataset.v ? 'true' : 'false',
+            );
+          });
+        }
+        document.querySelectorAll('[data-g]').forEach(function (b) {
+          b.onclick = function () {
+            S[b.dataset.g] = b.dataset.v;
+            update();
+          };
+        });
+        $('custom').addEventListener('input', function (e) {
+          S.custom = e.target.value;
+          update();
+        });
+        $('label').addEventListener('input', function (e) {
+          S.label = e.target.value;
+          update();
+        });
+        $('u_mi').onclick = function () {
+          S.unit = 'mi';
+          update();
+        };
+        $('u_km').onclick = function () {
+          S.unit = 'km';
+          update();
+        };
+        $('climb').onchange = function (e) {
+          S.climb = e.target.checked;
+          persist();
+        };
+        $('moves').onchange = function (e) {
+          S.moves = e.target.checked;
+          persist();
+        };
+        $('vol').oninput = function (e) {
+          S.vol = +e.target.value;
+          if (master) master.gain.value = S.vol / 100;
+          persist();
+        };
+        $('play').onclick = function () {
+          if (!playing) run(null);
+        };
+        $('rec').onclick = record;
+        function update() {
+          var W = S.fmt === 'v' ? 1080 : 1920,
+            H = S.fmt === 'v' ? 1920 : 1080;
+          if (cv.width !== W) {
+            cv.width = W;
+            cv.height = H;
+          }
+          renderPresets();
+          renderSounds();
+          syncGroups();
+          $('u_mi').setAttribute(
+            'aria-pressed',
+            S.unit === 'mi' ? 'true' : 'false',
+          );
+          $('u_km').setAttribute(
+            'aria-pressed',
+            S.unit === 'km' ? 'true' : 'false',
+          );
+          $('readout').textContent =
+            (S.fmt === 'v' ? '9:16' : '16:9') +
+            ' · ' +
+            S.dur +
+            's · ' +
+            W +
+            '×' +
+            H;
+          persist();
+          if (!playing) paint(1.4);
+        }
+        $('custom').value = S.custom;
+        $('label').value = S.label;
+        $('climb').checked = S.climb;
+        $('moves').checked = S.moves;
+        $('vol').value = S.vol;
+        update();
+        // redraw once the brand font arrives so the first frame isn't in a fallback face
+        if (document.fonts && document.fonts.load) {
+          Promise.all([
+            document.fonts.load('900 120px "Barlow Condensed"'),
+            document.fonts.load('700 34px "Barlow Condensed"'),
+          ])
+            .then(function () {
+              if (!playing) paint(1.4);
+            })
+            .catch(function () {});
+        }
+      })();
+    </script>
+  </body></html
+>

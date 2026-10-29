@@ -3,6 +3,20 @@
 Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at
 **https://chiefcrackt.github.io/inmotion-video/**
 
+For development, run `npm ci`, then `npm test` and `npm run build`.
+`npm run format` formats handwritten HTML, CSS, JavaScript and JSON;
+`npm run format:check` checks the same files without writing them. Generated
+`activity-studio/worker.js`, third-party licenses and the lockfile are excluded.
+
+Browser tests share `tests/browser-utils.cjs`. They use `CHROME_PATH` when set,
+otherwise Playwright's installed Chromium, then installed Chrome or Edge.
+Run `npx playwright install chromium` if no supported browser is available.
+All suites use the project's `@playwright/test` dependency and write screenshots
+and downloads to unique OS temporary directories printed during each run.
+Run `npm run test:hub`, `npm run test:browser`, `npm run test:carousel:all`
+and `npm run test:cover:browser` for the full browser checks. These commands work
+from the repository root on Windows, macOS and Linux with a supported browser.
+
 The home page groups tools by task and offers search and category filters. All tool links remain ordinary relative links and work without JavaScript. Run `npm run test:hub` to check every tool's navigation, filters, search, mobile layout and JavaScript-free access (requires Chrome).
 
 | Tool | Path | What it makes |

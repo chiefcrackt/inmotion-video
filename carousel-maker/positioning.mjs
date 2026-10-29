@@ -1,16 +1,211 @@
-const $=id=>document.getElementById(id);
-const names={eyebrow:'Eyebrow',headline:'Headline',content:'Description / list / table',highlight:'Highlight / stat',footer:'Footer & slide number'};
-export function startPositioning(api){let enabled=false,selected='headline',dragging=false;const slide=()=>api.getState().slides[api.getState().selected],offset=()=>slide().positions?.[selected]||{x:0,y:0};
-const panel=document.createElement('section');panel.className='positionPanel';panel.innerHTML=`<h2>Move template text</h2><p class="hint">Reposition the existing text on this slide. Turn on tap & drag, then drag a labeled box on the preview. Added elements stay in Elements & layers.</p><button id="moveTemplate" aria-pressed="false">Enable tap & drag</button><label>Existing element<select id="templatePart">${Object.entries(names).map(([key,name])=>`<option value="${key}">${name}</option>`).join('')}</select></label><div class="fieldGrid"><label>Horizontal offset (px)<input id="templateX" type="number" min="-1080" max="1080" step="1"></label><label>Vertical offset (px)<input id="templateY" type="number" min="-1350" max="1350" step="1"></label></div><div class="actionRow"><button id="templateLeft">Align left</button><button id="templateCenter">Center</button><button id="templateRight">Align right</button><button id="resetTemplatePart">Reset selected</button><button id="resetTemplateAll">Reset all positions</button></div><p id="positionHint" class="hint" role="status"></p>`;
-document.querySelector('.inspector').prepend(panel);const overlay=document.createElement('div');overlay.id='templateOverlay';$('canvasWrap').append(overlay);
-function sync(){const p=offset();$('templatePart').value=selected;$('templateX').value=p.x;$('templateY').value=p.y;const bounds=$('canvas').templateBounds||{};const exists=!!bounds[selected];$('positionHint').textContent=api.getState().slides[api.getState().selected].layout==='blank'?'Blank slides use added elements.':exists?'Offsets apply to this slide and its exports.':'This element is hidden or unused in the current layout.';for(const id of ['templateX','templateY','templateLeft','templateCenter','templateRight','resetTemplatePart'])$(id).disabled=!exists;}
-function update(x,y){slide().positions??={};slide().positions[selected]={x:Math.max(-1080,Math.min(1080,Math.round(x))),y:Math.max(-1350,Math.min(1350,Math.round(y)))};}
-function save(){api.save();sync();drawOverlay();}
-$('moveTemplate').onclick=()=>{enabled=!enabled;$('moveTemplate').setAttribute('aria-pressed',String(enabled));$('moveTemplate').textContent=enabled?'Finish moving text':'Enable tap & drag';$('canvasWrap').classList.toggle('positioning',enabled);drawOverlay();};
-$('templatePart').onchange=()=>{selected=$('templatePart').value;sync();drawOverlay();};
-for(const [id,key] of [['templateX','x'],['templateY','y']])$(id).oninput=()=>{const value=Number($(id).value);if(!$(id).value||!Number.isFinite(value))return;const p=offset();update(key==='x'?value:p.x,key==='y'?value:p.y);save();};
-for(const [id,align] of [['templateLeft','left'],['templateCenter','center'],['templateRight','right']])$(id).onclick=()=>{const b=$('canvas').templateBounds?.[selected];if(!b)return;const p=offset(),target=align==='left'?70:align==='right'?1010-b.w:(1080-b.w)/2;update(p.x+target-b.x,p.y);save();};
-$('resetTemplatePart').onclick=()=>{if(slide().positions)delete slide().positions[selected];save();};$('resetTemplateAll').onclick=()=>{slide().positions={};save();};
-function drawOverlay(){if(dragging)return;overlay.replaceChildren();overlay.hidden=!enabled;sync();if(!enabled)return;const H=api.getState().height;for(const [key,b] of Object.entries($('canvas').templateBounds||{})){const box=document.createElement('div');box.className='templateHit'+(selected===key?' chosen':'');box.dataset.part=key;Object.assign(box.style,{left:b.x/10.8+'%',top:b.y/H*100+'%',width:b.w/10.8+'%',height:b.h/H*100+'%'});const label=document.createElement('span');label.textContent=names[key];box.append(label);box.onpointerdown=event=>{event.preventDefault();event.stopPropagation();selected=key;sync();overlay.querySelectorAll('.chosen').forEach(e=>e.classList.remove('chosen'));box.classList.add('chosen');dragging=true;const x=event.clientX,y=event.clientY,p={...offset()},scale=1080/overlay.getBoundingClientRect().width;box.setPointerCapture(event.pointerId);box.onpointermove=e=>{const snapped=$('snapEdit')?.checked,round=v=>snapped?Math.round(v/10)*10:v;update(round(p.x+(e.clientX-x)*scale),round(p.y+(e.clientY-y)*scale));const now=offset();box.style.left=(b.x+now.x-p.x)/10.8+'%';box.style.top=(b.y+now.y-p.y)/H*100+'%';$('templateX').value=now.x;$('templateY').value=now.y;api.draw();};const finish=()=>{dragging=false;box.onpointermove=null;box.onpointerup=null;box.onpointercancel=null;save();};box.onpointerup=finish;box.onpointercancel=finish;};overlay.append(box);}}
-document.addEventListener('keydown',event=>{if(!enabled||['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName))return;const p=offset(),step=event.shiftKey?10:1;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)){event.preventDefault();event.stopImmediatePropagation();update(p.x+(event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0),p.y+(event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0));save();}},true);
-return {overlay:drawOverlay,sync};}
+const $ = (id) => document.getElementById(id);
+const names = {
+  eyebrow: 'Eyebrow',
+  headline: 'Headline',
+  content: 'Description / list / table',
+  highlight: 'Highlight / stat',
+  footer: 'Footer & slide number',
+};
+export function startPositioning(api) {
+  let enabled = false,
+    selected = 'headline',
+    dragging = false;
+  const slide = () => api.getState().slides[api.getState().selected],
+    offset = () => slide().positions?.[selected] || { x: 0, y: 0 };
+  const panel = document.createElement('section');
+  panel.className = 'positionPanel';
+  panel.innerHTML = `<h2>Move template text</h2><p class="hint">Reposition the existing text on this slide. Turn on tap & drag, then drag a labeled box on the preview. Added elements stay in Elements & layers.</p><button id="moveTemplate" aria-pressed="false">Enable tap & drag</button><label>Existing element<select id="templatePart">${Object.entries(
+    names,
+  )
+    .map(([key, name]) => `<option value="${key}">${name}</option>`)
+    .join(
+      '',
+    )}</select></label><div class="fieldGrid"><label>Horizontal offset (px)<input id="templateX" type="number" min="-1080" max="1080" step="1"></label><label>Vertical offset (px)<input id="templateY" type="number" min="-1350" max="1350" step="1"></label></div><div class="actionRow"><button id="templateLeft">Align left</button><button id="templateCenter">Center</button><button id="templateRight">Align right</button><button id="resetTemplatePart">Reset selected</button><button id="resetTemplateAll">Reset all positions</button></div><p id="positionHint" class="hint" role="status"></p>`;
+  document.querySelector('.inspector').prepend(panel);
+  const overlay = document.createElement('div');
+  overlay.id = 'templateOverlay';
+  $('canvasWrap').append(overlay);
+  function sync() {
+    const p = offset();
+    $('templatePart').value = selected;
+    $('templateX').value = p.x;
+    $('templateY').value = p.y;
+    const bounds = $('canvas').templateBounds || {};
+    const exists = !!bounds[selected];
+    $('positionHint').textContent =
+      api.getState().slides[api.getState().selected].layout === 'blank'
+        ? 'Blank slides use added elements.'
+        : exists
+          ? 'Offsets apply to this slide and its exports.'
+          : 'This element is hidden or unused in the current layout.';
+    for (const id of [
+      'templateX',
+      'templateY',
+      'templateLeft',
+      'templateCenter',
+      'templateRight',
+      'resetTemplatePart',
+    ])
+      $(id).disabled = !exists;
+  }
+  function update(x, y) {
+    slide().positions ??= {};
+    slide().positions[selected] = {
+      x: Math.max(-1080, Math.min(1080, Math.round(x))),
+      y: Math.max(-1350, Math.min(1350, Math.round(y))),
+    };
+  }
+  function save() {
+    api.save();
+    sync();
+    drawOverlay();
+  }
+  $('moveTemplate').onclick = () => {
+    enabled = !enabled;
+    $('moveTemplate').setAttribute('aria-pressed', String(enabled));
+    $('moveTemplate').textContent = enabled
+      ? 'Finish moving text'
+      : 'Enable tap & drag';
+    $('canvasWrap').classList.toggle('positioning', enabled);
+    drawOverlay();
+  };
+  $('templatePart').onchange = () => {
+    selected = $('templatePart').value;
+    sync();
+    drawOverlay();
+  };
+  for (const [id, key] of [
+    ['templateX', 'x'],
+    ['templateY', 'y'],
+  ])
+    $(id).oninput = () => {
+      const value = Number($(id).value);
+      if (!$(id).value || !Number.isFinite(value)) return;
+      const p = offset();
+      update(key === 'x' ? value : p.x, key === 'y' ? value : p.y);
+      save();
+    };
+  for (const [id, align] of [
+    ['templateLeft', 'left'],
+    ['templateCenter', 'center'],
+    ['templateRight', 'right'],
+  ])
+    $(id).onclick = () => {
+      const b = $('canvas').templateBounds?.[selected];
+      if (!b) return;
+      const p = offset(),
+        target =
+          align === 'left'
+            ? 70
+            : align === 'right'
+              ? 1010 - b.w
+              : (1080 - b.w) / 2;
+      update(p.x + target - b.x, p.y);
+      save();
+    };
+  $('resetTemplatePart').onclick = () => {
+    if (slide().positions) delete slide().positions[selected];
+    save();
+  };
+  $('resetTemplateAll').onclick = () => {
+    slide().positions = {};
+    save();
+  };
+  function drawOverlay() {
+    if (dragging) return;
+    overlay.replaceChildren();
+    overlay.hidden = !enabled;
+    sync();
+    if (!enabled) return;
+    const H = api.getState().height;
+    for (const [key, b] of Object.entries($('canvas').templateBounds || {})) {
+      const box = document.createElement('div');
+      box.className = 'templateHit' + (selected === key ? ' chosen' : '');
+      box.dataset.part = key;
+      Object.assign(box.style, {
+        left: b.x / 10.8 + '%',
+        top: (b.y / H) * 100 + '%',
+        width: b.w / 10.8 + '%',
+        height: (b.h / H) * 100 + '%',
+      });
+      const label = document.createElement('span');
+      label.textContent = names[key];
+      box.append(label);
+      box.onpointerdown = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        selected = key;
+        sync();
+        overlay
+          .querySelectorAll('.chosen')
+          .forEach((e) => e.classList.remove('chosen'));
+        box.classList.add('chosen');
+        dragging = true;
+        const x = event.clientX,
+          y = event.clientY,
+          p = { ...offset() },
+          scale = 1080 / overlay.getBoundingClientRect().width;
+        box.setPointerCapture(event.pointerId);
+        box.onpointermove = (e) => {
+          const snapped = $('snapEdit')?.checked,
+            round = (v) => (snapped ? Math.round(v / 10) * 10 : v);
+          update(
+            round(p.x + (e.clientX - x) * scale),
+            round(p.y + (e.clientY - y) * scale),
+          );
+          const now = offset();
+          box.style.left = (b.x + now.x - p.x) / 10.8 + '%';
+          box.style.top = ((b.y + now.y - p.y) / H) * 100 + '%';
+          $('templateX').value = now.x;
+          $('templateY').value = now.y;
+          api.draw();
+        };
+        const finish = () => {
+          dragging = false;
+          box.onpointermove = null;
+          box.onpointerup = null;
+          box.onpointercancel = null;
+          save();
+        };
+        box.onpointerup = finish;
+        box.onpointercancel = finish;
+      };
+      overlay.append(box);
+    }
+  }
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      if (
+        !enabled ||
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)
+      )
+        return;
+      const p = offset(),
+        step = event.shiftKey ? 10 : 1;
+      if (
+        ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)
+      ) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        update(
+          p.x +
+            (event.key === 'ArrowLeft'
+              ? -step
+              : event.key === 'ArrowRight'
+                ? step
+                : 0),
+          p.y +
+            (event.key === 'ArrowUp'
+              ? -step
+              : event.key === 'ArrowDown'
+                ? step
+                : 0),
+        );
+        save();
+      }
+    },
+    true,
+  );
+  return { overlay: drawOverlay, sync };
+}

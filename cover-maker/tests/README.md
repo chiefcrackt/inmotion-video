@@ -2,10 +2,10 @@
 
 The tool remains a standalone GitHub Pages HTML file. No build step or production dependency is required.
 
-The optional regression script requires Node.js, Playwright, and installed Google Chrome. With Playwright available in your Node module path, run from the repository root:
+The regression script uses the repository's `@playwright/test` dependency (`npm ci`). It shares browser discovery with the other suites: `CHROME_PATH`, installed Playwright Chromium, then Chrome or Edge. Run `npx playwright install chromium` if needed, then from the repository root:
 
 ```sh
-node cover-maker/tests/render.cjs
+npm run test:cover:browser
 ```
 
 The script uses local HTML and an in-memory photo fixture; it blocks external requests. It checks original template pixel parity against `origin/main` when that ref is available, photo adjustments, mouse and touch dragging, text transforms and locks, layer visibility and ordering, undo/redo, per-format composition retention, mobile overflow, and exported PNG pixels/dimensions for all three formats. Exported blobs are captured before the native download/share dialog. Screenshots are written to a temporary directory.

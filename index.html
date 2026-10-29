@@ -1,171 +1,771 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>T.im Video Tools</title>
-<meta name="description" content="Find every T.im video tool: titles, covers, running graphics, celebrations and ready-made animations.">
-<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="icon" href="favicon.png" type="image/png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#0E1A2E">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;500&display=swap">
-<style>
-/* Layout: a short hub. Brand header, then one card per tool, stacking on phones. */
-:root{--navy:#0E1A2E;--panel:#13233D;--line:#25395C;--gold:#E8C96A;--teal:#2E9BAD;--paper:#F6F4EF;--muted:#9FB0C8;
-  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;--body:"Barlow","Helvetica Neue",Arial,sans-serif;color-scheme:dark;
-  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--navy);color:var(--paper);font-family:var(--body);font-size:16px;line-height:1.5;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:36px 56px;
-  background-image:repeating-linear-gradient(135deg,rgba(246,244,239,.025) 0 2px,transparent 2px 52px)}
-.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
-.eyebrow{font-family:var(--display);font-weight:700;letter-spacing:4px;color:var(--gold);font-size:15px;text-transform:uppercase;margin:0}
-h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(40px,8vw,72px);line-height:.95;margin:6px 0 0;text-wrap:balance}
-.rule{display:flex;gap:10px;margin-top:14px}.rule i{display:block;height:6px;background:var(--teal);width:180px}.rule i+i{background:var(--gold);width:60px}
-.lede{color:var(--muted);max-width:60ch;margin:14px 0 0}
-.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-a.tool{display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;color:inherit;text-decoration:none;position:relative;overflow:hidden;min-width:0}
-a.tool::before{content:"";position:absolute;inset:0 0 auto 0;height:7px;background:var(--gold)}
-a.tool:hover,a.tool:focus-visible{border-color:var(--teal);outline:none}
-a.tool:focus-visible{box-shadow:0 0 0 3px var(--teal)}
-a.tool .k{font-family:var(--display);font-weight:700;letter-spacing:3px;font-size:13px;color:var(--teal);text-transform:uppercase;margin-top:6px}
-a.tool h2{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:32px;line-height:1;margin:0}
-a.tool p{margin:0;color:var(--muted);font-size:15px}
-a.tool .go{margin-top:auto;font-family:var(--display);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-size:15px}
-.how{border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:14px;max-width:70ch}
-.how b{color:var(--paper);font-weight:500}
-footer{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;letter-spacing:3px;font-size:14px;text-transform:uppercase}
-footer i{width:10px;height:10px;border-radius:50%;background:var(--teal);display:block}
-footer a{color:var(--paper);text-decoration:none}footer a:hover{color:var(--gold)}
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>T.im Video Tools</title>
+    <meta
+      name="description"
+      content="Find every T.im video tool: titles, covers, running graphics, celebrations and ready-made animations."
+    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" /><link
+      rel="icon"
+      href="favicon.png"
+      type="image/png"
+    /><link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <meta name="theme-color" content="#0E1A2E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;500&display=swap"
+    />
+    <style>
+      /* Layout: a short hub. Brand header, then one card per tool, stacking on phones. */
+      :root {
+        --navy: #0e1a2e;
+        --panel: #13233d;
+        --line: #25395c;
+        --gold: #e8c96a;
+        --teal: #2e9bad;
+        --paper: #f6f4ef;
+        --muted: #9fb0c8;
+        --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+        --body: 'Barlow', 'Helvetica Neue', Arial, sans-serif;
+        color-scheme: dark;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--navy);
+        color: var(--paper);
+        font-family: var(--body);
+        font-size: 16px;
+        line-height: 1.5;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-block: 36px 56px;
+        background-image: repeating-linear-gradient(
+          135deg,
+          rgba(246, 244, 239, 0.025) 0 2px,
+          transparent 2px 52px
+        );
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+      .eyebrow {
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 4px;
+        color: var(--gold);
+        font-size: 15px;
+        text-transform: uppercase;
+        margin: 0;
+      }
+      h1 {
+        font-family: var(--display);
+        font-weight: 900;
+        text-transform: uppercase;
+        font-size: clamp(40px, 8vw, 72px);
+        line-height: 0.95;
+        margin: 6px 0 0;
+        text-wrap: balance;
+      }
+      .rule {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .rule i {
+        display: block;
+        height: 6px;
+        background: var(--teal);
+        width: 180px;
+      }
+      .rule i + i {
+        background: var(--gold);
+        width: 60px;
+      }
+      .lede {
+        color: var(--muted);
+        max-width: 60ch;
+        margin: 14px 0 0;
+      }
+      .tools {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+      a.tool {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 20px;
+        color: inherit;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+        min-width: 0;
+      }
+      a.tool::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 7px;
+        background: var(--gold);
+      }
+      a.tool:hover,
+      a.tool:focus-visible {
+        border-color: var(--teal);
+        outline: none;
+      }
+      a.tool:focus-visible {
+        box-shadow: 0 0 0 3px var(--teal);
+      }
+      a.tool .k {
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 3px;
+        font-size: 13px;
+        color: var(--teal);
+        text-transform: uppercase;
+        margin-top: 6px;
+      }
+      a.tool h2 {
+        font-family: var(--display);
+        font-weight: 900;
+        text-transform: uppercase;
+        font-size: 32px;
+        line-height: 1;
+        margin: 0;
+      }
+      a.tool p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+      a.tool .go {
+        margin-top: auto;
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--gold);
+        font-size: 15px;
+      }
+      .how {
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+        color: var(--muted);
+        font-size: 14px;
+        max-width: 70ch;
+      }
+      .how b {
+        color: var(--paper);
+        font-weight: 500;
+      }
+      footer {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 3px;
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+      footer i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--teal);
+        display: block;
+      }
+      footer a {
+        color: var(--paper);
+        text-decoration: none;
+      }
+      footer a:hover {
+        color: var(--gold);
+      }
 
-[hidden]{display:none!important}
-.wrap{max-width:1140px;gap:36px}
-header{padding-bottom:12px}
-.lede{max-width:65ch}
-.directory-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:22px}
-.directory-heading h2{font-family:var(--display);font-size:clamp(30px,5vw,42px);line-height:1.1;margin:5px 0 0}
-.directory-heading .eyebrow{font-size:12px;letter-spacing:2px}
-.total,.category-count{color:var(--muted);font-size:13px;white-space:nowrap}
-.finder{border:1px solid var(--line);background:rgba(19,35,61,.8);padding:20px;border-radius:12px;margin-bottom:32px}
-.finder label{display:block;font-size:14px;margin-bottom:8px;font-weight:500}
-.search-row{display:flex;gap:10px}
-input,button{font:inherit;border:1px solid var(--line);border-radius:7px;color:var(--paper);background:var(--navy)}
-input{width:100%;min-width:0;padding:12px 14px;min-height:48px}
-input::placeholder{color:var(--muted);opacity:1}
-button{cursor:pointer;min-height:44px;padding:9px 14px}
-button:hover{border-color:var(--teal)}
-:is(input,button,a):focus-visible{outline:3px solid var(--gold);outline-offset:4px}
-.filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-.filters button{font-size:14px}.filters span{opacity:.7;margin-left:6px}
-.filters button[aria-pressed="true"]{background:var(--gold);color:var(--navy);border-color:var(--gold)}
-#result-count{color:var(--muted);font-size:13px;margin:14px 0 0}
-.categories{display:flex;flex-direction:column;gap:32px}
-.category-heading{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-.number{font-family:var(--display);color:var(--teal);font-size:28px;border-right:1px solid var(--line);padding-right:14px}
-.category-heading h2{font-family:var(--display);font-size:28px;margin:0;line-height:1.2}
-.category-heading p{color:var(--muted);font-size:14px;margin:4px 0 0}
-.category-count{margin-left:auto}
-.tools{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-a.tool{padding:20px;gap:9px;border-radius:9px}
-a.tool::before{height:3px;background:var(--teal)}
-a.tool h3{font-family:var(--display);font-weight:900;font-size:28px;line-height:1.05;margin:0;text-transform:uppercase}
-a.tool .k{font-size:11px;letter-spacing:2px;color:var(--gold)}
-a.tool .go{padding-top:8px}
-a.tool:hover{background:#192d49}
-#empty{border:1px dashed var(--line);padding:28px;color:var(--muted);border-radius:10px}
-.skip{position:absolute;top:8px;left:16px;padding:10px;background:var(--gold);color:var(--navy);z-index:1;transform:translateY(-200%)}
-.skip:focus{transform:none}
-@media(max-width:850px){.tools{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){body{padding-top:26px}.wrap{gap:28px}.tools{grid-template-columns:1fr}.directory-heading{align-items:start;flex-direction:column;gap:8px}.finder{padding:14px}.category-heading{gap:10px}.category-count{display:none}.number{padding-right:10px}.filters button{flex-grow:1;font-size:13px}.category-heading p{font-size:13px}}
-</style>
-</head>
-<body>
-<a class="skip" href="#directory">Skip to tools</a>
-<div class="wrap">
-  <header>
-    <p class="eyebrow">tristan.inmotion</p>
-    <h1>T.im Video Tools</h1>
-    <div class="rule"><i></i><i></i></div>
-    <p class="lede">Pick a tool, set it up, and record a clip with the sound built in, or make a cover image. Everything saves straight to your phone for CapCut and Instagram.</p>
-  </header>
-  <main id="directory">
-    <div class="directory-heading"><div><p class="eyebrow">Your creative toolkit</p><h2>What are you making?</h2></div><span class="total">12 tools · One place</span></div>
-    <div class="finder" hidden>
-      <label for="search">Find a tool</label>
-      <div class="search-row"><input id="search" type="search" placeholder="Search titles, GPS routes, birthdays…" autocomplete="off"><button id="reset" type="button">Reset</button></div>
-      <div class="filters" role="group" aria-label="Filter tools by category"><button type="button" data-filter="all" aria-pressed="true">All tools <span>12</span></button><button type="button" data-filter="video" aria-pressed="false">Video, covers & sound <span>5</span></button><button type="button" data-filter="running" aria-pressed="false">Running & activity <span>4</span></button><button type="button" data-filter="celebrations" aria-pressed="false">Celebrations <span>2</span></button><button type="button" data-filter="downloads" aria-pressed="false">Ready-made downloads <span>1</span></button></div>
-      <p id="result-count" role="status" aria-live="polite" aria-atomic="true">Showing all 12 tools</p>
+      [hidden] {
+        display: none !important;
+      }
+      .wrap {
+        max-width: 1140px;
+        gap: 36px;
+      }
+      header {
+        padding-bottom: 12px;
+      }
+      .lede {
+        max-width: 65ch;
+      }
+      .directory-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+      .directory-heading h2 {
+        font-family: var(--display);
+        font-size: clamp(30px, 5vw, 42px);
+        line-height: 1.1;
+        margin: 5px 0 0;
+      }
+      .directory-heading .eyebrow {
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+      .total,
+      .category-count {
+        color: var(--muted);
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      .finder {
+        border: 1px solid var(--line);
+        background: rgba(19, 35, 61, 0.8);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 32px;
+      }
+      .finder label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+      .search-row {
+        display: flex;
+        gap: 10px;
+      }
+      input,
+      button {
+        font: inherit;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        color: var(--paper);
+        background: var(--navy);
+      }
+      input {
+        width: 100%;
+        min-width: 0;
+        padding: 12px 14px;
+        min-height: 48px;
+      }
+      input::placeholder {
+        color: var(--muted);
+        opacity: 1;
+      }
+      button {
+        cursor: pointer;
+        min-height: 44px;
+        padding: 9px 14px;
+      }
+      button:hover {
+        border-color: var(--teal);
+      }
+      :is(input, button, a):focus-visible {
+        outline: 3px solid var(--gold);
+        outline-offset: 4px;
+      }
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .filters button {
+        font-size: 14px;
+      }
+      .filters span {
+        opacity: 0.7;
+        margin-left: 6px;
+      }
+      .filters button[aria-pressed='true'] {
+        background: var(--gold);
+        color: var(--navy);
+        border-color: var(--gold);
+      }
+      #result-count {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 14px 0 0;
+      }
+      .categories {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      .category-heading {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+      .number {
+        font-family: var(--display);
+        color: var(--teal);
+        font-size: 28px;
+        border-right: 1px solid var(--line);
+        padding-right: 14px;
+      }
+      .category-heading h2 {
+        font-family: var(--display);
+        font-size: 28px;
+        margin: 0;
+        line-height: 1.2;
+      }
+      .category-heading p {
+        color: var(--muted);
+        font-size: 14px;
+        margin: 4px 0 0;
+      }
+      .category-count {
+        margin-left: auto;
+      }
+      .tools {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+      a.tool {
+        padding: 20px;
+        gap: 9px;
+        border-radius: 9px;
+      }
+      a.tool::before {
+        height: 3px;
+        background: var(--teal);
+      }
+      a.tool h3 {
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 28px;
+        line-height: 1.05;
+        margin: 0;
+        text-transform: uppercase;
+      }
+      a.tool .k {
+        font-size: 11px;
+        letter-spacing: 2px;
+        color: var(--gold);
+      }
+      a.tool .go {
+        padding-top: 8px;
+      }
+      a.tool:hover {
+        background: #192d49;
+      }
+      #empty {
+        border: 1px dashed var(--line);
+        padding: 28px;
+        color: var(--muted);
+        border-radius: 10px;
+      }
+      .skip {
+        position: absolute;
+        top: 8px;
+        left: 16px;
+        padding: 10px;
+        background: var(--gold);
+        color: var(--navy);
+        z-index: 1;
+        transform: translateY(-200%);
+      }
+      .skip:focus {
+        transform: none;
+      }
+      @media (max-width: 850px) {
+        .tools {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 560px) {
+        body {
+          padding-top: 26px;
+        }
+        .wrap {
+          gap: 28px;
+        }
+        .tools {
+          grid-template-columns: 1fr;
+        }
+        .directory-heading {
+          align-items: start;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .finder {
+          padding: 14px;
+        }
+        .category-heading {
+          gap: 10px;
+        }
+        .category-count {
+          display: none;
+        }
+        .number {
+          padding-right: 10px;
+        }
+        .filters button {
+          flex-grow: 1;
+          font-size: 13px;
+        }
+        .category-heading p {
+          font-size: 13px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#directory">Skip to tools</a>
+    <div class="wrap">
+      <header>
+        <p class="eyebrow">tristan.inmotion</p>
+        <h1>T.im Video Tools</h1>
+        <div class="rule"><i></i><i></i></div>
+        <p class="lede"
+          >Pick a tool, set it up, and record a clip with the sound built in, or
+          make a cover image. Everything saves straight to your phone for CapCut
+          and Instagram.</p
+        >
+      </header>
+      <main id="directory">
+        <div class="directory-heading"
+          ><div
+            ><p class="eyebrow">Your creative toolkit</p
+            ><h2>What are you making?</h2></div
+          ><span class="total">12 tools · One place</span></div
+        >
+        <div class="finder" hidden>
+          <label for="search">Find a tool</label>
+          <div class="search-row"
+            ><input
+              id="search"
+              type="search"
+              placeholder="Search titles, GPS routes, birthdays…"
+              autocomplete="off"
+            /><button id="reset" type="button">Reset</button></div
+          >
+          <div
+            class="filters"
+            role="group"
+            aria-label="Filter tools by category"
+            ><button type="button" data-filter="all" aria-pressed="true"
+              >All tools <span>12</span></button
+            ><button type="button" data-filter="video" aria-pressed="false"
+              >Video, covers & sound <span>5</span></button
+            ><button type="button" data-filter="running" aria-pressed="false"
+              >Running & activity <span>4</span></button
+            ><button
+              type="button"
+              data-filter="celebrations"
+              aria-pressed="false"
+              >Celebrations <span>2</span></button
+            ><button type="button" data-filter="downloads" aria-pressed="false"
+              >Ready-made downloads <span>1</span></button
+            ></div
+          >
+          <p
+            id="result-count"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            >Showing all 12 tools</p
+          >
+        </div>
+        <div class="categories">
+          <section
+            class="category"
+            data-category="video"
+            aria-labelledby="video-heading"
+          >
+            <div class="category-heading"
+              ><span class="number">01</span
+              ><div
+                ><h2 id="video-heading">Video, covers & sound</h2
+                ><p
+                  >Titles, thumbnails, promos and sound effects for your next
+                  upload.</p
+                ></div
+              ><span class="category-count">5 tools</span></div
+            >
+            <div class="tools">
+              <a
+                class="tool"
+                data-keywords="instagram carousel slides gear review race recap monthly mileage training comparison png zip"
+                href="carousel-maker/"
+                ><span class="k">Instagram stories in slides</span
+                ><h3>Carousel Post Maker</h3
+                ><p
+                  >Build consistent photo, text, stats and comparison slides.
+                  Start with six running and gear templates, reorder, and export
+                  numbered PNGs or a ZIP.</p
+                ><span class="go">Open →</span></a
+              >
+              <a
+                class="tool"
+                data-keywords="audio music effects samples wav sound design"
+                href="sound-forge/"
+                ><span class="k">Sound design</span><h3>Sound Forge</h3
+                ><p
+                  >Create layered effects from 30 original presets, synthesize
+                  sounds, import samples, and export stereo WAV.</p
+                ><span class="go">Open →</span></a
+              >
+              <a
+                class="tool"
+                data-keywords="Video & covers "
+                href="title-maker/"
+                ><span class="k">Every video</span><h3>Title Maker</h3
+                ><p
+                  >Cyber-kit title cards, lower thirds, word tags and chapter
+                  cards. Type the text, pick a sound, record.</p
+                ><span class="go">Open →</span></a
+              >
+              <a
+                class="tool"
+                data-keywords="Video & covers "
+                href="promo-maker/"
+                ><span class="k">Every upload</span><h3>Promo Maker</h3
+                ><p
+                  >An “Out now” clip with your thumbnail and title, for Stories,
+                  Reels and TikTok.</p
+                ><span class="go">Open →</span></a
+              >
+              <a
+                class="tool"
+                data-keywords="Video & covers "
+                href="cover-maker/"
+                ><span class="k">Stills</span><h3>Cover Maker</h3
+                ><p
+                  >YouTube thumbnails, Reel covers and Instagram highlight
+                  covers, saved as PNGs.</p
+                ><span class="go">Open →</span></a
+              >
+            </div>
+          </section>
+          <section
+            class="category"
+            data-category="running"
+            aria-labelledby="running-heading"
+          >
+            <div class="category-heading"
+              ><span class="number">02</span
+              ><div
+                ><h2 id="running-heading">Running & activity</h2
+                ><p
+                  >Bring your run to life with data, runners and mile
+                  markers.</p
+                ></div
+              ><span class="category-count">4 tools</span></div
+            >
+            <div class="tools">
+              <a
+                class="tool"
+                data-keywords="Running & activity gps fit gpx tcx route stats pace elevation splits"
+                href="activity-studio/"
+                ><span class="k">Your run, your story</span
+                ><h3>Activity Studio</h3
+                ><p
+                  >Turn FIT, GPX and TCX exports into running graphics,
+                  performance cards and animated GPS routes. Private, local and
+                  ready for CapCut.</p
+                ><span class="go">Open →</span></a
+              >
+              <a
+                class="tool"
+                data-keywords="Running & activity "
+                href="start-line/"
+                ><span class="k">Runner</span><h3>Start Line Recorder</h3
+                ><p
+                  >The runner walks to the line, gets set, hears the countdown
+                  and takes off. Pick the countdown sound and scene.</p
+                ><span class="go">Open →</span></a
+              >
+              <a
+                class="tool"
+                data-keywords="Running & activity "
+                href="river-run/"
+                ><span class="k">Runner</span><h3>River Run Recorder</h3
+                ><p
+                  >The link-page scene: the runner jogs along the river under a
+                  gold sun. Pick length, pace and jumps, record with sound.</p
+                ><span class="go">Open →</span></a
+              >
+              <a
+                class="tool"
+                data-keywords="Running & activity "
+                href="mile-marker/"
+                ><span class="k">Easter egg</span><h3>Mile Marker Maker</h3
+                ><p
+                  >A trail sign pops up for any distance, with a ding that
+                  climbs as the miles go up.</p
+                ><span class="go">Open →</span></a
+              >
+            </div>
+          </section>
+          <section
+            class="category"
+            data-category="celebrations"
+            aria-labelledby="celebrations-heading"
+          >
+            <div class="category-heading"
+              ><span class="number">03</span
+              ><div
+                ><h2 id="celebrations-heading">Celebrations</h2
+                ><p>Make a personal shout-out or mark a milestone.</p></div
+              ><span class="category-count">2 tools</span></div
+            >
+            <div class="tools">
+              <a class="tool" data-keywords="Celebrations " href="special-post/"
+                ><span class="k">Celebrate</span><h3>Special Post Maker</h3
+                ><p
+                  >Birthdays, congrats and good lucks: pick your runners (or mix
+                  their pieces), they break the tape, the name lands, confetti
+                  drops.</p
+                ><span class="go">Open →</span></a
+              >
+              <a
+                class="tool"
+                data-keywords="Celebrations birthday congratulations good luck"
+                href="celebrate/"
+                ><span class="k">Celebrate</span><h3>Celebration Maker</h3
+                ><p
+                  >No runners: a big name card, a cake that blows out its
+                  candles, a race bib that pins itself up, or a finisher
+                  medal.</p
+                ><span class="go">Open →</span></a
+              >
+            </div>
+          </section>
+          <section
+            class="category"
+            data-category="downloads"
+            aria-labelledby="downloads-heading"
+          >
+            <div class="category-heading"
+              ><span class="number">04</span
+              ><div
+                ><h2 id="downloads-heading">Ready-made downloads</h2
+                ><p
+                  >Grab a finished animation and get straight to editing.</p
+                ></div
+              ><span class="category-count">1 tool</span></div
+            >
+            <div class="tools">
+              <a
+                class="tool"
+                data-keywords="Ready-made downloads "
+                href="downloads/"
+                ><span class="k">Ready-made</span><h3>Animation Downloads</h3
+                ><p
+                  >The finished trailer pack, River Run, Portal, The Loop and
+                  The Drop, with sound, ready for CapCut.</p
+                ><span class="go">Open →</span></a
+              >
+            </div>
+          </section>
+        </div>
+        <p id="empty" hidden
+          >No tools match your search. Try “title”, “runner” or “cover”, or
+          reset to see everything.</p
+        >
+      </main>
+      <p class="how"
+        ><b>Saving on iPhone:</b> after you record, tap Save video and choose
+        <b>Save Video</b> in the share sheet to put it in Photos. On a computer
+        it downloads. <b>Green screen:</b> in CapCut, add the clip as an
+        overlay, then use Chroma Key and pick the green.</p
+      >
+      <footer
+        ><i></i
+        ><a href="https://chiefcrackt.github.io/links-inMotion/"
+          >tristan.inmotion</a
+        ></footer
+      >
     </div>
-    <div class="categories">
-      <section class="category" data-category="video" aria-labelledby="video-heading">
-        <div class="category-heading"><span class="number">01</span><div><h2 id="video-heading">Video, covers & sound</h2><p>Titles, thumbnails, promos and sound effects for your next upload.</p></div><span class="category-count">5 tools</span></div>
-        <div class="tools">
-    <a class="tool" data-keywords="instagram carousel slides gear review race recap monthly mileage training comparison png zip" href="carousel-maker/"><span class="k">Instagram stories in slides</span><h3>Carousel Post Maker</h3><p>Build consistent photo, text, stats and comparison slides. Start with six running and gear templates, reorder, and export numbered PNGs or a ZIP.</p><span class="go">Open →</span></a>
-    <a class="tool" data-keywords="audio music effects samples wav sound design" href="sound-forge/"><span class="k">Sound design</span><h3>Sound Forge</h3><p>Create layered effects from 30 original presets, synthesize sounds, import samples, and export stereo WAV.</p><span class="go">Open →</span></a>
-    <a class="tool" data-keywords="Video & covers " href="title-maker/"><span class="k">Every video</span><h3>Title Maker</h3><p>Cyber-kit title cards, lower thirds, word tags and chapter cards. Type the text, pick a sound, record.</p><span class="go">Open →</span></a>
-    <a class="tool" data-keywords="Video & covers " href="promo-maker/"><span class="k">Every upload</span><h3>Promo Maker</h3><p>An “Out now” clip with your thumbnail and title, for Stories, Reels and TikTok.</p><span class="go">Open →</span></a>
-    <a class="tool" data-keywords="Video & covers " href="cover-maker/"><span class="k">Stills</span><h3>Cover Maker</h3><p>YouTube thumbnails, Reel covers and Instagram highlight covers, saved as PNGs.</p><span class="go">Open →</span></a>
-        </div>
-      </section>
-      <section class="category" data-category="running" aria-labelledby="running-heading">
-        <div class="category-heading"><span class="number">02</span><div><h2 id="running-heading">Running & activity</h2><p>Bring your run to life with data, runners and mile markers.</p></div><span class="category-count">4 tools</span></div>
-        <div class="tools">
-    <a class="tool" data-keywords="Running & activity gps fit gpx tcx route stats pace elevation splits" href="activity-studio/"><span class="k">Your run, your story</span><h3>Activity Studio</h3><p>Turn FIT, GPX and TCX exports into running graphics, performance cards and animated GPS routes. Private, local and ready for CapCut.</p><span class="go">Open →</span></a>
-    <a class="tool" data-keywords="Running & activity " href="start-line/"><span class="k">Runner</span><h3>Start Line Recorder</h3><p>The runner walks to the line, gets set, hears the countdown and takes off. Pick the countdown sound and scene.</p><span class="go">Open →</span></a>
-    <a class="tool" data-keywords="Running & activity " href="river-run/"><span class="k">Runner</span><h3>River Run Recorder</h3><p>The link-page scene: the runner jogs along the river under a gold sun. Pick length, pace and jumps, record with sound.</p><span class="go">Open →</span></a>
-    <a class="tool" data-keywords="Running & activity " href="mile-marker/"><span class="k">Easter egg</span><h3>Mile Marker Maker</h3><p>A trail sign pops up for any distance, with a ding that climbs as the miles go up.</p><span class="go">Open →</span></a>
-        </div>
-      </section>
-      <section class="category" data-category="celebrations" aria-labelledby="celebrations-heading">
-        <div class="category-heading"><span class="number">03</span><div><h2 id="celebrations-heading">Celebrations</h2><p>Make a personal shout-out or mark a milestone.</p></div><span class="category-count">2 tools</span></div>
-        <div class="tools">
-    <a class="tool" data-keywords="Celebrations " href="special-post/"><span class="k">Celebrate</span><h3>Special Post Maker</h3><p>Birthdays, congrats and good lucks: pick your runners (or mix their pieces), they break the tape, the name lands, confetti drops.</p><span class="go">Open →</span></a>
-    <a class="tool" data-keywords="Celebrations birthday congratulations good luck" href="celebrate/"><span class="k">Celebrate</span><h3>Celebration Maker</h3><p>No runners: a big name card, a cake that blows out its candles, a race bib that pins itself up, or a finisher medal.</p><span class="go">Open →</span></a>
-        </div>
-      </section>
-      <section class="category" data-category="downloads" aria-labelledby="downloads-heading">
-        <div class="category-heading"><span class="number">04</span><div><h2 id="downloads-heading">Ready-made downloads</h2><p>Grab a finished animation and get straight to editing.</p></div><span class="category-count">1 tool</span></div>
-        <div class="tools">
-    <a class="tool" data-keywords="Ready-made downloads " href="downloads/"><span class="k">Ready-made</span><h3>Animation Downloads</h3><p>The finished trailer pack, River Run, Portal, The Loop and The Drop, with sound, ready for CapCut.</p><span class="go">Open →</span></a>
-        </div>
-      </section>
-    </div>
-    <p id="empty" hidden>No tools match your search. Try “title”, “runner” or “cover”, or reset to see everything.</p>
-  </main>
-  <p class="how"><b>Saving on iPhone:</b> after you record, tap Save video and choose <b>Save Video</b> in the share sheet to put it in Photos. On a computer it downloads. <b>Green screen:</b> in CapCut, add the clip as an overlay, then use Chroma Key and pick the green.</p>
-  <footer><i></i><a href="https://chiefcrackt.github.io/links-inMotion/">tristan.inmotion</a></footer>
-</div>
-<script>
-(() => {
-  const finder = document.querySelector('.finder');
-  const search = document.querySelector('#search');
-  const buttons = [...document.querySelectorAll('[data-filter]')];
-  const sections = [...document.querySelectorAll('.category')];
-  let selected = 'all';
-  function update() {
-    const words = search.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    let count = 0;
-    sections.forEach(section => {
-      let visible = 0;
-      section.querySelectorAll('.tool').forEach(card => {
-        const text = (card.textContent + ' ' + card.dataset.keywords).toLowerCase();
-        card.hidden = !(selected === 'all' || selected === section.dataset.category) || !words.every(word => text.includes(word));
-        if (!card.hidden) visible++;
-      });
-      section.hidden = visible === 0;
-      section.querySelector('.category-count').textContent = visible + (visible === 1 ? ' tool' : ' tools');
-      count += visible;
-    });
-    buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === selected)));
-    document.querySelector('#result-count').textContent = count === 12 ? 'Showing all 12 tools' : 'Showing ' + count + ' of 12 tools';
-    document.querySelector('#empty').hidden = count !== 0;
-  }
-  search.addEventListener('input', update);
-  buttons.forEach(button => button.addEventListener('click', () => {selected = button.dataset.filter; update();}));
-  document.querySelector('#reset').addEventListener('click', () => {selected = 'all'; search.value = ''; update(); search.focus();});
-  finder.hidden = false;
-})();
-</script>
-</body>
+    <script>
+      (() => {
+        const finder = document.querySelector('.finder');
+        const search = document.querySelector('#search');
+        const buttons = [...document.querySelectorAll('[data-filter]')];
+        const sections = [...document.querySelectorAll('.category')];
+        let selected = 'all';
+        function update() {
+          const words = search.value
+            .trim()
+            .toLowerCase()
+            .split(/\s+/)
+            .filter(Boolean);
+          let count = 0;
+          sections.forEach((section) => {
+            let visible = 0;
+            section.querySelectorAll('.tool').forEach((card) => {
+              const text = (
+                card.textContent +
+                ' ' +
+                card.dataset.keywords
+              ).toLowerCase();
+              card.hidden =
+                !(
+                  selected === 'all' || selected === section.dataset.category
+                ) || !words.every((word) => text.includes(word));
+              if (!card.hidden) visible++;
+            });
+            section.hidden = visible === 0;
+            section.querySelector('.category-count').textContent =
+              visible + (visible === 1 ? ' tool' : ' tools');
+            count += visible;
+          });
+          buttons.forEach((button) =>
+            button.setAttribute(
+              'aria-pressed',
+              String(button.dataset.filter === selected),
+            ),
+          );
+          document.querySelector('#result-count').textContent =
+            count === 12
+              ? 'Showing all 12 tools'
+              : 'Showing ' + count + ' of 12 tools';
+          document.querySelector('#empty').hidden = count !== 0;
+        }
+        search.addEventListener('input', update);
+        buttons.forEach((button) =>
+          button.addEventListener('click', () => {
+            selected = button.dataset.filter;
+            update();
+          }),
+        );
+        document.querySelector('#reset').addEventListener('click', () => {
+          selected = 'all';
+          search.value = '';
+          update();
+          search.focus();
+        });
+        finder.hidden = false;
+      })();
+    </script>
+  </body>
 </html>
-

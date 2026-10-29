@@ -1,8 +1,152 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>SOUND FORGE · T.im</title><meta name="theme-color" content="#0E1A2E"><link rel="icon" href="../favicon.svg"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;500&display=swap"><link rel="stylesheet" href="style.css"></head>
-<body><main><header><a href="../">← T.im Video Tools</a><p class="eyebrow">tristan.inmotion · Audio studio</p><h1>SOUND FORGE</h1><p>Shape the sound. Make the moment. Layer original effects for your next video.</p></header>
-<div class="layout"><aside class="panel"><h2>01 / Find a sound</h2><label>Search presets<input id="search" type="search" placeholder="Glitch, impact, whoosh…"></label><label>Collection<select id="category"><option value="">All collections</option><option value="custom">My sounds</option></select></label><div id="presets" class="presets"></div><p class="note">Choose a sound, then tap Preview. All factory sounds are generated locally.</p><div class="actions"><button id="import">Import JSON / project</button><input id="import-file" hidden type="file" accept=".json,application/json"><button id="factory">Reset factory sound</button></div></aside>
-<section class="studio"><div class="panel"><div class="heading"><div><p class="eyebrow">02 / Make it yours</p><h2 id="sound-name"></h2></div><span id="seed"></span></div><div class="wave-wrap"><canvas id="wave" aria-label="Rendered stereo mix waveform" role="img"></canvas><div id="playhead"></div></div><div class="transport"><button id="preview" class="primary">▶ Preview</button><button id="stop">■ Stop</button><meter id="peak-meter" min="0" max="1" value="0" aria-label="Rendered output peak"></meter><output id="level">Render a sound to see its level</output></div><div class="quick" id="quick"></div><div class="actions"><button id="reset">Reset edits</button><button id="random">Randomize variation</button><button id="save">Save as custom preset</button></div><div class="actions"><button id="rename">Rename custom</button><button id="duplicate">Duplicate</button><button id="delete">Delete custom</button><button id="json">Export preset JSON</button><button id="package">Export portable project</button></div><p class="note">Preset JSON contains settings and sample references only. Portable project JSON includes uploaded audio. Local samples and saved sounds are shared by T.im tools in this browser and origin.</p></div>
-<details id="advanced" class="panel"><summary>03 / Advanced · Four-layer mixer</summary><div class="heading"><label>Timeline zoom<select id="zoom"><option value="1">Fit</option><option value="2">2×</option><option value="4">4×</option></select></label><label class="check"><input id="snap" type="checkbox" checked> Snap timing to 0.05 s</label></div><div class="timeline-scroll"><div id="timeline"><div id="ruler"></div><div id="tracks"></div></div></div><p class="note">Select a track to edit. Start and duration controls provide precise timing on touch devices. Waves include effects tails; muted tracks appear dimmed.</p><div id="layer-tabs" class="actions"></div><div id="layer-editor"></div><p class="note">Sample pitch changes playback rate and audible length; it does not preserve time. Duration is the output window, and trim selects the starting point in the original sample. Reverse flips that window before effects.</p></details>
-<div class="panel"><h2>04 / Take it to the edit</h2><div class="actions"><label>Sample rate<select id="sample-rate"><option value="48000">48 kHz · Video</option><option value="44100">44.1 kHz</option></select></label><label class="check"><input id="normalize" type="checkbox"> Normalize to −0.45 dBFS</label><button id="export" class="primary">Export WAV</button><button id="stems">Prepare WAV stems</button></div><div id="stem-downloads" class="actions"></div><p class="note">Stereo 16-bit PCM WAV · Effects tails included · Automatic peak protection. Stems share the mix gain and keep their timeline offsets.</p></div>
-</section></div><p id="status" role="status" aria-live="polite">Ready. Select a preset and preview.</p><progress id="progress" max="1" value="0" hidden></progress><footer>T.IM / SOUND FORGE · Built for the moment.</footer></main><script type="module" src="app.mjs"></script></body></html>
+<html lang="en"
+  ><head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover" /><title
+      >SOUND FORGE · T.im</title
+    ><meta name="theme-color" content="#0E1A2E" /><link
+      rel="icon"
+      href="../favicon.svg" /><link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;500&display=swap" /><link
+      rel="stylesheet"
+      href="style.css"
+  /></head>
+  <body
+    ><main
+      ><header
+        ><a href="../">← T.im Video Tools</a
+        ><p class="eyebrow">tristan.inmotion · Audio studio</p
+        ><h1>SOUND FORGE</h1
+        ><p
+          >Shape the sound. Make the moment. Layer original effects for your
+          next video.</p
+        ></header
+      >
+      <div class="layout"
+        ><aside class="panel"
+          ><h2>01 / Find a sound</h2
+          ><label
+            >Search presets<input
+              id="search"
+              type="search"
+              placeholder="Glitch, impact, whoosh…" /></label
+          ><label
+            >Collection<select id="category"
+              ><option value="">All collections</option
+              ><option value="custom">My sounds</option></select
+            ></label
+          ><div id="presets" class="presets"></div
+          ><p class="note"
+            >Choose a sound, then tap Preview. All factory sounds are generated
+            locally.</p
+          ><div class="actions"
+            ><button id="import">Import JSON / project</button
+            ><input
+              id="import-file"
+              hidden
+              type="file"
+              accept=".json,application/json"
+            /><button id="factory">Reset factory sound</button></div
+          ></aside
+        >
+        <section class="studio"
+          ><div class="panel"
+            ><div class="heading"
+              ><div
+                ><p class="eyebrow">02 / Make it yours</p
+                ><h2 id="sound-name"></h2></div
+              ><span id="seed"></span></div
+            ><div class="wave-wrap"
+              ><canvas
+                id="wave"
+                aria-label="Rendered stereo mix waveform"
+                role="img"
+              ></canvas
+              ><div id="playhead"></div></div
+            ><div class="transport"
+              ><button id="preview" class="primary">▶ Preview</button
+              ><button id="stop">■ Stop</button
+              ><meter
+                id="peak-meter"
+                min="0"
+                max="1"
+                value="0"
+                aria-label="Rendered output peak"
+              ></meter
+              ><output id="level">Render a sound to see its level</output></div
+            ><div class="quick" id="quick"></div
+            ><div class="actions"
+              ><button id="reset">Reset edits</button
+              ><button id="random">Randomize variation</button
+              ><button id="save">Save as custom preset</button></div
+            ><div class="actions"
+              ><button id="rename">Rename custom</button
+              ><button id="duplicate">Duplicate</button
+              ><button id="delete">Delete custom</button
+              ><button id="json">Export preset JSON</button
+              ><button id="package">Export portable project</button></div
+            ><p class="note"
+              >Preset JSON contains settings and sample references only.
+              Portable project JSON includes uploaded audio. Local samples and
+              saved sounds are shared by T.im tools in this browser and
+              origin.</p
+            ></div
+          >
+          <details id="advanced" class="panel"
+            ><summary>03 / Advanced · Four-layer mixer</summary
+            ><div class="heading"
+              ><label
+                >Timeline zoom<select id="zoom"
+                  ><option value="1">Fit</option
+                  ><option value="2">2×</option
+                  ><option value="4">4×</option></select
+                ></label
+              ><label class="check"
+                ><input id="snap" type="checkbox" checked /> Snap timing to 0.05
+                s</label
+              ></div
+            ><div class="timeline-scroll"
+              ><div id="timeline"
+                ><div id="ruler"></div><div id="tracks"></div></div></div
+            ><p class="note"
+              >Select a track to edit. Start and duration controls provide
+              precise timing on touch devices. Waves include effects tails;
+              muted tracks appear dimmed.</p
+            ><div id="layer-tabs" class="actions"></div
+            ><div id="layer-editor"></div
+            ><p class="note"
+              >Sample pitch changes playback rate and audible length; it does
+              not preserve time. Duration is the output window, and trim selects
+              the starting point in the original sample. Reverse flips that
+              window before effects.</p
+            ></details
+          >
+          <div class="panel"
+            ><h2>04 / Take it to the edit</h2
+            ><div class="actions"
+              ><label
+                >Sample rate<select id="sample-rate"
+                  ><option value="48000">48 kHz · Video</option
+                  ><option value="44100">44.1 kHz</option></select
+                ></label
+              ><label class="check"
+                ><input id="normalize" type="checkbox" /> Normalize to −0.45
+                dBFS</label
+              ><button id="export" class="primary">Export WAV</button
+              ><button id="stems">Prepare WAV stems</button></div
+            ><div id="stem-downloads" class="actions"></div
+            ><p class="note"
+              >Stereo 16-bit PCM WAV · Effects tails included · Automatic peak
+              protection. Stems share the mix gain and keep their timeline
+              offsets.</p
+            ></div
+          >
+        </section></div
+      ><p id="status" role="status" aria-live="polite"
+        >Ready. Select a preset and preview.</p
+      ><progress id="progress" max="1" value="0" hidden></progress
+      ><footer>T.IM / SOUND FORGE · Built for the moment.</footer></main
+    ><script type="module" src="app.mjs"></script></body
+></html>

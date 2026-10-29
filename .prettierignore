@@ -1,0 +1,8 @@
+node_modules/
+.git/
+artifacts/
+test-results/
+playwright-report/
+activity-studio/worker.js
+activity-studio/licenses/
+package-lock.json

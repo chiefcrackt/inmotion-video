@@ -14,7 +14,11 @@
     "test:carousel:editor": "node carousel-maker/tests/editor.cjs",
     "test:carousel:background": "node carousel-maker/tests/background.cjs",
     "test:carousel:stacking": "node carousel-maker/tests/stacking.cjs",
-    "test:carousel:positioning": "node carousel-maker/tests/positioning.cjs"
+    "test:carousel:positioning": "node carousel-maker/tests/positioning.cjs",
+    "format": "prettier --write \"**/*.{html,css,js,mjs,cjs,json}\"",
+    "format:check": "prettier --check \"**/*.{html,css,js,mjs,cjs,json}\"",
+    "test:carousel:all": "npm run test:carousel:browser && npm run test:carousel:editor && npm run test:carousel:background && npm run test:carousel:stacking && npm run test:carousel:positioning",
+    "test:cover:browser": "node cover-maker/tests/render.cjs"
   },
   "repository": {
     "type": "git",
@@ -32,7 +36,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "prettier": "3.9.10"
   },
   "private": true
 }
