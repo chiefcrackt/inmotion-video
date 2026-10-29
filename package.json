@@ -1,0 +1,30 @@
+{
+  "name": "tim-video-tools",
+  "version": "1.0.0",
+  "description": "Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at\r **https://chiefcrackt.github.io/inmotion-video/**",
+  "scripts": {
+    "build": "node activity-studio/build.mjs",
+    "test": "node --test activity-studio/tests/*.test.mjs",
+    "test:browser": "node activity-studio/tests/browser.mjs",
+    "preview": "node activity-studio/serve.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chiefcrackt/inmotion-video.git"
+  },
+  "keywords": [],
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/chiefcrackt/inmotion-video/issues"
+  },
+  "homepage": "https://github.com/chiefcrackt/inmotion-video#readme",
+  "dependencies": {
+    "@garmin/fitsdk": "^21.218.0",
+    "@xmldom/xmldom": "^0.9.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "esbuild": "^0.28.2"
+  },
+  "private": true
+}

@@ -5,6 +5,7 @@ Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages 
 
 | Tool | Path | What it makes |
 |---|---|---|
+| Activity Studio | `/activity-studio/` | Local FIT/GPX/TCX imports, editable run cards, dashboards, route reveals, elevation profiles and recorded lap graphics; PNG and browser-recorded video |
 | Title Maker | `/title-maker/` | Cyber-kit title cards, lower thirds, word tags and chapter cards with sound |
 | Promo Maker | `/promo-maker/` | An "Out now" clip from a video's thumbnail and title |
 | Cover Maker | `/cover-maker/` | YouTube thumbnails, Reel covers and highlight covers as PNGs |
@@ -20,3 +21,5 @@ Each tool is a single self-contained HTML page. It draws on a canvas, synthesize
 The runner is the cut-out from [links-inMotion](https://github.com/chiefcrackt/links-inMotion) (`scene/runner/`), inlined into the Start Line and River Run pages.
 
 The ProRes 4444 desktop versions of the animations are not in this repo; they are too large for GitHub Pages.
+
+Activity Studio uses small native ES modules and a committed parser-worker bundle alongside its HTML page. See [its documentation](activity-studio/README.md) for development, data semantics, tests and browser limitations. Existing tools still require no build step.
