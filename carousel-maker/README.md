@@ -28,3 +28,9 @@ Undo/redo stores the latest 40 edits in memory, including slide changes. Cmd/Ctr
 `npm run test:carousel:editor` exercises independent elements, pointer dragging/resizing, undo/redo, layer order, style copying, reusable layouts, project files, brand kits, photo elements, PNG export, reload persistence and mobile widths. Requires Playwright and Chromium.
 
 Grouping, automatic distribution, saved logo assets and a multi-template library are not included. Chart and table layouts support up to 12 rows and tables up to four columns. Text clips to its frame; resize it or lower the font size if needed. For the cleanest result, use blank slides when placing everything manually.
+
+## Full-slide photo backgrounds
+
+Upload a primary photo and choose **Photo placement → Full-slide background**. This fills every edge of portrait or square slides, including blank layouts and behind the footer. Background mode uses fill/crop; zoom, position, rotation and flip still apply. Photo-frame height and panel-opacity settings do not apply to backgrounds.
+
+For readable text, choose a background tint color and strength, a top/bottom/left dark gradient, and white/black/palette template text. Hide template text and/or the footer to create photo-only slides or compose your own independent text layers. Independent elements keep their own colors. Framing and readability settings persist, duplicate and export with each slide. Reset framing also resets background mode and effects. `npm run test:carousel:background` validates full-bleed coverage, tint/gradient pixels, persistence and PNG export.
