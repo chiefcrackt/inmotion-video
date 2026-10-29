@@ -250,11 +250,18 @@ function makeRunner(build){
   var dk={};
   function dark(p){var key=p.src.length+':'+p.src.slice(-24);if(dk[key])return dk[key];var c=document.createElement('canvas');c.width=p.img.naturalWidth||p.img.width;c.height=p.img.naturalHeight||p.img.height;
     var x=c.getContext('2d');x.drawImage(p.img,0,0);x.globalCompositeOperation='source-atop';x.fillStyle='rgba(8,14,30,.32)';x.fillRect(0,0,c.width,c.height);return dk[key]=c}
-  function piece(ctx,p,at,angle,shade,sy){if(!p)return;ctx.save();ctx.translate(at[0],at[1]);ctx.rotate(angle*R);ctx.scale(p.scale,p.scale*(sy||1));
+  function piece(ctx,p,at,angle,shade,sy,length){if(!p)return;ctx.save();ctx.translate(at[0],at[1]);
+    // Fit each replacement along its bone, preserving its width. Tristan keeps the original transform.
+    if(length&&p!==CAST.tristan.thigh&&p!==CAST.tristan.shin&&p!==CAST.tristan.upperarm&&p!==CAST.tristan.forearm&&p!==CAST.tristan.forearm_far){
+      var a=rest(p),nativeLength=Math.hypot(p.end[0]-p.pivot[0],p.end[1]-p.pivot[1])*p.scale;
+      ctx.rotate((angle-a)*R);ctx.scale(1,length/nativeLength);
+      ctx.rotate(a*R);
+    }else ctx.rotate(angle*R);
+    ctx.scale(p.scale,p.scale*(sy||1));
     ctx.drawImage(shade?dark(p):p.img,-p.pivot[0],-p.pivot[1]);ctx.restore()}
   function drawLeg(ctx,q,h,shade){var b=build;
-    piece(ctx,b.shin,q.k,rest(b.shin)-q.shin,shade);piece(ctx,b.shoe,q.an,q.foot,shade);
-    piece(ctx,b.thigh,h,rest(b.thigh)-q.hip,shade);if(b.shortleg)piece(ctx,b.shortleg,h,rest(b.shortleg)-q.hip,shade)}
+    piece(ctx,b.shin,q.k,rest(b.shin)-q.shin,shade,1,L.shin);piece(ctx,b.shoe,q.an,q.foot,shade);
+    piece(ctx,b.thigh,h,rest(b.thigh)-q.hip,shade,1,L.thigh);if(b.shortleg)piece(ctx,b.shortleg,h,rest(b.shortleg)-q.hip,shade)}
   function drawArm(ctx,sh,p,shade){var sw=cr(ARM,p),el=cr(ELB,p);
     if(J.tuck>0){sw=mix(sw,shade?-20:58,J.tuck);el=mix(el,shade?70:104,J.tuck)}
     if(J.crouch>0){sw=mix(sw,-30,J.crouch*0.7)}
@@ -263,7 +270,7 @@ function makeRunner(build){
     if(J.reach>0&&!shade){sw=mix(sw,128,J.reach);el=mix(el,12,J.reach)}
     if(J.back>0&&shade){sw=mix(sw,-132,J.back);el=mix(el,4,J.back)}
     var fo=sw+el,e=pt(sh,L.upperarm,sw),fa=shade&&build.forearm_far?build.forearm_far:build.forearm;
-    piece(ctx,fa,e,rest(fa)-fo,shade);piece(ctx,build.upperarm,sh,rest(build.upperarm)-sw,shade)}
+    piece(ctx,fa,e,rest(fa)-fo,shade,1,L.forearm);piece(ctx,build.upperarm,sh,rest(build.upperarm)-sw,shade,1,L.upperarm)}
   function draw(ctx,p,x,groundY,scale){
     var b=build,T=Math.PI*2,q=p*2,hy=hipY(p);
     var tilt=2.2*Math.sin(T*(q-0.05)),shift=4*Math.cos(T*p),tA=LEAN+2.4*Math.sin(T*(q-0.2))+12*J.crouch-8*J.cheer,
