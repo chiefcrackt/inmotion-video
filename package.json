@@ -10,7 +10,9 @@
     "preview": "node activity-studio/serve.mjs",
     "test:sound:browser": "node tests/sound-browser.cjs",
     "test:carousel": "node --test carousel-maker/tests/model.test.mjs",
-    "test:carousel:browser": "node carousel-maker/tests/browser.cjs"
+    "test:carousel:browser": "node carousel-maker/tests/browser.cjs",
+    "test:carousel:editor": "node carousel-maker/tests/editor.cjs",
+    "test:carousel:background": "node carousel-maker/tests/background.cjs"
   },
   "repository": {
     "type": "git",
