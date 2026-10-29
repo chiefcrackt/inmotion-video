@@ -16,3 +16,15 @@ Validation:
 The browser check covers hub discovery, editing, duplication, reordering, reload persistence, photo uploads, all templates, PNG dimensions, ZIP download and mobile widths. No shared sound or activity behavior is changed.
 
 Photo framing controls are per slide: fill/crop or fit the whole image, 1–3× zoom, horizontal/vertical positioning, 90° rotation, horizontal flip, frame height on non-photo layouts and text-panel opacity on photo layouts. Reset framing restores defaults; replacing a photo also resets framing. Controls persist in drafts, copy with duplicate slides and use the same renderer for previews, thumbnails and PNG/ZIP exports. Existing drafts default to their original framing.
+
+## Elements and projects
+
+Add independent text boxes, photos, shapes, arrows, badges, star ratings, bar charts and comparison tables to a template or a new blank slide. Drag elements on the preview and resize with the bottom-right handle; toggle 10px snapping. Numeric position and size fields and left/center/right/middle buttons provide precise alignment. Select an element from the layers list to hide, lock, duplicate, delete or move it forward/backward. Arrow keys nudge a selected unlocked element by 1px (Shift: 10px); Delete removes it. Editing fields retain their normal keyboard behavior.
+
+Text supports size, font, bold, alignment, line spacing and color. Elements support opacity, borders, rounded corners and shadows where applicable. Multiple photo elements support fill/crop and contain. Charts use `Label | value` rows; tables use pipe-separated columns. Copy/paste styles transfers presentation without replacing content or position. Existing template content remains editable through Slide settings; added elements are independent layers above it. A blank slide provides full composition control.
+
+Undo/redo stores the latest 40 edits in memory, including slide changes. Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z work outside input fields. History resets when the page reloads. Saved projects, a reusable slide layout and a saved brand kit (palette, font, handle) live in this browser. Save a project under a different title to keep another version. Export/import JSON carries editable slides and embedded photos between devices. Storage limits apply; export JSON backups for important work. JSON import is limited to 25MB, 100 slides and 100 elements per slide.
+
+`npm run test:carousel:editor` exercises independent elements, pointer dragging/resizing, undo/redo, layer order, style copying, reusable layouts, project files, brand kits, photo elements, PNG export, reload persistence and mobile widths. Requires Playwright and Chromium.
+
+Grouping, automatic distribution, saved logo assets and a multi-template library are not included. Chart and table layouts support up to 12 rows and tables up to four columns. Text clips to its frame; resize it or lower the font size if needed. For the cleanest result, use blank slides when placing everything manually.

@@ -4,3 +4,6 @@ test('ZIP headers, offsets and checksums match contents',async()=>{const data=ne
 
 import {defaults,photoSettings,photoGeometry} from '../photo.mjs';
 test('photo geometry fills/fits, positions crop, handles rotation and old drafts',()=>{assert.deepEqual(photoSettings({}),defaults);let g=photoGeometry(200,100,100,100,defaults);assert.equal(g.scale,1);assert.equal(g.x,50);g=photoGeometry(200,100,100,100,{...defaults,x:100});assert.equal(g.x,100);g=photoGeometry(200,100,100,100,{...defaults,fit:'contain'});assert.equal(g.scale,.5);g=photoGeometry(200,100,100,200,{...defaults,rotation:90});assert.equal(g.scale,1);g=photoGeometry(200,100,100,100,{...defaults,zoom:2});assert.equal(g.scale,2);});
+import {makeElement,validProject} from '../elements.mjs';
+test('editor elements and project import validation',()=>{const s={slides:clone(templates[0].slides),height:1350,palette:palettesForTest(),font:'Arial',handle:'@test',project:'Test'};s.slides[0].elements=[makeElement('text',s.palette),makeElement('chart',s.palette)];assert.equal(validProject(s),true);const duplicate=clone(s.slides[0].elements[0]);duplicate.x=500;assert.notEqual(s.slides[0].elements[0].x,500);s.slides[0].elements[0].src='https://external/image.png';assert.equal(validProject(s),false);});
+function palettesForTest(){return ['#0e1a2e','#f6f4ef','#e8c96a'];}
