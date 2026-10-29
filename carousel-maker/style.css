@@ -9,3 +9,8 @@ h1{font-size:19px;line-height:1.2;margin:12px 0 20px;letter-spacing:-.5px}.choos
 .inspector label>input[type=checkbox]{width:auto;margin-right:6px}#photoControls output{float:right;font-size:10px}
 
 .templateLayer{font-size:10px;padding:9px 6px;border-top:1px dashed #adbca5;border-bottom:1px dashed #adbca5;margin:7px 0;color:#63765b;background:#f2f5ee}
+
+.positionPanel{padding:0 0 22px;margin-bottom:22px;border-bottom:1px solid var(--line)}.positionPanel h2{font-size:17px}.positionPanel>button{width:100%;font-size:11px}.positionPanel button[aria-pressed=true]{background:#dce9d4;border-color:#728c62}#templateOverlay{position:absolute;inset:0;pointer-events:none;z-index:3;touch-action:none}#templateOverlay[hidden]{display:none}.templateHit{position:absolute;border:1px dashed #2e9bad;background:#2e9bad0b;pointer-events:auto;touch-action:none;cursor:move}.templateHit.chosen{border:2px solid #2e9bad}.templateHit>span{position:absolute;bottom:100%;left:0;background:#284e3d;color:white;font-size:9px;padding:2px 5px;white-space:nowrap;pointer-events:none}.positioning #elementOverlay{pointer-events:none}.positioning #elementOverlay .elementHit{pointer-events:none}.positioning{touch-action:none}@media(max-width:850px){.positionPanel{grid-column:1/-1}}
+
+.elementPanel{margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
+.templateHit.chosen{z-index:2}
