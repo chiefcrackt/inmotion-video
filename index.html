@@ -89,17 +89,18 @@ a.tool:hover{background:#192d49}
     <p class="lede">Pick a tool, set it up, and record a clip with the sound built in, or make a cover image. Everything saves straight to your phone for CapCut and Instagram.</p>
   </header>
   <main id="directory">
-    <div class="directory-heading"><div><p class="eyebrow">Your creative toolkit</p><h2>What are you making?</h2></div><span class="total">11 tools · One place</span></div>
+    <div class="directory-heading"><div><p class="eyebrow">Your creative toolkit</p><h2>What are you making?</h2></div><span class="total">12 tools · One place</span></div>
     <div class="finder" hidden>
       <label for="search">Find a tool</label>
       <div class="search-row"><input id="search" type="search" placeholder="Search titles, GPS routes, birthdays…" autocomplete="off"><button id="reset" type="button">Reset</button></div>
-      <div class="filters" role="group" aria-label="Filter tools by category"><button type="button" data-filter="all" aria-pressed="true">All tools <span>11</span></button><button type="button" data-filter="video" aria-pressed="false">Video, covers & sound <span>4</span></button><button type="button" data-filter="running" aria-pressed="false">Running & activity <span>4</span></button><button type="button" data-filter="celebrations" aria-pressed="false">Celebrations <span>2</span></button><button type="button" data-filter="downloads" aria-pressed="false">Ready-made downloads <span>1</span></button></div>
-      <p id="result-count" role="status" aria-live="polite" aria-atomic="true">Showing all 11 tools</p>
+      <div class="filters" role="group" aria-label="Filter tools by category"><button type="button" data-filter="all" aria-pressed="true">All tools <span>12</span></button><button type="button" data-filter="video" aria-pressed="false">Video, covers & sound <span>5</span></button><button type="button" data-filter="running" aria-pressed="false">Running & activity <span>4</span></button><button type="button" data-filter="celebrations" aria-pressed="false">Celebrations <span>2</span></button><button type="button" data-filter="downloads" aria-pressed="false">Ready-made downloads <span>1</span></button></div>
+      <p id="result-count" role="status" aria-live="polite" aria-atomic="true">Showing all 12 tools</p>
     </div>
     <div class="categories">
       <section class="category" data-category="video" aria-labelledby="video-heading">
-        <div class="category-heading"><span class="number">01</span><div><h2 id="video-heading">Video, covers & sound</h2><p>Titles, thumbnails, promos and sound effects for your next upload.</p></div><span class="category-count">4 tools</span></div>
+        <div class="category-heading"><span class="number">01</span><div><h2 id="video-heading">Video, covers & sound</h2><p>Titles, thumbnails, promos and sound effects for your next upload.</p></div><span class="category-count">5 tools</span></div>
         <div class="tools">
+    <a class="tool" data-keywords="instagram carousel slides gear review race recap monthly mileage training comparison png zip" href="carousel-maker/"><span class="k">Instagram stories in slides</span><h3>Carousel Post Maker</h3><p>Build consistent photo, text, stats and comparison slides. Start with six running and gear templates, reorder, and export numbered PNGs or a ZIP.</p><span class="go">Open →</span></a>
     <a class="tool" data-keywords="audio music effects samples wav sound design" href="sound-forge/"><span class="k">Sound design</span><h3>Sound Forge</h3><p>Create layered effects from 30 original presets, synthesize sounds, import samples, and export stereo WAV.</p><span class="go">Open →</span></a>
     <a class="tool" data-keywords="Video & covers " href="title-maker/"><span class="k">Every video</span><h3>Title Maker</h3><p>Cyber-kit title cards, lower thirds, word tags and chapter cards. Type the text, pick a sound, record.</p><span class="go">Open →</span></a>
     <a class="tool" data-keywords="Video & covers " href="promo-maker/"><span class="k">Every upload</span><h3>Promo Maker</h3><p>An “Out now” clip with your thumbnail and title, for Stories, Reels and TikTok.</p><span class="go">Open →</span></a>
@@ -156,7 +157,7 @@ a.tool:hover{background:#192d49}
       count += visible;
     });
     buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === selected)));
-    document.querySelector('#result-count').textContent = count === 11 ? 'Showing all 11 tools' : 'Showing ' + count + ' of 11 tools';
+    document.querySelector('#result-count').textContent = count === 12 ? 'Showing all 12 tools' : 'Showing ' + count + ' of 12 tools';
     document.querySelector('#empty').hidden = count !== 0;
   }
   search.addEventListener('input', update);
@@ -167,3 +168,4 @@ a.tool:hover{background:#192d49}
 </script>
 </body>
 </html>
+
