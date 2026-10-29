@@ -3,6 +3,8 @@
 Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at
 **https://chiefcrackt.github.io/inmotion-video/**
 
+The home page groups tools by task and offers search and category filters. All tool links remain ordinary relative links and work without JavaScript. Run `npm run test:hub` to check every tool's navigation, filters, search, mobile layout and JavaScript-free access (requires Chrome).
+
 | Tool | Path | What it makes |
 |---|---|---|
 | Activity Studio | `/activity-studio/` | Local FIT/GPX/TCX imports, editable run cards, dashboards, route reveals, elevation profiles and recorded lap graphics; PNG and browser-recorded video |
