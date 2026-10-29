@@ -6,6 +6,7 @@ Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages 
 | Tool | Path | What it makes |
 |---|---|---|
 | Activity Studio | `/activity-studio/` | Local FIT/GPX/TCX imports, editable run cards, dashboards, route reveals, elevation profiles and recorded lap graphics; PNG and browser-recorded video |
+| Sound Forge | `/sound-forge/` | Four-layer sound effects studio: 30 procedural presets, samples, effects, shared local library, stereo WAV and stems |
 | Title Maker | `/title-maker/` | Cyber-kit title cards, lower thirds, word tags and chapter cards with sound |
 | Promo Maker | `/promo-maker/` | An "Out now" clip from a video's thumbnail and title |
 | Cover Maker | `/cover-maker/` | YouTube thumbnails, Reel covers and highlight covers as PNGs |
@@ -17,6 +18,12 @@ Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages 
 | Animation Downloads | `/downloads/` | Finished animations (trailer pack, River Run, Portal, The Loop, The Drop): MP4, green screen MP4, transparent WebM, WAV, and a zip per pack |
 
 Each tool is a single self-contained HTML page. It draws on a canvas, synthesizes its sounds with the Web Audio API, and records the result with MediaRecorder (MP4 on Safari, WebM where MP4 isn't available). Recordings save through the share sheet on iPhone ("Save Video" puts them in Photos) or as a normal download on a computer.
+
+Sound Forge uses reusable modules in `shared/sound/` for offline rendering, a
+versioned preset schema, IndexedDB sample storage and PCM WAV export. Title Maker
+can select saved Sound Forge presets and include them in its existing video
+recording. See [Sound Forge implementation and validation](sound-forge/README.md)
+for integration examples, project portability, testing and limitations.
 
 The runner is the cut-out from [links-inMotion](https://github.com/chiefcrackt/links-inMotion) (`scene/runner/`), inlined into the Start Line and River Run pages.
 
