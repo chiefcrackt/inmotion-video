@@ -139,7 +139,8 @@
       }</style
     ><link rel="stylesheet" href="../shared/fonts.css" /><link
       rel="stylesheet"
-      href="../shared/projects.css" /><script src="../shared/projects.js"></script></head
+      href="../shared/projects.css" /><script src="../shared/background-pack.js"></script>
+    <script src="../shared/projects.js"></script></head
   ><body
     ><style>
       /* Layout: two-column studio. Live preview on the left, the text and options on the right; one column on phones.
@@ -815,6 +816,8 @@
         var D = {
           textFont: 'Barlow Condensed',
           theme: 'tim',
+          backgroundPack: '',
+          matchBackgroundTheme: true,
           mode: 'thumb',
           tag: 'OIL CREEK 100',
           head: 'WHAT 100 MILES TAUGHT ME',
@@ -847,6 +850,7 @@
           msg.textContent = t || '';
           msg.className = 'msg' + (err ? ' err' : '');
         }
+        var backgroundControls;
         var PHOTO = null,
           WAVES = null,
           WAVES_T = {};
@@ -1264,8 +1268,27 @@
               ') blur(' +
               p.blur +
               'px)';
-            c.drawImage(PHOTO, -dw / 2, -dh / 2, dw, dh);
+            c.drawImage(
+              S.backgroundPack && S.matchBackgroundTheme !== false
+                ? window.TimBackgrounds.themedImage(PHOTO, [
+                    C.navy,
+                    C.paper,
+                    C.gold,
+                  ])
+                : PHOTO,
+              -dw / 2,
+              -dh / 2,
+              dw,
+              dh,
+            );
           });
+        }
+        function backgroundOverlayColor(alpha) {
+          var hex = S.backgroundPack ? C.navy : '#0e1a2e';
+          var rgb = [1, 3, 5].map(function (offset) {
+            return parseInt(hex.slice(offset, offset + 2), 16);
+          });
+          return 'rgba(' + rgb.join(',') + ',' + alpha + ')';
         }
         function drawOverlay(c, W, H, top, blockH) {
           if (!PHOTO) return;
@@ -1275,7 +1298,7 @@
             if (type === 'none' || !dk) return;
             var g;
             if (type === 'solid') {
-              c.fillStyle = 'rgba(14,26,46,' + dk + ')';
+              c.fillStyle = backgroundOverlayColor(dk);
             } else {
               if (type === 'bottom') g = c.createLinearGradient(0, 0, 0, H);
               else if (type === 'brand' && S.mode === 'reel')
@@ -1289,14 +1312,14 @@
                 );
               if (type === 'bottom') {
                 g.addColorStop(0, 'rgba(14,26,46,0)');
-                g.addColorStop(1, 'rgba(14,26,46,' + dk + ')');
+                g.addColorStop(1, backgroundOverlayColor(dk));
               } else if (type === 'brand' && S.mode === 'reel') {
                 g.addColorStop(0, 'rgba(14,26,46,0)');
-                g.addColorStop(0.35, 'rgba(14,26,46,' + dk + ')');
-                g.addColorStop(0.75, 'rgba(14,26,46,' + dk + ')');
+                g.addColorStop(0.35, backgroundOverlayColor(dk));
+                g.addColorStop(0.75, backgroundOverlayColor(dk));
                 g.addColorStop(1, 'rgba(14,26,46,0)');
               } else {
-                g.addColorStop(0, 'rgba(14,26,46,' + dk + ')');
+                g.addColorStop(0, backgroundOverlayColor(dk));
                 g.addColorStop(0.55, 'rgba(14,26,46,' + dk * 0.55 + ')');
                 g.addColorStop(1, 'rgba(14,26,46,0)');
               }
@@ -2109,6 +2132,7 @@
           ['X', 'Y'].forEach(function (a) {
             $('flip' + a).checked = layout().photo['flip' + a];
           });
+          if (backgroundControls) backgroundControls.sync();
           $('clear').hidden = !PHOTO;
           $('photoNote').textContent = PHOTO
             ? 'Photo added. It stays on your device.'
@@ -2208,7 +2232,7 @@
         });
         // Keep native file input, drag/drop, share-sheet, and downloads integration.
         var loadSequence = 0;
-        function loadFile(file) {
+        function loadFile(file, backgroundId) {
           if (!file || !/^image\//.test(file.type)) {
             say('That file isn’t an image.', true);
             return;
@@ -2223,6 +2247,12 @@
             im.onload = function () {
               if (seq !== loadSequence) return;
               PHOTO = im;
+              S.backgroundPack = window.TimBackgrounds.ids.includes(
+                backgroundId,
+              )
+                ? backgroundId
+                : '';
+              S.matchBackgroundTheme = true;
               selected = 'photo';
               sync();
               layerUI();
@@ -2238,6 +2268,19 @@
           };
           rd.readAsDataURL(file);
         }
+        backgroundControls = window.TimBackgrounds.mount($('drop'), loadFile, {
+          getState: function () {
+            return {
+              available: !!PHOTO && !!S.backgroundPack,
+              match: S.matchBackgroundTheme,
+            };
+          },
+          setMatch: function (value) {
+            S.matchBackgroundTheme = value;
+            sync();
+            changed(true);
+          },
+        });
         $('file').onchange = function (e) {
           loadFile(e.target.files[0]);
           e.target.value = '';

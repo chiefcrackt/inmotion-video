@@ -5,6 +5,7 @@ import { templates, palettes, clone, move, zipStore } from './model.mjs';
 import { render, imageFor, loadSlideImages } from './render.mjs';
 const $ = (id) => document.getElementById(id),
   key = 'tim-carousel-v1';
+let backgroundControls;
 let state = {
   slides: clone(templates[0].slides),
   selected: 0,
@@ -219,7 +220,13 @@ function paletteButtons() {
     b.className = 'palette' + (p[0] === state.palette[0] ? ' active' : '');
     b.setAttribute(
       'aria-label',
-      ['T.im navy and gold', 'Trail green', 'Clay'][i],
+      [
+        'T.im navy and gold',
+        'Minimal paper and teal',
+        'Race Broadcast charcoal and coral',
+        'Trail green',
+        'Clay',
+      ][i],
     );
     p.forEach((color) => {
       const sw = document.createElement('i');
@@ -263,9 +270,8 @@ $('delete').onclick = () => {
   select(Math.min(state.selected, state.slides.length - 1));
   save();
 };
-$('photo').onchange = async (e) => {
-  const file = e.target.files[0],
-    slide = state.slides[state.selected];
+async function applyPhoto(file, backgroundId = '') {
+  const slide = state.slides[state.selected];
   if (!file) return;
   try {
     if (!file.type.startsWith('image/')) throw Error('Choose an image file.');
@@ -282,14 +288,45 @@ $('photo').onchange = async (e) => {
     c.height = Math.round(img.height * scale);
     c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
     slide.photo = c.toDataURL('image/jpeg', 0.88);
-    slide.photoSettings = { ...defaults };
+    slide.photoSettings = {
+      ...defaults,
+      ...(backgroundId
+        ? {
+            mode: 'background',
+            textColor: 'palette',
+            backgroundPack: backgroundId,
+            matchTheme: true,
+          }
+        : {}),
+    };
     syncPhoto();
     save();
   } catch (err) {
     toast(err.message);
+    throw err;
   }
+}
+$('photo').onchange = async (e) => {
+  try {
+    await applyPhoto(e.target.files[0]);
+  } catch {}
   e.target.value = '';
 };
+backgroundControls = window.TimBackgrounds.mount(
+  $('photo').closest('label'),
+  applyPhoto,
+  {
+    getState: () => {
+      const slide = state.slides[state.selected],
+        p = photoSettings(slide);
+      return {
+        available: !!slide.photo && !!p.backgroundPack,
+        match: p.matchTheme,
+      };
+    },
+    setMatch: (value) => updatePhoto('matchTheme', value),
+  },
+);
 $('removePhoto').onclick = () => {
   state.slides[state.selected].photo = '';
   syncPhoto();
@@ -376,6 +413,7 @@ select(state.selected);
 function syncPhoto() {
   const slide = state.slides[state.selected],
     p = photoSettings(slide);
+  backgroundControls?.sync();
   $('photoControls').disabled = !slide.photo;
   $('photoFit').value = p.fit;
   for (const [id, k] of [
@@ -433,7 +471,12 @@ $('photoRotate').onclick = () =>
 $('photoFlip').onclick = () =>
   updatePhoto('flip', !photoSettings(state.slides[state.selected]).flip);
 $('photoReset').onclick = () => {
-  state.slides[state.selected].photoSettings = { ...defaults };
+  const current = photoSettings(state.slides[state.selected]);
+  state.slides[state.selected].photoSettings = {
+    ...defaults,
+    backgroundPack: current.backgroundPack,
+    matchTheme: current.matchTheme,
+  };
   syncPhoto();
   save();
 };

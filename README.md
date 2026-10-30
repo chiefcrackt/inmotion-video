@@ -67,3 +67,9 @@ Title, Promo, Cover, Start Line, River Run, Mile Marker, Special Post, Celebrati
 Activity Studio saves named design and export presets only, without persisting activity or GPS data. Re-import the activity separately. Carousel Maker and Sound Forge retain their existing project libraries and portable formats.
 
 Run `npm run test:projects:browser` for named save/load, reload persistence, JSON round trips, wrong-tool rejection, embedded photo restoration, local fonts and mobile layout.
+
+## Optional T.im background pack
+
+Cover Maker and Carousel Maker include six generated backgrounds under **T.im background pack**. Select a preview and press **Use selected background** to apply it using existing photo controls. Original options remain available. Square, portrait and landscape assets plus exact generation prompts are in `shared/backgrounds/`. Run `node tests/background-pack.cjs` for integration checks.
+
+River Run also offers the six optional image backdrops, with output-theme matching and an original-art toggle. River scene, Navy + grid, Green screen, all four outfits and existing recording controls remain available. Run `node tests/river-backgrounds.cjs` for the scene and recording checks.

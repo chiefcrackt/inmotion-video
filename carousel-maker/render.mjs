@@ -39,7 +39,16 @@ export function render(canvas, s, index, total, state, img) {
     [bg, baseInk, accent] = state.palette,
     p = photoSettings(s),
     full = !!img && p.mode === 'background',
-    ink = full && p.textColor !== 'palette' ? p.textColor : baseInk;
+    matched = !!img && !!p.backgroundPack && p.matchTheme !== false,
+    artwork = matched
+      ? window.TimBackgrounds.themedImage(img, state.palette)
+      : img,
+    ink =
+      full && p.textColor !== 'palette'
+        ? p.textColor
+        : full && p.backgroundPack && !matched
+          ? '#f6f4ef'
+          : baseInk;
   const text = (t, x, y, size = 32, color = ink, weight = 'normal') => {
     c.fillStyle = color;
     c.font = `${weight} ${size}px ${state.font}`;
@@ -76,7 +85,7 @@ export function render(canvas, s, index, total, state, img) {
     c.translate(g.x, g.y);
     c.rotate((p.rotation * Math.PI) / 180);
     c.scale(g.scale * (p.flip ? -1 : 1), g.scale);
-    c.drawImage(img, -img.width / 2, -img.height / 2);
+    c.drawImage(artwork, -img.width / 2, -img.height / 2);
     c.restore();
     c.save();
     c.fillStyle = p.tintColor;
@@ -126,7 +135,7 @@ export function render(canvas, s, index, total, state, img) {
     c.translate(g.x, y + g.y);
     c.rotate((p.rotation * Math.PI) / 180);
     c.scale(g.scale * (p.flip ? -1 : 1), g.scale);
-    c.drawImage(img, -img.width / 2, -img.height / 2);
+    c.drawImage(artwork, -img.width / 2, -img.height / 2);
     c.restore();
     if (s.layout === 'photo') {
       c.fillStyle = bg;

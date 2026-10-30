@@ -1,0 +1,32 @@
+[
+  {
+    "id": "night-track",
+    "name": "Night track",
+    "prompt": "Use case: ads-marketing. Asset type: reusable T.im sports editorial background image. Create one high resolution square image, composed to work cropped to both 16:9 landscape and 4:5 portrait. Scene: Empty navy running track, curving pale gold lane markings in the lower third, faint teal edge lighting, atmospheric night sky. Palette: deep navy #0B1526, muted teal, warm gold #E8C96A. Photographic cinematic texture, polished yet understated. Keep the central 65 percent quiet, dark and low contrast with ample negative space for editable headlines and statistics. No people, products, text, numbers, letters, logos, watermarks, panels or collage. Full bleed single background."
+  },
+  {
+    "id": "misty-trail",
+    "name": "Misty trail",
+    "prompt": "Use case: ads-marketing. Asset type: reusable T.im sports editorial background image. Create one high resolution square image, composed to work cropped to both 16:9 landscape and 4:5 portrait. Scene: Empty woodland running trail, soft mist among distant trees, restrained teal foliage and a faint warm gold horizon. Palette: deep navy #0B1526, muted teal, warm gold #E8C96A. Photographic cinematic texture, polished yet understated. Keep the central 65 percent quiet, dark and low contrast with ample negative space for editable headlines and statistics. No people, products, text, numbers, letters, logos, watermarks, panels or collage. Full bleed single background."
+  },
+  {
+    "id": "wet-asphalt",
+    "name": "Wet asphalt",
+    "prompt": "Use case: ads-marketing. Asset type: reusable T.im sports editorial background image. Create one high resolution square image, composed to work cropped to both 16:9 landscape and 4:5 portrait. Scene: Close low view of rain-dark asphalt, fine realistic grain, restrained gold and teal reflections near the edges, no road lettering. Palette: deep navy #0B1526, muted teal, warm gold #E8C96A. Photographic cinematic texture, polished yet understated. Keep the central 65 percent quiet, dark and low contrast with ample negative space for editable headlines and statistics. No people, products, text, numbers, letters, logos, watermarks, panels or collage. Full bleed single background."
+  },
+  {
+    "id": "sunrise-road",
+    "name": "Sunrise road",
+    "prompt": "Use case: ads-marketing. Asset type: reusable T.im sports editorial background image. Create one high resolution square image, composed to work cropped to both 16:9 landscape and 4:5 portrait. Scene: Empty quiet running road leading toward a subtle gold sunrise, navy hills, restrained teal shadows. Palette: deep navy #0B1526, muted teal, warm gold #E8C96A. Photographic cinematic texture, polished yet understated. Keep the central 65 percent quiet, dark and low contrast with ample negative space for editable headlines and statistics. No people, products, text, numbers, letters, logos, watermarks, panels or collage. Full bleed single background."
+  },
+  {
+    "id": "stadium-lights",
+    "name": "Stadium lights",
+    "prompt": "Use case: ads-marketing. Asset type: reusable T.im sports editorial background image. Create one high resolution square image, composed to work cropped to both 16:9 landscape and 4:5 portrait. Scene: Empty athletics stadium at night, soft gold floodlight glow near upper corners, navy atmosphere, track faintly visible at bottom. Palette: deep navy #0B1526, muted teal, warm gold #E8C96A. Photographic cinematic texture, polished yet understated. Keep the central 65 percent quiet, dark and low contrast with ample negative space for editable headlines and statistics. No people, products, text, numbers, letters, logos, watermarks, panels or collage. Full bleed single background."
+  },
+  {
+    "id": "paper-texture",
+    "name": "Paper texture",
+    "prompt": "Use case: ads-marketing. Asset type: reusable T.im sports editorial background image. Create one high resolution square image, composed to work cropped to both 16:9 landscape and 4:5 portrait. Scene: Tactile deep navy paper surface, subtle fibers and restrained gold dust at the edges, sophisticated understated sports editorial texture. Palette: deep navy #0B1526, muted teal, warm gold #E8C96A. Photographic cinematic texture, polished yet understated. Keep the central 65 percent quiet, dark and low contrast with ample negative space for editable headlines and statistics. No people, products, text, numbers, letters, logos, watermarks, panels or collage. Full bleed single background."
+  }
+]

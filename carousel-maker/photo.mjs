@@ -1,4 +1,6 @@
 export const defaults = {
+  backgroundPack: '',
+  matchTheme: true,
   fit: 'cover',
   zoom: 1,
   x: 50,

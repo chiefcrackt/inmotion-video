@@ -385,7 +385,8 @@
       }</style
     ><link rel="stylesheet" href="../shared/fonts.css" /><link
       rel="stylesheet"
-      href="../shared/projects.css" /><script src="../shared/projects.js"></script></head
+      href="../shared/projects.css" /><script src="../shared/background-pack.js"></script>
+    <script src="../shared/projects.js"></script></head
   ><body>
     <div class="wrap">
       <header>
@@ -444,6 +445,9 @@
               >
               <button class="chip" data-g="bg" data-v="navy" type="button"
                 >Navy + grid</button
+              >
+              <button class="chip" data-g="bg" data-v="artwork" type="button"
+                >Image backdrop</button
               >
               <button class="chip" data-g="bg" data-v="green" type="button"
                 >Green screen</button
@@ -840,6 +844,8 @@
         var S = {
           textFont: 'Barlow Condensed',
           theme: 'tim',
+          backgroundPack: 'night-track',
+          matchBackgroundTheme: true,
           outfit: 'original',
           bg: 'scene',
           fmt: 'h',
@@ -862,6 +868,10 @@
           })
         )
           S.outfit = 'original';
+        if (!window.TimBackgrounds.ids.includes(S.backgroundPack))
+          S.backgroundPack = 'night-track';
+        if (!['scene', 'navy', 'green', 'clear', 'artwork'].includes(S.bg))
+          S.bg = 'scene';
         function persist() {
           try {
             localStorage.setItem('tim_river_run', JSON.stringify(S));
@@ -972,6 +982,103 @@
           return out;
         }
 
+        // Optional backdrops are cached separately; runner artwork and original scene remain intact.
+        var backgroundImages = {},
+          backgroundPromises = {},
+          backgroundRequest = 0,
+          backgroundLoading = false,
+          backgroundControls;
+        function ensureBackground(id, file) {
+          if (!window.TimBackgrounds.ids.includes(id))
+            return Promise.reject(Error('Choose a background from the pack.'));
+          if (backgroundImages[id])
+            return Promise.resolve(backgroundImages[id]);
+          if (backgroundPromises[id]) return backgroundPromises[id];
+          backgroundPromises[id] = new Promise(function (resolve, reject) {
+            var image = new Image(),
+              url = file
+                ? URL.createObjectURL(file)
+                : '../shared/backgrounds/' + id + '.jpg';
+            image.onload = function () {
+              if (file) URL.revokeObjectURL(url);
+              backgroundImages[id] = image;
+              resolve(image);
+            };
+            image.onerror = function () {
+              if (file) URL.revokeObjectURL(url);
+              delete backgroundPromises[id];
+              reject(
+                Error('Could not load that background. Please try again.'),
+              );
+            };
+            image.src = url;
+          });
+          return backgroundPromises[id];
+        }
+        async function activateBackground(id, file) {
+          if (playing || recording) return;
+          var request = ++backgroundRequest;
+          backgroundLoading = true;
+          sync();
+          try {
+            await ensureBackground(id, file);
+            if (request !== backgroundRequest) return;
+            S.backgroundPack = id;
+            S.bg = 'artwork';
+            update();
+          } finally {
+            if (request === backgroundRequest) {
+              backgroundLoading = false;
+              sync();
+            }
+          }
+        }
+        function drawArtwork(g) {
+          var image = backgroundImages[S.backgroundPack];
+          if (!image) {
+            drawScene(g, 0, 0);
+            drawFloor(g, 0, 0, true);
+            return;
+          }
+          var artwork =
+            S.matchBackgroundTheme !== false
+              ? window.TimBackgrounds.themedImage(image, [
+                  window.TimProjects.color('#0E1A2E', S.theme),
+                  window.TimProjects.color('#F6F4EF', S.theme),
+                  window.TimProjects.color('#E8C96A', S.theme),
+                ])
+              : image;
+          var scale = Math.max(g.W / image.width, g.H / image.height),
+            w = image.width * scale,
+            h = image.height * scale;
+          ctx.drawImage(artwork, (g.W - w) / 2, (g.H - h) / 2, w, h);
+        }
+        function sceneTone(original, mix) {
+          if (S.theme === 'tim') return original;
+          var base = window.TimProjects.color('#0E1A2E', S.theme),
+            accent = window.TimProjects.color('#2E9BAD', S.theme);
+          var rgb = [1, 3, 5].map(function (offset) {
+            return Math.round(
+              parseInt(base.slice(offset, offset + 2), 16) * (1 - mix) +
+                parseInt(accent.slice(offset, offset + 2), 16) * mix,
+            );
+          });
+          return 'rgb(' + rgb.join(',') + ')';
+        }
+        function sceneRGBA(base, alpha) {
+          var hex = window.TimProjects.color(base, S.theme);
+          return (
+            'rgba(' +
+            [1, 3, 5]
+              .map(function (offset) {
+                return parseInt(hex.slice(offset, offset + 2), 16);
+              })
+              .join(',') +
+            ',' +
+            alpha +
+            ')'
+          );
+        }
         // ---------- scenery
         var STARS = (function () {
           var s = [],
@@ -1012,9 +1119,11 @@
           for (var i = 0; i < 9; i++) s.push([r(), r()]);
           return s;
         })();
-        var SUN = null;
+        var SUN = null,
+          sunTheme = '';
         function sunSprite(R) {
-          if (SUN && SUN.width === Math.ceil(2 * R)) return SUN;
+          if (SUN && SUN.width === Math.ceil(2 * R) && sunTheme === S.theme)
+            return SUN;
           var c = document.createElement('canvas');
           c.width = c.height = Math.ceil(2 * R);
           var x = c.getContext('2d');
@@ -1038,6 +1147,7 @@
             x.fillRect(0, 2 * R * b[0], 2 * R, 2 * R * (b[1] - b[0]));
           });
           SUN = c;
+          sunTheme = S.theme;
           return c;
         }
         function drawScene(g, t, v) {
@@ -1046,9 +1156,9 @@
             hz = g.hz,
             k = g.k;
           var sky = ctx.createLinearGradient(0, 0, 0, hz);
-          sky.addColorStop(0, '#0B1526');
-          sky.addColorStop(0.72, '#13233D');
-          sky.addColorStop(1, '#1B3456');
+          sky.addColorStop(0, sceneTone('#0B1526', 0));
+          sky.addColorStop(0.72, sceneTone('#13233D', 0.1));
+          sky.addColorStop(1, sceneTone('#1B3456', 0.22));
           ctx.fillStyle = sky;
           ctx.fillRect(0, 0, W, hz);
           ctx.fillStyle = window.TimProjects.color('#F6F4EF', S && S.theme);
@@ -1067,7 +1177,7 @@
           var TW = W * 1.6,
             off = v * 0.055 * t,
             base = hz - 0.012 * H;
-          ctx.fillStyle = '#1B3150';
+          ctx.fillStyle = sceneTone('#1B3150', 0.18);
           ctx.beginPath();
           ctx.moveTo(0, hz);
           for (var x = 0; x <= W + 6; x += 6)
@@ -1081,7 +1191,7 @@
           var TN = W * 1.4,
             offN = v * 0.135 * t,
             cw = 0.024 * H;
-          ctx.fillStyle = '#0B1526';
+          ctx.fillStyle = sceneTone('#0B1526', 0);
           ctx.beginPath();
           ctx.moveTo(0, hz);
           for (var x2 = 0; x2 <= W + 4; x2 += 4) {
@@ -1098,7 +1208,7 @@
           ctx.lineTo(W, hz);
           ctx.closePath();
           ctx.fill();
-          ctx.fillStyle = 'rgba(232,201,106,.85)';
+          ctx.fillStyle = sceneRGBA('#E8C96A', 0.85);
           LIGHTS.forEach(function (l) {
             var x = mod(l[0] * TN - offN, TN);
             if (x > W) return;
@@ -1110,8 +1220,8 @@
           // river band with the sun's shimmering reflection
           var rt = hz - 0.042 * H,
             rv = ctx.createLinearGradient(0, rt, 0, hz);
-          rv.addColorStop(0, '#0B1A2E');
-          rv.addColorStop(1, '#123049');
+          rv.addColorStop(0, sceneTone('#0B1A2E', 0.04));
+          rv.addColorStop(1, sceneTone('#123049', 0.16));
           ctx.fillStyle = rv;
           ctx.fillRect(0, rt, W, hz - rt);
           var sh = 0.99 + 0.05 * Math.sin((t * 2 * Math.PI) / 4.8),
@@ -1128,18 +1238,19 @@
                 W / 2 + ww / 2,
                 0,
               );
-            gl.addColorStop(0, 'rgba(232,201,106,0)');
+            gl.addColorStop(0, sceneRGBA('#E8C96A', 0));
             gl.addColorStop(
               0.5,
-              'rgba(242,213,122,' +
+              sceneRGBA(
+                S.theme === 'tim' ? '#F2D57A' : '#E8C96A',
                 (
                   1.0 *
                   (0.55 + 0.45 * f) *
                   (0.82 + 0.18 * Math.sin(t * 3 + i))
-                ).toFixed(3) +
-                ')',
+                ).toFixed(3),
+              ),
             );
-            gl.addColorStop(1, 'rgba(232,201,106,0)');
+            gl.addColorStop(1, sceneRGBA('#E8C96A', 0));
             ctx.fillStyle = gl;
             ctx.fillRect(W / 2 - ww / 2, y, ww, stripe);
           }
@@ -1157,7 +1268,7 @@
           ctx.fillStyle = window.TimProjects.color('#0E1A2E', S && S.theme);
           ctx.fillRect(0, hz, W, gh);
           ctx.lineWidth = 1.6 * k;
-          ctx.strokeStyle = 'rgba(46,155,173,.55)';
+          ctx.strokeStyle = sceneRGBA('#2E9BAD', 0.55);
           for (var i = -18; i <= 18; i++) {
             var xb = cx + i * sp - o;
             ctx.beginPath();
@@ -1169,18 +1280,18 @@
             var y = gh / (n + 0.55);
             if (y > gh + 1) continue;
             if (y < 1.5) break;
-            ctx.strokeStyle =
-              'rgba(46,155,173,' +
-              Math.min(0.85, 0.15 + (y / gh) * 0.8).toFixed(3) +
-              ')';
+            ctx.strokeStyle = sceneRGBA(
+              '#2E9BAD',
+              Math.min(0.85, 0.15 + (y / gh) * 0.8).toFixed(3),
+            );
             ctx.beginPath();
             ctx.moveTo(0, hz + y);
             ctx.lineTo(W, hz + y);
             ctx.stroke();
           }
           var fd = ctx.createLinearGradient(0, hz, 0, hz + gh * 0.45);
-          fd.addColorStop(0, 'rgba(14,26,46,1)');
-          fd.addColorStop(1, 'rgba(14,26,46,0)');
+          fd.addColorStop(0, sceneRGBA('#0E1A2E', 1));
+          fd.addColorStop(1, sceneRGBA('#0E1A2E', 0));
           ctx.fillStyle = fd;
           ctx.fillRect(0, hz, W, gh * 0.45);
           ctx.save();
@@ -1219,10 +1330,12 @@
           if (bg === 'scene') {
             drawScene(g, t, v);
             drawFloor(g, t, v, true);
+          } else if (bg === 'artwork') {
+            drawArtwork(g);
           } else if (bg === 'navy') {
             ctx.fillStyle = window.TimProjects.color('#0E1A2E', S && S.theme);
             ctx.fillRect(0, 0, W, H);
-            ctx.strokeStyle = 'rgba(246,244,239,0.035)';
+            ctx.strokeStyle = sceneRGBA('#F6F4EF', 0.035);
             ctx.lineWidth = 2;
             for (var i = -H; i < W; i += 52) {
               ctx.beginPath();
@@ -1298,8 +1411,10 @@
                 ctx.stroke();
                 return;
               }
-              ctx.strokeStyle =
-                'rgba(46,155,173,' + (0.75 * (1 - q)).toFixed(3) + ')';
+              ctx.strokeStyle = sceneRGBA(
+                '#2E9BAD',
+                (0.75 * (1 - q)).toFixed(3),
+              );
               ctx.beginPath();
               ctx.ellipse(
                 x,
@@ -1311,8 +1426,10 @@
                 Math.PI * 2,
               );
               ctx.stroke();
-              ctx.strokeStyle =
-                'rgba(232,201,106,' + (0.45 * (1 - q)).toFixed(3) + ')';
+              ctx.strokeStyle = sceneRGBA(
+                '#E8C96A',
+                (0.45 * (1 - q)).toFixed(3),
+              );
               ctx.lineWidth = (1 * g.scale) / 0.105;
               ctx.beginPath();
               ctx.ellipse(
@@ -1356,7 +1473,14 @@
               m.globalAlpha = 1;
               ctx.drawImage(RIM, 0, 0);
             }
-            edge(1.3 * kq, 1.1 * kq, '#F2D57A', 0.95);
+            edge(
+              1.3 * kq,
+              1.1 * kq,
+              S.theme === 'tim'
+                ? '#F2D57A'
+                : window.TimProjects.color('#E8C96A', S.theme),
+              0.95,
+            );
             edge(
               -0.6 * kq,
               -1.1 * kq,
@@ -1550,6 +1674,7 @@
 
         // ---------- playback loop
         var playing = null,
+          recording = false,
           REST = 0.6;
         function loop(now) {
           if (!playing) {
@@ -1563,11 +1688,13 @@
             var cb = playing.done;
             playing = null;
             $('outfit').disabled = false;
+            sync();
             paint(REST);
             if (cb) cb();
           }
         }
         function run(done, lead) {
+          if (!PP || playing || backgroundLoading || outfitLoading) return;
           $('outfit').disabled = true;
           var A = audio();
           lead = lead || 0.08;
@@ -1577,6 +1704,7 @@
             SYN.schedule(A.currentTime + lead, S.sound);
           }
           playing = { start: performance.now() + lead * 1000, done: done };
+          sync();
           requestAnimationFrame(loop);
         }
 
@@ -1608,14 +1736,18 @@
             '-' +
             (S.fmt === 'v' ? '9x16' : '16x9') +
             '-' +
-            (S.bg === 'green' ? 'greenscreen' : S.bg) +
+            (S.bg === 'green'
+              ? 'greenscreen'
+              : S.bg === 'artwork'
+                ? S.backgroundPack + '-' + S.theme
+                : S.bg) +
             '-' +
             S.len +
             's'
           );
         }
         function record() {
-          if (playing) return;
+          if (playing || backgroundLoading || outfitLoading || !PP) return;
           var type = pickType();
           if (type === null || !cv.captureStream) {
             say(
@@ -1692,6 +1824,7 @@
           }, PREROLL * 1000);
         }
         function setRec(on) {
+          recording = on;
           var b = $('rec');
           b.classList.toggle('on', on);
           b.disabled = on;
@@ -1699,6 +1832,7 @@
           b.innerHTML = on
             ? '<span class="dot"></span>Recording…'
             : '● Record video';
+          sync();
         }
 
         // ---------- saving
@@ -1856,7 +1990,9 @@
         window.RiverRun = {
           paint: paint,
           renderWav: renderWav,
-          settings: S,
+          get settings() {
+            return S;
+          },
           dur: dur,
         };
 
@@ -1868,7 +2004,8 @@
           $('outfit').appendChild(option);
         });
         var wardrobe = {},
-          outfitRequest = 0;
+          outfitRequest = 0,
+          outfitLoading = false;
         function loadOutfit(id) {
           if (wardrobe[id]) return Promise.resolve(wardrobe[id]);
           return Promise.all(
@@ -1914,6 +2051,7 @@
           }
           var id = this.value,
             request = ++outfitRequest;
+          outfitLoading = true;
           $('play').disabled = $('rec').disabled = true;
           say('Loading outfit…');
           loadOutfit(id)
@@ -1931,8 +2069,10 @@
               }
             })
             .finally(function () {
-              if (request === outfitRequest)
-                $('play').disabled = $('rec').disabled = false;
+              if (request === outfitRequest) {
+                outfitLoading = false;
+                sync();
+              }
             });
         };
         function renderSounds() {
@@ -1961,8 +2101,13 @@
         }
         function sync() {
           $('outfit').value = S.outfit;
-          $('outfit').disabled = !!playing;
+          var busy =
+            !!playing || recording || backgroundLoading || outfitLoading;
+          $('outfit').disabled = busy;
+          $('play').disabled = $('rec').disabled = busy || !PP;
+          if (backgroundControls) backgroundControls.sync();
           document.querySelectorAll('[data-g]').forEach(function (b) {
+            b.disabled = !!playing || recording;
             b.setAttribute(
               'aria-pressed',
               String(S[b.dataset.g]) === b.dataset.v ? 'true' : 'false',
@@ -1974,10 +2119,52 @@
         }
         document.querySelectorAll('[data-g]').forEach(function (b) {
           b.onclick = function () {
+            if (playing || recording) return;
+            if (b.dataset.g === 'bg') {
+              if (b.dataset.v === 'artwork') {
+                activateBackground(S.backgroundPack).catch(function (error) {
+                  say(error.message, true);
+                });
+                return;
+              }
+              backgroundRequest++;
+              backgroundLoading = false;
+            }
             S[b.dataset.g] = b.dataset.v;
             update();
           };
         });
+        backgroundControls = window.TimBackgrounds.mount(
+          document.querySelector('.controls fieldset'),
+          function (file, id) {
+            return activateBackground(id, file);
+          },
+          {
+            description:
+              'Six optional image backdrops. River scene, Navy + grid and Green screen remain available above. Runner outfits keep their original colors.',
+            appliedMessage:
+              'Background added. Choose a format and output theme, then preview or record.',
+            isBusy: function () {
+              return !!playing || recording || backgroundLoading;
+            },
+            getState: function () {
+              return {
+                available: S.bg === 'artwork',
+                match: S.matchBackgroundTheme,
+              };
+            },
+            setMatch: function (value) {
+              S.matchBackgroundTheme = value;
+              update();
+            },
+          },
+        );
+        if (S.bg === 'artwork')
+          activateBackground(S.backgroundPack).catch(function (error) {
+            S.bg = 'scene';
+            update();
+            say(error.message, true);
+          });
         $('rim').onchange = function (e) {
           S.rim = e.target.checked;
           update();
@@ -2048,7 +2235,7 @@
         window.TimProjects.mount({
           tool: 'river-run',
           busy: function () {
-            return typeof playing !== 'undefined' && !!playing;
+            return !!playing || recording || backgroundLoading || outfitLoading;
           },
           get: function () {
             return { state: S };
@@ -2064,6 +2251,15 @@
               )
             )
               throw Error('Unsupported theme or font.');
+            if (
+              !['scene', 'navy', 'green', 'clear', 'artwork'].includes(
+                next.bg,
+              ) ||
+              !window.TimBackgrounds.ids.includes(next.backgroundPack)
+            )
+              throw Error('Unsupported background.');
+            if (next.bg === 'artwork')
+              await ensureBackground(next.backgroundPack);
             S = next;
             projectRefresh();
           },
