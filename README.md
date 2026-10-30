@@ -83,3 +83,12 @@ River Run also includes optional **Cyberpunk city run** and **Mountain trail** m
 ## Running Essentials downloads
 
 Animation Downloads now also includes six training labels, four transitions and five distance markers, in landscape and portrait with green-screen MP4, transparent WebM and matching WAV sound. Finished files, a preview and the complete ZIP are in downloads/files/running-essentials/. See [pack sources and rebuild instructions](tools/running-essentials/README.md). All existing tools and packs remain available.
+
+## Race Recap downloads
+
+Animation Downloads also includes ten matching race-video clips: an opener,
+four race chapters, finish and PB celebrations, blank finish-time and pace
+panels, and an outro. Both orientations include green-screen MP4, transparent
+WebM and matching WAV sound. Individual previews, a montage and a complete ZIP
+are included. Add your actual result as an editor text layer over the blank
+result panels. See [Race Recap usage and rebuild instructions](tools/race-recap/README.md).
