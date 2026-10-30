@@ -50,3 +50,5 @@ Run `npm run test:carousel:positioning` for mouse and real touch-event dragging,
 The settings panel starts with Move template text. Elements & layers (including brand/layout tools) is at the bottom, after slide content, photo framing and carousel style settings.
 
 New decks default to the bundled Barlow Condensed font. Existing saved font choices remain intact. Barlow Condensed, Arial, Georgia and monospace are available for the deck and independent text elements. The original palettes remain available alongside Minimal and Race Broadcast alternatives.
+
+The editor uses the suite's navy, gold and teal theme. Edit slide content first; expand Photo framing & effects, Carousel style, Move template text, or Elements, layers & brand kit for advanced controls. Use the preview arrows or All slides to navigate. Project save/import controls are under Save, open & import projects. Run `npm run test:carousel:ux` for the guided editor and responsive layout checks.

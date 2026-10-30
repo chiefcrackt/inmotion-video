@@ -19,6 +19,10 @@ const path = require('node:path');
     page.on('pageerror', (e) => errors.push(e.message));
     const base = `http://127.0.0.1:${server.address().port}`;
     await page.goto(base + '/carousel-maker/');
+    await page.waitForSelector('.controlGroup');
+    await page
+      .locator('.controlGroup')
+      .evaluateAll((groups) => groups.forEach((group) => (group.open = true)));
     await page.waitForFunction(() => document.querySelector('#photoMode'));
     await page.locator('#photo').setInputFiles({
       name: 'background.svg',
@@ -80,6 +84,10 @@ const path = require('node:path');
     await page.locator('#photoZoom').fill('1.5');
     await page.locator('#photoX').fill('70');
     await page.reload();
+    await page.waitForSelector('.controlGroup');
+    await page
+      .locator('.controlGroup')
+      .evaluateAll((groups) => groups.forEach((group) => (group.open = true)));
     await page.waitForFunction(
       () => document.querySelector('#photoMode')?.value === 'background',
     );

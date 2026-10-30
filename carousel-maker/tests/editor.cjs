@@ -20,6 +20,10 @@ const path = require('node:path');
     page.on('pageerror', (e) => errors.push(e.message));
     const base = `http://127.0.0.1:${server.address().port}`;
     await page.goto(base + '/carousel-maker/');
+    await page.waitForSelector('.controlGroup');
+    await page
+      .locator('.controlGroup')
+      .evaluateAll((groups) => groups.forEach((group) => (group.open = true)));
     await page.waitForFunction(() => document.querySelector('#newBlank'));
     await page.locator('#newBlank').click();
     await page.locator('[data-add="text"]').click();
@@ -73,6 +77,10 @@ const path = require('node:path');
     );
     assert.equal(project.slides.at(-2).elements.length, 3);
     await page.reload();
+    await page.waitForSelector('.controlGroup');
+    await page
+      .locator('.controlGroup')
+      .evaluateAll((groups) => groups.forEach((group) => (group.open = true)));
     await page.waitForFunction(
       () => document.querySelectorAll('.layer').length === 3,
     );

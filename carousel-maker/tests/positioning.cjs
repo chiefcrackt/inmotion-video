@@ -19,6 +19,10 @@ const path = require('node:path');
     page.on('pageerror', (e) => errors.push(e.message));
     const base = `http://127.0.0.1:${server.address().port}`;
     await page.goto(base + '/carousel-maker/');
+    await page.waitForSelector('.controlGroup');
+    await page
+      .locator('.controlGroup')
+      .evaluateAll((groups) => groups.forEach((group) => (group.open = true)));
     await page.waitForFunction(
       () =>
         document.querySelector('#templateX') &&
@@ -28,7 +32,9 @@ const path = require('node:path');
       await page.evaluate(() =>
         document
           .querySelector('.inspector')
-          .lastElementChild.classList.contains('elementPanel'),
+          .querySelector('.elementPanel')
+          .closest('details')
+          .classList.contains('controlGroup'),
       ),
       true,
     );
@@ -55,6 +61,10 @@ const path = require('node:path');
       await page.locator('#templateY').fill('-20');
     }
     await page.reload();
+    await page.waitForSelector('.controlGroup');
+    await page
+      .locator('.controlGroup')
+      .evaluateAll((groups) => groups.forEach((group) => (group.open = true)));
     await page.waitForFunction(
       () =>
         document.querySelector('#templateX') &&

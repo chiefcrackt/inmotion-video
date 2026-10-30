@@ -1,3 +1,4 @@
+import { organizeEditor } from './ux.js';
 import { startPositioning } from './positioning.mjs';
 import { startEditor } from './editor.mjs';
 import { defaults, photoSettings } from './photo.mjs';
@@ -88,6 +89,10 @@ async function paint(canvas, s, i) {
 async function draw() {
   const rev = ++revision;
   $('slideCount').textContent = state.slides.length + ' slides';
+  $('previewSlide').textContent =
+    'Slide ' + (state.selected + 1) + ' of ' + state.slides.length;
+  $('previousSlide').disabled = state.selected === 0;
+  $('nextSlide').disabled = state.selected === state.slides.length - 1;
   $('selectedLabel').textContent = String(state.selected + 1).padStart(2, '0');
   $('dimensions').textContent = '1080 × ' + state.height + ' PX';
   $('delete').disabled = state.slides.length === 1;
@@ -336,6 +341,8 @@ function setTab(all) {
   $('stage').hidden = all;
   $('overview').hidden = !all;
   $('editTab').classList.toggle('active', !all);
+  $('editTab').setAttribute('aria-pressed', String(!all));
+  $('overviewTab').setAttribute('aria-pressed', String(all));
   $('overviewTab').classList.toggle('active', all);
 }
 $('editTab').onclick = () => setTab(false);
@@ -515,3 +522,9 @@ for (const id of ['hideTemplateText', 'hideFooter'])
 
 positioning = startPositioning({ getState: () => state, save, draw });
 positioning.overlay();
+
+organizeEditor();
+$('previousSlide').onclick = () => select(Math.max(0, state.selected - 1));
+$('nextSlide').onclick = () =>
+  select(Math.min(state.slides.length - 1, state.selected + 1));
+setTab(false);

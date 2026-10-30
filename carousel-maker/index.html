@@ -9,24 +9,22 @@
     href="../shared/fonts.css" /><body
     ><header
       ><a class="logo" href="../"
-        ><span>≋</span> T.im<span class="studio"> / creator studio</span></a
+        ><span>≋</span> T.im<span class="studio"> / video tools</span></a
       ><div class="topmeta">TRISTAN.INMOTION / VIDEO TOOLS</div
       ><button id="export" class="primary">↗ Export carousel</button></header
     ><div class="workspace"
       ><aside class="sidebar"
-        ><div class="eyebrow">THE TOOLKIT</div
-        ><div class="navactive">▧ &nbsp; Carousel maker <span>04</span></div
+        ><div class="eyebrow">01 / CHOOSE A TEMPLATE</div
+        ><div class="navactive"><a href="../">← All video tools</a></div
         ><div class="sideintro"
-          ><div class="eyebrow">START WITH A STORY</div
-          ><h1>Carousel Post Maker</h1
-          ><h2>A little structure.<br />A lot of you.</h2
+          ><div class="eyebrow">CAROUSEL MAKER</div><h1>Carousel Post Maker</h1
           ><p
-            >Templates for the miles, the gear,<br />and everything you learn
-            along the way.</p
+            >Choose a starting point, edit your slides, then download your
+            carousel.</p
           ></div
         ><div id="templates"></div
         ><div class="sidefoot"
-          ><span class="dot"></span> Made for the long run.</div
+          ><span class="dot"></span> Your draft saves on this device.</div
         ></aside
       ><main
         ><div class="projectrow"
@@ -37,11 +35,11 @@
               id="project"
               aria-label="Project name"
               value="My daily miles, upgraded." /></div
-          ><span id="saved">● Saved locally</span></div
+          ><span id="saved" role="status">● Saved locally</span></div
         ><div class="toolbar"
           ><div class="tabs"
             ><button class="active" id="editTab">Editor</button
-            ><button id="overviewTab">Overview</button></div
+            ><button id="overviewTab">All slides</button></div
           ><div class="tools"
             ><select id="ratio" aria-label="Aspect ratio"
               ><option value="1350">Portrait · 4:5</option
@@ -53,22 +51,31 @@
           ></div
         ><section id="stage"
           ><div class="canvaswrap" id="canvasWrap"
-            ><canvas id="canvas" width="1080" height="1350"></canvas></div
+            ><canvas
+              id="canvas"
+              aria-label="Current slide preview"
+              width="1080"
+              height="1350"
+            ></canvas></div
           ><div class="previewnote"
-            ><span>INSTAGRAM CAROUSEL</span
+            ><div class="slideNavigation"
+              ><button id="previousSlide" aria-label="Previous slide">←</button
+              ><span id="previewSlide" aria-live="polite"></span
+              ><button id="nextSlide" aria-label="Next slide">→</button></div
             ><span id="dimensions">1080 × 1350 PX</span></div
           ></section
         ><section id="overview" hidden></section
         ><div class="filmhead"
-          ><div>YOUR SLIDES <span>Drag to reorder</span></div
+          ><div>YOUR SLIDES <span>Drag or use arrows to reorder</span></div
           ><button id="add">＋ Add slide</button></div
         ><div id="film"></div
         ><div class="bottomtip"
-          >↔ &nbsp; A strong first slide gets the swipe. Make it count.</div
+          >Choose a slide below to edit. Style changes apply to every
+          slide.</div
         ></main
       ><aside class="inspector"
         ><div class="inspecttitle"
-          >Slide settings <span id="selectedLabel">01</span></div
+          >02 / EDIT SLIDE <span id="selectedLabel">01</span></div
         ><div class="eyebrow">CONTENT</div
         ><label
           ><input type="checkbox" id="hideTemplateText" /> Hide template
@@ -86,7 +93,7 @@
             ><option value="list">Pros & cons / list</option
             ><option value="photo">Photo story</option></select
           ></label
-        ><label>Eyebrow<input id="kicker" /></label
+        ><label>Small heading<input id="kicker" /></label
         ><label>Headline<textarea id="title" rows="3"></textarea></label
         ><label
           >Description / table rows<textarea
@@ -154,7 +161,6 @@
             slide and its exports.</p
           ><label
             >Fit<select id="photoFit"
-              ><option value="blank">Blank canvas</option
               ><option value="cover">Fill frame · crop edges</option
               ><option value="contain">Fit entire photo</option></select
             ></label
@@ -220,11 +226,13 @@
         ><label>Your handle<input id="handle" value="@yourstride" /></label
         ><button id="delete" class="delete">Delete slide</button></aside
       ></div
-    ><dialog id="exportDialog"
+    ><dialog id="exportDialog" aria-labelledby="exportHeading"
       ><button class="close" id="closeDialog">×</button
       ><div class="eyebrow">READY FOR THE FEED</div
-      ><h2>Your story. Ready to share.</h2
-      ><p>Full-resolution PNGs, numbered in slide order.</p
+      ><h2 id="exportHeading">Download your carousel</h2
+      ><p
+        >Download the ZIP for all slides, or save just the slide you’re editing.
+        PNGs are numbered in swipe order.</p
       ><button class="primary" id="zip">Download all slides · ZIP</button
       ><button id="png">Download current slide · PNG</button
       ><p id="exportStatus" class="hint"></p></dialog

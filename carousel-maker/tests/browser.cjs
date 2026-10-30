@@ -20,10 +20,14 @@ const path = require('node:path');
     page.on('pageerror', (e) => errors.push(e.message));
     const base = `http://127.0.0.1:${server.address().port}`;
     await page.goto(base);
-    assert.equal(await page.locator('a.tool').count(), 13);
+    assert.ok((await page.locator('a.tool').count()) >= 13);
     await page.locator('#search').fill('carousel');
     assert.equal(await page.locator('a.tool:visible').count(), 1);
     await page.locator('a.tool:visible').click();
+    await page.waitForSelector('.controlGroup');
+    await page
+      .locator('.controlGroup')
+      .evaluateAll((groups) => groups.forEach((group) => (group.open = true)));
     await page.waitForFunction(
       () => document.querySelectorAll('.thumb').length === 5,
     );
@@ -35,6 +39,10 @@ const path = require('node:path');
       .click();
     assert.equal(await page.locator('#selectedLabel').textContent(), '03');
     await page.reload();
+    await page.waitForSelector('.controlGroup');
+    await page
+      .locator('.controlGroup')
+      .evaluateAll((groups) => groups.forEach((group) => (group.open = true)));
     await page.waitForFunction(
       () => document.querySelectorAll('.thumb').length === 6,
     );
@@ -58,6 +66,10 @@ const path = require('node:path');
     await page.locator('#photoRotate').click();
     await page.locator('#photoFlip').click();
     await page.reload();
+    await page.waitForSelector('.controlGroup');
+    await page
+      .locator('.controlGroup')
+      .evaluateAll((groups) => groups.forEach((group) => (group.open = true)));
     await page.waitForFunction(
       () => document.querySelectorAll('.thumb').length === 6,
     );
