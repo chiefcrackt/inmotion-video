@@ -1,0 +1,552 @@
+{
+  "version": 1,
+  "fps": 30,
+  "formats": {
+    "16x9": [
+      1920,
+      1080
+    ],
+    "9x16": [
+      1080,
+      1920
+    ]
+  },
+  "cutSeconds": 0.7,
+  "items": [
+    {
+      "id": "easy-run",
+      "title": "Easy run",
+      "subtitle": "CONVERSATIONAL PACE",
+      "kind": "label",
+      "duration": 3
+    },
+    {
+      "id": "tempo",
+      "title": "Tempo",
+      "subtitle": "FIND YOUR RHYTHM",
+      "kind": "label",
+      "duration": 3
+    },
+    {
+      "id": "intervals",
+      "title": "Intervals",
+      "subtitle": "WORK / RECOVER / REPEAT",
+      "kind": "label",
+      "duration": 3
+    },
+    {
+      "id": "long-run",
+      "title": "Long run",
+      "subtitle": "TIME ON FEET",
+      "kind": "label",
+      "duration": 3
+    },
+    {
+      "id": "recovery",
+      "title": "Recovery",
+      "subtitle": "KEEP IT EASY",
+      "kind": "label",
+      "duration": 3
+    },
+    {
+      "id": "race-day",
+      "title": "Race day",
+      "subtitle": "TRUST THE TRAINING",
+      "kind": "label",
+      "duration": 3
+    },
+    {
+      "id": "track-wipe",
+      "title": "Track wipe",
+      "subtitle": "Cut at 0.70s",
+      "kind": "transition",
+      "duration": 1.4
+    },
+    {
+      "id": "footstrike-ripple",
+      "title": "Footstrike ripple",
+      "subtitle": "Cut at 0.70s",
+      "kind": "transition",
+      "duration": 1.4
+    },
+    {
+      "id": "trail-dust",
+      "title": "Trail dust",
+      "subtitle": "Cut at 0.70s",
+      "kind": "transition",
+      "duration": 1.4
+    },
+    {
+      "id": "finish-tape",
+      "title": "Finish tape",
+      "subtitle": "Cut at 0.70s",
+      "kind": "transition",
+      "duration": 1.4
+    },
+    {
+      "id": "1-km",
+      "title": "1 KM",
+      "subtitle": "ONE STEP FURTHER",
+      "kind": "distance",
+      "duration": 3.2
+    },
+    {
+      "id": "5-km",
+      "title": "5 KM",
+      "subtitle": "FIVE KILOMETRES",
+      "kind": "distance",
+      "duration": 3.2
+    },
+    {
+      "id": "10-km",
+      "title": "10 KM",
+      "subtitle": "TEN KILOMETRES",
+      "kind": "distance",
+      "duration": 3.2
+    },
+    {
+      "id": "half-marathon",
+      "title": "21.1 KM",
+      "subtitle": "HALF MARATHON",
+      "kind": "distance",
+      "duration": 3.2
+    },
+    {
+      "id": "marathon",
+      "title": "42.2 KM",
+      "subtitle": "MARATHON",
+      "kind": "distance",
+      "duration": 3.2
+    }
+  ],
+  "files": [
+    {
+      "file": "1-km.wav",
+      "bytes": 614444
+    },
+    {
+      "file": "1-km_16x9_Alpha.webm",
+      "bytes": 277951
+    },
+    {
+      "file": "1-km_16x9_GreenScreen.mp4",
+      "bytes": 125761
+    },
+    {
+      "file": "1-km_16x9_Preview.png",
+      "bytes": 63731
+    },
+    {
+      "file": "1-km_9x16_Alpha.webm",
+      "bytes": 269388
+    },
+    {
+      "file": "1-km_9x16_GreenScreen.mp4",
+      "bytes": 128101
+    },
+    {
+      "file": "1-km_9x16_Preview.png",
+      "bytes": 66685
+    },
+    {
+      "file": "10-km.wav",
+      "bytes": 614444
+    },
+    {
+      "file": "10-km_16x9_Alpha.webm",
+      "bytes": 286141
+    },
+    {
+      "file": "10-km_16x9_GreenScreen.mp4",
+      "bytes": 129718
+    },
+    {
+      "file": "10-km_16x9_Preview.png",
+      "bytes": 67008
+    },
+    {
+      "file": "10-km_9x16_Alpha.webm",
+      "bytes": 277141
+    },
+    {
+      "file": "10-km_9x16_GreenScreen.mp4",
+      "bytes": 132649
+    },
+    {
+      "file": "10-km_9x16_Preview.png",
+      "bytes": 69647
+    },
+    {
+      "file": "5-km.wav",
+      "bytes": 614444
+    },
+    {
+      "file": "5-km_16x9_Alpha.webm",
+      "bytes": 280585
+    },
+    {
+      "file": "5-km_16x9_GreenScreen.mp4",
+      "bytes": 127609
+    },
+    {
+      "file": "5-km_16x9_Preview.png",
+      "bytes": 64714
+    },
+    {
+      "file": "5-km_9x16_Alpha.webm",
+      "bytes": 271769
+    },
+    {
+      "file": "5-km_9x16_GreenScreen.mp4",
+      "bytes": 130378
+    },
+    {
+      "file": "5-km_9x16_Preview.png",
+      "bytes": 67776
+    },
+    {
+      "file": "easy-run.wav",
+      "bytes": 576044
+    },
+    {
+      "file": "easy-run_16x9_Alpha.webm",
+      "bytes": 241434
+    },
+    {
+      "file": "easy-run_16x9_GreenScreen.mp4",
+      "bytes": 120464
+    },
+    {
+      "file": "easy-run_16x9_Preview.png",
+      "bytes": 71344
+    },
+    {
+      "file": "easy-run_9x16_Alpha.webm",
+      "bytes": 244492
+    },
+    {
+      "file": "easy-run_9x16_GreenScreen.mp4",
+      "bytes": 118659
+    },
+    {
+      "file": "easy-run_9x16_Preview.png",
+      "bytes": 74840
+    },
+    {
+      "file": "finish-tape.wav",
+      "bytes": 268844
+    },
+    {
+      "file": "finish-tape_16x9_Alpha.webm",
+      "bytes": 587556
+    },
+    {
+      "file": "finish-tape_16x9_GreenScreen.mp4",
+      "bytes": 155696
+    },
+    {
+      "file": "finish-tape_16x9_Preview.png",
+      "bytes": 53013
+    },
+    {
+      "file": "finish-tape_9x16_Alpha.webm",
+      "bytes": 593435
+    },
+    {
+      "file": "finish-tape_9x16_GreenScreen.mp4",
+      "bytes": 134180
+    },
+    {
+      "file": "finish-tape_9x16_Preview.png",
+      "bytes": 56579
+    },
+    {
+      "file": "footstrike-ripple.wav",
+      "bytes": 268844
+    },
+    {
+      "file": "footstrike-ripple_16x9_Alpha.webm",
+      "bytes": 1104724
+    },
+    {
+      "file": "footstrike-ripple_16x9_GreenScreen.mp4",
+      "bytes": 264459
+    },
+    {
+      "file": "footstrike-ripple_16x9_Preview.png",
+      "bytes": 84374
+    },
+    {
+      "file": "footstrike-ripple_9x16_Alpha.webm",
+      "bytes": 960503
+    },
+    {
+      "file": "footstrike-ripple_9x16_GreenScreen.mp4",
+      "bytes": 202609
+    },
+    {
+      "file": "footstrike-ripple_9x16_Preview.png",
+      "bytes": 80116
+    },
+    {
+      "file": "half-marathon.wav",
+      "bytes": 614444
+    },
+    {
+      "file": "half-marathon_16x9_Alpha.webm",
+      "bytes": 299062
+    },
+    {
+      "file": "half-marathon_16x9_GreenScreen.mp4",
+      "bytes": 137323
+    },
+    {
+      "file": "half-marathon_16x9_Preview.png",
+      "bytes": 68753
+    },
+    {
+      "file": "half-marathon_9x16_Alpha.webm",
+      "bytes": 287549
+    },
+    {
+      "file": "half-marathon_9x16_GreenScreen.mp4",
+      "bytes": 138781
+    },
+    {
+      "file": "half-marathon_9x16_Preview.png",
+      "bytes": 71361
+    },
+    {
+      "file": "intervals.wav",
+      "bytes": 576044
+    },
+    {
+      "file": "intervals_16x9_Alpha.webm",
+      "bytes": 252864
+    },
+    {
+      "file": "intervals_16x9_GreenScreen.mp4",
+      "bytes": 123411
+    },
+    {
+      "file": "intervals_16x9_Preview.png",
+      "bytes": 72273
+    },
+    {
+      "file": "intervals_9x16_Alpha.webm",
+      "bytes": 255354
+    },
+    {
+      "file": "intervals_9x16_GreenScreen.mp4",
+      "bytes": 122996
+    },
+    {
+      "file": "intervals_9x16_Preview.png",
+      "bytes": 75434
+    },
+    {
+      "file": "long-run.wav",
+      "bytes": 576044
+    },
+    {
+      "file": "long-run_16x9_Alpha.webm",
+      "bytes": 225728
+    },
+    {
+      "file": "long-run_16x9_GreenScreen.mp4",
+      "bytes": 109768
+    },
+    {
+      "file": "long-run_16x9_Preview.png",
+      "bytes": 67341
+    },
+    {
+      "file": "long-run_9x16_Alpha.webm",
+      "bytes": 231190
+    },
+    {
+      "file": "long-run_9x16_GreenScreen.mp4",
+      "bytes": 111705
+    },
+    {
+      "file": "long-run_9x16_Preview.png",
+      "bytes": 70517
+    },
+    {
+      "file": "marathon.wav",
+      "bytes": 614444
+    },
+    {
+      "file": "marathon_16x9_Alpha.webm",
+      "bytes": 300173
+    },
+    {
+      "file": "marathon_16x9_GreenScreen.mp4",
+      "bytes": 139835
+    },
+    {
+      "file": "marathon_16x9_Preview.png",
+      "bytes": 70248
+    },
+    {
+      "file": "marathon_9x16_Alpha.webm",
+      "bytes": 288370
+    },
+    {
+      "file": "marathon_9x16_GreenScreen.mp4",
+      "bytes": 141844
+    },
+    {
+      "file": "marathon_9x16_Preview.png",
+      "bytes": 72544
+    },
+    {
+      "file": "race-day.wav",
+      "bytes": 576044
+    },
+    {
+      "file": "race-day_16x9_Alpha.webm",
+      "bytes": 232106
+    },
+    {
+      "file": "race-day_16x9_GreenScreen.mp4",
+      "bytes": 113872
+    },
+    {
+      "file": "race-day_16x9_Preview.png",
+      "bytes": 67925
+    },
+    {
+      "file": "race-day_9x16_Alpha.webm",
+      "bytes": 234301
+    },
+    {
+      "file": "race-day_9x16_GreenScreen.mp4",
+      "bytes": 111950
+    },
+    {
+      "file": "race-day_9x16_Preview.png",
+      "bytes": 71368
+    },
+    {
+      "file": "READ-ME.txt",
+      "bytes": 980
+    },
+    {
+      "file": "recovery.wav",
+      "bytes": 576044
+    },
+    {
+      "file": "recovery_16x9_Alpha.webm",
+      "bytes": 230365
+    },
+    {
+      "file": "recovery_16x9_GreenScreen.mp4",
+      "bytes": 117726
+    },
+    {
+      "file": "recovery_16x9_Preview.png",
+      "bytes": 67722
+    },
+    {
+      "file": "recovery_9x16_Alpha.webm",
+      "bytes": 234902
+    },
+    {
+      "file": "recovery_9x16_GreenScreen.mp4",
+      "bytes": 113615
+    },
+    {
+      "file": "recovery_9x16_Preview.png",
+      "bytes": 71180
+    },
+    {
+      "file": "tempo.wav",
+      "bytes": 576044
+    },
+    {
+      "file": "tempo_16x9_Alpha.webm",
+      "bytes": 212797
+    },
+    {
+      "file": "tempo_16x9_GreenScreen.mp4",
+      "bytes": 102189
+    },
+    {
+      "file": "tempo_16x9_Preview.png",
+      "bytes": 63280
+    },
+    {
+      "file": "tempo_9x16_Alpha.webm",
+      "bytes": 215936
+    },
+    {
+      "file": "tempo_9x16_GreenScreen.mp4",
+      "bytes": 99058
+    },
+    {
+      "file": "tempo_9x16_Preview.png",
+      "bytes": 66778
+    },
+    {
+      "file": "TIM_Running_Essentials_Preview.mp4",
+      "bytes": 885151
+    },
+    {
+      "file": "track-wipe.wav",
+      "bytes": 268844
+    },
+    {
+      "file": "track-wipe_16x9_Alpha.webm",
+      "bytes": 165041
+    },
+    {
+      "file": "track-wipe_16x9_GreenScreen.mp4",
+      "bytes": 92478
+    },
+    {
+      "file": "track-wipe_16x9_Preview.png",
+      "bytes": 49397
+    },
+    {
+      "file": "track-wipe_9x16_Alpha.webm",
+      "bytes": 188866
+    },
+    {
+      "file": "track-wipe_9x16_GreenScreen.mp4",
+      "bytes": 103780
+    },
+    {
+      "file": "track-wipe_9x16_Preview.png",
+      "bytes": 57564
+    },
+    {
+      "file": "trail-dust.wav",
+      "bytes": 268844
+    },
+    {
+      "file": "trail-dust_16x9_Alpha.webm",
+      "bytes": 1090127
+    },
+    {
+      "file": "trail-dust_16x9_GreenScreen.mp4",
+      "bytes": 359566
+    },
+    {
+      "file": "trail-dust_16x9_Preview.png",
+      "bytes": 157606
+    },
+    {
+      "file": "trail-dust_9x16_Alpha.webm",
+      "bytes": 1179316
+    },
+    {
+      "file": "trail-dust_9x16_GreenScreen.mp4",
+      "bytes": 400006
+    },
+    {
+      "file": "trail-dust_9x16_Preview.png",
+      "bytes": 142324
+    }
+  ]
+}
