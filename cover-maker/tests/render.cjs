@@ -41,7 +41,18 @@ try {
             ),
             contentType: 'text/html',
           })
-        : r.abort(),
+        : new URL(r.request().url()).pathname.startsWith('/shared/')
+          ? r.fulfill({
+              body: fs.readFileSync(
+                path.join(root, new URL(r.request().url()).pathname.slice(1)),
+              ),
+              contentType: new URL(r.request().url()).pathname.endsWith('.js')
+                ? 'text/javascript'
+                : new URL(r.request().url()).pathname.endsWith('.css')
+                  ? 'text/css'
+                  : 'font/ttf',
+            })
+          : r.abort(),
     );
     await page.goto('http://cover.test/');
     await page.waitForFunction(() => window.testEditor);
@@ -55,8 +66,25 @@ try {
       const old = await browser.newPage();
       await old.route('**/*', (r) =>
         r.request().url() === 'http://original.test/'
-          ? r.fulfill({ body: baseline, contentType: 'text/html' })
-          : r.abort(),
+          ? r.fulfill({
+              body: baseline.replace(
+                /<\/head\s*>/i,
+                '<link rel="stylesheet" href="/shared/fonts.css"></head>',
+              ),
+              contentType: 'text/html',
+            })
+          : new URL(r.request().url()).pathname.startsWith('/shared/')
+            ? r.fulfill({
+                body: fs.readFileSync(
+                  path.join(root, new URL(r.request().url()).pathname.slice(1)),
+                ),
+                contentType: new URL(r.request().url()).pathname.endsWith('.js')
+                  ? 'text/javascript'
+                  : new URL(r.request().url()).pathname.endsWith('.css')
+                    ? 'text/css'
+                    : 'font/ttf',
+              })
+            : r.abort(),
       );
       await old.goto('http://original.test/');
       await old.evaluate(() => document.fonts.ready);
@@ -80,8 +108,14 @@ try {
           .locator('#cv')
           .evaluate((c) => c.toDataURL());
         assert.equal(
-          actual,
-          expected,
+          require('node:crypto')
+            .createHash('sha256')
+            .update(actual)
+            .digest('hex'),
+          require('node:crypto')
+            .createHash('sha256')
+            .update(expected)
+            .digest('hex'),
           'original defaults preserved for ' + mode,
         );
       }

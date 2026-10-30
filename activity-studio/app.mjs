@@ -517,3 +517,60 @@ document.addEventListener('visibilitychange', () => {
 });
 document.fonts.ready.then(() => paint());
 paint();
+
+window.TimProjects.mount({
+  tool: 'activity-studio',
+  preset: true,
+  busy: () => recording || playing || importing,
+  get: () => ({
+    settings,
+    size: $('size').value,
+    seconds: $('seconds').value,
+    style: $('style').value,
+  }),
+  set: async (data) => {
+    const next = window.TimProjects.checkState(data.settings, settings);
+    for (const id of ['size', 'seconds', 'style']) {
+      const el = $(id);
+      if (
+        el.tagName === 'SELECT' &&
+        ![...el.options].some((o) => o.value === data[id])
+      )
+        throw Error('Invalid export setting.');
+      if (
+        id === 'seconds' &&
+        !(Number(data[id]) >= 3 && Number(data[id]) <= 60)
+      )
+        throw Error('Invalid duration.');
+    }
+    if (
+      !['brand', 'sans', 'serif', 'mono'].includes(next.font) ||
+      !presets[next.preset] ||
+      !templates[next.template]
+    )
+      throw Error('Invalid design preset.');
+    Object.assign(settings, next);
+    for (const [id, value] of Object.entries(settings)) {
+      const el = $(id);
+      if (!el || id === 'metrics') continue;
+      if (el.type === 'checkbox') el.checked = value;
+      else el.value = value;
+    }
+    $('units').value = settings.imperial ? 'imperial' : 'metric';
+    for (const id of ['size', 'seconds', 'style']) $(id).value = data[id];
+    [canvas.width, canvas.height] = data.size.split(',').map(Number);
+    $('dimensions').textContent = canvas.width + ' × ' + canvas.height;
+    if (activity) {
+      const saved = structuredClone(settings);
+      configure();
+      saved.template = settings.template;
+      Object.assign(settings, saved);
+      $('title').value = settings.title;
+      for (const el of $('metrics').querySelectorAll('input'))
+        el.checked = settings.metrics.includes(el.value);
+      $('lapPage').value = settings.lapPage;
+      updateSummary();
+    }
+    paint();
+  },
+});

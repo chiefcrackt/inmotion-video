@@ -47,7 +47,9 @@ export function validProject(value) {
     Array.isArray(value.palette) &&
     value.palette.length === 3 &&
     value.palette.every((c) => /^#[0-9a-f]{6}$/i.test(c)) &&
-    ['Arial', 'Georgia', 'monospace'].includes(value.font) &&
+    ['Barlow Condensed', 'Arial', 'Georgia', 'monospace'].includes(
+      value.font,
+    ) &&
     typeof value.project === 'string' &&
     typeof value.handle === 'string' &&
     value.slides.every(

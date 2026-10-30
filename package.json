@@ -18,7 +18,8 @@
     "format": "prettier --write \"**/*.{html,css,js,mjs,cjs,json}\"",
     "format:check": "prettier --check \"**/*.{html,css,js,mjs,cjs,json}\"",
     "test:carousel:all": "npm run test:carousel:browser && npm run test:carousel:editor && npm run test:carousel:background && npm run test:carousel:stacking && npm run test:carousel:positioning",
-    "test:cover:browser": "node cover-maker/tests/render.cjs"
+    "test:cover:browser": "node cover-maker/tests/render.cjs",
+    "test:projects:browser": "node tests/projects-browser.cjs"
   },
   "repository": {
     "type": "git",

@@ -3,15 +3,17 @@
   ><head
     ><meta charset="utf-8" /><meta
       name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover"
-    /><link rel="icon" href="../favicon.svg" type="image/svg+xml" /><link
+      content="width=device-width,initial-scale=1,viewport-fit=cover" /><link
+      rel="icon"
+      href="../favicon.svg"
+      type="image/svg+xml" /><link
       rel="icon"
       href="../favicon.png"
-      type="image/png"
-    /><link rel="apple-touch-icon" href="../apple-touch-icon.png" /><meta
+      type="image/png" /><link
+      rel="apple-touch-icon"
+      href="../apple-touch-icon.png" /><meta
       name="theme-color"
-      content="#0E1A2E"
-    /><style>
+      content="#0E1A2E" /><style>
       :root {
         padding-top: env(safe-area-inset-top, 0px);
         padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -40,13 +42,6 @@
       }</style
     ><title>Cover Maker</title>
     <meta name="claude:viewport-fit-sides" content="cover" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
-    />
-
     <style>
       details {
         border: 1px solid var(--line);
@@ -141,8 +136,10 @@
         .studio {
           gap: 12px;
         }
-      }
-    </style></head
+      }</style
+    ><link rel="stylesheet" href="../shared/fonts.css" /><link
+      rel="stylesheet"
+      href="../shared/projects.css" /><script src="../shared/projects.js"></script></head
   ><body
     ><style>
       /* Layout: two-column studio. Live preview on the left, the text and options on the right; one column on phones.
@@ -158,7 +155,7 @@
         --muted: #9fb0c8;
         --danger: #f08a7a;
         --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
-        --body: 'Barlow', 'Helvetica Neue', Arial, sans-serif;
+        --body: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif;
         color-scheme: dark;
       }
       * {
@@ -816,6 +813,8 @@
           'TRAINING',
         ];
         var D = {
+          textFont: 'Barlow Condensed',
+          theme: 'tim',
           mode: 'thumb',
           tag: 'OIL CREEK 100',
           head: 'WHAT 100 MILES TAUGHT ME',
@@ -862,8 +861,7 @@
           return c;
         }
         function font(c, w, s, tr) {
-          c.font =
-            w + ' ' + s + 'px "Barlow Condensed","Arial Narrow",sans-serif';
+          c.font = w + ' ' + s + 'px ' + window.TimProjects.family(S.textFont);
           try {
             c.letterSpacing = (tr || 0) + 'px';
           } catch (e) {}
@@ -2419,6 +2417,76 @@
             })
             .catch(function () {});
         }
+
+        Object.keys(C).forEach(function (key) {
+          var base = C[key];
+          if (typeof base === 'string' && /^#/.test(base))
+            Object.defineProperty(C, key, {
+              get: function () {
+                return window.TimProjects.color(base, S.theme);
+              },
+            });
+        });
+        function projectRefresh() {
+          Object.keys(S).forEach(function (key) {
+            var el = document.getElementById(key);
+            if (el && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) {
+              if (el.type === 'checkbox') el.checked = !!S[key];
+              else el.value = S[key];
+            }
+          });
+          sync();
+          refresh(false);
+        }
+        window.TimProjects.mount({
+          tool: 'cover-maker',
+          busy: function () {
+            return typeof playing !== 'undefined' && !!playing;
+          },
+          get: function () {
+            return {
+              state: S,
+              layouts: layouts,
+              photo: window.TimProjects.photo(PHOTO),
+            };
+          },
+          set: async function (data) {
+            const next = window.TimProjects.validateControls(
+              window.TimProjects.checkState(data.state, S),
+            );
+            if (
+              !['tim', 'minimal', 'broadcast'].includes(next.theme) ||
+              !['Barlow Condensed', 'Arial', 'Georgia', 'monospace'].includes(
+                next.textFont,
+              )
+            )
+              throw Error('Unsupported theme or font.');
+            const nextLayouts = window.TimProjects.checkState(
+              data.layouts,
+              layouts,
+            );
+            const nextPhoto = await window.TimProjects.image(data.photo);
+            layouts = nextLayouts;
+            PHOTO = nextPhoto;
+            undoStack = [];
+            redoStack = [];
+            lastSnapshot = null;
+            S = next;
+            projectRefresh();
+            lastSnapshot = snapshot();
+            historyButtons();
+          },
+          look: {
+            get: function () {
+              return { font: S.textFont, theme: S.theme };
+            },
+            set: async function (v) {
+              S.textFont = v.font;
+              S.theme = v.theme;
+              projectRefresh();
+            },
+          },
+        });
       })();
     </script>
   </body></html

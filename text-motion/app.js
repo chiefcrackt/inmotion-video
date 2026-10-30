@@ -35,10 +35,12 @@ let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches,
   position = 0,
   previous = 0,
   recording = false;
+let textFont = 'Barlow Condensed',
+  outputTheme = 'tim';
 const duration = () => Number($('duration').value);
 const ease = (x) => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3);
 function linesFor(text, width, fontSize) {
-  ctx.font = `900 ${fontSize}px "Barlow Condensed", "Arial Narrow", Arial`;
+  ctx.font = `900 ${fontSize}px ${window.TimProjects.family(textFont)}`;
   const lines = [];
   for (const paragraph of text.split('\n')) {
     let line = '';
@@ -112,7 +114,7 @@ function draw(t) {
     6 * unit,
   );
   ctx.fillStyle = $('ink').value;
-  ctx.font = `900 ${size}px "Barlow Condensed", "Arial Narrow", Arial`;
+  ctx.font = `900 ${size}px ${window.TimProjects.family(textFont)}`;
   let remaining = Math.floor(
     Math.min(1, t / (1.25 * speed)) * lines.join('').length,
   );
@@ -124,7 +126,7 @@ function draw(t) {
   });
   ctx.globalAlpha = alpha;
   ctx.fillStyle = $('accent').value;
-  ctx.font = `600 ${28 * unit}px Barlow, Arial`;
+  ctx.font = `600 ${28 * unit}px ${window.TimProjects.family(textFont)}`;
   ctx.fillText(
     $('caption').value,
     0,
@@ -251,6 +253,8 @@ $('palette').addEventListener('input', () => {
   );
 });
 $('reset').onclick = () => {
+  textFont = 'Barlow Condensed';
+  outputTheme = 'tim';
   for (const el of fields) {
     if (el.type === 'checkbox') el.checked = defaults[el.id];
     else el.value = defaults[el.id];
@@ -534,3 +538,76 @@ $('sequence').onclick = async () => {
     playLabel();
   }
 };
+
+const projectFields = fields.map((el) => el.id);
+window.TimProjects.mount({
+  tool: 'text-motion',
+  busy: () => recording,
+  get: () => ({
+    fields: Object.fromEntries(
+      projectFields.map((id) => [
+        id,
+        $(id).type === 'checkbox' ? $(id).checked : $(id).value,
+      ]),
+    ),
+    textFont,
+    theme: outputTheme,
+  }),
+  set: async (data) => {
+    const current = Object.fromEntries(
+      projectFields.map((id) => [
+        id,
+        $(id).type === 'checkbox' ? $(id).checked : $(id).value,
+      ]),
+    );
+    const fields = window.TimProjects.checkState(data.fields, current);
+    for (const id of projectFields) {
+      const el = $(id);
+      if (
+        el.tagName === 'SELECT' &&
+        ![...el.options].some((o) => o.value === fields[id])
+      )
+        throw Error('Invalid ' + id);
+      if (el.type === 'color' && !/^#[0-9a-f]{6}$/i.test(fields[id]))
+        throw Error('Invalid color.');
+    }
+    if (!(Number(fields.size) >= 55 && Number(fields.size) <= 180))
+      throw Error('Invalid text size.');
+    if (
+      !['Barlow Condensed', 'Arial', 'Georgia', 'monospace'].includes(
+        data.textFont,
+      ) ||
+      !['tim', 'minimal', 'broadcast'].includes(data.theme)
+    )
+      throw Error('Invalid text or theme choice.');
+    window.TimProjects.validateControls(fields);
+    for (const id of projectFields) {
+      if ($(id).type === 'checkbox') $(id).checked = fields[id];
+      else $(id).value = fields[id];
+    }
+    textFont = data.textFont;
+    outputTheme = data.theme;
+    playing = false;
+    position = 1;
+    playLabel();
+    sync();
+    $('controls').dispatchEvent(new Event('input'));
+  },
+  look: {
+    get: () => ({ font: textFont, theme: outputTheme }),
+    set: async (value) => {
+      textFont = value.font;
+      outputTheme = value.theme;
+      const themes = {
+        tim: ['#0e1a2e', '#f6f4ef', '#e8c96a'],
+        minimal: ['#f6f4ef', '#172332', '#28655c'],
+        broadcast: ['#111820', '#ffffff', '#e8c96a'],
+      };
+      ['background', 'ink', 'accent'].forEach(
+        (id, i) => ($(id).value = themes[outputTheme][i]),
+      );
+      draw(position);
+      $('controls').dispatchEvent(new Event('input'));
+    },
+  },
+});

@@ -3,25 +3,18 @@
   ><head
     ><meta charset="utf-8" /><meta
       name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover"
-    /><link rel="icon" href="../favicon.svg" type="image/svg+xml" /><link
+      content="width=device-width,initial-scale=1,viewport-fit=cover" /><link
+      rel="icon"
+      href="../favicon.svg"
+      type="image/svg+xml" /><link
       rel="icon"
       href="../favicon.png"
-      type="image/png"
-    /><link rel="apple-touch-icon" href="../apple-touch-icon.png" /><meta
+      type="image/png" /><link
+      rel="apple-touch-icon"
+      href="../apple-touch-icon.png" /><meta
       name="theme-color"
-      content="#0E1A2E"
-    /><title>Special Post Maker</title>
+      content="#0E1A2E" /><title>Special Post Maker</title>
     <meta name="claude:viewport-fit-sides" content="cover" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" /><link
-      rel="preconnect"
-      href="https://fonts.gstatic.com"
-      crossorigin
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
-    />
     <style>
       /* Layout: two-column studio. Live preview on the left, grouped controls on the right; one column on phones.
    Single dark look on purpose: T.im navy is the brand ground. */
@@ -36,7 +29,7 @@
         --muted: #9fb0c8;
         --danger: #f08a7a;
         --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
-        --body: 'Barlow', 'Helvetica Neue', Arial, sans-serif;
+        --body: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif;
         color-scheme: dark;
         padding-top: env(safe-area-inset-top, 0px);
         padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -525,8 +518,10 @@
         border-radius: 50%;
         background: var(--teal);
         display: block;
-      }
-    </style></head
+      }</style
+    ><link rel="stylesheet" href="../shared/fonts.css" /><link
+      rel="stylesheet"
+      href="../shared/projects.css" /><script src="../shared/projects.js"></script></head
   ><body>
     <div class="wrap">
       <header>
@@ -1832,6 +1827,8 @@
           { id: 'none', name: 'None', desc: 'Silent clip' },
         ];
         var S = {
+          textFont: 'Barlow Condensed',
+          theme: 'tim',
           occ: 'birthday',
           headline: 'HAPPY BIRTHDAY',
           name: 'SAM',
@@ -2195,8 +2192,11 @@
           c.width = c.height = Math.ceil(2 * R);
           var x = c.getContext('2d');
           var g = x.createLinearGradient(0, 0, 0, 2 * R);
-          g.addColorStop(0.25, '#E8C96A');
-          g.addColorStop(1, '#2E9BAD');
+          g.addColorStop(
+            0.25,
+            window.TimProjects.color('#E8C96A', S && S.theme),
+          );
+          g.addColorStop(1, window.TimProjects.color('#2E9BAD', S && S.theme));
           x.fillStyle = g;
           x.beginPath();
           x.arc(R, R, R, 0, Math.PI * 2);
@@ -2224,7 +2224,7 @@
           sky.addColorStop(1, '#1B3456');
           ctx.fillStyle = sky;
           ctx.fillRect(0, 0, W, hz);
-          ctx.fillStyle = '#F6F4EF';
+          ctx.fillStyle = window.TimProjects.color('#F6F4EF', S && S.theme);
           STARS.forEach(function (s) {
             var x = mod(s[0] * W * 1.4 - cx * 0.012, W * 1.4) - W * 0.2,
               y = s[1] * hz * 0.78,
@@ -2323,7 +2323,7 @@
             mx = W / 2,
             sp = W / 4,
             o = mod(cx, sp);
-          ctx.fillStyle = '#0E1A2E';
+          ctx.fillStyle = window.TimProjects.color('#0E1A2E', S && S.theme);
           ctx.fillRect(0, hz, W, gh);
           ctx.lineWidth = 1.6 * k;
           ctx.strokeStyle = 'rgba(46,155,173,.55)';
@@ -2353,20 +2353,16 @@
           ctx.fillStyle = fd;
           ctx.fillRect(0, hz, W, gh * 0.45);
           ctx.save();
-          ctx.shadowColor = '#2E9BAD';
+          ctx.shadowColor = window.TimProjects.color('#2E9BAD', S && S.theme);
           ctx.shadowBlur = 14 * k;
-          ctx.fillStyle = '#2E9BAD';
+          ctx.fillStyle = window.TimProjects.color('#2E9BAD', S && S.theme);
           ctx.fillRect(0, hz - 1.5 * k, W, 3 * k);
           ctx.restore();
         }
 
         // ---------- text helpers
         function setFont(c, w, px, ls) {
-          c.font =
-            w +
-            ' ' +
-            px +
-            'px "Barlow Condensed","Arial Narrow",Arial,sans-serif';
+          c.font = w + ' ' + px + 'px ' + window.TimProjects.family(S.textFont);
           try {
             c.letterSpacing = (ls || 0) + 'px';
           } catch (e) {}
@@ -3752,7 +3748,12 @@
               ctx.drawImage(RIM, 0, 0);
             }
             edge(1.3 * kq, 1.1 * kq, '#F2D57A', 0.95);
-            edge(-0.6 * kq, -1.1 * kq, '#2E9BAD', 0.55);
+            edge(
+              -0.6 * kq,
+              -1.1 * kq,
+              window.TimProjects.color('#2E9BAD', S && S.theme),
+              0.55,
+            );
           }
           if (archOn) {
             drawArchFront(a);
@@ -4914,6 +4915,59 @@
           };
           im.src = p.src;
           if (!p.dog) p.img = im;
+        });
+
+        Object.keys(C).forEach(function (key) {
+          var base = C[key];
+          if (typeof base === 'string' && /^#/.test(base))
+            Object.defineProperty(C, key, {
+              get: function () {
+                return window.TimProjects.color(base, S.theme);
+              },
+            });
+        });
+        function projectRefresh() {
+          Object.keys(S).forEach(function (key) {
+            var el = document.getElementById(key);
+            if (el && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) {
+              if (el.type === 'checkbox') el.checked = !!S[key];
+              else el.value = S[key];
+            }
+          });
+          update(true);
+        }
+        window.TimProjects.mount({
+          tool: 'special-post',
+          busy: function () {
+            return typeof playing !== 'undefined' && !!playing;
+          },
+          get: function () {
+            return { state: S };
+          },
+          set: async function (data) {
+            const next = window.TimProjects.validateControls(
+              window.TimProjects.checkState(data.state, S),
+            );
+            if (
+              !['tim', 'minimal', 'broadcast'].includes(next.theme) ||
+              !['Barlow Condensed', 'Arial', 'Georgia', 'monospace'].includes(
+                next.textFont,
+              )
+            )
+              throw Error('Unsupported theme or font.');
+            S = next;
+            projectRefresh();
+          },
+          look: {
+            get: function () {
+              return { font: S.textFont, theme: S.theme };
+            },
+            set: async function (v) {
+              S.textFont = v.font;
+              S.theme = v.theme;
+              projectRefresh();
+            },
+          },
         });
       })();
     </script>

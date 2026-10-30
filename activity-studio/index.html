@@ -3,22 +3,24 @@
   ><head
     ><meta charset="utf-8" /><meta
       name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover" />
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
     <title>T.IM · Activity Studio</title
     ><meta
       name="description"
-      content="Turn local FIT, GPX and TCX activity exports into branded running graphics and route animations." /><meta
-      name="theme-color"
-      content="#0E1A2E" />
+      content="Turn local FIT, GPX and TCX activity exports into branded running graphics and route animations."
+    /><meta name="theme-color" content="#0E1A2E" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;500;600&display=swap" />
     <link rel="stylesheet" href="studio.css" /><script
       type="module"
       src="app.mjs"
     ></script
-  ></head>
+    ><link rel="stylesheet" href="../shared/fonts.css" />
+    <link
+      rel="stylesheet"
+      href="../shared/projects.css"
+    /><script src="../shared/projects.js"></script>
+  </head>
   <body
     ><div class="wrap"
       ><header
@@ -123,7 +125,9 @@
                 ><label
                   >Typography<select id="font"
                     ><option value="brand">Barlow Condensed</option
-                    ><option value="sans">Clean sans serif</option></select
+                    ><option value="sans">Clean sans serif</option
+                    ><option value="serif">Editorial serif</option
+                    ><option value="mono">Trackside mono</option></select
                   ></label
                 ><label
                   >Text size<input

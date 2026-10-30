@@ -1,0 +1,75 @@
+.tim-projects {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid #25395c;
+  border-radius: 9px;
+  background: #13233d;
+  color: #f6f4ef;
+  font:
+    18px 'Barlow Condensed',
+    Arial,
+    sans-serif;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.tim-projects summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.tim-project-body {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+}
+.tim-projects label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.tim-projects input,
+.tim-projects select,
+.tim-projects button,
+.tim-import {
+  font: inherit;
+  min-height: 44px;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #526783;
+  border-radius: 5px;
+  padding: 8px;
+  background: #0e1a2e;
+  color: #f6f4ef;
+}
+.tim-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tim-actions > * {
+  flex: 1 1 120px;
+}
+.tim-projects button,
+.tim-import {
+  cursor: pointer;
+}
+.tim-import input {
+  width: 100%;
+  font-size: 14px;
+}
+.tim-projects p {
+  margin: 0;
+  font-size: 16px;
+}
+.tim-projects :focus-visible {
+  outline: 3px solid #e8c96a;
+  outline-offset: 2px;
+}
+
+.tim-actions {
+  align-items: start;
+}
+.tim-projects .tim-import {
+  align-content: start;
+}

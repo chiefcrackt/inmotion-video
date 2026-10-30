@@ -5,7 +5,7 @@
   --line: #25395c;
   --gold: #e8c96a;
   --muted: #9fb0c8;
-  font-family: Barlow, Arial, sans-serif;
+  font-family: 'Barlow Condensed', Arial, sans-serif;
   color: #f6f4ef;
   background: var(--navy);
 }

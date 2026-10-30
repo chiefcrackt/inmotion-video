@@ -7,7 +7,7 @@
   --paper: #f6f4ef;
   --muted: #9fb0c8;
   color-scheme: dark;
-  font-family: Barlow, Arial, sans-serif;
+  font-family: 'Barlow Condensed', Arial, sans-serif;
   background: var(--navy);
   color: var(--paper);
 }

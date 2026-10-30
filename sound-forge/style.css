@@ -7,7 +7,7 @@
   --paper: #f6f4ef;
   --muted: #9fb0c8;
   color-scheme: dark;
-  font-family: Barlow, Arial, sans-serif;
+  font-family: 'Barlow Condensed', Arial, sans-serif;
   color: var(--paper);
   background: var(--navy);
 }
@@ -101,7 +101,7 @@ aside {
 .presets small {
   color: var(--muted);
   font:
-    12px Barlow,
+    12px 'Barlow Condensed',
     Arial,
     sans-serif;
 }

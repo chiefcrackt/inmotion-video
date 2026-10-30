@@ -48,3 +48,5 @@ Offsets apply per slide, survive duplication and saved/imported projects, suppor
 Run `npm run test:carousel:positioning` for mouse and real touch-event dragging, numeric offsets, undo/redo, persistence, duplication, reset, blank slides, mobile and PNG export coverage.
 
 The settings panel starts with Move template text. Elements & layers (including brand/layout tools) is at the bottom, after slide content, photo framing and carousel style settings.
+
+New decks default to the bundled Barlow Condensed font. Existing saved font choices remain intact. Barlow Condensed, Arial, Georgia and monospace are available for the deck and independent text elements. The original palettes remain available alongside Minimal and Race Broadcast alternatives.

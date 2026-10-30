@@ -57,3 +57,13 @@ Open `text-motion/` for animated text clips in the T.im palette. Choose Rise up,
 Text Motion also includes Fade in and Wipe reveal, entrance speed, alignment and vertical placement, four color presets, and an optional Title Maker-style glitch with strength and timing controls. Drafts save on the current device; Reset settings restores the defaults.
 
 Enable Transparent background in Text Motion for alpha-preserving PNG stills and a 30 fps PNG-sequence ZIP. Import the frames as an image sequence in a video editor. The preview checkerboard is not exported. Download video follows this toggle: transparent mode exports an alpha-channel WebM using WebCodecs VP9 encoding (Chrome or Edge). Import it into an editor that supports WebM alpha. Solid backgrounds retain the existing browser recorder.
+
+## Saved projects, themes and text
+
+Barlow Condensed is the default text family, served from the licensed font files in `shared/fonts/`; no Google Fonts request is required. Editable visual tools offer other font choices. Existing saved carousel typography is preserved, while new carousels default to Barlow Condensed. T.im remains the default output theme; Minimal and Race Broadcast are optional alternatives. Uploaded photos and runner cutouts retain their original colors, and chroma green remains green. Sound Forge and Animation Downloads have no editable visual output, so they use the bundled interface font without output-style controls.
+
+Title, Promo, Cover, Start Line, River Run, Mile Marker, Special Post, Celebration and Text Motion offer named snapshots under **Saved projects & text / theme**. Save as new creates another version; load/import asks before replacing the current setup. Snapshots live in IndexedDB on this browser and origin. Export/import version 1 JSON to back up or move work between devices. Cover and Promo include photos (resized to at most 2400 pixels along the long edge); project JSON is limited to 35 MB. Text Motion retains its automatic draft saving; named projects provide additional snapshots. Browser storage can be cleared; keep JSON backups for important work.
+
+Activity Studio saves named design and export presets only, without persisting activity or GPS data. Re-import the activity separately. Carousel Maker and Sound Forge retain their existing project libraries and portable formats.
+
+Run `npm run test:projects:browser` for named save/load, reload persistence, JSON round trips, wrong-tool rejection, embedded photo restoration, local fonts and mobile layout.

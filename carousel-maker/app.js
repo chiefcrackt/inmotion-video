@@ -10,7 +10,7 @@ let state = {
   selected: 0,
   template: 0,
   palette: palettes[0],
-  font: 'Arial',
+  font: 'Barlow Condensed',
   height: 1350,
   handle: '@tristan.inmotion',
   project: 'My daily miles, upgraded.',
@@ -74,6 +74,7 @@ function save(record = true) {
   editor?.sync();
 }
 async function paint(canvas, s, i) {
+  await document.fonts.ready;
   let img = null;
   try {
     await loadSlideImages(s);
@@ -313,6 +314,11 @@ function download(blob, name) {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 async function png(s, i, snapshot) {
+  await Promise.all(
+    [400, 700, 900].map((w) =>
+      document.fonts.load(`${w} 30px "${snapshot.font}"`),
+    ),
+  );
   const c = document.createElement('canvas');
   await loadSlideImages(s);
   render(c, s, i, snapshot.slides.length, snapshot, await imageFor(s.photo));

@@ -157,9 +157,9 @@ export function render(
     pad = 70 * scale,
     tall = H > W * 1.3;
   const font =
-    settings.font === 'sans'
-      ? 'Arial, sans-serif'
-      : '"Barlow Condensed", "Arial Narrow", Arial, sans-serif';
+    { sans: 'Arial, sans-serif', serif: 'Georgia, serif', mono: 'monospace' }[
+      settings.font
+    ] || '"Barlow Condensed", "Arial Narrow", Arial, sans-serif';
   const text = (
     str,
     x,

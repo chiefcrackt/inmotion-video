@@ -20,7 +20,7 @@ const path = require('node:path');
     page.on('pageerror', (e) => errors.push(e.message));
     const base = `http://127.0.0.1:${server.address().port}`;
     await page.goto(base);
-    assert.equal(await page.locator('a.tool').count(), 12);
+    assert.equal(await page.locator('a.tool').count(), 13);
     await page.locator('#search').fill('carousel');
     assert.equal(await page.locator('a.tool:visible').count(), 1);
     await page.locator('a.tool:visible').click();
