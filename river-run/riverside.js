@@ -1,4 +1,4 @@
-/* One optional layered scene. All positions are pure functions of the runner clock. */
+/* Layered riverside scene and reusable scrolling primitives. */
 (() => {
   const images = {},
     bottoms = {};
@@ -246,6 +246,7 @@
     );
     ctx.restore();
   }
+  window.RiverParallax = { strip, motion, mix, alpha, color };
   window.RiverRiverside = {
     load,
     drawBack,

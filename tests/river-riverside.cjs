@@ -1,6 +1,14 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { launchBrowser, server } = require('./browser-utils.cjs');
+const scene = process.argv[2] || 'riverside';
+assert.ok(['riverside', 'cyberpunk', 'mountain'].includes(scene));
+const slug = scene === 'riverside' ? 'moving-riverside' : scene;
+const sceneName = {
+  riverside: 'Moving riverside',
+  cyberpunk: 'Cyberpunk city run',
+  mountain: 'Mountain trail',
+}[scene];
 
 (async () => {
   const srv = server();
@@ -31,17 +39,26 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
       () => window.RiverRun && !document.querySelector('#rec').disabled,
     );
     assert.equal(await page.evaluate(() => RiverRun.settings.bg), 'scene');
-    for (const id of ['scene', 'navy', 'green', 'artwork', 'riverside'])
+    for (const id of [
+      'scene',
+      'navy',
+      'green',
+      'artwork',
+      'riverside',
+      'cyberpunk',
+      'mountain',
+    ])
       assert.equal(
         await page.locator('[data-g=bg][data-v=' + id + ']').count(),
         1,
       );
-    await page.click('[data-g=bg][data-v=riverside]');
+    await page.click('[data-g=bg][data-v=' + scene + ']');
     await page.waitForFunction(
-      () =>
-        RiverRiverside.ready &&
-        RiverRun.settings.bg === 'riverside' &&
+      (id) =>
+        RiverScenes.ready(id) &&
+        RiverRun.settings.bg === id &&
         !document.querySelector('#rec').disabled,
+      scene,
     );
     fs.mkdirSync('output', { recursive: true });
     const shots = [];
@@ -75,7 +92,14 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
           const c = document.createElement('canvas');
           c.width = g.W;
           c.height = g.H;
-          RiverRiverside.drawBack(c.getContext('2d'), g, t, speed, 'tim');
+          RiverScenes.drawBack(
+            RiverRun.settings.bg,
+            c.getContext('2d'),
+            g,
+            t,
+            speed,
+            'tim',
+          );
           return c;
         };
         const a = render(0),
@@ -90,7 +114,7 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
           error += Math.abs(actual[i] - shifted[i]);
           movement += Math.abs(actual[i] - original[i]);
         }
-        const motion = RiverRiverside.motion(g, 1, speed);
+        const motion = RiverScenes.motion(g, 1, speed);
         // Crossing the repeat boundary must not create a jump or a transparent column.
         const time = motion.groundTile / speed;
         const before = render(time - 0.001),
@@ -143,12 +167,13 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
     assert.equal(jumpFrames, 3);
     await page.reload();
     await page.waitForFunction(
-      () =>
+      (id) =>
         window.RiverRun &&
-        RiverRiverside.ready &&
+        RiverScenes.ready(id) &&
         !document.querySelector('#rec').disabled,
+      scene,
     );
-    assert.equal(await page.evaluate(() => RiverRun.settings.bg), 'riverside');
+    assert.equal(await page.evaluate(() => RiverRun.settings.bg), scene);
     for (const outfit of ['original', 'race', 'trail', 'winter']) {
       await page.selectOption('#outfit', outfit);
       await page.waitForFunction(
@@ -175,7 +200,7 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
     await page.locator('button.snd').filter({ hasText: 'Silent clip' }).click();
     await page.click('#rec');
     assert.equal(
-      await page.locator('[data-g=bg][data-v=riverside]').isDisabled(),
+      await page.locator('[data-g=bg][data-v=' + scene + ']').isDisabled(),
       true,
     );
     await page.waitForFunction(
@@ -233,7 +258,9 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
     assert.ok(recorded.movement > 1);
     assert.ok(recorded.bytes > 10000);
     fs.writeFileSync(
-      'output/moving-riverside-preview.' +
+      'output/' +
+        slug +
+        '-preview.' +
         (recorded.type.includes('mp4') ? 'mp4' : 'webm'),
       Buffer.from(recorded.base64, 'base64'),
     );
@@ -262,7 +289,9 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
       viewport: { width: 1500, height: 1250 },
     });
     await review.setContent(
-      '<html style="font-family:Arial;background:#f6f4ef;color:#172332"><body><h2>Moving riverside · layered scene</h2><main style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">' +
+      '<html style="font-family:Arial;background:#f6f4ef;color:#172332"><body><h2>' +
+        sceneName +
+        ' · layered scene</h2><main style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">' +
         shots
           .map(
             (s) =>
@@ -276,11 +305,12 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
         '</main></body></html>',
     );
     await review.screenshot({
-      path: 'output/moving-riverside-themes.jpg',
+      path: 'output/' + slug + '-themes.jpg',
       fullPage: true,
     });
     console.log(
-      'PASS: stride-matched ground pixels at three paces, smooth repeats, deterministic jumps, six theme/format views, four outfits, reload, green screen, mobile and moving ground in recorded video.',
+      sceneName +
+        ': PASS: stride-matched ground pixels at three paces, smooth repeats, deterministic jumps, six theme/format views, four outfits, reload, green screen, mobile and moving ground in recorded video.',
     );
   } finally {
     await browser.close();

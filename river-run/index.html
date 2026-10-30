@@ -386,6 +386,7 @@
     ><link rel="stylesheet" href="../shared/fonts.css" /><link
       rel="stylesheet"
       href="../shared/projects.css" /><script src="riverside.js"></script
+    ><script src="scenes.js"></script
     ><script src="../shared/background-pack.js"></script>
     <script src="../shared/projects.js"></script></head
   ><body>
@@ -449,6 +450,12 @@
               >
               <button class="chip" data-g="bg" data-v="riverside" type="button"
                 >Moving riverside</button
+              >
+              <button class="chip" data-g="bg" data-v="cyberpunk" type="button"
+                >Cyberpunk city run</button
+              >
+              <button class="chip" data-g="bg" data-v="mountain" type="button"
+                >Mountain trail</button
               >
               <button class="chip" data-g="bg" data-v="artwork" type="button"
                 >Image backdrop</button
@@ -875,9 +882,9 @@
         if (!window.TimBackgrounds.ids.includes(S.backgroundPack))
           S.backgroundPack = 'night-track';
         if (
-          !['scene', 'navy', 'green', 'clear', 'artwork', 'riverside'].includes(
-            S.bg,
-          )
+          !['scene', 'navy', 'green', 'clear', 'artwork']
+            .concat(window.RiverScenes.ids)
+            .includes(S.bg)
         )
           S.bg = 'scene';
         function persist() {
@@ -1041,15 +1048,15 @@
             }
           }
         }
-        async function activateRiverside() {
+        async function activateMovingScene(id) {
           if (playing || recording) return;
           var request = ++backgroundRequest;
           backgroundLoading = true;
           sync();
           try {
-            await window.RiverRiverside.load();
+            await window.RiverScenes.load(id);
             if (request !== backgroundRequest) return;
-            S.bg = 'riverside';
+            S.bg = id;
             update();
           } finally {
             if (request === backgroundRequest) {
@@ -1355,8 +1362,8 @@
           if (bg === 'scene') {
             drawScene(g, t, v);
             drawFloor(g, t, v, true);
-          } else if (bg === 'riverside') {
-            window.RiverRiverside.drawBack(ctx, g, t, v, S.theme);
+          } else if (window.RiverScenes.has(bg)) {
+            window.RiverScenes.drawBack(bg, ctx, g, t, v, S.theme);
           } else if (bg === 'artwork') {
             drawArtwork(g);
           } else if (bg === 'navy') {
@@ -1515,8 +1522,8 @@
               0.55,
             );
           }
-          if (bg === 'riverside')
-            window.RiverRiverside.drawFront(ctx, g, t, v, S.theme);
+          if (window.RiverScenes.has(bg))
+            window.RiverScenes.drawFront(bg, ctx, g, t, v, S.theme);
         }
 
         // ---------- sound (Web Audio, synthesized; the same code renders the WAV)
@@ -2150,8 +2157,8 @@
           b.onclick = function () {
             if (playing || recording) return;
             if (b.dataset.g === 'bg') {
-              if (b.dataset.v === 'riverside') {
-                activateRiverside().catch(function (error) {
+              if (window.RiverScenes.has(b.dataset.v)) {
+                activateMovingScene(b.dataset.v).catch(function (error) {
                   say(error.message, true);
                 });
                 return;
@@ -2194,8 +2201,8 @@
             },
           },
         );
-        if (S.bg === 'riverside')
-          activateRiverside().catch(function (error) {
+        if (window.RiverScenes.has(S.bg))
+          activateMovingScene(S.bg).catch(function (error) {
             S.bg = 'scene';
             update();
             say(error.message, true);
@@ -2293,18 +2300,14 @@
             )
               throw Error('Unsupported theme or font.');
             if (
-              ![
-                'scene',
-                'navy',
-                'green',
-                'clear',
-                'artwork',
-                'riverside',
-              ].includes(next.bg) ||
+              !['scene', 'navy', 'green', 'clear', 'artwork']
+                .concat(window.RiverScenes.ids)
+                .includes(next.bg) ||
               !window.TimBackgrounds.ids.includes(next.backgroundPack)
             )
               throw Error('Unsupported background.');
-            if (next.bg === 'riverside') await window.RiverRiverside.load();
+            if (window.RiverScenes.has(next.bg))
+              await window.RiverScenes.load(next.bg);
             if (next.bg === 'artwork')
               await ensureBackground(next.backgroundPack);
             S = next;
