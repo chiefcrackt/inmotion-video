@@ -1,18 +1,3 @@
-/*
- * TODO(Claude): Multi-select, grouping and distribution (feature 2).
- * Extend the existing element selection/dragging model with modifier-click and
- * accessible controls for selecting multiple independent elements. Add group/
- * ungroup, group movement and even horizontal/vertical distribution.
- * Keep locked elements fixed and hidden elements out of pointer hit testing;
- * define how mixed below/above-template selections behave before changing
- * stacking. Reuse the current coordinates, snapping and layer placement rules.
- * Treat each group drag, group/ungroup or distribution as one undo transaction.
- * Add version-compatible group metadata through model.mjs normalization; old
- * projects must load unchanged. Preserve groups in duplicate/save/import/export.
- * Acceptance: mouse, touch and keyboard produce matching positions; undo/redo
- * restores the entire operation; preview, thumbnails and PNG/ZIP match. Input
- * fields must retain normal selection and keyboard editing behavior.
- */
 import { makeElement, uid, validProject } from './elements.mjs';
 import { imageFor } from './render.mjs';
 const $ = (id) => document.getElementById(id),
