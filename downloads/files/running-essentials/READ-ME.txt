@@ -1,0 +1,16 @@
+T.im RUNNING ESSENTIALS
+
+15 assets: six training labels, four transitions, five distance markers.
+1920 x 1080 landscape / 1080 x 1920 portrait. 30 fps.
+
+GreenScreen.mp4: H.264 + AAC sound. In CapCut use Chroma Key on green.
+Alpha.webm: VP9 alpha + Opus sound. Use an editor supporting WebM transparency; iPhone Photos does not.
+Preview.png: navy-backed reference still, not a transparent overlay.
+WAV: matching stereo 48 kHz PCM sound, one per asset. Video already includes sound; mute it before adding WAV separately.
+
+Transitions: place over your cut, align the cut to 0.70 seconds from the clip start. All four cover the complete frame at that point. Keep original duration and position.
+Labels and distance cards enter, hold, then leave; first and final frames are clear.
+
+Individual clips and this ZIP are ready-made files, no rendering needed.
+Preview montage shows all 15 landscape clips on navy.
+Source and reproducible build: tools/running-essentials/ in the repository.

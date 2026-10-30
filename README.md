@@ -79,3 +79,7 @@ River Run also offers the six optional image backdrops, with output-theme matchi
 River Run has one optional **Moving riverside** scene with separately generated hill, tree-bank, gravel and foreground-reed layers. Scrolling ground follows the existing stride speed; distant layers move more slowly and near reeds move faster. It supports the three output themes, both formats, all outfits and existing recordings. All previous backgrounds remain available and River scene stays the default. See `river-run/scenes/riverside/README.md` and run `npm run test:river:riverside`.
 
 River Run also includes optional **Cyberpunk city run** and **Mountain trail** moving scenes, sharing the riverside parallax system and stride-matched ground. Each adds three generated layers with compressed runtime assets; the original PNGs and prompts are preserved under `river-run/scenes/`. Existing scenes and defaults are retained. Run `npm run test:river:scenes` to verify all three moving scenes and their recorded output.
+
+## Running Essentials downloads
+
+Animation Downloads now also includes six training labels, four transitions and five distance markers, in landscape and portrait with green-screen MP4, transparent WebM and matching WAV sound. Finished files, a preview and the complete ZIP are in downloads/files/running-essentials/. See [pack sources and rebuild instructions](tools/running-essentials/README.md). All existing tools and packs remain available.
