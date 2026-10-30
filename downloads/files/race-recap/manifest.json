@@ -1,0 +1,440 @@
+{
+  "version": 1,
+  "fps": 30,
+  "formats": {
+    "16x9": [
+      1920,
+      1080
+    ],
+    "9x16": [
+      1080,
+      1920
+    ]
+  },
+  "resultTextVisibleSeconds": [
+    0.65,
+    4.4
+  ],
+  "items": [
+    {
+      "id": "race-recap",
+      "title": "Race recap",
+      "subtitle": "EVERY RACE HAS A STORY",
+      "kind": "opener",
+      "duration": 4,
+      "description": "A reusable opener over your race footage.",
+      "index": 0
+    },
+    {
+      "id": "before-the-start",
+      "title": "Before the start",
+      "subtitle": "THE BUILD-UP",
+      "kind": "chapter",
+      "duration": 3,
+      "description": "Kit, travel, warm-up and pre-race footage.",
+      "index": 1
+    },
+    {
+      "id": "race-start",
+      "title": "Race start",
+      "subtitle": "HERE WE GO",
+      "kind": "chapter",
+      "duration": 3,
+      "description": "Introduce the start-line footage.",
+      "index": 2
+    },
+    {
+      "id": "halfway",
+      "title": "Halfway",
+      "subtitle": "KEEP MOVING FORWARD",
+      "kind": "chapter",
+      "duration": 3,
+      "description": "Mark the halfway point without fixing a race distance.",
+      "index": 3
+    },
+    {
+      "id": "final-push",
+      "title": "Final push",
+      "subtitle": "MAKE IT COUNT",
+      "kind": "chapter",
+      "duration": 3,
+      "description": "Introduce the closing stretch.",
+      "index": 4
+    },
+    {
+      "id": "finish-line",
+      "title": "Finish line",
+      "subtitle": "EVERY STEP COUNTED",
+      "kind": "finish",
+      "duration": 4,
+      "description": "A finish celebration for any completed race.",
+      "index": 5
+    },
+    {
+      "id": "personal-best",
+      "title": "Personal best",
+      "subtitle": "A NEW BENCHMARK",
+      "kind": "achievement",
+      "duration": 4,
+      "description": "Use when the result is a personal best.",
+      "index": 6
+    },
+    {
+      "id": "finish-time",
+      "title": "Finish time",
+      "subtitle": "OFFICIAL RESULT",
+      "kind": "stat",
+      "duration": 5,
+      "description": "Blank result panel: add your actual time as text in your editor.",
+      "index": 7
+    },
+    {
+      "id": "average-pace",
+      "title": "Average pace",
+      "subtitle": "RACE IN NUMBERS",
+      "kind": "stat",
+      "duration": 5,
+      "description": "Blank result panel: add your actual pace and min/km or min/mi in your editor.",
+      "index": 8
+    },
+    {
+      "id": "thanks-for-watching",
+      "title": "Thanks for watching",
+      "subtitle": "SEE YOU AT THE NEXT START LINE",
+      "kind": "outro",
+      "duration": 4,
+      "description": "A reusable closing card with space around it for your footage.",
+      "index": 9
+    }
+  ],
+  "files": [
+    {
+      "file": "average-pace.wav",
+      "bytes": 960044
+    },
+    {
+      "file": "average-pace_16x9_Alpha.webm",
+      "bytes": 409673
+    },
+    {
+      "file": "average-pace_16x9_GreenScreen.mp4",
+      "bytes": 174028
+    },
+    {
+      "file": "average-pace_16x9_Preview.png",
+      "bytes": 74075
+    },
+    {
+      "file": "average-pace_9x16_Alpha.webm",
+      "bytes": 339616
+    },
+    {
+      "file": "average-pace_9x16_GreenScreen.mp4",
+      "bytes": 154666
+    },
+    {
+      "file": "average-pace_9x16_Preview.png",
+      "bytes": 77525
+    },
+    {
+      "file": "average-pace_Preview.mp4",
+      "bytes": 58480
+    },
+    {
+      "file": "before-the-start.wav",
+      "bytes": 576044
+    },
+    {
+      "file": "before-the-start_16x9_Alpha.webm",
+      "bytes": 302606
+    },
+    {
+      "file": "before-the-start_16x9_GreenScreen.mp4",
+      "bytes": 153460
+    },
+    {
+      "file": "before-the-start_16x9_Preview.png",
+      "bytes": 77520
+    },
+    {
+      "file": "before-the-start_9x16_Alpha.webm",
+      "bytes": 253635
+    },
+    {
+      "file": "before-the-start_9x16_GreenScreen.mp4",
+      "bytes": 138232
+    },
+    {
+      "file": "before-the-start_9x16_Preview.png",
+      "bytes": 79207
+    },
+    {
+      "file": "before-the-start_Preview.mp4",
+      "bytes": 50705
+    },
+    {
+      "file": "final-push.wav",
+      "bytes": 576044
+    },
+    {
+      "file": "final-push_16x9_Alpha.webm",
+      "bytes": 273161
+    },
+    {
+      "file": "final-push_16x9_GreenScreen.mp4",
+      "bytes": 136778
+    },
+    {
+      "file": "final-push_16x9_Preview.png",
+      "bytes": 73254
+    },
+    {
+      "file": "final-push_9x16_Alpha.webm",
+      "bytes": 226454
+    },
+    {
+      "file": "final-push_9x16_GreenScreen.mp4",
+      "bytes": 127002
+    },
+    {
+      "file": "final-push_9x16_Preview.png",
+      "bytes": 74670
+    },
+    {
+      "file": "final-push_Preview.mp4",
+      "bytes": 46465
+    },
+    {
+      "file": "finish-line.wav",
+      "bytes": 768044
+    },
+    {
+      "file": "finish-line_16x9_Alpha.webm",
+      "bytes": 632192
+    },
+    {
+      "file": "finish-line_16x9_GreenScreen.mp4",
+      "bytes": 297211
+    },
+    {
+      "file": "finish-line_16x9_Preview.png",
+      "bytes": 99803
+    },
+    {
+      "file": "finish-line_9x16_Alpha.webm",
+      "bytes": 566326
+    },
+    {
+      "file": "finish-line_9x16_GreenScreen.mp4",
+      "bytes": 297796
+    },
+    {
+      "file": "finish-line_9x16_Preview.png",
+      "bytes": 101166
+    },
+    {
+      "file": "finish-line_Preview.mp4",
+      "bytes": 99259
+    },
+    {
+      "file": "finish-time.wav",
+      "bytes": 960044
+    },
+    {
+      "file": "finish-time_16x9_Alpha.webm",
+      "bytes": 395819
+    },
+    {
+      "file": "finish-time_16x9_GreenScreen.mp4",
+      "bytes": 164170
+    },
+    {
+      "file": "finish-time_16x9_Preview.png",
+      "bytes": 69314
+    },
+    {
+      "file": "finish-time_9x16_Alpha.webm",
+      "bytes": 322670
+    },
+    {
+      "file": "finish-time_9x16_GreenScreen.mp4",
+      "bytes": 150346
+    },
+    {
+      "file": "finish-time_9x16_Preview.png",
+      "bytes": 72831
+    },
+    {
+      "file": "finish-time_Preview.mp4",
+      "bytes": 57627
+    },
+    {
+      "file": "halfway.wav",
+      "bytes": 576044
+    },
+    {
+      "file": "halfway_16x9_Alpha.webm",
+      "bytes": 273190
+    },
+    {
+      "file": "halfway_16x9_GreenScreen.mp4",
+      "bytes": 133730
+    },
+    {
+      "file": "halfway_16x9_Preview.png",
+      "bytes": 71248
+    },
+    {
+      "file": "halfway_9x16_Alpha.webm",
+      "bytes": 223995
+    },
+    {
+      "file": "halfway_9x16_GreenScreen.mp4",
+      "bytes": 127032
+    },
+    {
+      "file": "halfway_9x16_Preview.png",
+      "bytes": 75211
+    },
+    {
+      "file": "halfway_Preview.mp4",
+      "bytes": 47179
+    },
+    {
+      "file": "personal-best.wav",
+      "bytes": 768044
+    },
+    {
+      "file": "personal-best_16x9_Alpha.webm",
+      "bytes": 661285
+    },
+    {
+      "file": "personal-best_16x9_GreenScreen.mp4",
+      "bytes": 312999
+    },
+    {
+      "file": "personal-best_16x9_Preview.png",
+      "bytes": 104924
+    },
+    {
+      "file": "personal-best_9x16_Alpha.webm",
+      "bytes": 581401
+    },
+    {
+      "file": "personal-best_9x16_GreenScreen.mp4",
+      "bytes": 302403
+    },
+    {
+      "file": "personal-best_9x16_Preview.png",
+      "bytes": 106860
+    },
+    {
+      "file": "personal-best_Preview.mp4",
+      "bytes": 106127
+    },
+    {
+      "file": "race-recap.wav",
+      "bytes": 768044
+    },
+    {
+      "file": "race-recap_16x9_Alpha.webm",
+      "bytes": 431063
+    },
+    {
+      "file": "race-recap_16x9_GreenScreen.mp4",
+      "bytes": 172862
+    },
+    {
+      "file": "race-recap_16x9_Preview.png",
+      "bytes": 82832
+    },
+    {
+      "file": "race-recap_9x16_Alpha.webm",
+      "bytes": 392977
+    },
+    {
+      "file": "race-recap_9x16_GreenScreen.mp4",
+      "bytes": 169316
+    },
+    {
+      "file": "race-recap_9x16_Preview.png",
+      "bytes": 89058
+    },
+    {
+      "file": "race-recap_Preview.mp4",
+      "bytes": 53755
+    },
+    {
+      "file": "race-start.wav",
+      "bytes": 576044
+    },
+    {
+      "file": "race-start_16x9_Alpha.webm",
+      "bytes": 272222
+    },
+    {
+      "file": "race-start_16x9_GreenScreen.mp4",
+      "bytes": 137374
+    },
+    {
+      "file": "race-start_16x9_Preview.png",
+      "bytes": 73504
+    },
+    {
+      "file": "race-start_9x16_Alpha.webm",
+      "bytes": 223672
+    },
+    {
+      "file": "race-start_9x16_GreenScreen.mp4",
+      "bytes": 126825
+    },
+    {
+      "file": "race-start_9x16_Preview.png",
+      "bytes": 75445
+    },
+    {
+      "file": "race-start_Preview.mp4",
+      "bytes": 46585
+    },
+    {
+      "file": "READ-ME.txt",
+      "bytes": 1763
+    },
+    {
+      "file": "thanks-for-watching.wav",
+      "bytes": 768044
+    },
+    {
+      "file": "thanks-for-watching_16x9_Alpha.webm",
+      "bytes": 496939
+    },
+    {
+      "file": "thanks-for-watching_16x9_GreenScreen.mp4",
+      "bytes": 210452
+    },
+    {
+      "file": "thanks-for-watching_16x9_Preview.png",
+      "bytes": 97068
+    },
+    {
+      "file": "thanks-for-watching_9x16_Alpha.webm",
+      "bytes": 462840
+    },
+    {
+      "file": "thanks-for-watching_9x16_GreenScreen.mp4",
+      "bytes": 208863
+    },
+    {
+      "file": "thanks-for-watching_9x16_Preview.png",
+      "bytes": 102723
+    },
+    {
+      "file": "thanks-for-watching_Preview.mp4",
+      "bytes": 57210
+    },
+    {
+      "file": "TIM_Race_Recap_Preview.mp4",
+      "bytes": 611251
+    }
+  ]
+}

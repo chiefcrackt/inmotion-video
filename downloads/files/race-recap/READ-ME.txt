@@ -1,0 +1,18 @@
+T.im RACE RECAP
+
+10 reusable clips for a race video: Race recap, Before the start, Race start, Halfway, Final push, Finish line, Personal best, Finish time, Average pace, Thanks for watching.
+
+1920 x 1080 landscape / 1080 x 1920 portrait. 30 fps.
+GreenScreen.mp4: H.264 + AAC sound. Add as an overlay in CapCut and Chroma Key the green.
+Alpha.webm: VP9 alpha + Opus sound. Requires a desktop editor with WebM-alpha support; iPhone Photos cannot open it.
+WAV: matching stereo 48 kHz PCM sound. Sound is already in each video; mute it if adding the WAV separately.
+Preview.mp4 / Preview.png: reference assets on navy, not transparent overlays.
+
+Suggested sequence: Race recap > Before the start > Race start > Halfway > Final push > Finish line > Finish time / Average pace > Thanks for watching. Personal best is optional; use only for a real PB. Mix with the existing Running Essentials distance markers and transitions.
+
+RESULT PANELS: Finish time and Average pace intentionally have blank dark insets, with no made-up result. Put a text layer above the clip in your editor. Use your actual time, or pace plus min/km or min/mi. Keep text within the inset and time its visibility to 0.65s through 4.40s, while the panel is stationary and fully visible. In landscape the inset is x=312,y=481,width=1296,height=232. In portrait it is x=152,y=901,width=776,height=232. Coordinates are relative to the full 1080p exported frame.
+
+All clips enter, hold, and leave; first and last frames are clear. Extend a hold by freezing a middle frame, rather than slowing the entrance.
+
+The downloads page includes individual clip previews and the complete pack ZIP. No rendering is required to use the files.
+Source and rebuild instructions: tools/race-recap/ in the repository.
