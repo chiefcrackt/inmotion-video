@@ -385,7 +385,8 @@
       }</style
     ><link rel="stylesheet" href="../shared/fonts.css" /><link
       rel="stylesheet"
-      href="../shared/projects.css" /><script src="../shared/background-pack.js"></script>
+      href="../shared/projects.css" /><script src="riverside.js"></script
+    ><script src="../shared/background-pack.js"></script>
     <script src="../shared/projects.js"></script></head
   ><body>
     <div class="wrap">
@@ -445,6 +446,9 @@
               >
               <button class="chip" data-g="bg" data-v="navy" type="button"
                 >Navy + grid</button
+              >
+              <button class="chip" data-g="bg" data-v="riverside" type="button"
+                >Moving riverside</button
               >
               <button class="chip" data-g="bg" data-v="artwork" type="button"
                 >Image backdrop</button
@@ -870,7 +874,11 @@
           S.outfit = 'original';
         if (!window.TimBackgrounds.ids.includes(S.backgroundPack))
           S.backgroundPack = 'night-track';
-        if (!['scene', 'navy', 'green', 'clear', 'artwork'].includes(S.bg))
+        if (
+          !['scene', 'navy', 'green', 'clear', 'artwork', 'riverside'].includes(
+            S.bg,
+          )
+        )
           S.bg = 'scene';
         function persist() {
           try {
@@ -1025,6 +1033,23 @@
             if (request !== backgroundRequest) return;
             S.backgroundPack = id;
             S.bg = 'artwork';
+            update();
+          } finally {
+            if (request === backgroundRequest) {
+              backgroundLoading = false;
+              sync();
+            }
+          }
+        }
+        async function activateRiverside() {
+          if (playing || recording) return;
+          var request = ++backgroundRequest;
+          backgroundLoading = true;
+          sync();
+          try {
+            await window.RiverRiverside.load();
+            if (request !== backgroundRequest) return;
+            S.bg = 'riverside';
             update();
           } finally {
             if (request === backgroundRequest) {
@@ -1330,6 +1355,8 @@
           if (bg === 'scene') {
             drawScene(g, t, v);
             drawFloor(g, t, v, true);
+          } else if (bg === 'riverside') {
+            window.RiverRiverside.drawBack(ctx, g, t, v, S.theme);
           } else if (bg === 'artwork') {
             drawArtwork(g);
           } else if (bg === 'navy') {
@@ -1488,6 +1515,8 @@
               0.55,
             );
           }
+          if (bg === 'riverside')
+            window.RiverRiverside.drawFront(ctx, g, t, v, S.theme);
         }
 
         // ---------- sound (Web Audio, synthesized; the same code renders the WAV)
@@ -2121,6 +2150,12 @@
           b.onclick = function () {
             if (playing || recording) return;
             if (b.dataset.g === 'bg') {
+              if (b.dataset.v === 'riverside') {
+                activateRiverside().catch(function (error) {
+                  say(error.message, true);
+                });
+                return;
+              }
               if (b.dataset.v === 'artwork') {
                 activateBackground(S.backgroundPack).catch(function (error) {
                   say(error.message, true);
@@ -2159,6 +2194,12 @@
             },
           },
         );
+        if (S.bg === 'riverside')
+          activateRiverside().catch(function (error) {
+            S.bg = 'scene';
+            update();
+            say(error.message, true);
+          });
         if (S.bg === 'artwork')
           activateBackground(S.backgroundPack).catch(function (error) {
             S.bg = 'scene';
@@ -2252,12 +2293,18 @@
             )
               throw Error('Unsupported theme or font.');
             if (
-              !['scene', 'navy', 'green', 'clear', 'artwork'].includes(
-                next.bg,
-              ) ||
+              ![
+                'scene',
+                'navy',
+                'green',
+                'clear',
+                'artwork',
+                'riverside',
+              ].includes(next.bg) ||
               !window.TimBackgrounds.ids.includes(next.backgroundPack)
             )
               throw Error('Unsupported background.');
+            if (next.bg === 'riverside') await window.RiverRiverside.load();
             if (next.bg === 'artwork')
               await ensureBackground(next.backgroundPack);
             S = next;

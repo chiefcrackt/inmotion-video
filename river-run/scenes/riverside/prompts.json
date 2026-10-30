@@ -1,0 +1,18 @@
+[
+  {
+    "id": "hills",
+    "prompt": "Use case: stylized-concept. Asset type: separate distant landscape layer for a side-scrolling riverside running scene. Create a very wide 3:1 image, roughly 3072 by 1024. A continuous low ridge of softly layered wooded hills seen directly across a river from the side. Hills form a gentle silhouette rising from the bottom edge, tallest hill no higher than the lower 65 percent of the canvas; generous genuinely transparent space above the irregular skyline, with no sky paint. The land continues all the way to both horizontal edges and solidly to the bottom edge. Sophisticated hand-painted editorial illustration with fine natural texture, compatible with a flat cutout animated runner. Restrained deep navy and muted teal tones, a few subtle warm gold dusk highlights. No sun, no water, no path, no buildings, no people, no lettering, no borders, no baked shadows outside the land. This is one isolated distant hill strip, not a complete scene or a sprite atlas."
+  },
+  {
+    "id": "riverbank",
+    "prompt": "Use case: stylized-concept. Asset type: isolated middle-distance layer for a side-scrolling riverside running scene. Create a very wide 3:1 image, roughly 3072 by 1024, genuinely transparent background. A continuous distant riverbank with irregular small deciduous tree clusters and low shrubs, directly side-on, all rooted on a level horizontal bank at the bottom edge. Plants occupy the lower 70 percent of image, with genuinely transparent irregular gaps above their silhouettes. Fine natural texture in a sophisticated hand-painted editorial illustration, compatible with flat cutout animation. Deep navy and muted teal foliage, small warm gold dusk highlights. Keep trees modest and clustered, varied spacing, no giant foreground trunks. Bank continues to both side edges, no empty margins at the bottom. No sky, water, mountains, sun, road, runner, people, text, borders, fake checkerboard, or complete scene."
+  },
+  {
+    "id": "path",
+    "prompt": "Use case: stylized-concept. Asset type: horizontal repeating ground texture for a side-scrolling running path. Create a wide 3:1 opaque image, roughly 3072 by 1024, of a fine compacted gravel riverside path surface viewed from directly above, uniform scale across the whole image. Sophisticated hand-painted editorial natural texture: deep desaturated navy gray ground, fine teal gray aggregate, occasional tiny pale warm gold stones, restrained subtle wear. Low contrast, small details, no large objects. It must be horizontally tileable with consistent lighting and texture at both left and right edges, no vignette. No perspective, horizon, sky, grass borders, footmarks, people, lane lines, text, panel divisions, or shadows. One continuous fine-grain surface only."
+  },
+  {
+    "id": "reeds",
+    "prompt": "Use case: stylized-concept. Asset type: isolated near-foreground decorative strip for a side-scrolling riverside running scene. Create a very wide 3:1 image, roughly 3072 by 1024, genuinely transparent background. Sparse low clumps of fine riverside grasses and reeds rooted at the bottom edge with large transparent gaps between clumps and above their silhouettes. Each clump is at most 45 percent of the image height; taller thin golden reed stems may reach 60 percent. Restrained deep navy and muted teal leaves with a few warm gold seedheads. Sophisticated hand-painted editorial natural texture, compatible with flat cutout animation. Plant roots touch the bottom border, natural irregular distribution including plants crossing left and right edges. No solid soil bank or background, no sky, no water, no large trees, no people, no text, no checkerboard."
+  }
+]
