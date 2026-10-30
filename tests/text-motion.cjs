@@ -76,7 +76,7 @@ const path = require('node:path');
     await page.locator('#scrub').fill('500');
     await page.locator('#transparent').check();
     await page.locator('#scrub').fill('500');
-    assert.equal(await page.locator('#video').isDisabled(), true);
+    assert.equal(await page.locator('#video').isDisabled(), false);
     assert.equal(await page.locator('#sequence').isVisible(), true);
     const alphaAtCorner = () =>
       page
@@ -87,6 +87,80 @@ const path = require('node:path');
     await page.locator('#scrub').fill('500');
     assert.equal(await page.locator('#transparent').isChecked(), true);
     assert.equal(await alphaAtCorner(), 0);
+    const alphaDownload = page.waitForEvent('download', { timeout: 120000 });
+    await page.locator('#video').click();
+    const alphaVideo = await alphaDownload;
+    assert.equal(
+      alphaVideo.suggestedFilename(),
+      'tim-text-motion-transparent.webm',
+    );
+    const videoBytes = fs.readFileSync(await alphaVideo.path());
+    const decoded = await page.evaluate(async (b64) => {
+      const v = document.createElement('video');
+      v.muted = true;
+      v.src = 'data:video/webm;base64,' + b64;
+      await new Promise((resolve, reject) => {
+        v.onloadedmetadata = resolve;
+        v.onerror = () => reject(Error('Video metadata failed'));
+      });
+      const duration = v.duration;
+      v.currentTime = 1;
+      await new Promise((resolve, reject) => {
+        v.onseeked = resolve;
+        v.onerror = () => reject(Error('Video seek failed'));
+      });
+      const c = document.createElement('canvas');
+      c.width = v.videoWidth;
+      c.height = v.videoHeight;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(v, 0, 0);
+      const pixels = ctx.getImageData(0, 0, c.width, c.height).data;
+      let maxAlpha = 0;
+      for (let i = 3; i < pixels.length; i += 4)
+        maxAlpha = Math.max(maxAlpha, pixels[i]);
+      const corner = pixels[3];
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = '#ff00ff';
+      ctx.fillRect(0, 0, c.width, c.height);
+      return {
+        duration,
+        corner,
+        maxAlpha,
+        composite: [...ctx.getImageData(0, 0, 1, 1).data],
+        width: c.width,
+        height: c.height,
+      };
+    }, videoBytes.toString('base64'));
+    assert.ok(Math.abs(decoded.duration - 2) < 0.05);
+    assert.equal(
+      decoded.corner,
+      0,
+      'Exported video preserves transparent background',
+    );
+    assert.ok(decoded.maxAlpha > 240, 'Exported video keeps visible text');
+    assert.deepEqual(
+      decoded.composite,
+      [255, 0, 255, 255],
+      'Video composites over another background',
+    );
+    assert.equal(decoded.width, 1920);
+    assert.equal(decoded.height, 1080);
+    await page.evaluate(() => {
+      window.savedVideoEncoder = window.VideoEncoder;
+      window.VideoEncoder = undefined;
+    });
+    await page.locator('#video').click();
+    await page.waitForFunction(() =>
+      document
+        .getElementById('status')
+        .textContent.includes('PNG exports are still available'),
+    );
+    assert.equal(await page.locator('#video').isDisabled(), false);
+    assert.equal(await page.locator('#background').isDisabled(), true);
+    await page.evaluate(() => {
+      window.VideoEncoder = window.savedVideoEncoder;
+      delete window.savedVideoEncoder;
+    });
     const transparentPNG = page.waitForEvent('download');
     await page.locator('#png').click();
     const pngBytes = fs.readFileSync(await (await transparentPNG).path());
@@ -167,7 +241,7 @@ const path = require('node:path');
     });
     assert.deepEqual(errors, []);
     console.log(
-      'Text Motion passed: effects, formats, scrub, PNG and video downloads, mobile layout.',
+      'Text Motion passed: effects, formats, scrub, PNG and video downloads, decoded WebM alpha and compositing, unsupported encoder recovery, mobile layout.',
     );
   } finally {
     await browser?.close();

@@ -200,10 +200,10 @@ function sync() {
   const transparent = $('transparent').checked;
   canvas.classList.toggle('transparent', transparent);
   $('sequence').hidden = !transparent;
-  $('video').disabled = transparent;
+  $('video').disabled = false;
   $('background').disabled = transparent;
   $('status').textContent = transparent
-    ? 'Transparent output: save a PNG or download the full animation as a PNG-sequence ZIP (30 fps). Video export is available with a solid background.'
+    ? 'Transparent output: download an alpha WebM video, PNG frame, or PNG-sequence ZIP (30 fps).'
     : 'Video exports include the background. No audio. Your draft saves automatically on this device.';
   const dimensions = {
     landscape: [1920, 1080],
@@ -294,7 +294,47 @@ $('png').onclick = () =>
     if (blob) download(blob, 'tim-text-motion.png');
   });
 $('video').onclick = async () => {
-  if ($('transparent').checked) return;
+  if ($('transparent').checked) {
+    if (recording) return;
+    await document.fonts.ready;
+    const wasPlaying = playing,
+      savedPosition = position;
+    recording = true;
+    playing = false;
+    document
+      .querySelectorAll('button,input,select,textarea')
+      .forEach((el) => (el.disabled = true));
+    try {
+      const blob = await window.exportAlphaVideo(
+        canvas,
+        draw,
+        duration(),
+        (fraction) => {
+          $('status').textContent =
+            'Encoding transparent video… ' + Math.round(fraction * 100) + '%';
+        },
+      );
+      download(blob, 'tim-text-motion-transparent.webm');
+      $('status').textContent =
+        'Transparent WebM ready. Import it into an editor that supports WebM alpha.';
+    } catch (error) {
+      $('status').textContent =
+        error.message ||
+        'Could not export transparent video. Try the PNG sequence.';
+    } finally {
+      recording = false;
+      playing = wasPlaying;
+      position = savedPosition;
+      previous = 0;
+      document
+        .querySelectorAll('button,input,select,textarea')
+        .forEach((el) => (el.disabled = false));
+      $('background').disabled = $('transparent').checked;
+      draw(position);
+      playLabel();
+    }
+    return;
+  }
   if (!window.MediaRecorder || !canvas.captureStream) {
     $('status').textContent =
       'Video export is unavailable in this browser. You can still save a PNG frame.';
@@ -330,7 +370,7 @@ $('video').onclick = async () => {
       .querySelectorAll('button,input,select,textarea')
       .forEach((el) => (el.disabled = false));
     $('background').disabled = $('transparent').checked;
-    $('video').disabled = $('transparent').checked;
+    $('video').disabled = false;
     $('status').textContent = message;
     playLabel();
   };
@@ -489,7 +529,7 @@ $('sequence').onclick = async () => {
       .querySelectorAll('button,input,select,textarea')
       .forEach((el) => (el.disabled = false));
     $('background').disabled = $('transparent').checked;
-    $('video').disabled = $('transparent').checked;
+    $('video').disabled = false;
     draw(position);
     playLabel();
   }

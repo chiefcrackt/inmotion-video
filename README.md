@@ -56,4 +56,4 @@ Open `text-motion/` for animated text clips in the T.im palette. Choose Rise up,
 
 Text Motion also includes Fade in and Wipe reveal, entrance speed, alignment and vertical placement, four color presets, and an optional Title Maker-style glitch with strength and timing controls. Drafts save on the current device; Reset settings restores the defaults.
 
-Enable Transparent background in Text Motion for alpha-preserving PNG stills and a 30 fps PNG-sequence ZIP. Import the frames as an image sequence in a video editor. The preview checkerboard is not exported. Browser-recorded video uses a solid background; transparent mode offers PNG exports instead.
+Enable Transparent background in Text Motion for alpha-preserving PNG stills and a 30 fps PNG-sequence ZIP. Import the frames as an image sequence in a video editor. The preview checkerboard is not exported. Download video follows this toggle: transparent mode exports an alpha-channel WebM using WebCodecs VP9 encoding (Chrome or Edge). Import it into an editor that supports WebM alpha. Solid backgrounds retain the existing browser recorder.
