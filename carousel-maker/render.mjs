@@ -1,3 +1,17 @@
+/*
+ * TODO(Claude): Text-overflow detection and optional fit (feature 3).
+ * Derive overflow diagnostics from the same font measurement, wrapping, line
+ * spacing and frame bounds used to draw template text and independent text
+ * elements (see elements.mjs). Wait for bundled fonts before measuring.
+ * Expose diagnostics to the editor with the slide and affected text/frame;
+ * show a non-blocking export warning and an explicit "Fit text" action.
+ * Fit should reduce size only to a documented readable minimum, be undoable,
+ * and leave unresolved overflow visible instead of silently changing content.
+ * Do not mutate the project during rendering or merely to show diagnostics.
+ * Acceptance: cover long words, multiline text, each font and both formats;
+ * warnings reflect exported clipping, fitting survives project round trips,
+ * and preview/thumbnail/PNG/ZIP all use the same resulting layout.
+ */
 import { drawElements } from './elements.mjs';
 import { photoSettings, photoGeometry } from './photo.mjs';
 const cache = new Map();

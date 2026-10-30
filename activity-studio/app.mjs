@@ -1,3 +1,28 @@
+/*
+ * TODO(Claude): Activity-to-carousel race recap (feature 1).
+ * Add an explicit "Create recap carousel" action for the current normalized
+ * activity. Start with one activity and one editable recap template: summary,
+ * privacy-masked route, elevation, recorded laps (when available), closing slide.
+ * Build a versioned adapter to carousel-maker/model.mjs; reuse existing units,
+ * availability/source labels and rendering rather than parsing the file again.
+ * Keep activity/GPS records out of persistent storage. Transfer only the
+ * necessary editable values and rendered, privacy-masked graphics; make the
+ * transfer explicit and let the user review before replacing a carousel draft.
+ * Acceptance: metric/imperial values agree with Activity Studio, missing fields
+ * are omitted/labeled rather than invented, masked gaps stay disconnected, and
+ * generated slides remain editable and survive carousel JSON/PNG/ZIP exports.
+ *
+ * TODO(Claude): Activity trim and checkpoints (feature 5).
+ * Add start/end trim, jump-to-time/distance and user-authored checkpoint labels,
+ * using model.mjs timeline lookup and render.mjs for both preview and export.
+ * Define whether checkpoints use elapsed time or cumulative distance; preserve
+ * gaps/pauses and disable unavailable navigation for untimed/missing-distance
+ * data. Clearly distinguish whole-activity totals from selected-section values.
+ * Store design settings only in existing saved presets; do not persist imported
+ * GPS data or activity-specific annotations without a deliberate new policy.
+ * Acceptance: trim boundaries and labels agree in scrubbing, PNG and video;
+ * test pauses, gaps, boundary checkpoints and activities without timed GPS.
+ */
 import { render, presets, templates, metric } from './render.mjs';
 import { duration, atTime } from './model.mjs';
 const $ = (id) => document.getElementById(id),
