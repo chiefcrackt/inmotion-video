@@ -93,6 +93,12 @@ MOVING.</textarea
           >
           <fieldset
             ><legend>03 / Set the mood</legend
+            ><label class="check"
+              ><input id="transparent" type="checkbox" /> Transparent
+              background</label
+            ><p class="hint" id="transparencyNote"
+              >Transparency is preserved in PNG frames and PNG-sequence ZIPs.
+              Video export uses a solid background.</p
             ><div class="pair"
               ><div
                 ><label for="background">Background</label
@@ -164,6 +170,8 @@ MOVING.</textarea
             ><button type="button" id="video" class="primary"
               >Download video</button
             ><button type="button" id="png">Save PNG frame</button
+            ><button type="button" id="sequence" hidden
+              >Download PNG sequence</button
             ><button type="button" id="reset">Reset settings</button></div
           ><p id="status" role="status"
             >Video exports include the background. No audio. Your draft saves

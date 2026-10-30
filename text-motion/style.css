@@ -230,3 +230,17 @@ button:disabled {
     scroll-behavior: auto;
   }
 }
+
+canvas.transparent {
+  background-color: #d0d4da;
+  background-image: conic-gradient(
+    #aab0ba 25%,
+    transparent 0 50%,
+    #aab0ba 0 75%,
+    transparent 0
+  );
+  background-size: 24px 24px;
+}
+[hidden] {
+  display: none !important;
+}

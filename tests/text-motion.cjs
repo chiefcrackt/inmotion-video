@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const {
   launchBrowser,
   server,
@@ -73,6 +74,77 @@ const path = require('node:path');
     const file = await video.path();
     assert.ok(require('node:fs').statSync(file).size > 1000);
     await page.locator('#scrub').fill('500');
+    await page.locator('#transparent').check();
+    await page.locator('#scrub').fill('500');
+    assert.equal(await page.locator('#video').isDisabled(), true);
+    assert.equal(await page.locator('#sequence').isVisible(), true);
+    const alphaAtCorner = () =>
+      page
+        .locator('canvas')
+        .evaluate((c) => c.getContext('2d').getImageData(0, 0, 1, 1).data[3]);
+    assert.equal(await alphaAtCorner(), 0);
+    await page.reload();
+    await page.locator('#scrub').fill('500');
+    assert.equal(await page.locator('#transparent').isChecked(), true);
+    assert.equal(await alphaAtCorner(), 0);
+    const transparentPNG = page.waitForEvent('download');
+    await page.locator('#png').click();
+    const pngBytes = fs.readFileSync(await (await transparentPNG).path());
+    const exportedAlpha = async (bytes) =>
+      page.evaluate(async (b64) => {
+        const image = await createImageBitmap(
+          await (await fetch('data:image/png;base64,' + b64)).blob(),
+        );
+        const c = document.createElement('canvas');
+        c.width = image.width;
+        c.height = image.height;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(image, 0, 0);
+        const pixels = ctx.getImageData(0, 0, c.width, c.height).data;
+        let visible = false;
+        for (let i = 3; i < pixels.length; i += 4)
+          if (pixels[i] > 0) {
+            visible = true;
+            break;
+          }
+        return { corner: pixels[3], visible };
+      }, bytes.toString('base64'));
+    assert.deepEqual(await exportedAlpha(pngBytes), {
+      corner: 0,
+      visible: true,
+    });
+    const zipDownload = page.waitForEvent('download', { timeout: 60000 });
+    await page.locator('#sequence').click();
+    const archive = fs.readFileSync(await (await zipDownload).path());
+    let offset = 0;
+    const entries = [];
+    while (archive.readUInt32LE(offset) === 0x04034b50) {
+      const length = archive.readUInt32LE(offset + 18),
+        nameLength = archive.readUInt16LE(offset + 26),
+        extra = archive.readUInt16LE(offset + 28);
+      const name = archive
+        .subarray(offset + 30, offset + 30 + nameLength)
+        .toString();
+      const data = archive.subarray(
+        offset + 30 + nameLength + extra,
+        offset + 30 + nameLength + extra + length,
+      );
+      assert.equal(
+        require('node:zlib').crc32(data),
+        archive.readUInt32LE(offset + 14),
+      );
+      entries.push({ name, data });
+      offset += 30 + nameLength + extra + length;
+    }
+    assert.equal(entries.length, 61);
+    assert.equal(entries[0].name, 'frames/frame-00000.png');
+    assert.deepEqual(await exportedAlpha(entries[30].data), {
+      corner: 0,
+      visible: true,
+    });
+    await page.locator('#transparent').uncheck();
+    assert.equal(await alphaAtCorner(), 255);
+    assert.equal(await page.locator('#video').isDisabled(), false);
     const artifacts = artifactDirectory('text-motion');
     await page.screenshot({
       path: path.join(artifacts, 'desktop.png'),

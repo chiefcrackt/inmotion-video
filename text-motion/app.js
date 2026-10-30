@@ -132,8 +132,11 @@ function draw(t) {
     w * 0.82,
   );
   ctx.restore();
-  output.fillStyle = $('background').value;
-  output.fillRect(0, 0, w, h);
+  output.clearRect(0, 0, w, h);
+  if (!$('transparent').checked) {
+    output.fillStyle = $('background').value;
+    output.fillRect(0, 0, w, h);
+  }
   composite(t, unit);
   $('scrub').value = Math.round((t / duration()) * 1000);
   $('time').value = `${t.toFixed(1)} / ${duration().toFixed(1)}s`;
@@ -194,6 +197,14 @@ function composite(t, unit) {
   output.drawImage(bands, 0, 0);
 }
 function sync() {
+  const transparent = $('transparent').checked;
+  canvas.classList.toggle('transparent', transparent);
+  $('sequence').hidden = !transparent;
+  $('video').disabled = transparent;
+  $('background').disabled = transparent;
+  $('status').textContent = transparent
+    ? 'Transparent output: save a PNG or download the full animation as a PNG-sequence ZIP (30 fps). Video export is available with a solid background.'
+    : 'Video exports include the background. No audio. Your draft saves automatically on this device.';
   const dimensions = {
     landscape: [1920, 1080],
     portrait: [1080, 1920],
@@ -283,6 +294,7 @@ $('png').onclick = () =>
     if (blob) download(blob, 'tim-text-motion.png');
   });
 $('video').onclick = async () => {
+  if ($('transparent').checked) return;
   if (!window.MediaRecorder || !canvas.captureStream) {
     $('status').textContent =
       'Video export is unavailable in this browser. You can still save a PNG frame.';
@@ -317,6 +329,8 @@ $('video').onclick = async () => {
     document
       .querySelectorAll('button,input,select,textarea')
       .forEach((el) => (el.disabled = false));
+    $('background').disabled = $('transparent').checked;
+    $('video').disabled = $('transparent').checked;
     $('status').textContent = message;
     playLabel();
   };
@@ -367,3 +381,116 @@ sync();
 playLabel();
 document.fonts.ready.then(() => draw(position));
 requestAnimationFrame(tick);
+
+// Stored ZIP entries keep PNG bytes intact; PNG already compresses each frame.
+function zipFiles(files) {
+  const parts = [],
+    directory = [];
+  let offset = 0,
+    centralSize = 0;
+  for (const { name, data } of files) {
+    const filename = new TextEncoder().encode(name);
+    let crc = 0xffffffff;
+    for (const byte of data) {
+      crc ^= byte;
+      for (let bit = 0; bit < 8; bit++)
+        crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+    }
+    crc = (crc ^ 0xffffffff) >>> 0;
+    const header = new Uint8Array(30),
+      h = new DataView(header.buffer);
+    h.setUint32(0, 0x04034b50, true);
+    h.setUint16(4, 20, true);
+    h.setUint16(12, 33, true);
+    h.setUint32(14, crc, true);
+    h.setUint32(18, data.length, true);
+    h.setUint32(22, data.length, true);
+    h.setUint16(26, filename.length, true);
+    parts.push(header, filename, data);
+    const entry = new Uint8Array(46),
+      e = new DataView(entry.buffer);
+    e.setUint32(0, 0x02014b50, true);
+    e.setUint16(4, 20, true);
+    e.setUint16(6, 20, true);
+    e.setUint16(14, 33, true);
+    e.setUint32(16, crc, true);
+    e.setUint32(20, data.length, true);
+    e.setUint32(24, data.length, true);
+    e.setUint16(28, filename.length, true);
+    e.setUint32(42, offset, true);
+    directory.push(entry, filename);
+    centralSize += entry.length + filename.length;
+    offset += header.length + filename.length + data.length;
+  }
+  const end = new Uint8Array(22),
+    e = new DataView(end.buffer);
+  e.setUint32(0, 0x06054b50, true);
+  e.setUint16(8, files.length, true);
+  e.setUint16(10, files.length, true);
+  e.setUint32(12, centralSize, true);
+  e.setUint32(16, offset, true);
+  return new Blob([...parts, ...directory, end], { type: 'application/zip' });
+}
+$('sequence').onclick = async () => {
+  if (recording) return;
+  await document.fonts.ready;
+  const wasPlaying = playing,
+    savedPosition = position;
+  playing = false;
+  recording = true;
+  document
+    .querySelectorAll('button,input,select,textarea')
+    .forEach((el) => (el.disabled = true));
+  try {
+    const fps = 30,
+      count = duration() * fps,
+      files = [];
+    for (let frame = 0; frame < count; frame++) {
+      draw(frame / fps);
+      const png = await new Promise((resolve) =>
+        canvas.toBlob(resolve, 'image/png'),
+      );
+      if (!png) throw Error('PNG encoding failed');
+      files.push({
+        name: 'frames/frame-' + String(frame).padStart(5, '0') + '.png',
+        data: new Uint8Array(await png.arrayBuffer()),
+      });
+      $('status').textContent =
+        'Exporting PNG sequence… ' +
+        Math.round(((frame + 1) / count) * 100) +
+        '%';
+    }
+    files.push({
+      name: 'README.txt',
+      data: new TextEncoder().encode(
+        'T.im Text Motion\nImport the frames folder as an image sequence at 30 fps.\n' +
+          canvas.width +
+          ' x ' +
+          canvas.height +
+          '; ' +
+          count +
+          ' frames; ' +
+          duration() +
+          ' seconds.\nTransparent PNGs include alpha. The preview checkerboard is not exported.\n',
+      ),
+    });
+    download(zipFiles(files), 'tim-text-motion-30fps.zip');
+    $('status').textContent =
+      'PNG sequence ready. Import the frames at 30 fps in your video editor.';
+  } catch {
+    $('status').textContent =
+      'Could not export the sequence. Try again, or save a PNG frame.';
+  } finally {
+    recording = false;
+    playing = wasPlaying;
+    previous = 0;
+    position = savedPosition;
+    document
+      .querySelectorAll('button,input,select,textarea')
+      .forEach((el) => (el.disabled = false));
+    $('background').disabled = $('transparent').checked;
+    $('video').disabled = $('transparent').checked;
+    draw(position);
+    playLabel();
+  }
+};
