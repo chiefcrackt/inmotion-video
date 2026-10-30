@@ -76,6 +76,41 @@ const path = require('node:path');
         fullPage: true,
       });
     }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    page.once('dialog', (dialog) => dialog.dismiss());
+    await page.locator('#blankProject').click();
+    assert.equal(await page.locator('.thumb').count(), 6);
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.locator('#blankProject').click();
+    assert.equal(await page.locator('.thumb').count(), 1);
+    assert.equal(
+      await page.locator('#project').inputValue(),
+      'Untitled carousel',
+    );
+    assert.equal(await page.locator('#layout').inputValue(), 'blank');
+    assert.equal(await page.locator('#title').inputValue(), '');
+    assert.equal(await page.locator('[data-add="text"]').isVisible(), true);
+    await page.locator('#undoEdit').click();
+    assert.equal(await page.locator('.thumb').count(), 6);
+    await page.locator('#redoEdit').click();
+    assert.equal(await page.locator('.thumb').count(), 1);
+    await page.reload();
+    await page.waitForSelector('.controlGroup');
+    assert.equal(
+      await page.locator('#blankProject').getAttribute('aria-pressed'),
+      'true',
+    );
+    await page.locator('#add').click();
+    assert.equal(await page.locator('#layout').inputValue(), 'blank');
+    await page
+      .getByText('Elements, layers & brand kit', { exact: true })
+      .click();
+    await page.locator('[data-add="text"]').click();
+    await page.locator('#elText').fill('My own design');
+    await page.locator('#export').click();
+    const blankDownload = page.waitForEvent('download');
+    await page.locator('#png').click();
+    assert.ok((await blankDownload).suggestedFilename().endsWith('.png'));
     assert.deepEqual(errors, []);
     console.log(
       'Carousel UX: navigation, disclosure controls, editing, drafts, ZIP and responsive layouts passed.',

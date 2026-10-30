@@ -56,6 +56,7 @@ function restore(snapshot) {
   for (const f of ['font', 'handle', 'project']) $(f).value = state[f];
   $('ratio').value = state.height;
   paletteButtons();
+  templateButtons();
   select(state.selected);
   save(false);
 }
@@ -195,6 +196,51 @@ $('ratio').onchange = () => {
 };
 function templateButtons() {
   $('templates').replaceChildren();
+  const blank = document.createElement('button');
+  blank.id = 'blankProject';
+  blank.className = 'template' + (state.template === -1 ? ' selected' : '');
+  blank.setAttribute('aria-pressed', String(state.template === -1));
+  blank.innerHTML =
+    '<span class="ticon">＋</span><span><strong>Blank project</strong><small>Start fresh with an empty canvas</small></span>';
+  blank.onclick = () => {
+    if (
+      !confirm(
+        'Start a blank project? This replaces your current draft. Save or export your project first to keep a separate copy.',
+      )
+    )
+      return;
+    const previousSnapshot = lastSnapshot;
+    state = {
+      slides: [
+        {
+          layout: 'blank',
+          kicker: '',
+          title: '',
+          body: '',
+          stat: '',
+          photo: '',
+          elements: [],
+        },
+      ],
+      selected: 0,
+      template: -1,
+      palette: clone(palettes[0]),
+      font: 'Barlow Condensed',
+      height: 1350,
+      handle: '',
+      project: 'Untitled carousel',
+    };
+    restore(JSON.stringify(state));
+    // restore updates the UI; save the replacement as one undoable action.
+    lastSnapshot = previousSnapshot;
+    save();
+    setTab(false);
+    document.querySelector('.elementPanel').closest('details').open = true;
+    toast(
+      'Blank project ready. Add text, photos or shapes in Elements & layers.',
+    );
+  };
+  $('templates').append(blank);
   templates.forEach((t, i) => {
     const b = document.createElement('button');
     b.className = 'template' + (state.template === i ? ' selected' : '');
@@ -257,14 +303,26 @@ $('duplicate').onclick = () => {
   save();
 };
 $('add').onclick = () => {
-  state.slides.push({
-    layout: 'text',
-    kicker: 'FIELD NOTES',
-    title: 'Your next chapter.',
-    body: 'Add your story here.',
-    stat: '',
-    photo: '',
-  });
+  state.slides.push(
+    state.template === -1
+      ? {
+          layout: 'blank',
+          kicker: '',
+          title: '',
+          body: '',
+          stat: '',
+          photo: '',
+          elements: [],
+        }
+      : {
+          layout: 'text',
+          kicker: 'FIELD NOTES',
+          title: 'Your next chapter.',
+          body: 'Add your story here.',
+          stat: '',
+          photo: '',
+        },
+  );
   select(state.slides.length - 1);
   save();
 };
