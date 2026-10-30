@@ -54,3 +54,5 @@ Carousel Post Maker runs locally in the browser with no build or external depend
 ### Text Motion
 
 Open `text-motion/` for animated text clips in the T.im palette. Choose Rise up, Typewriter, Pop in or Slide across; edit the headline and caption; set colors, duration and landscape, portrait or square output. Download a silent video (WebM, or MP4 where supported) or save the current frame as PNG. Exports run locally in the browser.
+
+Text Motion also includes Fade in and Wipe reveal, entrance speed, alignment and vertical placement, four color presets, and an optional Title Maker-style glitch with strength and timing controls. Drafts save on the current device; Reset settings restores the defaults.

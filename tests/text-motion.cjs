@@ -19,11 +19,36 @@ const path = require('node:path');
     await page.goto(`http://127.0.0.1:${http.address().port}/text-motion/`);
     await page.locator('#play').click();
     await page.locator('#headline').fill('A fresh start\nEvery day');
-    for (const effect of ['rise', 'type', 'pop', 'slide']) {
+    for (const effect of ['rise', 'type', 'pop', 'slide', 'fade', 'wipe']) {
       await page.selectOption('#effect', effect);
       await page.locator('#scrub').fill('500');
       assert.match(await page.locator('#time').textContent(), /2.0/);
     }
+    await page.selectOption('#effect', 'rise');
+    await page.locator('#scrub').fill('80');
+    const frame = () => page.locator('canvas').evaluate((c) => c.toDataURL());
+    const clean = await frame();
+    await page.locator('#glitch').check();
+    const glitched = await frame();
+    assert.notEqual(glitched, clean, 'Glitch changes the rendered pixels');
+    await page.locator('#scrub').fill('500');
+    await page.locator('#scrub').fill('80');
+    assert.equal(
+      await frame(),
+      glitched,
+      'Glitch is deterministic when scrubbing',
+    );
+    await page.selectOption('#palette', 'teal');
+    assert.equal(await page.locator('#background').inputValue(), '#10383f');
+    await page.selectOption('#align', 'left');
+    await page.selectOption('#placement', 'bottom');
+    await page.selectOption('#speed', '1.6');
+    await page.reload();
+    await page.locator('#scrub').fill('80');
+    assert.equal(await page.locator('#glitch').isChecked(), true);
+    assert.equal(await page.locator('#align').inputValue(), 'left');
+    assert.equal(await page.locator('#background').inputValue(), '#10383f');
+    await page.selectOption('#glitchTiming', 'bursts');
     for (const [format, w, h] of [
       ['portrait', 1080, 1920],
       ['square', 1080, 1080],
@@ -53,6 +78,9 @@ const path = require('node:path');
       path: path.join(artifacts, 'desktop.png'),
       fullPage: true,
     });
+    await page.locator('#reset').click();
+    assert.equal(await page.locator('#glitch').isChecked(), false);
+    assert.equal(await page.locator('#headline').inputValue(), 'KEEP\nMOVING.');
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       assert.ok(

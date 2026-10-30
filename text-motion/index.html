@@ -53,7 +53,8 @@
             ><legend>01 / Your words</legend
             ><label for="headline">Headline</label
             ><textarea id="headline" rows="3" maxlength="160">
-KEEP\nMOVING.</textarea
+KEEP
+MOVING.</textarea
             ><label for="caption">Small caption</label
             ><input
               id="caption"
@@ -68,7 +69,9 @@ KEEP\nMOVING.</textarea
               ><option value="rise">Rise up</option
               ><option value="type">Typewriter</option
               ><option value="pop">Pop in</option
-              ><option value="slide">Slide across</option></select
+              ><option value="slide">Slide across</option
+              ><option value="fade">Fade in</option
+              ><option value="wipe">Wipe reveal</option></select
             ><div class="pair"
               ><div
                 ><label for="duration">Duration</label
@@ -100,12 +103,71 @@ KEEP\nMOVING.</textarea
             ><label for="ink">Text color</label
             ><input id="ink" type="color" value="#f6f4ef"
           /></fieldset>
+          <fieldset
+            ><legend>04 / Fine tune</legend>
+            <label for="speed">Entrance speed</label
+            ><select id="speed"
+              ><option value="0.5">Quick</option
+              ><option value="1" selected>Normal</option
+              ><option value="1.6">Relaxed</option></select
+            >
+            <div class="pair"
+              ><div
+                ><label for="align">Alignment</label
+                ><select id="align"
+                  ><option value="center">Center</option
+                  ><option value="left">Left</option
+                  ><option value="right">Right</option></select
+                ></div
+              ><div
+                ><label for="placement">Placement</label
+                ><select id="placement"
+                  ><option value="center">Center</option
+                  ><option value="top">Upper third</option
+                  ><option value="bottom">Lower third</option></select
+                ></div
+              ></div
+            >
+            <label for="palette">Color preset</label
+            ><select id="palette"
+              ><option value="navy">T.im Navy</option
+              ><option value="teal">Deep Teal</option
+              ><option value="paper">Paper & Ink</option
+              ><option value="night">After Dark</option></select
+            >
+          </fieldset>
+          <fieldset
+            ><legend>05 / A little interference</legend>
+            <label class="check"
+              ><input id="glitch" type="checkbox" /> Enable glitch</label
+            >
+            <label for="glitchTiming">Glitch timing</label
+            ><select id="glitchTiming"
+              ><option value="edges">Entrance & exit</option
+              ><option value="intro">Entrance only</option
+              ><option value="bursts">Throughout · short bursts</option></select
+            >
+            <label for="glitchStrength">Glitch strength</label
+            ><input
+              id="glitchStrength"
+              type="range"
+              min="10"
+              max="100"
+              value="50"
+            />
+            <p class="hint"
+              >Teal/gold color splits and horizontal interference, like Title
+              Maker.</p
+            >
+          </fieldset>
           <div class="exports"
             ><button type="button" id="video" class="primary"
               >Download video</button
-            ><button type="button" id="png">Save PNG frame</button></div
+            ><button type="button" id="png">Save PNG frame</button
+            ><button type="button" id="reset">Reset settings</button></div
           ><p id="status" role="status"
-            >Video exports include the background. No audio.</p
+            >Video exports include the background. No audio. Your draft saves
+            automatically on this device.</p
           ></form
         ></div
       > </main
