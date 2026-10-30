@@ -1,6 +1,8 @@
 import { readFile, access } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const files = [
+  'text-motion/index.html',
+  'text-motion/app.js',
   'carousel-maker/positioning.mjs',
   'carousel-maker/editor.mjs',
   'carousel-maker/elements.mjs',

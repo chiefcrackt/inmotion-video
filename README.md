@@ -50,3 +50,7 @@ Activity Studio uses small native ES modules and a committed parser-worker bundl
 
 
 Carousel Post Maker runs locally in the browser with no build or external dependencies. Drafts (including resized uploaded photos) save in localStorage; storage limits are reported in the editor. PNG exports are 1080 × 1350 or 1080 × 1080. ZIP export uses uncompressed PNG entries. Opening a template replaces the current slides after confirmation. See `carousel-maker/README.md`.
+
+### Text Motion
+
+Open `text-motion/` for animated text clips in the T.im palette. Choose Rise up, Typewriter, Pop in or Slide across; edit the headline and caption; set colors, duration and landscape, portrait or square output. Download a silent video (WebM, or MP4 where supported) or save the current frame as PNG. Exports run locally in the browser.

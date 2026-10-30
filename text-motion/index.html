@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1"
+    />
+    <title>Text Motion · T.im</title
+    ><link rel="icon" href="../favicon.svg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body
+    ><main>
+      <header
+        ><a href="../">← All tools</a><p class="eyebrow">T.im / Make it move</p
+        ><h1>Text Motion<span>.</span></h1
+        ><p>Small words. Big entrance. Make a title clip in seconds.</p></header
+      >
+      <div class="studio"
+        ><section class="preview" aria-label="Animation preview"
+          ><div class="preview-label"
+            ><span>LIVE PREVIEW</span
+            ><span id="dimensions">1920 × 1080</span></div
+          ><div class="stage"
+            ><canvas
+              id="canvas"
+              width="1920"
+              height="1080"
+              aria-label="Animated text preview"
+            ></canvas></div
+          ><div class="transport"
+            ><button id="play">Pause</button
+            ><button id="replay">↻ Replay</button
+            ><input
+              id="scrub"
+              aria-label="Animation position"
+              type="range"
+              min="0"
+              max="1000"
+              value="0"
+            /><output id="time">0.0 / 4.0s</output></div
+          ><p class="hint"
+            >Your words, with a little momentum. Everything stays in your
+            browser.</p
+          ></section
+        >
+        <form id="controls"
+          ><fieldset
+            ><legend>01 / Your words</legend
+            ><label for="headline">Headline</label
+            ><textarea id="headline" rows="3" maxlength="160">
+KEEP\nMOVING.</textarea
+            ><label for="caption">Small caption</label
+            ><input
+              id="caption"
+              maxlength="70"
+              value="ONE STEP AT A TIME" /><label for="size">Text size</label
+            ><input id="size" type="range" min="55" max="180" value="130"
+          /></fieldset>
+          <fieldset
+            ><legend>02 / Make an entrance</legend
+            ><label for="effect">Animation</label
+            ><select id="effect"
+              ><option value="rise">Rise up</option
+              ><option value="type">Typewriter</option
+              ><option value="pop">Pop in</option
+              ><option value="slide">Slide across</option></select
+            ><div class="pair"
+              ><div
+                ><label for="duration">Duration</label
+                ><select id="duration"
+                  ><option value="2">2 seconds</option
+                  ><option value="4" selected>4 seconds</option
+                  ><option value="6">6 seconds</option
+                  ><option value="8">8 seconds</option></select
+                ></div
+              ><div
+                ><label for="format">Format</label
+                ><select id="format"
+                  ><option value="landscape">16:9 · Landscape</option
+                  ><option value="portrait">9:16 · Portrait</option
+                  ><option value="square">1:1 · Square</option></select
+                ></div
+              ></div
+            ></fieldset
+          >
+          <fieldset
+            ><legend>03 / Set the mood</legend
+            ><div class="pair"
+              ><div
+                ><label for="background">Background</label
+                ><input id="background" type="color" value="#0e1a2e" /></div
+              ><div
+                ><label for="accent">Accent</label
+                ><input id="accent" type="color" value="#e8c96a" /></div></div
+            ><label for="ink">Text color</label
+            ><input id="ink" type="color" value="#f6f4ef"
+          /></fieldset>
+          <div class="exports"
+            ><button type="button" id="video" class="primary"
+              >Download video</button
+            ><button type="button" id="png">Save PNG frame</button></div
+          ><p id="status" role="status"
+            >Video exports include the background. No audio.</p
+          ></form
+        ></div
+      > </main
+    ><script src="app.js" defer></script></body
+></html>
