@@ -156,7 +156,7 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A8b Redraw Travis to Tristan's outlines](#a8b-redraw-travis-to-tristans-outlines) | `shared/characters/travis/v2/` | done (PR #21) | done (links-inMotion b8e5c29) |
 | [A8c Redraw Travis's torso only](#a8c-redraw-traviss-torso-only) | `shared/characters/travis/v2/torso.png` | done (PR #22) | done (links-inMotion 9706a2f) |
 | [A9 Flat Hooper for the links page](#a9-flat-hooper-for-the-links-page) | `shared/characters/hooper/` | done (PR #23) | done (links-inMotion d818c0c) |
-| [A9b Calmer coat for flat Hooper](#a9b-calmer-coat-for-flat-hooper) | `shared/characters/hooper/parts-atlas-v2.png` | todo | todo (links-inMotion) |
+| [A9b Calmer coat for flat Hooper](#a9b-calmer-coat-for-flat-hooper) | `shared/characters/hooper/parts-atlas-v2.png` | done (PR #24) | done (links-inMotion 77848f4) |
 
 ## Rules for every art task
 
