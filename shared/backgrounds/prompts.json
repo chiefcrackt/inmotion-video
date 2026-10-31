@@ -28,5 +28,20 @@
     "id": "paper-texture",
     "name": "Paper texture",
     "prompt": "Use case: ads-marketing. Asset type: reusable T.im sports editorial background image. Create one high resolution square image, composed to work cropped to both 16:9 landscape and 4:5 portrait. Scene: Tactile deep navy paper surface, subtle fibers and restrained gold dust at the edges, sophisticated understated sports editorial texture. Palette: deep navy #0B1526, muted teal, warm gold #E8C96A. Photographic cinematic texture, polished yet understated. Keep the central 65 percent quiet, dark and low contrast with ample negative space for editable headlines and statistics. No people, products, text, numbers, letters, logos, watermarks, panels or collage. Full bleed single background."
+  },
+  {
+    "id": "finish-chute",
+    "name": "Finish chute",
+    "prompt": "Use case: ads-marketing. Asset type: reusable T.im sports editorial background image. Create one high resolution square image, about 1254 by 1254 pixels, composed to work cropped to both 16:9 landscape and 4:5 portrait. Scene: Empty finish-line chute on a quiet morning, unbranded barriers receding along the outer edges, muted gold dawn light low on the horizon, no overhead finish banner or lettering. Broad dark open asphalt in the center, subtle mist and navy shadows. Palette: deep navy #0E1A2E, muted teal #2E9BAD, warm gold #E8C96A, restrained paper #F6F4EF highlights. Photographic cinematic texture, polished yet understated. Keep the central 65 percent quiet, dark and low contrast with ample negative space for editable headlines and statistics. No people, text, numbers, letters, logos, watermarks, borders, panels, checkerboard or collage. Never draw a badge, waves mark or wordmark; never use ring gold #FAB627. Full bleed single background."
+  },
+  {
+    "id": "aid-station",
+    "name": "Aid station",
+    "prompt": "Use case: ads-marketing. Asset type: reusable T.im sports editorial background image. Create one high resolution square image, about 1254 by 1254 pixels, composed to work cropped to both 16:9 landscape and 4:5 portrait. Scene: Empty woodland trail aid-station table placed along the lower and outer edge, a few plain unmarked cups and water jugs, no packaging or labels. Dark misty forest and quiet open negative space across the center, restrained morning gold light filtering near the edges. Palette: deep navy #0E1A2E, muted teal #2E9BAD, warm gold #E8C96A, restrained paper #F6F4EF highlights. Photographic cinematic texture, polished yet understated. Keep the central 65 percent quiet, dark and low contrast with ample negative space for editable headlines and statistics. No people, text, numbers, letters, logos, watermarks, borders, panels, checkerboard or collage. Never draw a badge, waves mark or wordmark; never use ring gold #FAB627. Full bleed single background."
+  },
+  {
+    "id": "frost-road",
+    "name": "Frost road",
+    "prompt": "Use case: ads-marketing. Asset type: reusable T.im sports editorial background image. Create one high resolution square image, about 1254 by 1254 pixels, composed to work cropped to both 16:9 landscape and 4:5 portrait. Scene: Empty frosty rural running road at sunrise, frost glinting faintly on roadside grass, distant navy hills and bare trees near the outer edges, a restrained warm gold horizon. Broad dark road and misty low-contrast center. Palette: deep navy #0E1A2E, muted teal #2E9BAD, warm gold #E8C96A, restrained paper #F6F4EF highlights. Photographic cinematic texture, polished yet understated. Keep the central 65 percent quiet, dark and low contrast with ample negative space for editable headlines and statistics. No people, text, numbers, letters, logos, watermarks, borders, panels, checkerboard or collage. Never draw a badge, waves mark or wordmark; never use ring gold #FAB627. Full bleed single background."
   }
 ]
