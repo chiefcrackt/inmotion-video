@@ -2,72 +2,169 @@
 // bedEvents() is pure (a timeline of notes, easy to test); makeKit() and
 // playEvents() turn that timeline into Web Audio on a live or offline context.
 
+// Each style has a default mood, a 'good for' hint and two or three grooves.
 export const STYLES = {
   cyber: {
-    name: 'Cyber',
+    name: "Cyber",
     bpm: 120,
     swing: 0,
+    mood: 'dark',
     bassWave: 'sawtooth',
     filter: 18000,
-    desc: 'Synth bass, kick, snare and hats. The data-video sound.',
+    use: "Data videos",
+    desc: "Synth bass, kick, snare and hats. The data-video sound.",
+    grooves: [["classic", "Classic"], ["half", "Half-time"], ["glitch", "Glitch"]],
   },
   soft: {
-    name: 'Soft',
+    name: "Soft",
     bpm: 84,
     swing: 0.15,
+    mood: 'dreamy',
     bassWave: 'sine',
     filter: 9000,
-    desc: 'Warm pad, soft kick and rim. Sits under talking.',
+    use: "Talking to camera",
+    desc: "Warm pad, soft kick and rim. Sits under talking.",
+    grooves: [["rim", "Rim"], ["brush", "Brushes"]],
   },
   minimal: {
-    name: 'Minimal',
+    name: "Minimal",
     bpm: 112,
     swing: 0,
+    mood: 'dark',
     bassWave: 'sine',
     filter: 18000,
-    desc: 'Kick, hats and a sub. Lots of space.',
+    use: "Voiceover",
+    desc: "Kick, hats and a sub. Lots of space.",
+    grooves: [["four", "Four on the floor"], ["broken", "Broken"]],
   },
   drive: {
-    name: 'Drive',
+    name: "Drive",
     bpm: 132,
     swing: 0,
+    mood: 'dark',
     bassWave: 'sawtooth',
     filter: 18000,
-    desc: 'Four on the floor, 16th hats, arpeggio. High energy.',
+    use: "Fast edits, intervals",
+    desc: "Four on the floor, 16th hats, arpeggio. High energy.",
+    grooves: [["house", "House"], ["break", "Breakbeat"]],
   },
   lofi: {
-    name: 'Lo-fi',
+    name: "Lo-fi",
     bpm: 78,
     swing: 0.45,
+    mood: 'dreamy',
     bassWave: 'sine',
     filter: 3400,
-    desc: 'Lazy swung drums, soft keys and vinyl crackle.',
+    use: "Easy runs, vlogs",
+    desc: "Lazy swung drums, soft keys and vinyl crackle.",
+    grooves: [["lazy", "Lazy"], ["boombap", "Boom bap"]],
   },
   synthwave: {
-    name: 'Synthwave',
+    name: "Synthwave",
     bpm: 100,
     swing: 0,
+    mood: 'dark',
     bassWave: 'sawtooth',
     filter: 12000,
-    desc: '80s night drive: pulsing bass, big snare, arpeggios.',
+    use: "Night runs",
+    desc: "80s night drive: pulsing bass, big snare, arpeggios.",
+    grooves: [["drive", "Drive"], ["slow", "Slow burn"]],
   },
   cinematic: {
-    name: 'Cinematic',
+    name: "Cinematic",
     bpm: 70,
     swing: 0,
+    mood: 'dark',
     bassWave: 'sine',
     filter: 7000,
-    desc: 'Booms, low drums and long strings. Trailers and race intros.',
+    use: "Race intros, trailers",
+    desc: "Booms, low drums and long strings.",
+    grooves: [["war", "War drums"], ["pulse", "Pulse"], ["epic", "Epic"]],
   },
   trap: {
-    name: 'Trap',
+    name: "Trap",
     bpm: 140,
     swing: 0,
+    mood: 'dark',
     bassWave: '808',
     filter: 18000,
-    desc: 'Half-time snare, rolling hats and an 808.',
+    use: "Gym, hype edits",
+    desc: "Half-time snare, rolling hats and an 808.",
+    grooves: [["bounce", "Bounce"], ["rolling", "Rolling"]],
+  },
+  anthem: {
+    name: "Anthem",
+    bpm: 124,
+    swing: 0,
+    mood: 'bright',
+    bassWave: 'sawtooth',
+    filter: 18000,
+    use: "Race day, PRs",
+    desc: "Big stomp, claps and bright chords. Start-line energy.",
+    grooves: [["stomp", "Stomp"], ["gallop", "Gallop"]],
+  },
+  reflective: {
+    name: "Reflective",
+    bpm: 72,
+    swing: 0,
+    mood: 'dreamy',
+    bassWave: 'sine',
+    filter: 8000,
+    use: "DNF stories, recaps",
+    desc: "Piano-like keys and a slow swell. Little or no drums.",
+    grooves: [["keys", "Just keys"], ["pulse", "Soft pulse"]],
+  },
+  trail: {
+    name: "Trail",
+    bpm: 96,
+    swing: 0.1,
+    mood: 'bright',
+    bassWave: 'triangle',
+    filter: 9000,
+    use: "Trail and nature vlogs",
+    desc: "Plucked guitar, shaker and an open, warm feel.",
+    grooves: [["pick", "Fingerpick"], ["strum", "Strum"]],
+  },
+  heartbeat: {
+    name: "Heartbeat",
+    bpm: 64,
+    swing: 0,
+    mood: 'dark',
+    bassWave: 'sine',
+    filter: 6000,
+    use: "Climbs, cutoffs, tension",
+    desc: "Thumping pulse and a low drone that builds tension.",
+    grooves: [["steady", "Steady"], ["rising", "Rising"]],
+  },
+  playful: {
+    name: "Playful",
+    bpm: 112,
+    swing: 0.35,
+    mood: 'bright',
+    bassWave: 'square',
+    filter: 9000,
+    use: "Funny posts, tier lists",
+    desc: "Bouncy plucks, staccato bass and snaps.",
+    grooves: [["bounce", "Bounce"], ["march", "March"]],
+  },
+  sunny: {
+    name: "Sunny",
+    bpm: 118,
+    swing: 0,
+    mood: 'bright',
+    bassWave: 'triangle',
+    filter: 12000,
+    use: "Run club promos",
+    desc: "Upbeat indie: claps, tambourine and bright chords.",
+    grooves: [["indie", "Indie"], ["clap", "Clap-along"]],
   },
 };
+
+export const MOODS = [
+  ['dark', 'Dark'],
+  ['bright', 'Bright'],
+  ['dreamy', 'Dreamy'],
+];
 
 // Minor keys; value is the bass root (octave 2) in Hz.
 export const KEYS = {
@@ -125,13 +222,30 @@ export function makeSections(name) {
   }));
 }
 
-// i – VI – VII – v, as semitone offsets from the root (bass, then chord tones).
-const PROG = [
-  { bass: 0, chord: [12, 15, 19] },
-  { bass: -4, chord: [8, 12, 15] },
-  { bass: -2, chord: [10, 14, 17] },
-  { bass: -5, chord: [7, 10, 14] },
-];
+// Chord progressions per mood, as semitone offsets from the root (bass, then chord tones).
+const PROGS = {
+  // i – VI – VII – v (minor)
+  dark: [
+    { bass: 0, chord: [12, 15, 19] },
+    { bass: -4, chord: [8, 12, 15] },
+    { bass: -2, chord: [10, 14, 17] },
+    { bass: -5, chord: [7, 10, 14] },
+  ],
+  // I – V – vi – IV (major)
+  bright: [
+    { bass: 0, chord: [12, 16, 19] },
+    { bass: -5, chord: [11, 14, 19] },
+    { bass: -3, chord: [9, 12, 16] },
+    { bass: -7, chord: [9, 12, 17] },
+  ],
+  // Imaj7 – vi7 – IVmaj7 – V add9 (lush)
+  dreamy: [
+    { bass: 0, chord: [11, 12, 16, 19] },
+    { bass: -3, chord: [9, 12, 16, 19] },
+    { bass: -7, chord: [9, 12, 16, 17] },
+    { bass: -5, chord: [11, 14, 19, 21] },
+  ],
+};
 const st = (f, s) => f * Math.pow(2, s / 12);
 
 export const ENDINGS = ['hit', 'fade', 'sweep', 'loop', 'cut'];
@@ -178,6 +292,9 @@ export function bedEvents(o = {}) {
   const ending = ENDINGS.includes(o.ending) ? o.ending : 'hit';
   const intro = INTROS.includes(o.intro) ? o.intro : 'cold';
   const swing = Math.max(0, Math.min(0.7, o.swing ?? def.swing));
+  const mood = PROGS[o.mood] ? o.mood : def.mood;
+  const PROG = PROGS[mood];
+  const groove = def.grooves.some((g) => g[0] === o.groove) ? o.groove : def.grooves[0][0];
   const L = { ...ALL, ...(o.layers || {}) };
   const beat = 60 / bpm,
     bar = beat * 4;
@@ -224,14 +341,14 @@ export function bedEvents(o = {}) {
         chords: sec.parts.chords,
       };
       const lastOfBuild = useArr && sec.type === 'build' && k === sec.bars - 1;
-      GEN[style]({ t0, b, beat, bar, bf, tones, P, push, pos, lastOfBuild, first: k === 0 });
+      GEN[style]({ t0, b, beat, bar, bf, tones, P, push, pos, g: groove, lastOfBuild, first: k === 0 });
       if (lastOfBuild && P.drums)
         for (let s = 0; s < 16; s++)
           push(t0 + (s * beat) / 4, 'snare', 'drums', { v: 0.08 + (s / 16) * 0.22 });
     }
   });
   if (intro === 'fade') push(0, 'fadeIn', 'master', { d: Math.min(bar * 2, body / 2) });
-  const firstChord = PROG[0].chord.map((s) => st(root, s));
+  const firstChord = PROG[0].chord.slice(0, 3).map((s) => st(root, s));
   if (ending === 'hit') {
     push(body, 'kick', 'hits', { v: 0.8 });
     push(body, 'sub', 'hits', { v: 0.8 });
@@ -245,43 +362,59 @@ export function bedEvents(o = {}) {
     push(Math.max(0, body - d), 'fadeOut', 'master', { d });
   }
   ev.sort((a, c) => a.t - c.t);
-  return { events: ev, bpm, bar, beat, bars: n, body, total: body + tail, style, swing, sections };
+  return { events: ev, bpm, bar, beat, bars: n, body, total: body + tail, style, swing, mood, groove, sections };
 }
 
-// One generator per style. Each pushes one bar of notes.
+// One generator per style. Each pushes one bar of notes; `g` is the groove.
 const GEN = {
-  cyber({ t0, beat, bar, bf, tones, P, push, pos }) {
+  cyber({ t0, b, beat, bar, bf, tones, P, push, pos, g }) {
     for (let q = 0; q < 4; q++) {
       const t = t0 + q * beat;
       if (P.drums) {
-        push(t, 'kick', 'drums', { v: 0.6 });
-        if (q % 2) push(t, 'snare', 'drums', { v: 0.28 });
+        if (g === 'half') {
+          if (q === 0 || (q === 2 && b % 2)) push(t, 'kick', 'drums', { v: 0.62 });
+          if (q === 1) push(t + pos(2), 'kick', 'drums', { v: 0.45 });
+          if (q === 2) push(t, 'snare', 'drums', { v: 0.32 });
+        } else if (g === 'glitch') {
+          if (q !== 3) push(t, 'kick', 'drums', { v: 0.6 });
+          if (q === 3) push(t + pos(1), 'kick', 'drums', { v: 0.5 });
+          if (q % 2) push(t, 'snare', 'drums', { v: 0.28 });
+          if (q === 3 && b % 2) for (let s = 0; s < 4; s++) push(t + (s * beat) / 8 + beat / 2, 'blip', 'drums', { f: 1760 + s * 220, v: 0.02 });
+        } else {
+          push(t, 'kick', 'drums', { v: 0.6 });
+          if (q % 2) push(t, 'snare', 'drums', { v: 0.28 });
+        }
       }
-      if (P.hats) push(t + pos(2), 'hat', 'hats', { v: 0.06 });
+      if (P.hats) {
+        push(t + pos(2), 'hat', 'hats', { v: 0.06 });
+        if (g === 'glitch') push(t + pos(3), 'hat', 'hats', { v: 0.03 });
+      }
       if (P.bass) {
         push(t, 'bass', 'bass', { f: bf, d: beat * 0.44, v: 0.15, cut: 420, wave: 'sawtooth' });
-        push(t + pos(2), 'bass', 'bass', { f: bf * 2, d: beat * 0.36, v: 0.09, cut: 520, wave: 'sawtooth' });
+        if (g !== 'half' || q % 2) push(t + pos(2), 'bass', 'bass', { f: bf * 2, d: beat * 0.36, v: 0.09, cut: 520, wave: 'sawtooth' });
       }
     }
     if (P.chords) push(t0, 'pad', 'chords', { fs: tones, d: bar * 0.95, v: 0.025, a: 0.02, cut: 1800 });
   },
-  soft({ t0, beat, bar, bf, tones, P, push, pos }) {
+  soft({ t0, beat, bar, bf, tones, P, push, pos, g }) {
     for (let q = 0; q < 4; q++) {
       const t = t0 + q * beat;
       if (P.drums) {
         if (q === 0 || q === 2) push(t, 'kick', 'drums', { v: 0.42, soft: true });
-        if (q % 2) push(t, 'rim', 'drums', { v: 0.12 });
+        if (q % 2) push(t, g === 'brush' ? 'brush' : 'rim', 'drums', { v: g === 'brush' ? 0.09 : 0.12 });
       }
-      if (P.hats) for (let s = 0; s < 4; s++) push(t + pos(s), 'shaker', 'hats', { v: s % 2 ? 0.02 : 0.035 });
+      if (P.hats) for (let s = 0; s < 4; s++) push(t + pos(s), g === 'brush' ? 'brush' : 'shaker', 'hats', { v: s % 2 ? 0.018 : 0.03 });
       if (P.bass && q === 0) push(t, 'bass', 'bass', { f: bf, d: bar * 0.95, v: 0.2, cut: 600, wave: 'sine' });
     }
     if (P.chords) push(t0, 'pad', 'chords', { fs: tones, d: bar * 1.05, v: 0.04, a: 0.35, cut: 1300, wave: 'sine' });
   },
-  minimal({ t0, b, beat, bf, tones, P, push, pos }) {
+  minimal({ t0, b, beat, bf, tones, P, push, pos, g }) {
+    const kicks = g === 'broken' ? [0, 1.5, 2.75] : [0, 1, 2, 3];
+    if (P.drums) kicks.forEach((k) => push(t0 + k * beat, 'kick', 'drums', { v: 0.62 }));
     for (let q = 0; q < 4; q++) {
       const t = t0 + q * beat;
-      if (P.drums) push(t, 'kick', 'drums', { v: 0.62 });
       if (P.hats) push(t + pos(2), 'hat', 'hats', { v: 0.05 });
+      if (P.drums && g === 'broken' && q === 3) push(t, 'rim', 'drums', { v: 0.1 });
       if (P.bass && (q === 0 || q === 2)) push(t, 'bass', 'bass', { f: bf, d: beat * 1.8, v: 0.22, cut: 600, wave: 'sine' });
     }
     if (P.chords) {
@@ -289,16 +422,18 @@ const GEN = {
       push(t0 + beat * 2 + pos(2), 'pluck', 'chords', { f: tones[2] * 2, v: 0.025 });
     }
   },
-  drive({ t0, beat, bar, bf, tones, P, push, pos }) {
+  drive({ t0, beat, bar, bf, tones, P, push, pos, g }) {
+    if (P.drums) {
+      const kicks = g === 'break' ? [0, 1.5, 2.5] : [0, 1, 2, 3];
+      kicks.forEach((k) => push(t0 + k * beat, 'kick', 'drums', { v: 0.62 }));
+      [1, 3].forEach((q) => {
+        push(t0 + q * beat, 'snare', 'drums', { v: 0.26 });
+        push(t0 + q * beat + 0.012, 'clap', 'drums', { v: 0.16 });
+      });
+      if (g === 'break') push(t0 + 3.75 * beat, 'snare', 'drums', { v: 0.1 });
+    }
     for (let q = 0; q < 4; q++) {
       const t = t0 + q * beat;
-      if (P.drums) {
-        push(t, 'kick', 'drums', { v: 0.62 });
-        if (q % 2) {
-          push(t, 'snare', 'drums', { v: 0.26 });
-          push(t + 0.012, 'clap', 'drums', { v: 0.16 });
-        }
-      }
       if (P.hats) for (let s = 0; s < 4; s++) push(t + pos(s), 'hat', 'hats', { v: s === 2 ? 0.07 : 0.035 });
       if (P.bass)
         for (let s = 0; s < 4; s++)
@@ -310,12 +445,20 @@ const GEN = {
         push(t0 + Math.floor(s / 4) * beat + pos(s % 4), 'pluck', 'chords', { f: tones[s % 3] * 2, v: 0.018 });
     }
   },
-  lofi({ t0, beat, bar, bf, tones, P, push, pos }) {
+  lofi({ t0, beat, bar, bf, tones, P, push, pos, g }) {
     if (P.drums) {
-      push(t0, 'kick', 'drums', { v: 0.48, soft: true });
-      push(t0 + 2 * beat + pos(2), 'kick', 'drums', { v: 0.4, soft: true });
-      push(t0 + beat, 'snare', 'drums', { v: 0.16, soft: true });
-      push(t0 + 3 * beat, 'snare', 'drums', { v: 0.16, soft: true });
+      if (g === 'boombap') {
+        push(t0, 'kick', 'drums', { v: 0.55 });
+        push(t0 + beat + pos(2), 'kick', 'drums', { v: 0.4 });
+        push(t0 + 2 * beat + pos(2), 'kick', 'drums', { v: 0.5 });
+        push(t0 + beat, 'snare', 'drums', { v: 0.24 });
+        push(t0 + 3 * beat, 'snare', 'drums', { v: 0.24 });
+      } else {
+        push(t0, 'kick', 'drums', { v: 0.48, soft: true });
+        push(t0 + 2 * beat + pos(2), 'kick', 'drums', { v: 0.4, soft: true });
+        push(t0 + beat, 'snare', 'drums', { v: 0.16, soft: true });
+        push(t0 + 3 * beat, 'snare', 'drums', { v: 0.16, soft: true });
+      }
     }
     if (P.hats)
       for (let q = 0; q < 4; q++) {
@@ -327,43 +470,60 @@ const GEN = {
       push(t0 + 2 * beat + pos(2), 'bass', 'bass', { f: bf, d: beat * 1.2, v: 0.15, cut: 500, wave: 'sine' });
     }
     if (P.chords) {
-      tones.forEach((f, i) => push(t0 + i * 0.03, 'keys', 'chords', { f, d: beat * 1.8, v: 0.045 }));
-      tones.forEach((f, i) => push(t0 + 2 * beat + pos(2) + i * 0.03, 'keys', 'chords', { f, d: beat * 1.2, v: 0.03 }));
+      tones.forEach((f, i) => push(t0 + i * 0.03, 'keys', 'chords', { f, d: beat * 1.8, v: 0.04 }));
+      tones.forEach((f, i) => push(t0 + 2 * beat + pos(2) + i * 0.03, 'keys', 'chords', { f, d: beat * 1.2, v: 0.028 }));
       push(t0, 'crackle', 'chords', { d: bar, v: 0.025 });
     }
   },
-  synthwave({ t0, beat, bar, bf, tones, P, push, pos }) {
+  synthwave({ t0, beat, bar, bf, tones, P, push, pos, g }) {
     for (let q = 0; q < 4; q++) {
       const t = t0 + q * beat;
       if (P.drums) {
-        push(t, 'kick', 'drums', { v: 0.6 });
-        if (q % 2) push(t, 'snare', 'drums', { v: 0.34, big: true });
+        if (g === 'slow') {
+          if (q === 0) push(t, 'kick', 'drums', { v: 0.6 });
+          if (q === 2) push(t, 'snare', 'drums', { v: 0.36, big: true });
+        } else {
+          push(t, 'kick', 'drums', { v: 0.6 });
+          if (q % 2) push(t, 'snare', 'drums', { v: 0.34, big: true });
+        }
       }
       if (P.hats) push(t + pos(2), 'hat', 'hats', { v: 0.05 });
       if (P.bass)
         for (let s = 0; s < 4; s += 2)
           push(t + pos(s), 'bass', 'bass', { f: s ? bf * 2 : bf, d: beat * 0.4, v: 0.13, cut: 900, wave: 'sawtooth' });
     }
+    if (P.drums && g === 'slow') push(t0 + 2.5 * beat, 'kick', 'drums', { v: 0.45 });
     if (P.chords) {
       push(t0, 'pad', 'chords', { fs: tones, d: bar * 0.98, v: 0.018, a: 0.08, cut: 2600, wave: 'sawtooth', detune: true });
-      for (let s = 0; s < 16; s++)
-        push(t0 + Math.floor(s / 4) * beat + pos(s % 4), 'pluck', 'chords', { f: tones[[0, 1, 2, 1][s % 4]] * 4, v: 0.014 });
+      const n = g === 'slow' ? 8 : 16;
+      for (let s = 0; s < n; s++)
+        push(t0 + (s * bar) / n, 'pluck', 'chords', { f: tones[[0, 1, 2, 1][s % 4]] * 4, v: 0.014 });
     }
   },
-  cinematic({ t0, b, beat, bar, bf, tones, P, push }) {
+  cinematic({ t0, b, beat, bar, bf, tones, P, push, g }) {
     if (P.drums) {
-      if (b % 2 === 0) push(t0, 'boom', 'drums', { v: 0.75 });
-      push(t0 + 2 * beat, 'tom', 'drums', { f: 110, v: 0.3 });
-      push(t0 + 3 * beat, 'tom', 'drums', { f: 90, v: 0.26 });
-      push(t0 + 3.5 * beat, 'tom', 'drums', { f: 80, v: 0.32 });
+      if (g === 'pulse') {
+        for (let s = 0; s < 8; s++) push(t0 + (s * beat) / 2, 'tom', 'drums', { f: 150, v: s % 2 ? 0.08 : 0.14 });
+        if (b % 4 === 0) push(t0, 'boom', 'drums', { v: 0.6 });
+      } else {
+        if (b % 2 === 0) push(t0, 'boom', 'drums', { v: 0.75 });
+        push(t0 + 2 * beat, 'tom', 'drums', { f: 110, v: 0.3 });
+        push(t0 + 3 * beat, 'tom', 'drums', { f: 90, v: 0.26 });
+        push(t0 + 3.5 * beat, 'tom', 'drums', { f: 80, v: 0.32 });
+        if (g === 'epic' && b % 2 === 1)
+          for (let s = 0; s < 8; s++) push(t0 + (s * beat) / 4, 'tom', 'drums', { f: 120 - s * 4, v: 0.12 + s * 0.02 });
+      }
     }
     if (P.hats) for (let q = 0; q < 4; q++) push(t0 + q * beat, 'shaker', 'hats', { v: 0.02 });
     if (P.bass)
       for (let s = 0; s < 8; s++)
         push(t0 + (s * beat) / 2, 'bass', 'bass', { f: bf, d: beat * 0.42, v: 0.12, cut: 380, wave: 'sine' });
-    if (P.chords) push(t0, 'pad', 'chords', { fs: [tones[0] / 2, ...tones], d: bar * 1.1, v: 0.025, a: 0.6, cut: 1500, wave: 'sawtooth' });
+    if (P.chords) {
+      push(t0, 'pad', 'chords', { fs: [tones[0] / 2, ...tones], d: bar * 1.1, v: 0.025, a: 0.6, cut: 1500, wave: 'sawtooth' });
+      if (g === 'epic') push(t0, 'pad', 'chords', { fs: tones.map((f) => f * 2), d: bar, v: 0.012, a: 0.3, cut: 3000, wave: 'sawtooth' });
+    }
   },
-  trap({ t0, b, beat, bar, bf, tones, P, push }) {
+  trap({ t0, b, beat, bar, bf, tones, P, push, g }) {
     if (P.drums) {
       push(t0, 'kick', 'drums', { v: 0.66 });
       push(t0 + 1.75 * beat, 'kick', 'drums', { v: 0.55 });
@@ -373,15 +533,135 @@ const GEN = {
     }
     if (P.hats)
       for (let s = 0; s < 8; s++) {
-        const roll = b % 2 === 1 && s >= 6;
-        if (roll) for (let r = 0; r < 4; r++) push(t0 + (s * beat) / 2 + (r * beat) / 8, 'hat', 'hats', { v: 0.03 + r * 0.008 });
-        else push(t0 + (s * beat) / 2, 'hat', 'hats', { v: s % 2 ? 0.035 : 0.05 });
+        const roll = g === 'rolling' ? s % 4 === 3 : b % 2 === 1 && s >= 6;
+        if (roll) {
+          const n = g === 'rolling' && s === 7 ? 6 : 4;
+          for (let r = 0; r < n; r++) push(t0 + (s * beat) / 2 + (r * beat) / (2 * n), 'hat', 'hats', { v: 0.03 + r * 0.006 });
+        } else push(t0 + (s * beat) / 2, 'hat', 'hats', { v: s % 2 ? 0.035 : 0.05 });
       }
     if (P.bass) {
       push(t0, 'bass', 'bass', { f: bf, d: beat * 1.6, v: 0.32, cut: 900, wave: '808' });
       push(t0 + 1.75 * beat, 'bass', 'bass', { f: bf, d: beat * 1.2, v: 0.26, cut: 900, wave: '808' });
     }
     if (P.chords) push(t0, 'pad', 'chords', { fs: tones, d: bar * 0.95, v: 0.02, a: 0.2, cut: 1600, wave: 'triangle' });
+  },
+  anthem({ t0, b, beat, bar, bf, tones, P, push, pos, g }) {
+    if (P.drums) {
+      if (g === 'gallop') {
+        for (let q = 0; q < 4; q++) {
+          push(t0 + q * beat, 'kick', 'drums', { v: 0.6 });
+          push(t0 + q * beat + pos(2), 'tom', 'drums', { f: 120, v: 0.16 });
+          push(t0 + q * beat + pos(3), 'tom', 'drums', { f: 110, v: 0.18 });
+        }
+      } else for (let q = 0; q < 4; q++) push(t0 + q * beat, 'kick', 'drums', { v: 0.66 });
+      [1, 3].forEach((q) => {
+        push(t0 + q * beat, 'snare', 'drums', { v: 0.3, big: true });
+        push(t0 + q * beat + 0.01, 'clap', 'drums', { v: 0.22 });
+      });
+      if (b % 4 === 0) push(t0, 'crash', 'drums', { v: 0.08 });
+    }
+    if (P.hats) for (let q = 0; q < 4; q++) push(t0 + q * beat + pos(2), 'openhat', 'hats', { v: 0.05 });
+    if (P.bass) for (let s = 0; s < 8; s++) push(t0 + (s * beat) / 2, 'bass', 'bass', { f: s % 2 ? bf * 2 : bf, d: beat * 0.4, v: 0.12, cut: 900, wave: 'sawtooth' });
+    if (P.chords) {
+      push(t0, 'pad', 'chords', { fs: tones, d: bar * 0.98, v: 0.022, a: 0.02, cut: 3200, wave: 'sawtooth', detune: true });
+      for (let q = 0; q < 4; q++) push(t0 + q * beat + pos(2), 'stabc', 'chords', { fs: tones.map((f) => f * 2), v: 0.02 });
+    }
+  },
+  reflective({ t0, b, beat, bar, bf, tones, P, push, g }) {
+    if (P.drums && g === 'pulse') {
+      push(t0, 'kick', 'drums', { v: 0.35, soft: true });
+      push(t0 + 2 * beat, 'kick', 'drums', { v: 0.28, soft: true });
+    }
+    if (P.hats && g === 'pulse') for (let q = 0; q < 4; q++) push(t0 + q * beat + beat / 2, 'shaker', 'hats', { v: 0.014 });
+    if (P.bass) push(t0, 'bass', 'bass', { f: bf, d: bar * 1.05, v: 0.16, cut: 500, wave: 'sine' });
+    if (P.chords) {
+      push(t0, 'pad', 'chords', { fs: tones, d: bar * 1.2, v: 0.022, a: 1.2, cut: 1600, wave: 'sine' });
+      // a simple broken-chord melody, piano-like
+      const order = b % 2 ? [0, 2, 1, 3, 2, 1, 0, 2] : [0, 1, 2, 1, 3, 2, 1, 2];
+      order.forEach((k, s) => {
+        if (s % 2 && g === 'keys' && s > 5) return;
+        push(t0 + (s * beat) / 2, 'piano', 'chords', { f: tones[k % tones.length] * 2, d: beat * 1.5, v: s ? 0.035 : 0.05 });
+      });
+    }
+  },
+  trail({ t0, beat, bar, bf, tones, P, push, pos, g }) {
+    if (P.drums) {
+      push(t0, 'kick', 'drums', { v: 0.4, soft: true });
+      push(t0 + 2 * beat, 'kick', 'drums', { v: 0.36, soft: true });
+      push(t0 + 3 * beat, 'rim', 'drums', { v: 0.08 });
+    }
+    if (P.hats) for (let s = 0; s < 8; s++) push(t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'shaker', 'hats', { v: s % 2 ? 0.022 : 0.032 });
+    if (P.bass) {
+      push(t0, 'bass', 'bass', { f: bf, d: beat * 1.8, v: 0.18, cut: 700, wave: 'triangle' });
+      push(t0 + 2 * beat, 'bass', 'bass', { f: bf * 1.5, d: beat * 1.8, v: 0.14, cut: 700, wave: 'triangle' });
+    }
+    if (P.chords) {
+      if (g === 'strum') {
+        [0, 1.5, 2, 3.5].forEach((q, i) =>
+          tones.slice(0, 3).forEach((f, k) => push(t0 + q * beat + k * 0.018, 'guitar', 'chords', { f: f * 2, v: i % 2 ? 0.022 : 0.03 })),
+        );
+      } else {
+        const pick = [0, 2, 1, 2, 0, 2, 1, 2];
+        pick.forEach((k, s) => push(t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'guitar', 'chords', { f: (k ? tones[k] : tones[0]) * (k ? 2 : 1), v: 0.03 }));
+      }
+    }
+  },
+  heartbeat({ t0, b, beat, bar, bf, tones, P, push, g }) {
+    if (P.drums)
+      for (let q = 0; q < 4; q++) {
+        push(t0 + q * beat, 'kick', 'drums', { v: 0.55, soft: true });
+        push(t0 + q * beat + Math.min(0.2, beat * 0.28), 'kick', 'drums', { v: 0.36, soft: true });
+      }
+    // rising: ticking that speeds up through each 4-bar phrase
+    if (P.hats) {
+      const n = g === 'rising' ? [2, 4, 8, 16][b % 4] : 4;
+      for (let s = 0; s < n; s++) push(t0 + (s * bar) / n, 'tick', 'hats', { v: 0.03 });
+    }
+    if (P.bass) push(t0, 'bass', 'bass', { f: bf / 2 > 30 ? bf / 2 : bf, d: bar * 1.02, v: 0.22, cut: 300, wave: 'sine' });
+    if (P.chords) {
+      push(t0, 'pad', 'chords', { fs: [tones[0], tones[0] * 1.06], d: bar * 1.05, v: 0.016, a: 0.8, cut: 900, wave: 'sawtooth' });
+      if (b % 2) push(t0 + 2 * beat, 'piano', 'chords', { f: tones[1] * 2, d: beat * 2, v: 0.025 });
+    }
+  },
+  playful({ t0, beat, bar, bf, tones, P, push, pos, g }) {
+    if (P.drums) {
+      push(t0, 'kick', 'drums', { v: 0.45, soft: true });
+      push(t0 + 2 * beat, 'kick', 'drums', { v: 0.42, soft: true });
+      [1, 3].forEach((q) => push(t0 + q * beat, 'snap', 'drums', { v: 0.16 }));
+    }
+    if (P.hats) for (let q = 0; q < 4; q++) push(t0 + q * beat + pos(2), 'shaker', 'hats', { v: 0.025 });
+    if (P.bass) {
+      if (g === 'march')
+        for (let q = 0; q < 4; q++) push(t0 + q * beat, 'bass', 'bass', { f: q % 2 ? bf * 1.5 : bf, d: beat * 0.3, v: 0.16, cut: 700, wave: 'square' });
+      else [0, 1.5, 2, 3.5].forEach((q) => push(t0 + q * beat, 'bass', 'bass', { f: bf, d: beat * 0.22, v: 0.15, cut: 700, wave: 'square' }));
+    }
+    if (P.chords) {
+      const mel = g === 'march' ? [0, 1, 2, 1] : [0, 2, 1, 2, 0, 2, 1, 2];
+      mel.forEach((k, s) => push(g === 'march' ? t0 + s * beat : t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'pizz', 'chords', { f: tones[k] * 2, v: 0.04 }));
+    }
+  },
+  sunny({ t0, b, beat, bar, bf, tones, P, push, pos, g }) {
+    if (P.drums) {
+      if (g === 'clap') {
+        for (let q = 0; q < 4; q++) {
+          push(t0 + q * beat, 'kick', 'drums', { v: 0.5 });
+          push(t0 + q * beat + 0.01, 'clap', 'drums', { v: q % 2 ? 0.2 : 0.12 });
+        }
+      } else {
+        [0, 1.5, 2].forEach((q) => push(t0 + q * beat, 'kick', 'drums', { v: 0.55 }));
+        [1, 3].forEach((q) => {
+          push(t0 + q * beat, 'snare', 'drums', { v: 0.22 });
+          push(t0 + q * beat + 0.01, 'clap', 'drums', { v: 0.16 });
+        });
+      }
+    }
+    if (P.hats) for (let s = 0; s < 16; s++) push(t0 + Math.floor(s / 4) * beat + pos(s % 4), 'tamb', 'hats', { v: s % 2 ? 0.016 : 0.028 });
+    if (P.bass) for (let s = 0; s < 8; s++) push(t0 + (s * beat) / 2, 'bass', 'bass', { f: s === 6 ? bf * 1.5 : bf, d: beat * 0.42, v: 0.14, cut: 900, wave: 'triangle' });
+    if (P.chords) {
+      for (let q = 0; q < 4; q++)
+        tones.slice(0, 3).forEach((f, k) => push(t0 + q * beat + pos(2) + k * 0.012, 'guitar', 'chords', { f: f * 2, v: 0.024 }));
+      if (b % 2 === 0) push(t0, 'pad', 'chords', { fs: tones, d: bar * 2, v: 0.012, a: 0.4, cut: 2400, wave: 'triangle' });
+    }
   },
 };
 
@@ -619,6 +899,48 @@ export function makeKit(ctx, dest, opts = {}) {
     pluck(t, f, v = 0.03, out = bus.chords) {
       osc(t, f, 'square', v, 0.14, 2600, out, 0.002);
     },
+    brush(t, v = 0.09, out = bus.drums) {
+      nz(t, 'bandpass', 4200, v, 0.12, out, 0.6);
+    },
+    openhat(t, v = 0.05, out = bus.hats) {
+      nz(t, 'highpass', 7000, v, 0.16, out);
+    },
+    tamb(t, v = 0.025, out = bus.hats) {
+      nz(t, 'bandpass', 9000, v, 0.07, out, 1.2);
+    },
+    tick(t, v = 0.03, out = bus.hats) {
+      osc(t, 2600, 'square', v, 0.02, 6000, out, 0.001);
+    },
+    snap(t, v = 0.16, out = bus.drums) {
+      nz(t, 'bandpass', 2400, v, 0.04, out, 3);
+      nz(t + 0.008, 'highpass', 5000, v * 0.6, 0.03, out);
+    },
+    // piano-ish: bright attack, quick decay, soft octave
+    piano(t, f, d = 1, v = 0.04, out = bus.chords) {
+      osc(t, f, 'triangle', v, d, 3000, out, 0.003);
+      osc(t, f * 2, 'sine', v * 0.4, d * 0.4, 5000, out, 0.002);
+      osc(t, f * 3, 'sine', v * 0.12, d * 0.2, 6000, out, 0.002);
+    },
+    // plucked string: saw through a filter that closes quickly
+    guitar(t, f, v = 0.03, out = bus.chords) {
+      const o = ctx.createOscillator(),
+        g = ctx.createGain(),
+        fl = ctx.createBiquadFilter();
+      o.type = 'sawtooth';
+      o.frequency.value = f;
+      fl.type = 'lowpass';
+      fl.Q.value = 2;
+      fl.frequency.setValueAtTime(3600, t);
+      fl.frequency.exponentialRampToValueAtTime(500, t + 0.35);
+      env(g, t, 0.002, v, 0.7);
+      o.connect(fl).connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 0.75);
+    },
+    pizz(t, f, v = 0.04, out = bus.chords) {
+      osc(t, f, 'triangle', v, 0.12, 4000, out, 0.001);
+      osc(t, f * 2, 'square', v * 0.25, 0.05, 3000, out, 0.001);
+    },
     click(t, v = 0.22, out = fx) {
       nz(t, 'highpass', 3000, v, 0.012, out);
     },
@@ -751,6 +1073,36 @@ export function playEvents(kit, t0, bed) {
         break;
       case 'pluck':
         kit.pluck(t, e.f, e.v, out);
+        break;
+      case 'brush':
+        kit.brush(t, e.v, out);
+        break;
+      case 'openhat':
+        kit.openhat(t, e.v, out);
+        break;
+      case 'tamb':
+        kit.tamb(t, e.v, out);
+        break;
+      case 'tick':
+        kit.tick(t, e.v, out);
+        break;
+      case 'snap':
+        kit.snap(t, e.v, out);
+        break;
+      case 'piano':
+        kit.piano(t, e.f, e.d, e.v, out);
+        break;
+      case 'guitar':
+        kit.guitar(t, e.f, e.v, out);
+        break;
+      case 'pizz':
+        kit.pizz(t, e.f, e.v, out);
+        break;
+      case 'blip':
+        kit.blip(t, e.f, e.v, out);
+        break;
+      case 'stabc':
+        kit.stab(t, e.fs, e.v, out);
         break;
       case 'riser':
         kit.riser(t, e.d, e.v, out);

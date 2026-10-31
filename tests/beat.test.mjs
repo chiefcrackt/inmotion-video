@@ -88,3 +88,21 @@ test('swing delays the off-beats and every event has a part', () => {
   assert.ok(hat(swung) > hat(straight));
   for (const e of swung.events) assert.ok(e.part, e.kind);
 });
+
+test('every style, mood and groove gives its own pattern', async () => {
+  const { STYLES, MOODS } = await import('../shared/sound/beat.mjs');
+  assert.equal(Object.keys(STYLES).length, 14);
+  for (const style of Object.keys(STYLES)) {
+    const seen = new Set();
+    for (const [mood] of MOODS)
+      for (const [groove] of STYLES[style].grooves) {
+        const b = bedEvents({ style, mood, groove, seconds: 16, ending: 'loop' });
+        assert.equal(b.mood, mood);
+        assert.equal(b.groove, groove);
+        assert.ok(b.events.length > 20, style + mood + groove);
+        assert.ok(b.events.every((e) => e.part && Number.isFinite(e.t)));
+        seen.add(JSON.stringify(b.events));
+      }
+    assert.equal(seen.size, MOODS.length * STYLES[style].grooves.length, style);
+  }
+});

@@ -169,8 +169,15 @@ preview; settings and items (photos included, within storage limits) persist.
 Where: `beat-bed/index.html`, engine in `shared/sound/beat.mjs`. Came from the
 120 BPM E-minor cyber loop under the data videos.
 
-Eight styles (Cyber, Soft, Minimal, Drive, Lo-fi, Synthwave, Cinematic,
-Trap), tempo, swing, minor key, intro (cold, riser, fade in) and ending (hit
+Fourteen styles, each tagged with what it's good for: Cyber, Soft, Minimal,
+Drive, Lo-fi, Synthwave, Cinematic, Trap, plus Anthem (race-day / finish-line
+stomp), Reflective (piano for talking-head and "what I learned"), Trail
+(plucked guitar for outdoors B-roll), Heartbeat (slow pulse for tension and
+start lines), Playful (bouncy pizzicato for reviews and bloopers) and Sunny
+(upbeat indie for vlogs). Every style has 2–3 Grooves (different drum/part
+patterns, e.g. Cyber classic/half-time/glitch) and a Mood (Dark i–VI–VII–v,
+Bright I–V–vi–IV, Dreamy maj7/add9 voicings) that defaults to the style's
+own. Tempo, swing, key, intro (cold, riser, fade in) and ending (hit
 on the bar, fade out, power-down, seamless loop). Song layout is either one
 section of N seconds with part toggles, or an arrangement of sections (Intro,
 Build, Drop, Verse, Breakdown, Outro) with bars and parts per section; builds

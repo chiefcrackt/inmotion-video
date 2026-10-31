@@ -507,7 +507,7 @@
         <h1>Beat Bed</h1>
         <p
           >A music bed for your videos, made from the same synth kit as the
-          data videos. Pick a style, shape the sound, lay out the song in
+          data videos. Pick a style (each says what it’s good for), a mood and a groove, shape the sound, lay out the song in
           sections, preview it, then save a WAV and drop it under your clip in
           CapCut. Everything lands on whole bars, so it ends on the beat.</p
         >
@@ -546,6 +546,8 @@
             <legend>Style</legend>
             <div class="styles" id="styles"></div>
             <p class="note">Tap a style to hear two bars of it.</p>
+            <div class="row" id="moods"><span class="lab">Mood</span></div>
+            <div class="row" id="grooves"><span class="lab">Groove</span></div>
           </fieldset>
 
           <fieldset>
@@ -631,6 +633,7 @@
     <script type="module">
       import {
         STYLES,
+        MOODS,
         KEYS,
         PARTS,
         SECTION_TYPES,
@@ -676,6 +679,8 @@
       ];
       var DEF = {
         style: 'cyber',
+        mood: 'auto',
+        groove: 'auto',
         bpm: 120,
         swing: 0,
         key: 'E',
@@ -695,6 +700,8 @@
           for (var k in saved)
             if (k in S) S[k] = k === 'shaping' ? Object.assign(clone(DEFAULT_SHAPING), saved[k]) : saved[k];
         if (!STYLES[S.style]) S.style = 'cyber';
+        if (!S.mood) S.mood = 'auto';
+        if (!S.groove) S.groove = 'auto';
         if (!Array.isArray(S.sections) || !S.sections.length) S.sections = makeSections('story');
       } catch (e) {}
       function persist() {
@@ -715,6 +722,8 @@
         return Object.assign(
           {
             style: S.style,
+            mood: S.mood === 'auto' ? undefined : S.mood,
+            groove: S.groove === 'auto' ? undefined : S.groove,
             bpm: S.bpm,
             swing: S.swing / 100,
             key: S.key,
@@ -776,10 +785,12 @@
           b.setAttribute('aria-pressed', String(S.style === id));
           b.innerHTML = '<b></b><span></span>';
           b.querySelector('b').textContent = STYLES[id].name;
-          b.querySelector('span').textContent = STYLES[id].desc + ' ' + STYLES[id].bpm + ' BPM.';
+          b.querySelector('span').textContent = 'Good for: ' + STYLES[id].use.toLowerCase() + '. ' + STYLES[id].desc + ' ' + STYLES[id].bpm + ' BPM.';
           b.onclick = function () {
             if (S.style !== id) {
               S.style = id;
+              S.mood = 'auto';
+              S.groove = 'auto';
               S.bpm = STYLES[id].bpm;
               S.swing = Math.round(STYLES[id].swing * 100);
               S.shaping.filter = 0;
@@ -917,6 +928,29 @@
       }
       function renderControls() {
         renderStyles();
+        var st = STYLES[S.style];
+        fill(
+          'moods',
+          MOODS.map(function (m) {
+            return [m[0], m[1] + (m[0] === st.mood ? ' (style)' : '')];
+          }),
+          function (m) {
+            return (S.mood === 'auto' ? st.mood : S.mood) === m;
+          },
+          function (m) {
+            S.mood = m;
+          },
+        );
+        fill(
+          'grooves',
+          st.grooves,
+          function (g) {
+            return (S.groove === 'auto' ? st.grooves[0][0] : S.groove) === g;
+          },
+          function (g) {
+            S.groove = g;
+          },
+        );
         $('bpm').value = S.bpm;
         $('bpmv').textContent = S.bpm + ' BPM';
         $('swing').value = S.swing;
@@ -924,7 +958,7 @@
         fill(
           'keys',
           Object.keys(KEYS).map(function (k) {
-            return [k, k + 'm'];
+            return [k, k + ((S.mood === 'auto' ? STYLES[S.style].mood : S.mood) === 'dark' ? 'm' : '')];
           }),
           function (k) {
             return S.key === k;
@@ -1124,10 +1158,10 @@
       };
       var F = '"Barlow Condensed","Arial Narrow",Arial,sans-serif';
       var ROWS = [
-        ['CHORDS', ['pad', 'pluck', 'keys', 'crackle'], 'chords'],
+        ['CHORDS', ['pad', 'pluck', 'keys', 'crackle', 'piano', 'guitar', 'pizz', 'stabc'], 'chords'],
         ['BASS', ['bass'], 'bass'],
-        ['HATS', ['hat', 'shaker'], 'hats'],
-        ['SNARE', ['snare', 'clap', 'rim', 'tom'], 'drums'],
+        ['HATS', ['hat', 'shaker', 'openhat', 'tamb', 'tick'], 'hats'],
+        ['SNARE', ['snare', 'clap', 'rim', 'tom', 'snap', 'brush', 'blip'], 'drums'],
         ['KICK', ['kick', 'boom'], 'drums'],
         ['HITS', ['riser', 'stab', 'sub', 'chime', 'sweep', 'crash'], 'hits'],
       ];
@@ -1156,7 +1190,8 @@
           };
         ctx.font = '700 36px ' + F;
         ctx.fillStyle = C.gold;
-        ctx.fillText((STYLES[b.style].name + ' · ' + S.key + 'm · ' + b.bpm + ' BPM').toUpperCase(), 40, 52);
+        var gname = (STYLES[b.style].grooves.find(function (g) { return g[0] === b.groove; }) || ['', ''])[1];
+        ctx.fillText((STYLES[b.style].name + ' · ' + b.mood + ' · ' + gname + ' · ' + S.key + (b.mood === 'dark' ? 'm' : '') + ' · ' + b.bpm + ' BPM').toUpperCase(), 40, 52);
         ctx.fillStyle = C.muted;
         ctx.textAlign = 'right';
         ctx.fillText(fmtTime(b.total), W - 40, 52);
@@ -1310,7 +1345,11 @@
               r.bed.bpm +
               'bpm-' +
               S.key.replace('#', 's').toLowerCase() +
-              'm-' +
+              (r.bed.mood === 'dark' ? 'm-' : '-') +
+              r.bed.mood +
+              '-' +
+              r.bed.groove +
+              '-' +
               Math.round(r.bed.total) +
               's.wav';
             saveFile(name, new Blob([encodeWav(r.buffer)], { type: 'audio/wav' }), msg);
