@@ -124,6 +124,51 @@ const { server, launchBrowser } = require('./browser-utils.cjs');
         tool + ': saved/reloaded/imported style and portable project OK',
       );
     }
+    // Framer backgrounds exceed the short-text limit and survive both storage paths.
+    await page.goto(base + '/video-framer/');
+    const framerPhoto = await page.evaluate(() => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 256;
+      const ctx = c.getContext('2d'), pixels = ctx.createImageData(256, 256);
+      let seed = 42;
+      for (let i = 0; i < pixels.data.length; i++) {
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        pixels.data[i] = i % 4 === 3 ? 255 : seed >>> 24;
+      }
+      ctx.putImageData(pixels, 0, 0);
+      return c.toDataURL().split(',')[1];
+    });
+    await page.locator('#bgFile').setInputFiles({
+      name: 'background.png', mimeType: 'image/png', buffer: Buffer.from(framerPhoto, 'base64'),
+    });
+    await page.waitForFunction(() => window.__framer.state().bgUpload.length > 10000);
+    const embedded = await page.evaluate(() => window.__framer.state().bgUpload);
+    await page.locator('#tim-projects').evaluate(e => e.open = true);
+    await page.locator('#tim-project-save').click();
+    await page.waitForFunction(() => document.querySelector('#tim-project-status').textContent.startsWith('Saved a new'));
+    const framerId = await page.locator('#tim-project-list option').nth(1).getAttribute('value');
+    const [framerDownload] = await Promise.all([
+      page.waitForEvent('download'), page.locator('#tim-project-export').click(),
+    ]);
+    let framerJSON = '';
+    for await (const chunk of await framerDownload.createReadStream()) framerJSON += chunk;
+    await page.reload();
+    await page.locator('#tim-projects').evaluate(e => e.open = true);
+    await page.waitForFunction(() => document.querySelector('#tim-project-list').options.length > 1);
+    await page.locator('#tim-project-list').selectOption(framerId);
+    await page.locator('#tim-project-load').click();
+    await page.waitForFunction(() => document.querySelector('#tim-project-status').textContent.startsWith('Loaded'));
+    assert.equal(await page.evaluate(() => window.__framer.state().bgUpload), embedded);
+    await page.evaluate(() => window.__framer.set({ bgUpload: '', bg: 'solid' }));
+    await page.locator('#tim-project-import').setInputFiles({ name: 'framer.json', mimeType: 'application/json', buffer: Buffer.from(framerJSON) });
+    await page.waitForFunction(() => document.querySelector('#tim-project-status').textContent.startsWith('Imported.'));
+    assert.equal(await page.evaluate(() => window.__framer.state().bgUpload), embedded);
+    const invalid = JSON.parse(framerJSON);
+    invalid.payload.state.bgUpload = 'data:image/png;base64,broken';
+    await page.locator('#tim-project-import').setInputFiles({ name: 'invalid.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(invalid)) });
+    await page.waitForFunction(() => document.querySelector('#tim-project-status').textContent.includes('Cannot read the project photo'));
+    assert.equal(await page.evaluate(() => window.__framer.state().bgUpload), embedded);
+
     // Photo projects preserve actual pixels across a page reload.
     for (const tool of ['cover-maker', 'promo-maker']) {
       await page.goto(base + '/' + tool + '/');
