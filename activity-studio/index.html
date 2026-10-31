@@ -203,6 +203,94 @@
               <label id="lapControl" hidden
                 >Recorded lap page<select id="lapPage"></select
               ></label>
+              <h3>Route motion</h3>
+              <div class="pair"
+                ><label
+                  >Draw style<select id="drawStyle"
+                    ><option value="line">Plain line</option
+                    ><option value="glow">Glowing head</option
+                    ><option value="comet">Comet trail</option
+                    ><option value="ghost">Ghost route underneath</option
+                    ><option value="runner">Runner dot</option></select
+                  ></label
+                ><label
+                  >Head size<input
+                    id="headSize"
+                    type="range"
+                    min="0.5"
+                    max="2.5"
+                    step="0.1"
+                    value="1" /></label
+              ></div>
+              <div class="pair"
+                ><label id="trailRow" hidden
+                  >Trail length<input
+                    id="trail"
+                    type="range"
+                    min="0.03"
+                    max="0.5"
+                    step="0.01"
+                    value="0.15" /></label
+                ><label
+                  >Zoom-follow (reveal)<input
+                    id="zoom"
+                    type="range"
+                    min="0"
+                    max="2.5"
+                    step="0.1"
+                    value="0" /></label
+              ></div>
+              <p class="note"
+                >Styles show while the route is drawing; the finished card and
+                PNG stay clean. Zoom-follow eases in on the head during the
+                race-time reveal and pulls back out before the finish.</p
+              >
+              <h3>Intro</h3>
+              <label class="toggle"
+                ><input id="intro" type="checkbox" /> Route intro before the
+                card</label
+              >
+              <div id="introBox" hidden>
+                <div class="pair"
+                  ><label
+                    >Intro length<select id="introLen"
+                      ><option value="1.5">1.5 seconds</option
+                      ><option value="2">2 seconds</option
+                      ><option value="3" selected>3 seconds</option
+                      ><option value="4">4 seconds</option
+                      ><option value="5">5 seconds</option></select
+                    ></label
+                  ><label
+                    >Hold the card for<select id="introHold"
+                      ><option value="1">1 second</option
+                      ><option value="2">2 seconds</option
+                      ><option value="4" selected>4 seconds</option
+                      ><option value="6">6 seconds</option
+                      ><option value="10">10 seconds</option
+                      ><option value="20">20 seconds</option></select
+                    ></label
+                  ></div
+                >
+                <div class="pair"
+                  ><label
+                    >Route draws<select id="introPlace"
+                      ><option value="center">Big, then glides into place</option
+                      ><option value="inplace">Where it sits on the card</option></select
+                    ></label
+                  ><label
+                    >Card arrives<select id="introCard"
+                      ><option value="wipe">Wipe across</option
+                      ><option value="rise">Rise up</option
+                      ><option value="cut">Cut in</option></select
+                    ></label
+                  ></div
+                >
+                <p class="note"
+                  >Works with every card. On elevation and laps cards the route
+                  draws in, then shrinks away as the card arrives. Uses the draw
+                  style above. The privacy radius applies here too.</p
+                >
+              </div>
               <h3>Visible metrics</h3><div id="metrics" class="metrics"></div>
               <label
                 >Privacy radius at each route endpoint (meters)<input
@@ -279,6 +367,7 @@
               ></progress
               ><p id="exportStatus" role="status" aria-live="polite"></p
               ><button id="saveVideo" type="button" hidden>Save video</button
+              ><p class="note" id="playNote"></p
               ><p class="note"
                 >Video records in real time with an opaque background. MP4 where
                 supported; otherwise WebM. Keep this tab visible while

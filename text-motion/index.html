@@ -165,6 +165,83 @@ MOVING.</textarea
               Maker.</p
             >
           </fieldset>
+          <fieldset
+            ><legend>06 / Make an exit</legend>
+            <label for="exStyle">Exit</label
+            ><select id="exStyle"
+              ><option value="original">Original (quick fade)</option
+              ><option value="reverse">Reverse of entrance</option
+              ><option value="fade">Fade</option
+              ><option value="wipe">Wipe</option
+              ><option value="slide">Slide away</option
+              ><option value="drop">Drop</option
+              ><option value="shrink">Shrink</option
+              ><option value="pop">Pop</option
+              ><option value="glitch">Glitch out</option
+              ><option value="cut">Cut</option></select
+            >
+            <div class="pair" id="exRow1"
+              ><div
+                ><label for="exLen">Exit length</label
+                ><select id="exLen"
+                  ><option value="0.3">0.3 seconds</option
+                  ><option value="0.6" selected>0.6 seconds</option
+                  ><option value="1">1 second</option
+                  ><option value="1.5">1.5 seconds</option></select
+                ></div
+              ><div
+                ><label for="exEase">Easing</label
+                ><select id="exEase"
+                  ><option value="in">Speed up</option
+                  ><option value="inout">Smooth</option
+                  ><option value="back">Pull back, then go</option
+                  ><option value="linear">Steady</option></select
+                ></div
+              ></div
+            >
+            <div class="pair" id="exRow2"
+              ><div
+                ><label for="exDir">Direction</label
+                ><select id="exDir"
+                  ><option value="left">Left</option
+                  ><option value="right">Right</option
+                  ><option value="up">Up</option
+                  ><option value="down">Down</option></select
+                ></div
+              ><div
+                ><label for="exOrder">Line order</label
+                ><select id="exOrder"
+                  ><option value="first">Top line first</option
+                  ><option value="last">Bottom line first</option
+                  ><option value="together">All together</option></select
+                ></div
+              ></div
+            >
+            <div class="pair" id="exRow3"
+              ><div
+                ><label for="exStagger">Gap between lines</label
+                ><select id="exStagger"
+                  ><option value="0">None</option
+                  ><option value="0.05">0.05 seconds</option
+                  ><option value="0.08" selected>0.08 seconds</option
+                  ><option value="0.15">0.15 seconds</option
+                  ><option value="0.25">0.25 seconds</option></select
+                ></div
+              ><div
+                ><label for="exHold">Empty frames at the end</label
+                ><select id="exHold"
+                  ><option value="0">None</option
+                  ><option value="0.1" selected>0.1 seconds</option
+                  ><option value="0.3">0.3 seconds</option
+                  ><option value="0.6">0.6 seconds</option></select
+                ></div
+              ></div
+            >
+            <p class="hint" id="exHint"
+              >The accent bar, each headline line and the caption leave one after
+              another. The exit finishes as the clip ends.</p
+            >
+          </fieldset>
           <div class="exports"
             ><button type="button" id="video" class="primary"
               >Download video</button
@@ -178,6 +255,7 @@ MOVING.</textarea
           ></form
         ></div
       > </main
+    ><script src="../shared/exits.js" defer></script
     ><script src="alpha-video.js" defer></script
     ><script src="app.js" defer></script></body
 ></html>

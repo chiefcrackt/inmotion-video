@@ -25,8 +25,13 @@ const numeric = [
   'y',
   'trim',
   'lapPage',
+  'headSize',
+  'trail',
+  'zoom',
+  'introLen',
+  'introHold',
 ];
-const checks = ['transparent', 'showRoute', 'markers', 'showMetrics'];
+const checks = ['transparent', 'showRoute', 'markers', 'showMetrics', 'intro'];
 const settings = {
   preset: 'cyber',
   ...presets.cyber,
@@ -49,12 +54,29 @@ const settings = {
   showMetrics: true,
   imperial: false,
   metrics: ['distance', 'moving', 'pace', 'ascent'],
+  // how the route draws during the race-time reveal and the intro
+  drawStyle: 'line',
+  headSize: 1,
+  trail: 0.15,
+  zoom: 0,
+  // intro: route draws in large, glides into the card, the card wipes in, then it holds
+  intro: false,
+  introLen: 3,
+  introHold: 4,
+  introPlace: 'center',
+  introCard: 'wipe',
 };
 function say(id, message, error = false) {
   $(id).textContent = message;
   $(id).classList.toggle('error', error);
 }
+let introAt = null; // 0..1 while the intro is showing
 function paint(animated = playing || recording || progress < 1) {
+  if (introAt !== null) {
+    render(canvas, activity, settings, 1, false, introAt);
+    $('time').textContent = introAt < 1 ? 'Intro' : 'End';
+    return;
+  }
   render(canvas, activity, settings, progress, animated);
   $('scrub').value = progress;
   const p = activity && atTime(activity, progress);
@@ -62,6 +84,7 @@ function paint(animated = playing || recording || progress < 1) {
 }
 function stop() {
   playing = false;
+  introAt = null;
   cancelAnimationFrame(request);
   $('play').textContent = 'Play';
 }
@@ -90,9 +113,33 @@ function frame(now) {
   if (t < 1 && playing) request = requestAnimationFrame(frame);
   else stop();
 }
+// with the intro on, the video is the intro and then the finished card held still
+const introTotal = () => +settings.introLen + +settings.introHold;
+function introFrame(seconds) {
+  introAt = Math.min(1, seconds / +settings.introLen);
+  progress = 1;
+  paint(false);
+}
 $('play').onclick = () => {
   if (playing) {
     stop();
+    paint();
+    return;
+  }
+  if (settings.intro && activity) {
+    playing = true;
+    $('play').textContent = 'Pause';
+    started = performance.now();
+    const step = (now) => {
+      const t = (now - started) / 1000;
+      introFrame(t);
+      if (t < introTotal() && playing) request = requestAnimationFrame(step);
+      else {
+        stop();
+        paint();
+      }
+    };
+    request = requestAnimationFrame(step);
     return;
   }
   playing = true;
@@ -178,7 +225,7 @@ function configure() {
   videoBlob = null;
   $('saveVideo').hidden = true;
   say('exportStatus', '');
-  $('play').disabled = !activity.availability.timeline;
+  $('play').disabled = !activity.availability.timeline && !settings.intro;
   $('scrub').disabled = !activity.availability.timeline;
   $('video').disabled = !activity.availability.timeline;
   say(
@@ -312,8 +359,20 @@ $('editor').addEventListener('input', (e) => {
   else if (checks.includes(id)) settings[id] = e.target.checked;
   else if (id in settings) settings[id] = e.target.value;
   $('lapControl').hidden = settings.template !== 'splits';
+  syncMotion();
   paint();
 });
+function syncMotion() {
+  $('introBox').hidden = !settings.intro;
+  $('trailRow').hidden = settings.drawStyle !== 'comet';
+  if (activity) {
+    $('play').disabled = !activity.availability.timeline && !settings.intro;
+    $('video').disabled = !activity.availability.timeline && !settings.intro;
+  }
+  $('playNote').textContent = settings.intro
+    ? `With the intro on, Play and Record show the ${settings.introLen}s intro, then the finished card for ${settings.introHold}s (${introTotal()}s total). Turn the intro off for the race-time reveal.`
+    : 'Play and Record show the race-time reveal over the animation length.';
+}
 let drag = null;
 canvas.addEventListener('pointerdown', (e) => {
   if (!activity || recording) return;
@@ -414,12 +473,16 @@ $('video').onclick = async () => {
   await document.fonts.ready;
   videoBlob = null;
   $('saveVideo').hidden = true;
-  const durationS = Math.max(3, Math.min(60, +$('seconds').value || 12));
-  $('seconds').value = durationS;
+  const useIntro = settings.intro;
+  const durationS = useIntro
+    ? introTotal()
+    : Math.max(3, Math.min(60, +$('seconds').value || 12));
+  if (!useIntro) $('seconds').value = durationS;
   const originalTransparent = settings.transparent;
   settings.transparent = false;
   progress = 0;
-  paint(true);
+  if (useIntro) introFrame(0);
+  else paint(true);
   let stream, mr;
   try {
     stream = canvas.captureStream(30);
@@ -464,6 +527,7 @@ $('video').onclick = async () => {
     lock(false);
     settings.transparent = originalTransparent;
     progress = 1;
+    introAt = null;
     paint(false);
     cancelRecording = null;
     chunks = canceled ? [] : chunks;
@@ -495,8 +559,11 @@ $('video').onclick = async () => {
   );
   const tick = (now) => {
     const t = Math.min(1, (now - start) / (durationS * 1000));
-    progress = animationProgress(t);
-    paint(true);
+    if (useIntro) introFrame(t * durationS);
+    else {
+      progress = animationProgress(t);
+      paint(true);
+    }
     $('progress').value = t;
     say(
       'exportStatus',
@@ -516,7 +583,13 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 document.fonts.ready.then(() => paint());
+syncMotion();
 paint();
+window.__activityStudio = {
+  render: (c, p, animated, intro) => render(c, activity, settings, p, animated, intro),
+  settings,
+  loaded: () => !!activity,
+};
 
 window.TimProjects.mount({
   tool: 'activity-studio',
@@ -557,6 +630,7 @@ window.TimProjects.mount({
       else el.value = value;
     }
     $('units').value = settings.imperial ? 'imperial' : 'metric';
+    syncMotion();
     for (const id of ['size', 'seconds', 'style']) $(id).value = data[id];
     [canvas.width, canvas.height] = data.size.split(',').map(Number);
     $('dimensions').textContent = canvas.width + ' × ' + canvas.height;

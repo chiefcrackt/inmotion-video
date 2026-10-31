@@ -144,6 +144,7 @@ export function render(
   settings,
   progress = 1,
   animated = false,
+  intro = null,
 ) {
   const ctx = canvas.getContext('2d'),
     W = canvas.width,
@@ -189,7 +190,45 @@ export function render(
       ctx.stroke();
     }
   }
-  text('T.IM  /  ACTIVITY STUDIO', pad, 70 * scale, 24, settings.accent);
+  // Intro (0..1): the route draws in large, glides into its place on the card, then the card wipes in.
+  const ease = (x) => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3);
+  const iv =
+    intro == null || !activity
+      ? null
+      : {
+          draw: ease(intro / 0.55),
+          move: ease((intro - 0.55) / 0.3),
+          card:
+            settings.introCard === 'cut'
+              ? intro >= 0.62
+                ? 1
+                : 0
+              : ease((intro - 0.6) / 0.35),
+        };
+  let ox = 0,
+    oy = 0;
+  const cardPart = (fn) => {
+    if (!iv) return fn();
+    const r = iv.card;
+    if (r <= 0) return;
+    ctx.save();
+    if (r < 1) {
+      ctx.beginPath();
+      if (settings.introCard === 'rise') {
+        ctx.rect(-ox, -oy + H * (1 - r), W, H);
+        ctx.clip();
+        ctx.translate(0, (1 - r) * 40 * scale);
+      } else {
+        ctx.rect(-ox, -oy, W * r, H);
+        ctx.clip();
+      }
+    }
+    fn();
+    ctx.restore();
+  };
+  cardPart(() =>
+    text('T.IM  /  ACTIVITY STUDIO', pad, 70 * scale, 24, settings.accent),
+  );
   if (!activity) {
     text('YOUR NEXT STORY', pad, H * 0.44, 76);
     text('STARTS WITH A RUN.', pad, H * 0.44 + 85 * scale, 76);
@@ -206,8 +245,12 @@ export function render(
     offsetY = (settings.y / 100) * H;
   ctx.save();
   ctx.translate(offsetX, offsetY);
+  ox = offsetX;
+  oy = offsetY;
   ctx.globalAlpha = settings.opacity;
-  text(settings.title || activity.metadata.name, pad, 160 * scale, 62);
+  cardPart(() =>
+    text(settings.title || activity.metadata.name, pad, 160 * scale, 62),
+  );
   const date = activity.metadata.date
     ? new Date(activity.metadata.date).toLocaleDateString(undefined, {
         year: 'numeric',
@@ -215,7 +258,9 @@ export function render(
         day: 'numeric',
       })
     : '';
-  text(date.toUpperCase(), pad, 204 * scale, 24, settings.accent);
+  cardPart(() =>
+    text(date.toUpperCase(), pad, 204 * scale, 24, settings.accent),
+  );
   const point = animated ? atTime(activity, progress) : null;
   const selectedKeys = settings.metrics
     .filter((k) => activity.summary[k] != null)
@@ -241,15 +286,23 @@ export function render(
     w: box.w * settings.scale,
     h: box.h * settings.scale,
   };
-  if (settings.template === 'elevation') drawElevation();
-  else if (settings.template === 'splits') drawSplits();
-  else if (settings.showRoute && activity.availability.gps) {
+  const cardRoute =
+    settings.template !== 'elevation' &&
+    settings.template !== 'splits' &&
+    settings.showRoute &&
+    activity.availability.gps;
+  if (settings.template === 'elevation') cardPart(drawElevation);
+  else if (settings.template === 'splits') cardPart(drawSplits);
+  else if (cardRoute) {
     const saved = box;
     if (settings.template === 'dashboard' && activity.availability.elevation)
       box = { ...box, w: box.w * 0.56 };
     drawRoute();
     box = saved;
-  } else if (settings.template === 'dashboard') drawChart();
+  } else if (settings.template === 'dashboard') cardPart(drawChart);
+  // the intro still draws the route on cards that don't show one; it shrinks away as the card arrives
+  if (iv && !cardRoute && activity.availability.gps && iv.move < 1)
+    drawRoute(true);
   if (
     settings.template === 'dashboard' &&
     activity.availability.elevation &&
@@ -257,22 +310,26 @@ export function render(
   ) {
     const saved = box;
     box = { x: W * 0.65, y: box.y, w: W * 0.24, h: box.h };
-    drawElevation();
+    cardPart(drawElevation);
     box = saved;
   }
   if (settings.showMetrics) {
-    selectedKeys.forEach((k, i) => {
-      const [label, value] = metric(activity, k, settings, point),
-        x = pad + ((i % cols) * (W - pad * 2)) / cols,
-        y = metricY + Math.floor(i / cols) * rowH;
-      text(label, x, y, 20, settings.accent);
-      text(value, x, y + 47 * scale, 43);
-    });
+    cardPart(() =>
+      selectedKeys.forEach((k, i) => {
+        const [label, value] = metric(activity, k, settings, point),
+          x = pad + ((i % cols) * (W - pad * 2)) / cols,
+          y = metricY + Math.floor(i / cols) * rowH;
+        text(label, x, y, 20, settings.accent);
+        text(value, x, y + 47 * scale, 43);
+      }),
+    );
   }
   if (settings.caption)
-    text(settings.caption, pad, H - 35 * scale, 24, settings.text, 500);
+    cardPart(() =>
+      text(settings.caption, pad, H - 35 * scale, 24, settings.text, 500),
+    );
   ctx.restore();
-  function drawRoute() {
+  function drawRoute(vanish = false) {
     const key = JSON.stringify([box, settings.trim, settings.rotation]);
     let cache = routeCache.get(activity);
     if (!cache || cache.key !== key) {
@@ -291,47 +348,157 @@ export function render(
       cache = { key, projected: projectRoute(reduced, box, settings.rotation) };
       routeCache.set(activity, cache);
     }
-    const projected = cache.projected;
-    ctx.strokeStyle = settings.route;
-    ctx.lineWidth = settings.thickness * scale;
+    const projected = cache.projected,
+      n = projected.length,
+      style = settings.drawStyle || 'line';
+    // what's drawn so far: by share of the route in the intro, by race time in the reveal
+    const drawing = iv ? iv.draw < 1 : animated && !!point && progress < 1;
+    const limit = iv ? Math.floor(iv.draw * (n - 1)) : n - 1,
+      cut = !iv && animated && point ? point.time : null;
+    const shown = (p, i) =>
+      iv
+        ? i <= limit
+        : !(cut !== null && finite(p.point.time) && p.point.time > cut);
+    const runsOf = (test) => {
+      const runs = [];
+      let cur = null;
+      projected.forEach((p, i) => {
+        if (!p || !test(p, i)) {
+          cur = null;
+          return;
+        }
+        if (!cur || p.point.breakBefore) runs.push((cur = []));
+        cur.push(p);
+      });
+      return runs;
+    };
+    const runs = runsOf(shown),
+      flat = runs.flat(),
+      first = flat[0] || null,
+      head = flat[flat.length - 1] || null;
+    const bc = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+    let z = 1;
+    ctx.save();
+    if (iv) {
+      let s0 = 1,
+        c = bc;
+      if (settings.introPlace !== 'inplace') {
+        const ib = {
+          x: pad - ox,
+          y: pad * 1.6 - oy,
+          w: W - pad * 2,
+          h: H - pad * 3.2,
+        };
+        s0 = Math.min(ib.w / box.w, ib.h / box.h);
+        c = { x: ib.x + ib.w / 2, y: ib.y + ib.h / 2 };
+      }
+      const m = iv.move;
+      if (vanish) z = s0 * (1 - m);
+      else {
+        z = s0 + (1 - s0) * m;
+        c = { x: c.x + (bc.x - c.x) * m, y: c.y + (bc.y - c.y) * m };
+      }
+      if (z <= 0.001) {
+        ctx.restore();
+        return;
+      }
+      ctx.translate(c.x, c.y);
+      ctx.scale(z, z);
+      ctx.translate(-bc.x, -bc.y);
+    } else if (drawing && settings.zoom > 0 && head) {
+      // zoom-follow: ease in on the head after the start, back out before the finish
+      const k0 = Math.max(0, Math.min(1, progress / 0.08, (1 - progress) / 0.12)),
+        k = k0 * k0 * (3 - 2 * k0);
+      z = 1 + settings.zoom * k;
+      const f = { x: bc.x + (head.x - bc.x) * k, y: bc.y + (head.y - bc.y) * k };
+      ctx.beginPath();
+      ctx.rect(box.x - 30 * scale, box.y - 30 * scale, box.w + 60 * scale, box.h + 60 * scale);
+      ctx.clip();
+      ctx.translate(bc.x, bc.y);
+      ctx.scale(z, z);
+      ctx.translate(-f.x, -f.y);
+    }
+    const lw = (settings.thickness * scale) / z,
+      hs = settings.headSize || 1;
+    const trace = (rs) => {
+      ctx.beginPath();
+      rs.forEach((r) =>
+        r.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y))),
+      );
+    };
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.beginPath();
-    let last = null,
-      first = null,
-      prev = null;
-    projected.forEach((p) => {
-      if (!p) {
-        prev = null;
-        return;
-      }
-      if (
-        animated &&
-        point &&
-        finite(p.point.time) &&
-        p.point.time > point.time
-      ) {
-        prev = null;
-        return;
-      }
-      if (!prev || p.point.breakBefore) ctx.moveTo(p.x, p.y);
-      else ctx.lineTo(p.x, p.y);
-      first ??= p;
-      last = p;
-      prev = p;
-    });
-    ctx.stroke();
+    ctx.strokeStyle = settings.route;
+    ctx.lineWidth = lw;
+    if (drawing && style === 'ghost') {
+      ctx.save();
+      ctx.globalAlpha *= 0.22;
+      trace(runsOf(() => true));
+      ctx.stroke();
+      ctx.restore();
+    }
+    trace(runs);
+    const tailOf = (share) => {
+      const keep = Math.max(2, Math.round(n * share));
+      return flat.slice(-keep);
+    };
+    const strokeTail = (pts) => {
+      ctx.beginPath();
+      pts.forEach((p, i) =>
+        i && !p.point.breakBefore ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y),
+      );
+      ctx.stroke();
+    };
+    if (drawing && style === 'comet') {
+      ctx.save();
+      ctx.globalAlpha *= 0.3;
+      ctx.stroke();
+      ctx.restore();
+      ctx.lineWidth = lw * 1.15;
+      strokeTail(tailOf(settings.trail || 0.15));
+    } else ctx.stroke();
     const dot = (p, r, color) => {
       if (!p) return;
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, r * scale, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, (r * scale) / z, 0, Math.PI * 2);
       ctx.fill();
     };
-    if (settings.markers) {
-      dot(first, 9, settings.text);
-      dot(last, animated ? 14 : 9, settings.accent);
+    const ownHead = drawing && head && ['glow', 'comet', 'runner'].includes(style);
+    if (ownHead && style === 'glow') {
+      ctx.save();
+      ctx.shadowColor = settings.accent;
+      ctx.shadowBlur = 26 * scale * hs;
+      ctx.strokeStyle = settings.accent;
+      ctx.lineWidth = lw * 1.3;
+      strokeTail(tailOf(0.03));
+      ctx.restore();
     }
+    if (ownHead && style !== 'runner') {
+      ctx.save();
+      ctx.shadowColor = settings.accent;
+      ctx.shadowBlur = 24 * scale * hs;
+      dot(head, 11 * hs, settings.accent);
+      ctx.restore();
+    }
+    if (ownHead && style === 'runner') {
+      const ph = ((iv ? iv.draw * 8 : progress * 24) % 1 + 1) % 1;
+      ctx.save();
+      ctx.strokeStyle = settings.accent;
+      ctx.globalAlpha *= 1 - ph;
+      ctx.lineWidth = (3 * scale) / z;
+      ctx.beginPath();
+      ctx.arc(head.x, head.y, ((12 + 26 * ph) * scale * hs) / z, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      dot(head, 12 * hs, settings.accent);
+      dot(head, 5 * hs, settings.text);
+    }
+    if (settings.markers && !vanish) {
+      dot(first, 9, settings.text);
+      if (!ownHead) dot(head, animated ? 14 : 9, settings.accent);
+    }
+    ctx.restore();
   }
   function drawElevation() {
     const pts = activity.points.filter((p) => finite(p.elevation)),

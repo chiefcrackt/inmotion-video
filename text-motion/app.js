@@ -38,6 +38,10 @@ let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches,
 let textFont = 'Barlow Condensed',
   outputTheme = 'tim';
 const duration = () => Number($('duration').value);
+const exitOptions = () =>
+  Object.fromEntries(
+    ['exStyle', 'exLen', 'exEase', 'exDir', 'exStagger', 'exOrder', 'exHold'].map((k) => [k, $(k).value]),
+  );
 const ease = (x) => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3);
 function linesFor(text, width, fontSize) {
   ctx.font = `900 ${fontSize}px ${window.TimProjects.family(textFont)}`;
@@ -68,8 +72,14 @@ function draw(t) {
     lines = linesFor($('headline').value, w * 0.82, size);
   }
   const speed = Number($('speed').value);
-  const enter = ease(t / (0.85 * speed)),
-    exit = ease((duration() - t) / 0.5),
+  const ex = exitOptions(),
+    original = ex.exStyle === 'original',
+    n = lines.length + 2; // accent bar, each line, caption
+  // "Reverse" replays the entrance backwards over the exit window.
+  const back = ex.exStyle === 'reverse' ? window.TimExits.progress(t, duration(), ex, 0, 1) : 0;
+  const tIn = back > 0 ? Math.min(t, (1 - back) * 1.25 * speed) : t;
+  const enter = ease(tIn / (0.85 * speed)),
+    exit = original ? ease((duration() - t) / 0.5) : 1,
     alpha = Math.min(enter, exit);
   ctx.save();
   const align = $('align').value;
@@ -94,7 +104,7 @@ function draw(t) {
     const scale =
       0.7 +
       0.3 * enter +
-      Math.sin(Math.min(1, t / (0.85 * speed)) * Math.PI) * 0.09;
+      Math.sin(Math.min(1, tIn / (0.85 * speed)) * Math.PI) * 0.09;
     ctx.scale(scale, scale);
     ctx.globalAlpha = alpha;
   }
@@ -106,33 +116,44 @@ function draw(t) {
   }
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = $('accent').value;
-  ctx.fillRect(
-    align === 'left' ? 0 : align === 'right' ? -64 * unit : -32 * unit,
-    -lines.length * size * 0.53 - 60 * unit,
-    64 * unit * enter,
-    6 * unit,
-  );
-  ctx.fillStyle = $('ink').value;
+  // each element leaves through the shared exit engine (no-op for Original and Reverse)
+  const centerY = Math.max(blockHalf, Math.min(h - blockHalf, desiredY));
+  const env = { W: w, H: h, x0: -anchor, y0: -centerY };
+  const span = (width) =>
+    align === 'left' ? [0, width] : align === 'right' ? [-width, 0] : [-width / 2, width / 2];
+  const leave = (i, box, fn) =>
+    window.TimExits.draw(ctx, window.TimExits.progress(t, duration(), ex, i, n), ex, box, env, fn);
+  const barX = align === 'left' ? 0 : align === 'right' ? -64 * unit : -32 * unit,
+    barY = -lines.length * size * 0.53 - 60 * unit;
+  leave(0, { x: barX, y: barY, w: 64 * unit, h: 6 * unit }, () => {
+    ctx.fillStyle = $('accent').value;
+    ctx.fillRect(barX, barY, 64 * unit * enter, 6 * unit);
+  });
   ctx.font = `900 ${size}px ${window.TimProjects.family(textFont)}`;
   let remaining = Math.floor(
-    Math.min(1, t / (1.25 * speed)) * lines.join('').length,
+    Math.min(1, tIn / (1.25 * speed)) * lines.join('').length,
   );
   lines.forEach((line, i) => {
     const shown =
       effect === 'type' ? line.slice(0, Math.max(0, remaining)) : line;
     remaining -= line.length;
-    ctx.fillText(shown, 0, (i - (lines.length - 1) / 2) * size * 1.06);
+    const y = (i - (lines.length - 1) / 2) * size * 1.06,
+      [x0, x1] = span(ctx.measureText(line).width);
+    leave(1 + i, { x: x0, y: y - size * 0.5, w: x1 - x0, h: size }, () => {
+      ctx.fillStyle = $('ink').value;
+      ctx.font = `900 ${size}px ${window.TimProjects.family(textFont)}`;
+      ctx.fillText(shown, 0, y);
+    });
   });
   ctx.globalAlpha = alpha;
-  ctx.fillStyle = $('accent').value;
   ctx.font = `600 ${28 * unit}px ${window.TimProjects.family(textFont)}`;
-  ctx.fillText(
-    $('caption').value,
-    0,
-    lines.length * size * 0.53 + 60 * unit,
-    w * 0.82,
-  );
+  const capY = lines.length * size * 0.53 + 60 * unit,
+    [c0, c1] = span(Math.min(ctx.measureText($('caption').value).width, w * 0.82));
+  leave(n - 1, { x: c0, y: capY - 18 * unit, w: c1 - c0, h: 36 * unit }, () => {
+    ctx.fillStyle = $('accent').value;
+    ctx.font = `600 ${28 * unit}px ${window.TimProjects.family(textFont)}`;
+    ctx.fillText($('caption').value, 0, capY, w * 0.82);
+  });
   ctx.restore();
   output.clearRect(0, 0, w, h);
   if (!$('transparent').checked) {
@@ -148,7 +169,14 @@ function draw(t) {
 function composite(t, unit) {
   const timing = $('glitchTiming').value;
   const intro = Math.max(0, 1 - t / (0.65 * Number($('speed').value)));
-  const outro = Math.max(0, 1 - (duration() - t) / 0.45);
+  const ex = exitOptions();
+  const win = window.TimExits.window(duration(), ex, 1);
+  const outro =
+    ex.exStyle === 'original'
+      ? Math.max(0, 1 - (duration() - t) / 0.45)
+      : t >= win.start && t <= win.end
+        ? Math.min(1, (t - win.start) / 0.3)
+        : 0;
   const burst = t % 1.1 < 0.16 ? 0.75 : 0;
   const k = $('glitch').checked
     ? (Number($('glitchStrength').value) / 100) *
@@ -216,6 +244,17 @@ function sync() {
   for (const buffer of [layer, bands, tint])
     [buffer.width, buffer.height] = dimensions;
   $('dimensions').textContent = dimensions.join(' × ');
+  // exit controls only matter once a new exit is picked; direction only for wipe and slide
+  const style = $('exStyle').value,
+    simple = style === 'original';
+  for (const id of ['exRow1', 'exRow2', 'exRow3']) $(id).hidden = simple;
+  $('exDir').disabled = !['wipe', 'slide', 'drop'].includes(style);
+  $('exEase').disabled = style === 'cut' || style === 'reverse';
+  $('exHint').textContent = simple
+    ? 'Original: the words fade out over the last half second.'
+    : style === 'reverse'
+      ? 'Your entrance plays backwards over the exit length, so the clip ends where it began.'
+      : 'The accent bar, each headline line and the caption leave one after another. The exit finishes as the clip ends.';
   position = Math.min(position, duration());
   draw(position);
 }
