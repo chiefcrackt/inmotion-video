@@ -1,18 +1,3 @@
-/*
- * TODO(Claude): Shared brand kits across visual tools (feature 6).
- * Extend the existing theme/font infrastructure with named, versioned kits for
- * palette, font, handle and optional user-supplied logo assets. Start with
- * Carousel Maker and one existing visual tool, using explicit tool adapters.
- * Reuse/migrate carousel-maker/editor.mjs brand storage without discarding the
- * saved kit; do not assume the three existing theme presets are custom kits.
- * Applying a kit must be an explicit action, never a side effect of opening an
- * old project. Preserve uploaded photo/runner colors and chroma-green output.
- * Bound and validate imported kits/assets; use suitable browser asset storage,
- * include logos in portable backups, and report quota failures without losing
- * the active edit. Keep Sound Forge and its storage/integration untouched.
- * Acceptance: a kit applies consistently in both tools and their exports,
- * survives reload and JSON round trips, and old projects retain their look.
- */
 (() => {
   const fonts = {
     'Barlow Condensed': '"Barlow Condensed", "Arial Narrow", sans-serif',
