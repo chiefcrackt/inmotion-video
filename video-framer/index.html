@@ -3051,9 +3051,11 @@
               return { state: S };
             },
             set: async function (data) {
-              var next = TimProjects.validateControls(TimProjects.checkState(data.state, S));
+              // Embedded images use the photo validator, not the short text limit.
+              var next = TimProjects.validateControls(TimProjects.checkState(Object.assign({}, data.state, { bgUpload: '' }), S));
               if (['tim', 'minimal', 'broadcast'].indexOf(next.theme) < 0 || ['Barlow Condensed', 'Arial', 'Georgia', 'monospace'].indexOf(next.textFont) < 0) throw Error('Unsupported theme or font.');
-              if (next.bgUpload && !/^data:image\/(jpeg|png|webp);base64,/.test(next.bgUpload)) throw Error('Unsupported background photo.');
+              next.bgUpload = data.state.bgUpload ?? '';
+              await TimProjects.image(next.bgUpload);
               S = next;
               changed();
             },
