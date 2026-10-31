@@ -1070,7 +1070,7 @@
             return l.trim();
           });
           if (lines.length) {
-            var tp = 132 * k;
+            var tp = (stats().length ? 132 : S.layout === 'center' ? 150 : 172) * k;
             font(c, 900, tp, 0);
             var widest = Math.max.apply(null, lines.map(function (l) {
               return c.measureText(l).width;
@@ -1186,38 +1186,43 @@
             c.restore();
           } }];
         }
-        function layoutBlock(c, panel, items, al) {
+        function layoutBlock(c, panel, items, al, lift) {
           if (!items.length) return;
           var total = 0;
           items.forEach(function (it, i) {
             total += it.h + (i < items.length - 1 ? it.gap : 0);
           });
-          var y = (H - total) / 2 - (S.showHandle ? 20 : 0);
+          var y = (H - total) / 2 - (lift ? 20 : 0);
           items.forEach(function (it) {
             it.draw(y, al);
             y += it.h + it.gap;
           });
         }
-        function drawHandle(c, panel, p, anim) {
-          if (!S.showHandle || !S.handle.trim()) return;
+        function handleItem(c, panel, p, anim) {
+          if (!S.showHandle || !S.handle.trim()) return null;
           var k = S.scale / 100,
-            al = alignFor(panel),
             txt = S.handle.toUpperCase(),
             tp = fitPx(c, txt, 700, 26 * k, 6 * k, panel.x1 - panel.x0 - 40 * k);
-          font(c, 700, tp, 6 * k);
-          var tw = c.measureText(txt).width,
-            dr = 8 * k * (anim && S.aPulse ? 1 + 0.25 * Math.sin(TAU * 2 * p) : 1),
-            gapX = 14 * k,
-            total = 16 * k + gapX + tw,
-            x0 = al === 'left' ? panel.x0 : al === 'right' ? panel.x1 - total : (panel.x0 + panel.x1 - total) / 2,
-            y = H - 74;
-          c.fillStyle = C.teal;
-          c.beginPath();
-          c.arc(x0 + 8 * k, y - tp * 0.32, dr, 0, TAU);
-          c.fill();
-          c.fillStyle = C.paper;
-          c.textAlign = 'left';
-          c.fillText(txt, x0 + 16 * k + gapX, y);
+          return { h: tp, gap: 0, draw: function (y, al) {
+            font(c, 700, tp, 6 * k);
+            var tw = c.measureText(txt).width,
+              dr = 8 * k * (anim && S.aPulse ? 1 + 0.25 * Math.sin(TAU * 2 * p) : 1),
+              gapX = 14 * k,
+              total = 16 * k + gapX + tw,
+              x0 = al === 'left' ? panel.x0 : al === 'right' ? panel.x1 - total : (panel.x0 + panel.x1 - total) / 2,
+              base = y + tp * 0.85;
+            c.fillStyle = C.teal;
+            c.beginPath();
+            c.arc(x0 + 8 * k, base - tp * 0.32, dr, 0, TAU);
+            c.fill();
+            c.fillStyle = C.paper;
+            c.textAlign = 'left';
+            c.fillText(txt, x0 + 16 * k + gapX, base);
+          } };
+        }
+        function drawHandle(c, panel, p, anim) {
+          var it = handleItem(c, panel, p, anim);
+          if (it) it.draw(H - 74 - it.h * 0.85, alignFor(panel));
         }
 
         var clipEl = null; // preview-only video or image
@@ -1324,9 +1329,18 @@
           if (S.layout === 'center') {
             var L0 = g.panels[0],
               R0 = g.panels[1];
-            layoutBlock(c, L0, titleBlock(c, L0, p, anim), alignFor(L0));
-            layoutBlock(c, R0, statsBlock(c, R0, true).concat(ctaBlock(c, R0, p, anim)), alignFor(R0));
-            drawHandle(c, L0, p, anim);
+            if (stats().length) {
+              layoutBlock(c, L0, titleBlock(c, L0, p, anim), alignFor(L0), S.showHandle);
+              layoutBlock(c, R0, statsBlock(c, R0, true).concat(ctaBlock(c, R0, p, anim)), alignFor(R0));
+              drawHandle(c, L0, p, anim);
+            } else {
+              // no stats: the right side would hold a lone button, so the handle moves over to sit under it
+              var cta = ctaBlock(c, R0, p, anim),
+                hi = handleItem(c, R0, p, anim);
+              if (cta.length && hi) cta[0].gap = 34 * (S.scale / 100);
+              layoutBlock(c, L0, titleBlock(c, L0, p, anim), alignFor(L0));
+              layoutBlock(c, R0, cta.concat(hi ? [hi] : []), alignFor(R0));
+            }
           } else {
             var P = g.panels[0];
             layoutBlock(
@@ -1334,6 +1348,7 @@
               P,
               titleBlock(c, P, p, anim).concat(statsBlock(c, P, false), ctaBlock(c, P, p, anim)),
               alignFor(P),
+              S.showHandle,
             );
             drawHandle(c, P, p, anim);
           }
