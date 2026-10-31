@@ -6,16 +6,24 @@ Six templates: gear review, race recap, training lessons, monthly mileage, produ
 
 Palette, typeface, handle and portrait/square format apply to the whole deck. Drafts and resized photos save to this browser's localStorage; private browsing, clearing browser data or switching devices loses that draft. Storage failures display next to the project title. Uploaded photos stay in the browser and are resized to at most 1800 pixels on the long edge.
 
-Export the selected numbered PNG or a ZIP of every numbered PNG at 1080 × 1350 / 1080 × 1080. ZIP generation uses valid uncompressed ZIP entries and snapshots the deck at export start. Large decks consume browser memory. Text and tables have finite space: review the canvas before exporting; long text is limited to the visible layout, and tables support up to four columns and nine rows.
+Export the selected numbered PNG or a ZIP of every numbered PNG at 1080 × 1350 / 1080 × 1080. ZIP generation uses valid uncompressed ZIP entries and snapshots the deck at export start. Large decks consume browser memory. Text and tables have finite space: long text is limited to the visible layout, and tables support up to four columns and nine rows. See Text size & fit below.
 
 Validation:
 
-- `node --test carousel-maker/tests/model.test.mjs`
+- `node --test carousel-maker/tests/model.test.mjs carousel-maker/tests/overflow.test.mjs`
 - `node carousel-maker/tests/browser.cjs` (requires Playwright and Chromium; set CHROME_PATH if necessary)
 
 The browser check covers hub discovery, editing, duplication, reordering, reload persistence, photo uploads, all templates, PNG dimensions, ZIP download and mobile widths. No shared sound or activity behavior is changed.
 
 Photo framing controls are per slide: fill/crop or fit the whole image, 1–3× zoom, horizontal/vertical positioning, 90° rotation, horizontal flip, frame height on non-photo layouts and text-panel opacity on photo layouts. Reset framing restores defaults; replacing a photo also resets framing. Controls persist in drafts, copy with duplicate slides and use the same renderer for previews, thumbnails and PNG/ZIP exports. Existing drafts default to their original framing.
+
+## Text size & fit
+
+A ⚠ on a slide thumbnail (filmstrip and Overview) means some text on that slide won't fully show in the export. Hover or focus it to see what's cut off. Warnings come from the same measuring and wrapping used to draw the slide, so the preview, thumbnails and PNG/ZIP agree. Checking never changes the slide.
+
+What gets flagged: headline or description lines that are hidden, a single word too wide to wrap, a description running into the footer or highlight box, and text boxes whose text runs past their bottom. Fields with character limits are flagged too: small heading (48), stat (22 on Stats, 48 elsewhere), handle (45), comparison tables (9 rows, 4 columns, 28 characters per cell), stats rows (6, label 42, value 22) and chart/table elements (12 rows).
+
+Text size & fit (in the slide panel) has per-slide headline and description size sliders. **Fit text** shrinks the headline first, then the description, then text boxes, in 2px steps, until they fit. It never goes below the readable minimums: **56px headlines, 26px description and text-box text** on a 1080px-wide slide. Text boxes already smaller than 26px are left alone. If shrinking can't help (for example more separate lines than the frame holds), the size is left as it was. Anything still cut off stays flagged and is listed in a message so you can shorten it; fitting never changes your words. Fit is one undo step. Reset sizes returns the slide to its layout defaults. Slides saved before this feature keep their original sizes.
 
 ## Elements and projects
 
@@ -27,7 +35,7 @@ Undo/redo stores the latest 40 edits in memory, including slide changes. Cmd/Ctr
 
 `npm run test:carousel:editor` exercises independent elements, pointer dragging/resizing, undo/redo, layer order, style copying, reusable layouts, project files, brand kits, photo elements, PNG export, reload persistence and mobile widths. Requires Playwright and Chromium.
 
-Grouping, automatic distribution, saved logo assets and a multi-template library are not included. Chart and table layouts support up to 12 rows and tables up to four columns. Text clips to its frame; resize it or lower the font size if needed. For the cleanest result, use blank slides when placing everything manually.
+Grouping, automatic distribution, saved logo assets and a multi-template library are not included. Chart and table layouts support up to 12 rows and tables up to four columns. Text clips to its frame; the ⚠ marker flags it, and Fit text or a larger frame fixes it. For the cleanest result, use blank slides when placing everything manually.
 
 ## Full-slide photo backgrounds
 

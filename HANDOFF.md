@@ -10,7 +10,7 @@ Feature 4 was dropped and is intentionally not listed.
 
 | Order | Feature | Tool | Status |
 |---|---|---|---|
-| 1 | [#3 Text-overflow detection and optional fit](#3-text-overflow-detection-and-optional-fit) | Carousel Maker | todo |
+| 1 | [#3 Text-overflow detection and optional fit](#3-text-overflow-detection-and-optional-fit) | Carousel Maker | done (PR #11) |
 | 2 | [#1 Activity-to-carousel race recap](#1-activity-to-carousel-race-recap) | Activity Studio → Carousel Maker | todo |
 | 3 | [#5 Activity trim and checkpoints](#5-activity-trim-and-checkpoints) | Activity Studio | todo |
 | 4 | [#2 Multi-select, grouping and distribution](#2-multi-select-grouping-and-distribution) | Carousel Maker | todo |

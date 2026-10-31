@@ -104,6 +104,24 @@
           >Use one line per item. For tables, separate columns with a |
           character.</p
         ><label>Highlight / stat<input id="stat" /></label
+        ><fieldset id="textSizeControls" class="textSizePanel"
+          ><legend>Text size & fit</legend
+          ><label
+            >Headline size <output id="titleSizeValue"></output
+            ><input id="titleSize" type="range" min="56" max="130" step="1"
+          /></label
+          ><label
+            >Description size <output id="bodySizeValue"></output
+            ><input id="bodySize" type="range" min="26" max="48" step="1"
+          /></label
+          ><div class="actionRow"
+            ><button id="fitText" type="button">Fit text</button
+            ><button id="resetTextSize" type="button">Reset sizes</button></div
+          ><p class="hint"
+            >Fit shrinks the headline, description and text boxes until they
+            fit, but never below 56 px headlines or 26 px body text. A ⚠ on a
+            slide thumbnail means some text is cut off.</p
+          ></fieldset
         ><div class="labelrow"
           >Photo <button id="removePhoto">Remove</button></div
         ><label class="upload"
