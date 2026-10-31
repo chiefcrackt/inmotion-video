@@ -103,7 +103,10 @@ def leg(name, piece):
 
 def main():
     OUT.mkdir(exist_ok=True)
-    atlas = np.asarray(Image.open(HERE / 'parts-atlas.png').convert('RGBA'))
+    src = HERE / 'parts-atlas-v2.png'   # A9b calmer coat, same shapes
+    if not src.exists():
+        src = HERE / 'parts-atlas.png'
+    atlas = np.asarray(Image.open(src).convert('RGBA'))
     cell = atlas.shape[0] // 3
     rig = {}
     for r, row in enumerate(GRID):
