@@ -1,0 +1,1423 @@
+<!doctype html>
+<html lang="en"
+  ><head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover" /><link
+      rel="icon"
+      href="../favicon.svg"
+      type="image/svg+xml" /><link
+      rel="icon"
+      href="../favicon.png"
+      type="image/png" /><link
+      rel="apple-touch-icon"
+      href="../apple-touch-icon.png" /><meta
+      name="theme-color"
+      content="#0E1A2E" /><style>
+      :root {
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      body {
+        margin: 0;
+      }
+      img {
+        max-width: 100%;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      a.home {
+        font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-size: 13px;
+        color: #9fb0c8;
+        text-decoration: none;
+        flex-basis: 100%;
+      }
+      a.home:hover {
+        color: #e8c96a;
+      }</style
+    ><title>Beat Bed</title>
+    <meta name="claude:viewport-fit-sides" content="cover" />
+    <link rel="stylesheet" href="../shared/fonts.css" /></head
+  ><body
+    ><style>
+      /* Layout: a two-column studio. Live beat pattern on the left, grouped controls on the right; stacks to one column on phones.
+   Single dark look on purpose: the T.im navy is the brand ground. */
+      :root {
+        --navy: #0e1a2e;
+        --panel: #13233d;
+        --panel-2: #182b49;
+        --line: #25395c;
+        --gold: #e8c96a;
+        --teal: #2e9bad;
+        --paper: #f6f4ef;
+        --muted: #9fb0c8;
+        --danger: #f08a7a;
+        --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+        --body: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        background: var(--navy);
+        color: var(--paper);
+        font-family: var(--body);
+        font-size: 15px;
+        line-height: 1.45;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-block: 20px 40px;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      header {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      header h1 {
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: clamp(30px, 5vw, 44px);
+        letter-spacing: 0.5px;
+        margin: 0;
+        text-transform: uppercase;
+        text-wrap: balance;
+      }
+      header .eyebrow {
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: var(--gold);
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        flex-basis: 100%;
+        max-width: 62ch;
+      }
+      .studio {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+      @media (max-width: 860px) {
+        .studio {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .stagebox {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: sticky;
+        top: max(12px, env(safe-area-inset-top, 0px));
+      }
+      @media (max-width: 860px) {
+        .stagebox {
+          position: static;
+        }
+      }
+      .stage {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: repeating-linear-gradient(
+          45deg,
+          #0b1526 0 12px,
+          #0d182b 12px 24px
+        );
+        border-radius: 6px;
+        overflow: hidden;
+        min-height: 200px;
+      }
+      #cv {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        max-height: 62vh;
+        border-radius: 3px;
+      }
+      .stagebar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .readout {
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: 2px;
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+      }
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+      }
+      fieldset {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px 14px 16px;
+        margin: 0;
+        background: var(--panel);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+      }
+      legend {
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: var(--gold);
+        font-size: 14px;
+        text-transform: uppercase;
+        padding: 0 6px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .lab {
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        font-size: 13px;
+        color: var(--muted);
+        text-transform: uppercase;
+        min-width: 84px;
+      }
+      .chip {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--paper);
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 17px;
+        letter-spacing: 1px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        cursor: pointer;
+        line-height: 1;
+        min-height: 36px;
+      }
+      .chip:hover {
+        border-color: var(--teal);
+      }
+      .chip[aria-pressed='true'] {
+        background: var(--gold);
+        color: var(--navy);
+        border-color: var(--gold);
+      }
+      .chip.sm {
+        font-size: 15px;
+        padding: 6px 11px;
+        min-height: 32px;
+      }
+      .chip:focus-visible,
+      .btn:focus-visible,
+      input:focus-visible {
+        outline: 3px solid var(--teal);
+        outline-offset: 2px;
+      }
+      input[type='text'],
+      input[type='number'] {
+        background: var(--navy);
+        border: 1px solid var(--line);
+        color: var(--paper);
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 18px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        width: 110px;
+        letter-spacing: 1px;
+      }
+      input#label {
+        width: 150px;
+        text-transform: uppercase;
+      }
+      .toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--paper);
+      }
+      .toggle input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--teal);
+      }
+      .sounds {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+      }
+      .snd {
+        appearance: none;
+        text-align: left;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--paper);
+        border-radius: 8px;
+        padding: 9px 11px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .snd b {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 17px;
+        letter-spacing: 0.5px;
+      }
+      .snd span {
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .snd[aria-pressed='true'] {
+        border-color: var(--gold);
+        box-shadow: inset 0 0 0 1px var(--gold);
+      }
+      .snd[aria-pressed='true'] b {
+        color: var(--gold);
+      }
+      .btn {
+        appearance: none;
+        border: 0;
+        border-radius: 8px;
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-size: 17px;
+        padding: 11px 16px;
+        cursor: pointer;
+        min-height: 44px;
+      }
+      .btn.primary {
+        background: var(--gold);
+        color: var(--navy);
+      }
+      .btn.rec {
+        background: #d9534f;
+        color: #fff;
+      }
+      .btn.rec.on {
+        background: #7a2b29;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--paper);
+        border: 1px solid var(--line);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .result {
+        border: 1px solid var(--teal);
+        border-radius: 10px;
+        background: var(--panel);
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .result video {
+        width: 100%;
+        max-height: 46vh;
+        background: #000;
+        border-radius: 6px;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .msg {
+        font-size: 14px;
+        margin: 0;
+        color: var(--paper);
+      }
+      .msg.err {
+        color: var(--danger);
+      }
+      .dot {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #d9534f;
+        margin-right: 6px;
+        vertical-align: middle;
+        animation: blink 1s steps(2) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.2;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .dot {
+          animation: none;
+        }
+      }
+      /* Beat Bed additions */
+      .stage.wide {
+        aspect-ratio: 1600 / 760;
+        min-height: 0;
+      }
+      #cv {
+        max-height: none;
+        width: 100%;
+      }
+      .styles {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+      }
+      input[type='range'] {
+        flex: 1;
+        min-width: 120px;
+        accent-color: var(--teal);
+      }
+      .val {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 18px;
+        min-width: 70px;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+
+
+    <style>
+      .secs {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .sec {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) auto minmax(0, 1.6fr) auto;
+        gap: 8px;
+        align-items: center;
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px;
+      }
+      @media (max-width: 520px) {
+        .sec {
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+      }
+      .sec select {
+        background: var(--navy);
+        color: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 16px;
+        padding: 6px 8px;
+        min-width: 0;
+        width: 100%;
+      }
+      .stepper {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .stepper b {
+        font-family: var(--display);
+        font-size: 17px;
+        min-width: 64px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+      }
+      .mini {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .chip.xs {
+        font-size: 13px;
+        padding: 5px 8px;
+        min-height: 30px;
+      }
+      .mix {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr) 46px auto;
+        gap: 8px 10px;
+        align-items: center;
+      }
+      .mix .lab {
+        min-width: 0;
+      }
+      .mix .pct {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 15px;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+    </style>
+
+    <div class="wrap">
+      <header>
+        <a class="home" href="../">← All T.im video tools</a>
+        <span class="eyebrow">T.im · Sound</span>
+        <h1>Beat Bed</h1>
+        <p
+          >A music bed for your videos, made from the same synth kit as the
+          data videos. Pick a style, shape the sound, lay out the song in
+          sections, preview it, then save a WAV and drop it under your clip in
+          CapCut. Everything lands on whole bars, so it ends on the beat.</p
+        >
+      </header>
+
+      <div class="studio">
+        <div class="stagebox">
+          <div class="stage wide"
+            ><canvas
+              id="cv"
+              width="1600"
+              height="760"
+              aria-label="Beat pattern preview"
+            ></canvas
+          ></div>
+          <div class="stagebar">
+            <button class="btn primary" id="play" type="button"
+              >▶ Preview</button
+            >
+            <button class="btn ghost" id="wav" type="button"
+              >Save WAV</button
+            >
+            <span class="readout" id="readout"></span>
+          </div>
+          <p class="msg" id="msg" role="status"></p>
+          <p class="note"
+            >Mixer and sound changes apply live while it plays. Bar lines on
+            the preview are where cuts land on the beat. On iPhone, Save WAV
+            opens the share sheet: pick Save to Files, then add it in CapCut
+            from your files.</p
+          >
+        </div>
+
+        <div class="controls">
+          <fieldset>
+            <legend>Style</legend>
+            <div class="styles" id="styles"></div>
+            <p class="note">Tap a style to hear two bars of it.</p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Tempo, key &amp; feel</legend>
+            <div class="row">
+              <span class="lab">Tempo</span>
+              <input type="range" id="bpm" min="60" max="180" step="1" aria-label="Tempo in beats per minute" />
+              <span class="val" id="bpmv"></span>
+            </div>
+            <div class="row">
+              <span class="lab">Swing</span>
+              <input type="range" id="swing" min="0" max="70" step="1" aria-label="Swing" />
+              <span class="val" id="swingv"></span>
+            </div>
+            <div class="row">
+              <button class="chip sm" id="feeldef" type="button">Style tempo &amp; swing</button>
+            </div>
+            <div class="row" id="keys"><span class="lab">Key</span></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Song</legend>
+            <div class="row" id="modes"><span class="lab">Layout</span></div>
+
+            <div id="simple">
+              <div class="row" id="lens"><span class="lab">Seconds</span></div>
+              <div class="row" id="parts" style="margin-top: 10px"><span class="lab">Parts</span></div>
+            </div>
+
+            <div id="arr" hidden>
+              <div class="row" id="arrPresets"><span class="lab">Start from</span></div>
+              <div class="secs" id="secs"></div>
+              <div class="row">
+                <button class="btn ghost" id="addSec" type="button">+ Add section</button>
+              </div>
+            </div>
+
+            <div class="row">
+              <span class="lab" id="lenLab">Custom</span>
+              <input type="number" id="secsIn" min="2" max="300" step="1" inputmode="numeric" aria-label="Length in seconds" />
+              <button class="chip sm" id="fit" type="button" hidden>Fit sections</button>
+              <span class="note" id="snapnote"></span>
+            </div>
+            <div class="row" id="intros"><span class="lab">Start</span></div>
+            <div class="row" id="endings"><span class="lab">End</span></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Mixer</legend>
+            <div class="mix" id="mix"></div>
+            <label class="toggle"
+              ><input type="checkbox" id="voice" /> Leave room for voice
+              (whole bed plays quieter)</label
+            >
+          </fieldset>
+
+          <fieldset>
+            <legend>Sound</legend>
+            <div class="row" id="waves"><span class="lab">Bass</span></div>
+            <div class="row">
+              <span class="lab">Brightness</span>
+              <input type="range" id="filter" min="0" max="100" step="1" aria-label="Brightness" />
+              <span class="val" id="filterv"></span>
+            </div>
+            <div class="row">
+              <span class="lab">Reverb</span>
+              <input type="range" id="reverb" min="0" max="100" step="1" aria-label="Reverb" />
+              <span class="val" id="reverbv"></span>
+            </div>
+            <div class="row">
+              <span class="lab">Echo</span>
+              <input type="range" id="delay" min="0" max="100" step="1" aria-label="Echo" />
+              <span class="val" id="delayv"></span>
+            </div>
+            <div class="row">
+              <button class="chip sm" id="resetSound" type="button">Reset mixer &amp; sound</button>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        STYLES,
+        KEYS,
+        PARTS,
+        SECTION_TYPES,
+        ARRANGEMENTS,
+        DEFAULT_SHAPING,
+        makeSections,
+        fitSections,
+        bedEvents,
+        makeKit,
+        playEvents,
+        renderBed,
+      } from '../shared/sound/beat.mjs';
+      import { encodeWav } from '../shared/sound/wav.mjs';
+
+      var $ = function (id) {
+        return document.getElementById(id);
+      };
+      var clone = function (o) {
+        return JSON.parse(JSON.stringify(o));
+      };
+      var LENS = [15, 30, 45, 60, 90];
+      var INTROS = [
+        ['cold', 'Straight in'],
+        ['riser', 'Riser'],
+        ['fade', 'Fade in'],
+      ];
+      var ENDINGS = [
+        ['hit', 'Hit on the bar'],
+        ['fade', 'Fade out'],
+        ['sweep', 'Power-down'],
+        ['loop', 'Seamless loop'],
+      ];
+      var PART_NAMES = { drums: 'Drums', hats: 'Hats', bass: 'Bass', chords: 'Chords', hits: 'Hits' };
+      var BED_PARTS = ['drums', 'hats', 'bass', 'chords'];
+      var PRESET_NAMES = { story: 'Story', short: 'Short', buildup: 'Build-up', talk: 'Talk-over' };
+      var WAVES = [
+        ['auto', 'Style'],
+        ['sawtooth', 'Saw'],
+        ['square', 'Square'],
+        ['sine', 'Sine'],
+        ['triangle', 'Soft'],
+        ['808', '808'],
+      ];
+      var DEF = {
+        style: 'cyber',
+        bpm: 120,
+        swing: 0,
+        key: 'E',
+        seconds: 30,
+        intro: 'riser',
+        ending: 'hit',
+        mode: 'simple',
+        layers: { drums: true, hats: true, bass: true, chords: true },
+        sections: fitSections(makeSections('story'), 30, 120),
+        shaping: clone(DEFAULT_SHAPING),
+        voiceRoom: false,
+      };
+      var S = clone(DEF);
+      try {
+        var saved = JSON.parse(localStorage.getItem('tim_beat_bed') || 'null');
+        if (saved)
+          for (var k in saved)
+            if (k in S) S[k] = k === 'shaping' ? Object.assign(clone(DEFAULT_SHAPING), saved[k]) : saved[k];
+        if (!STYLES[S.style]) S.style = 'cyber';
+        if (!Array.isArray(S.sections) || !S.sections.length) S.sections = makeSections('story');
+      } catch (e) {}
+      function persist() {
+        try {
+          localStorage.setItem('tim_beat_bed', JSON.stringify(S));
+        } catch (e) {}
+      }
+      var msg = $('msg');
+      function say(t, err) {
+        msg.textContent = t || '';
+        msg.className = 'msg' + (err ? ' err' : '');
+      }
+      function fmtTime(s) {
+        s = Math.round(s);
+        return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+      }
+      function opts(over) {
+        return Object.assign(
+          {
+            style: S.style,
+            bpm: S.bpm,
+            swing: S.swing / 100,
+            key: S.key,
+            seconds: S.seconds,
+            intro: S.intro,
+            ending: S.ending,
+            layers: S.layers,
+            sections: S.mode === 'arr' ? S.sections : null,
+            shaping: S.shaping,
+            voiceRoom: S.voiceRoom,
+          },
+          over || {},
+        );
+      }
+      function bed() {
+        return bedEvents(opts());
+      }
+
+      // ---------- small UI helpers
+      function chip(label, pressed, onclick, cls) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip ' + (cls || 'sm');
+        b.textContent = label;
+        if (pressed !== null) b.setAttribute('aria-pressed', String(!!pressed));
+        b.onclick = onclick;
+        return b;
+      }
+      function fill(id, items, isOn, set, timeline) {
+        var row = $(id);
+        [].slice.call(row.querySelectorAll('button')).forEach(function (b) {
+          b.remove();
+        });
+        items.forEach(function (it) {
+          row.appendChild(
+            chip(it[1], isOn(it[0]), function () {
+              set(it[0]);
+              timeline === false ? soundChanged() : changed();
+            }),
+          );
+        });
+      }
+      // brightness slider: 0..100 → 300..18000 Hz (log); 100 means wide open
+      function hzFrom(v) {
+        return Math.round(300 * Math.pow(60, v / 100));
+      }
+      function vFromHz(hz) {
+        return Math.round((100 * Math.log(hz / 300)) / Math.log(60));
+      }
+
+      // ---------- render controls
+      function renderStyles() {
+        var sw = $('styles');
+        sw.innerHTML = '';
+        Object.keys(STYLES).forEach(function (id) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'snd';
+          b.setAttribute('aria-pressed', String(S.style === id));
+          b.innerHTML = '<b></b><span></span>';
+          b.querySelector('b').textContent = STYLES[id].name;
+          b.querySelector('span').textContent = STYLES[id].desc + ' ' + STYLES[id].bpm + ' BPM.';
+          b.onclick = function () {
+            if (S.style !== id) {
+              S.style = id;
+              S.bpm = STYLES[id].bpm;
+              S.swing = Math.round(STYLES[id].swing * 100);
+              S.shaping.filter = 0;
+              S.shaping.bassWave = 'auto';
+              // keep the song about the same length at the new tempo
+              if (S.mode === 'arr') S.sections = fitSections(S.sections, S.seconds, S.bpm);
+            }
+            changed(true);
+            preview(true);
+          };
+          sw.appendChild(b);
+        });
+      }
+      function renderSections() {
+        var box = $('secs');
+        box.innerHTML = '';
+        S.sections.forEach(function (sec, i) {
+          var row = document.createElement('div');
+          row.className = 'sec';
+          var sel = document.createElement('select');
+          sel.setAttribute('aria-label', 'Section ' + (i + 1) + ' type');
+          Object.keys(SECTION_TYPES).forEach(function (t) {
+            var o = document.createElement('option');
+            o.value = t;
+            o.textContent = i + 1 + '. ' + SECTION_TYPES[t].name;
+            if (t === sec.type) o.selected = true;
+            sel.appendChild(o);
+          });
+          sel.onchange = function () {
+            sec.type = sel.value;
+            sec.parts = Object.assign({}, SECTION_TYPES[sel.value].parts);
+            changed();
+          };
+          var step = document.createElement('div');
+          step.className = 'stepper';
+          var bl = document.createElement('b');
+          bl.textContent = sec.bars + (sec.bars === 1 ? ' bar' : ' bars');
+          step.appendChild(
+            chip('−', null, function () {
+              sec.bars = Math.max(1, sec.bars - 1);
+              changed();
+            }, 'xs'),
+          );
+          step.appendChild(bl);
+          step.appendChild(
+            chip('+', null, function () {
+              sec.bars = Math.min(64, sec.bars + 1);
+              changed();
+            }, 'xs'),
+          );
+          var parts = document.createElement('div');
+          parts.className = 'mini';
+          BED_PARTS.forEach(function (p) {
+            parts.appendChild(
+              chip(PART_NAMES[p], sec.parts[p], function () {
+                sec.parts[p] = !sec.parts[p];
+                changed();
+              }, 'xs'),
+            );
+          });
+          var tools = document.createElement('div');
+          tools.className = 'mini';
+          tools.appendChild(
+            chip('↑', null, function () {
+              if (i) {
+                S.sections.splice(i - 1, 0, S.sections.splice(i, 1)[0]);
+                changed();
+              }
+            }, 'xs'),
+          );
+          tools.appendChild(
+            chip('↓', null, function () {
+              if (i < S.sections.length - 1) {
+                S.sections.splice(i + 1, 0, S.sections.splice(i, 1)[0]);
+                changed();
+              }
+            }, 'xs'),
+          );
+          tools.appendChild(
+            chip('✕', null, function () {
+              if (S.sections.length > 1) {
+                S.sections.splice(i, 1);
+                changed();
+              }
+            }, 'xs'),
+          );
+          [sel, step, parts, tools].forEach(function (n) {
+            row.appendChild(n);
+          });
+          box.appendChild(row);
+        });
+      }
+      function renderMixer() {
+        var box = $('mix');
+        box.innerHTML = '';
+        PARTS.forEach(function (p) {
+          var m = S.shaping.mix[p];
+          var lab = document.createElement('span');
+          lab.className = 'lab';
+          lab.textContent = PART_NAMES[p];
+          var r = document.createElement('input');
+          r.type = 'range';
+          r.min = 0;
+          r.max = 150;
+          r.value = Math.round(m.vol * 100);
+          r.setAttribute('aria-label', PART_NAMES[p] + ' volume');
+          var pct = document.createElement('span');
+          pct.className = 'pct';
+          pct.textContent = r.value + '%';
+          r.oninput = function () {
+            m.vol = r.value / 100;
+            pct.textContent = r.value + '%';
+            soundChanged(true);
+          };
+          var ms = document.createElement('div');
+          ms.className = 'mini';
+          ms.appendChild(
+            chip('M', m.mute, function () {
+              m.mute = !m.mute;
+              soundChanged();
+            }, 'xs'),
+          );
+          ms.appendChild(
+            chip('S', m.solo, function () {
+              m.solo = !m.solo;
+              soundChanged();
+            }, 'xs'),
+          );
+          ms.children[0].title = 'Mute ' + PART_NAMES[p];
+          ms.children[1].title = 'Solo ' + PART_NAMES[p];
+          [lab, r, pct, ms].forEach(function (n) {
+            box.appendChild(n);
+          });
+        });
+      }
+      function renderControls() {
+        renderStyles();
+        $('bpm').value = S.bpm;
+        $('bpmv').textContent = S.bpm + ' BPM';
+        $('swing').value = S.swing;
+        $('swingv').textContent = S.swing ? S.swing + '%' : 'Straight';
+        fill(
+          'keys',
+          Object.keys(KEYS).map(function (k) {
+            return [k, k + 'm'];
+          }),
+          function (k) {
+            return S.key === k;
+          },
+          function (k) {
+            S.key = k;
+          },
+        );
+        fill(
+          'modes',
+          [
+            ['simple', 'One section'],
+            ['arr', 'Sections'],
+          ],
+          function (v) {
+            return S.mode === v;
+          },
+          function (v) {
+            S.mode = v;
+          },
+        );
+        $('simple').hidden = S.mode !== 'simple';
+        $('arr').hidden = S.mode !== 'arr';
+        $('fit').hidden = S.mode !== 'arr';
+        $('lenLab').textContent = S.mode === 'arr' ? 'Target' : 'Custom';
+        fill(
+          'lens',
+          LENS.map(function (n) {
+            return [n, n + 's'];
+          }),
+          function (n) {
+            return +S.seconds === n;
+          },
+          function (n) {
+            S.seconds = n;
+          },
+        );
+        fill(
+          'parts',
+          BED_PARTS.map(function (p) {
+            return [p, PART_NAMES[p]];
+          }),
+          function (p) {
+            return S.layers[p];
+          },
+          function (p) {
+            S.layers[p] = !S.layers[p];
+          },
+        );
+        fill(
+          'arrPresets',
+          Object.keys(ARRANGEMENTS).map(function (k) {
+            return [k, PRESET_NAMES[k] || k];
+          }),
+          function () {
+            return false;
+          },
+          function (k) {
+            S.sections = fitSections(makeSections(k), S.seconds, S.bpm);
+          },
+        );
+        renderSections();
+        $('secsIn').value = S.seconds;
+        fill(
+          'intros',
+          INTROS,
+          function (v) {
+            return S.intro === v;
+          },
+          function (v) {
+            S.intro = v;
+          },
+        );
+        fill(
+          'endings',
+          ENDINGS,
+          function (v) {
+            return S.ending === v;
+          },
+          function (v) {
+            S.ending = v;
+          },
+        );
+        renderMixer();
+        $('voice').checked = !!S.voiceRoom;
+        fill(
+          'waves',
+          WAVES,
+          function (v) {
+            return S.shaping.bassWave === v;
+          },
+          function (v) {
+            S.shaping.bassWave = v;
+          },
+          false,
+        );
+        var hz = S.shaping.filter || STYLES[S.style].filter;
+        $('filter').value = vFromHz(hz);
+        $('filterv').textContent = hz >= 17500 ? 'Open' : (hz / 1000).toFixed(1) + 'k';
+        $('reverb').value = Math.round(S.shaping.reverb * 100);
+        $('reverbv').textContent = Math.round(S.shaping.reverb * 100) + '%';
+        $('delay').value = Math.round(S.shaping.delay * 100);
+        $('delayv').textContent = S.shaping.delay ? Math.round(S.shaping.delay * 100) + '%' : 'Off';
+        var b = bed();
+        $('snapnote').textContent =
+          S.mode === 'arr'
+            ? 'Sections total ' + fmtTime(b.body) + ' (' + b.bars + ' bars).'
+            : Math.abs(b.body - S.seconds) > 0.05
+              ? 'Snaps to ' + b.body.toFixed(1) + ' s (' + b.bars + ' bars).'
+              : '';
+        $('readout').textContent =
+          b.bpm + ' BPM · 1 bar = ' + b.bar.toFixed(2) + ' s · ' + b.bars + ' bars · ' + fmtTime(b.total);
+      }
+
+      // timeline changes rebuild the notes; restart a running preview so you hear the change
+      function changed(noRestart) {
+        persist();
+        renderControls();
+        draw();
+        if (live && !live.short && !noRestart) preview(false);
+        else if (live && noRestart) stop();
+      }
+      // mixer/sound changes apply live
+      function soundChanged(quiet) {
+        persist();
+        if (!quiet) renderControls();
+        if (live) live.kit.shape(S.shaping, S.style, S.bpm);
+        draw();
+      }
+      $('bpm').oninput = function () {
+        $('bpmv').textContent = this.value + ' BPM';
+      };
+      $('bpm').onchange = function () {
+        S.bpm = +this.value;
+        changed();
+      };
+      $('swing').oninput = function () {
+        $('swingv').textContent = +this.value ? this.value + '%' : 'Straight';
+      };
+      $('swing').onchange = function () {
+        S.swing = +this.value;
+        changed();
+      };
+      $('feeldef').onclick = function () {
+        S.bpm = STYLES[S.style].bpm;
+        S.swing = Math.round(STYLES[S.style].swing * 100);
+        changed();
+      };
+      $('secsIn').onchange = function () {
+        S.seconds = Math.max(2, Math.min(300, +this.value || 30));
+        changed();
+      };
+      $('fit').onclick = function () {
+        S.sections = fitSections(S.sections, S.seconds, S.bpm);
+        changed();
+      };
+      $('addSec').onclick = function () {
+        if (S.sections.length >= 16) return;
+        S.sections.push({ type: 'drop', bars: 4, parts: Object.assign({}, SECTION_TYPES.drop.parts) });
+        changed();
+      };
+      $('voice').onchange = function () {
+        S.voiceRoom = this.checked;
+        changed();
+      };
+      $('filter').oninput = function () {
+        var hz = hzFrom(+this.value);
+        S.shaping.filter = hz >= 17500 ? 18000 : hz;
+        $('filterv').textContent = hz >= 17500 ? 'Open' : (hz / 1000).toFixed(1) + 'k';
+        soundChanged(true);
+      };
+      $('reverb').oninput = function () {
+        S.shaping.reverb = this.value / 100;
+        $('reverbv').textContent = this.value + '%';
+        soundChanged(true);
+      };
+      $('delay').oninput = function () {
+        S.shaping.delay = this.value / 100;
+        $('delayv').textContent = +this.value ? this.value + '%' : 'Off';
+        soundChanged(true);
+      };
+      $('resetSound').onclick = function () {
+        S.shaping = clone(DEFAULT_SHAPING);
+        S.voiceRoom = false;
+        soundChanged();
+      };
+
+      // ---------- pattern preview
+      var cv = $('cv'),
+        ctx = cv.getContext('2d');
+      var C = {
+        navy: '#0E1A2E',
+        gold: '#E8C96A',
+        teal: '#2E9BAD',
+        paper: '#F6F4EF',
+        muted: '#9FB0C8',
+      };
+      var F = '"Barlow Condensed","Arial Narrow",Arial,sans-serif';
+      var ROWS = [
+        ['CHORDS', ['pad', 'pluck', 'keys', 'crackle'], 'chords'],
+        ['BASS', ['bass'], 'bass'],
+        ['HATS', ['hat', 'shaker'], 'hats'],
+        ['SNARE', ['snare', 'clap', 'rim', 'tom'], 'drums'],
+        ['KICK', ['kick', 'boom'], 'drums'],
+        ['HITS', ['riser', 'stab', 'sub', 'chime', 'sweep', 'crash'], 'hits'],
+      ];
+      var playhead = -1;
+      function audible(part) {
+        var mix = S.shaping.mix,
+          anySolo = PARTS.some(function (p) {
+            return mix[p].solo;
+          });
+        var m = mix[part];
+        return !(m.mute || (anySolo && !m.solo) || m.vol === 0);
+      }
+      function draw() {
+        var W = cv.width,
+          H = cv.height,
+          b = bed();
+        ctx.fillStyle = C.navy;
+        ctx.fillRect(0, 0, W, H);
+        var x0 = 180,
+          x1 = W - 40,
+          top = 150,
+          rowH = (H - top - 70) / ROWS.length;
+        var span = Math.max(b.total, 0.5),
+          X = function (t) {
+            return x0 + (t / span) * (x1 - x0);
+          };
+        ctx.font = '700 36px ' + F;
+        ctx.fillStyle = C.gold;
+        ctx.fillText((STYLES[b.style].name + ' · ' + S.key + 'm · ' + b.bpm + ' BPM').toUpperCase(), 40, 52);
+        ctx.fillStyle = C.muted;
+        ctx.textAlign = 'right';
+        ctx.fillText(fmtTime(b.total), W - 40, 52);
+        ctx.textAlign = 'left';
+        // sections
+        b.sections.forEach(function (s, i) {
+          var xa = X(s.start),
+            xb = X(s.end);
+          ctx.fillStyle = i % 2 ? 'rgba(46,155,173,0.28)' : 'rgba(232,201,106,0.22)';
+          ctx.fillRect(xa, 80, xb - xa - 2, 46);
+          var name = s.type === 'main' ? 'WHOLE BED' : SECTION_TYPES[s.type].name.toUpperCase();
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(xa, 80, xb - xa - 4, 46);
+          ctx.clip();
+          ctx.fillStyle = C.paper;
+          ctx.font = '700 26px ' + F;
+          ctx.fillText(name, xa + 8, 112);
+          ctx.restore();
+        });
+        // bar grid
+        var every = b.bars > 48 ? 8 : b.bars > 24 ? 4 : b.bars > 12 ? 2 : 1;
+        for (var i = 0; i <= b.bars; i++) {
+          var x = X(i * b.bar);
+          ctx.fillStyle = i % 4 === 0 ? 'rgba(246,244,239,0.22)' : 'rgba(246,244,239,0.08)';
+          ctx.fillRect(x, top - 10, i % 4 === 0 ? 2 : 1, H - top - 60);
+          if (i < b.bars && i % every === 0) {
+            ctx.fillStyle = C.muted;
+            ctx.font = '700 28px ' + F;
+            ctx.fillText(String(i + 1), x + 5, H - 26);
+          }
+        }
+        ROWS.forEach(function (r, ri) {
+          var y = top + ri * rowH;
+          ctx.fillStyle = audible(r[2]) ? C.muted : 'rgba(159,176,200,0.35)';
+          ctx.font = '700 30px ' + F;
+          ctx.fillText(r[0], 40, y + rowH * 0.64);
+          ctx.fillStyle = 'rgba(246,244,239,0.04)';
+          ctx.fillRect(x0, y + 4, x1 - x0, rowH - 8);
+        });
+        b.events.forEach(function (e) {
+          var ri = -1;
+          ROWS.forEach(function (r, i) {
+            if (r[1].indexOf(e.kind) >= 0) ri = i;
+          });
+          if (ri < 0) return;
+          var y = top + ri * rowH,
+            x = X(e.t),
+            hh = rowH - 16;
+          ctx.globalAlpha = audible(e.part) ? 1 : 0.22;
+          if (e.kind === 'pad' || e.kind === 'bass' || e.kind === 'keys' || e.kind === 'crackle') {
+            ctx.fillStyle = ri === 0 ? 'rgba(46,155,173,0.55)' : 'rgba(46,155,173,0.85)';
+            var w = Math.max(2, X(e.t + e.d) - x - 1);
+            var hy = ri === 1 ? y + 8 + hh * (e.f > 140 ? 0.15 : 0.5) : e.kind === 'crackle' ? y + hh - 4 : y + 8;
+            ctx.fillRect(x, hy, w, ri === 1 ? hh * 0.35 : e.kind === 'crackle' ? 6 : e.kind === 'keys' ? hh * 0.4 : hh);
+          } else if (ri === 5) {
+            ctx.fillStyle = C.gold;
+            if (e.kind === 'riser') {
+              ctx.beginPath();
+              ctx.moveTo(x, y + rowH - 8);
+              ctx.lineTo(X(e.t + e.d), y + 8);
+              ctx.lineTo(X(e.t + e.d), y + rowH - 8);
+              ctx.closePath();
+              ctx.globalAlpha *= 0.5;
+              ctx.fill();
+            } else ctx.fillRect(x - 3, y + 8, 6, hh);
+          } else {
+            ctx.fillStyle = ri === 4 ? C.gold : ri === 3 ? C.paper : C.muted;
+            var mw = Math.max(2, Math.min(10, ((x1 - x0) / span) * 0.06));
+            var mh = hh * Math.min(1, (e.v || 0.1) / (ri === 2 ? 0.08 : 0.5));
+            ctx.fillRect(x, y + 8 + (hh - mh) / 2, mw, mh);
+          }
+          ctx.globalAlpha = 1;
+        });
+        b.events.forEach(function (e) {
+          ctx.fillStyle = C.muted;
+          ctx.font = '700 22px ' + F;
+          if (e.kind === 'fadeIn') ctx.fillText('FADE IN →', X(0) + 6, top - 16);
+          if (e.kind === 'fadeOut') ctx.fillText('FADE OUT →', X(e.t) + 6, top - 16);
+        });
+        if (b.total > b.body) {
+          ctx.fillStyle = 'rgba(232,201,106,0.12)';
+          ctx.fillRect(X(b.body), top - 10, X(b.total) - X(b.body), H - top - 60);
+        }
+        if (playhead >= 0) {
+          ctx.fillStyle = C.paper;
+          ctx.fillRect(X(playhead) - 1, 76, 3, H - 76 - 40);
+        }
+      }
+
+      // ---------- live preview
+      var live = null;
+      function stop() {
+        if (!live) return;
+        try {
+          live.ctx.close();
+        } catch (e) {}
+        cancelAnimationFrame(live.raf);
+        live = null;
+        playhead = -1;
+        $('play').textContent = '▶ Preview';
+        draw();
+      }
+      function preview(short) {
+        stop();
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) {
+          say('This browser can’t play Web Audio.', true);
+          return;
+        }
+        var ac = new AC();
+        if (ac.resume) ac.resume().catch(function () {});
+        var b = bedEvents(
+          short
+            ? opts({ sections: null, seconds: (60 / S.bpm) * 8, intro: 'cold', ending: 'loop', layers: { drums: true, hats: true, bass: true, chords: true } })
+            : opts(),
+        );
+        var kit = makeKit(ac, ac.destination, { volume: 0.5, music: S.voiceRoom ? 0.5 : 1, seed: 7 });
+        kit.shape(S.shaping, S.style, S.bpm);
+        var t0 = ac.currentTime + 0.12;
+        playEvents(kit, t0, b);
+        live = { ctx: ac, kit: kit, raf: 0, short: !!short };
+        $('play').textContent = '■ Stop';
+        var tick = function () {
+          if (!live) return;
+          var t = ac.currentTime - t0;
+          playhead = short ? -1 : Math.max(0, t);
+          draw();
+          if (t < b.total + 0.3) live.raf = requestAnimationFrame(tick);
+          else stop();
+        };
+        live.raf = requestAnimationFrame(tick);
+      }
+      $('play').onclick = function () {
+        if (live) stop();
+        else preview(false);
+      };
+
+      // ---------- save
+      $('wav').onclick = function () {
+        stop();
+        var btn = $('wav');
+        btn.disabled = true;
+        say('Building the WAV…');
+        renderBed(opts())
+          .then(function (r) {
+            var name =
+              'tim-beat-' +
+              r.bed.style +
+              '-' +
+              r.bed.bpm +
+              'bpm-' +
+              S.key.replace('#', 's').toLowerCase() +
+              'm-' +
+              Math.round(r.bed.total) +
+              's.wav';
+            saveFile(name, new Blob([encodeWav(r.buffer)], { type: 'audio/wav' }), msg);
+          })
+          .catch(function (e) {
+            say('Couldn’t build the WAV here (' + (e && e.message) + ').', true);
+          })
+          .then(function () {
+            btn.disabled = false;
+          });
+      };
+
+        // ---------- saving: artifact downloads capability, then the share sheet on phones, then a normal download
+        var downloads = null;
+        if (window.claude && claude.use) {
+          claude
+            .use('downloads')
+            .then(function (d) {
+              downloads = d;
+            })
+            .catch(function () {});
+        }
+        function typeFor(name) {
+          return /\.png$/.test(name)
+            ? 'image/png'
+            : /\.mp4$/.test(name)
+              ? 'video/mp4'
+              : /\.webm$/.test(name)
+                ? 'video/webm'
+                : /\.wav$/.test(name)
+                  ? 'audio/wav'
+                  : /\.zip$/.test(name)
+                    ? 'application/zip'
+                    : 'application/octet-stream';
+        }
+        function fallbackSave(name, data, note) {
+          var blob = data instanceof Blob ? data : new Blob([data], { type: typeFor(name) }),
+            file = null;
+          try {
+            file = new File([blob], name, { type: blob.type || typeFor(name) });
+          } catch (e) {}
+          function anchor() {
+            var u = URL.createObjectURL(blob),
+              a = document.createElement('a');
+            a.href = u;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(function () {
+              URL.revokeObjectURL(u);
+            }, 5000);
+            note.textContent = 'Downloaded ' + name + '.';
+          }
+          if (
+            file &&
+            // share sheet on phones and tablets only (Save Video → Photos); computers download directly
+            (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+              (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)) &&
+            navigator.canShare &&
+            navigator.canShare({ files: [file] })
+          ) {
+            navigator
+              .share({ files: [file] })
+              .then(function () {
+                note.textContent = /\.(mp4|webm)$/.test(name)
+                  ? 'Done. If you picked Save Video, it’s in Photos.'
+                  : /\.png$/.test(name)
+                    ? 'Done. If you picked Save Image, it’s in Photos.'
+                    : 'Done. If you picked Save to Files, it’s in Files.';
+              })
+              .catch(function (e) {
+                if (e && e.name === 'AbortError') note.textContent = 'Not saved.';
+                else anchor();
+              });
+            return;
+          }
+          anchor();
+        }
+        function saveFile(name, data, note) {
+          if (!downloads) {
+            fallbackSave(name, data, note);
+            return;
+          }
+          downloads
+            .save({ filename: name, data: data })
+            .then(function (r) {
+              note.textContent = r && r.status === 'saved' ? 'Saved ' + name + '.' : 'Sent ' + name + '.';
+            })
+            .catch(function (e) {
+              var c = e && e.code;
+              note.textContent =
+                c === 'declined'
+                  ? 'Not saved.'
+                  : c === 'rate_limited'
+                    ? 'A save is already open. Finish that one first.'
+                    : c === 'too_large'
+                      ? 'That file is too large to save here.'
+                      : 'Couldn’t save the file here.';
+            });
+        }
+
+
+      renderControls();
+      draw();
+      if (document.fonts && document.fonts.load)
+        document.fonts.load('700 28px "Barlow Condensed"').then(draw, draw);
+    </script>
+  </body>
+</html>

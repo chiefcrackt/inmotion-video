@@ -11,9 +11,9 @@ import {
 } from '../shared/sound/model.mjs';
 import { dryData, protect } from '../shared/sound/engine.mjs';
 import { encodeWav } from '../shared/sound/wav.mjs';
-test('30 varied factory presets round trip with versioned schema', () => {
-  assert.equal(FACTORY.length, 30);
-  assert.equal(new Set(FACTORY.map((p) => JSON.stringify(p.layers))).size, 30);
+test('35 varied factory presets round trip with versioned schema', () => {
+  assert.equal(FACTORY.length, 35);
+  assert.equal(new Set(FACTORY.map((p) => JSON.stringify(p.layers))).size, 35);
   for (const p of FACTORY)
     assert.deepEqual(preset(JSON.parse(JSON.stringify(p))), p);
   assert.throws(() => preset({ version: 2, layers: [] }));

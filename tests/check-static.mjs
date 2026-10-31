@@ -14,6 +14,8 @@ const files = [
   'carousel-maker/model.mjs',
   'index.html',
   'sound-forge/index.html',
+  'beat-bed/index.html',
+  'shared/sound/beat.mjs',
   'sound-forge/app.mjs',
   'shared/sound/engine.mjs',
   'shared/sound/model.mjs',

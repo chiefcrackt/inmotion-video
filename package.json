@@ -5,7 +5,7 @@
   "scripts": {
     "test:hub": "node tests/hub.mjs",
     "build": "node activity-studio/build.mjs && node tests/check-static.mjs",
-    "test": "node --test activity-studio/tests/*.test.mjs tests/sound.test.mjs carousel-maker/tests/model.test.mjs carousel-maker/tests/overflow.test.mjs",
+    "test": "node --test activity-studio/tests/*.test.mjs tests/sound.test.mjs tests/beat.test.mjs carousel-maker/tests/model.test.mjs carousel-maker/tests/overflow.test.mjs",
     "test:browser": "node activity-studio/tests/browser.mjs && node tests/sound-browser.cjs",
     "preview": "node activity-studio/serve.mjs",
     "test:sound:browser": "node tests/sound-browser.cjs",

@@ -16,6 +16,9 @@ Feature 4 was dropped and is intentionally not listed.
 | 4 | [#2 Multi-select, grouping and distribution](#2-multi-select-grouping-and-distribution) | Carousel Maker | todo |
 | 5 | [#6 Shared brand kits across visual tools](#6-shared-brand-kits-across-visual-tools) | Shared | todo |
 | 6 | [#7 Shared recording lifecycle](#7-shared-recording-lifecycle) | Shared (Title Maker first) | todo |
+| 7 | [#8 Tier List Maker](#8-tier-list-maker) | New tool `/tier-list/` | todo |
+| 8 | [#9 Beat Bed](#9-beat-bed) | New tool `/beat-bed/` + `shared/sound/beat.mjs` | done |
+| 9 | [#10 Data-kit hit presets](#10-data-kit-hit-presets) | Sound Forge (`shared/sound/presets.mjs`) | done |
 
 Open question for #1: decide how it relates to the Race Recap download pack
 (`tools/race-recap/`) before building — a new carousel flow, or a way to feed
@@ -136,6 +139,61 @@ handle hidden-tab recording explicitly and support repeat exports.
 exercise cancel, unsupported codecs, recorder failure and recording
 again after each outcome. Keep browser workarounds until real-device
 evidence supports removal; emulation cannot verify iPhone sharing.
+
+## #8 Tier List Maker
+
+Where: `tier-list/index.html`. Came from the gel tier list post (carousel plus
+an animated Reel where each item drops into its tier).
+
+Items carry a name, a subtitle (flavor), a tier, up to four `Label | value`
+notes and a one-line verdict, plus an optional photo. Photos are resized on the
+device; an optional "Remove white background" flood-fills near-white from the
+edges and trims the empty border so product shots sit cleanly. Five tier rows
+with editable labels (default S A B C F), optional hiding of empty rows.
+
+Outputs: (1) a 1080×1350 carousel, tier board first then one slide per item,
+saved as numbered PNGs or one ZIP; (2) a tier-reveal video in 9:16 or 16:9:
+intro card, each item shown for a chosen read time with a hidden tier, then it
+flies into its row; the full board ends on an editable question. Order can be
+worst to best (default, top tier lands last), best to worst or as listed.
+Sound sets Cyber, Soft, Minimal or None, previewed on tap, scheduled on the
+same clock as the frames. Navy or green-screen background; on green, fades
+become cuts and glitch/scanline effects are off.
+
+**Acceptance:** works and saves on a phone; no sideways scroll at 400px; a
+recording produces a file of the expected length; PNG and ZIP exports match the
+preview; settings and items (photos included, within storage limits) persist.
+
+## #9 Beat Bed
+
+Where: `beat-bed/index.html`, engine in `shared/sound/beat.mjs`. Came from the
+120 BPM E-minor cyber loop under the data videos.
+
+Eight styles (Cyber, Soft, Minimal, Drive, Lo-fi, Synthwave, Cinematic,
+Trap), tempo, swing, minor key, intro (cold, riser, fade in) and ending (hit
+on the bar, fade out, power-down, seamless loop). Song layout is either one
+section of N seconds with part toggles, or an arrangement of sections (Intro,
+Build, Drop, Verse, Breakdown, Outro) with bars and parts per section; builds
+end in a riser and snare roll, drops open with a sub and crash. Presets
+(Story, Short, Build-up, Talk-over) and "Fit sections" scale it to a target
+length. Mixer: volume, mute and solo for drums, hats, bass, chords and hits.
+Sound: bass waveform (incl. 808), brightness, reverb, tempo-synced echo.
+Mixer and sound changes apply live while previewing; WAV export renders the
+same graph offline at 48 kHz stereo.
+
+`beat.mjs` exposes `bedEvents()` (pure, testable timeline of notes) and
+`makeKit()`/`playEvents()` (Web Audio rendering), so other tools (Tier List
+Maker first) can put the same bed and hits under their videos.
+
+**Acceptance:** same settings render the same WAV; length matches the readout;
+`node --test tests/beat.test.mjs` covers bar snapping, endings and styles.
+
+## #10 Data-kit hit presets
+
+Where: `shared/sound/presets.mjs`. Add the hits used in the data videos that
+the 30 factory presets don't already cover: Synth Stab, Mile Tick, Finish
+Chime, Down Sweep and CRT Power-Down (Sub Bass Hit and Dark Riser already
+exist). Existing preset ids stay unchanged.
 
 ---
 

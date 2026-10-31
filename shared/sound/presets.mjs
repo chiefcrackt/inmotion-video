@@ -103,3 +103,75 @@ export const FACTORY = recipes.map(
     });
   },
 );
+
+// Data-kit hits from the T.im data videos (ghost races, replays, tier reels).
+// Hand-built so they match the Beat Bed / Tier List kit; ids continue the factory list.
+const hit = (o) => ({
+  volume: 0.32,
+  attack: 0.004,
+  decay: 0.12,
+  sustain: 0.25,
+  release: 0.12,
+  fadeIn: 0.002,
+  fadeOut: 0.05,
+  ...o,
+});
+const kit = [
+  [
+    'Synth Stab',
+    1,
+    [
+      hit({ name: 'Root', source: 'square', frequency: 329.63, endFrequency: 329.63, duration: 0.32, lowpass: 2600, pan: -0.15 }),
+      hit({ name: 'Third', source: 'square', frequency: 392, endFrequency: 392, duration: 0.32, lowpass: 2600 }),
+      hit({ name: 'Fifth', source: 'square', frequency: 493.88, endFrequency: 493.88, duration: 0.32, lowpass: 2600, pan: 0.15 }),
+      hit({ name: 'Detune', source: 'sawtooth', frequency: 331.6, endFrequency: 331.6, duration: 0.32, lowpass: 2200, volume: 0.2, reverb: 0.12 }),
+    ],
+  ],
+  [
+    'Mile Tick',
+    4,
+    [
+      hit({ name: 'Tick', source: 'square', frequency: 1760, endFrequency: 1760, duration: 0.07, lowpass: 4000, volume: 0.3, sustain: 0.6 }),
+      hit({ name: 'Tock', source: 'square', frequency: 2349, endFrequency: 2349, duration: 0.07, start: 0.07, lowpass: 4000, volume: 0.22, sustain: 0.6 }),
+    ],
+  ],
+  [
+    'Finish Chime',
+    4,
+    [
+      hit({ name: 'Note 1', source: 'square', frequency: 1318.5, endFrequency: 1318.5, duration: 0.3, lowpass: 6000, volume: 0.22, reverb: 0.2 }),
+      hit({ name: 'Note 2', source: 'square', frequency: 1975.5, endFrequency: 1975.5, duration: 0.3, start: 0.06, lowpass: 6000, volume: 0.2, reverb: 0.2 }),
+      hit({ name: 'Note 3', source: 'square', frequency: 2637, endFrequency: 2637, duration: 0.3, start: 0.12, lowpass: 6000, volume: 0.18, reverb: 0.2 }),
+    ],
+  ],
+  [
+    'Down Sweep',
+    2,
+    [
+      hit({ name: 'Sweep', source: 'sawtooth', frequency: 900, endFrequency: 40, duration: 0.45, lowpass: 3000, volume: 0.36, sustain: 0.6 }),
+      hit({ name: 'Sub', source: 'sine', frequency: 95, endFrequency: 30, duration: 0.75, volume: 0.5, sustain: 0.4, release: 0.3 }),
+    ],
+  ],
+  [
+    'CRT Power-Down',
+    0,
+    [
+      hit({ name: 'Whine', source: 'sine', frequency: 2400, endFrequency: 60, duration: 0.55, volume: 0.22, sustain: 0.7, release: 0.2 }),
+      hit({ name: 'Static', source: 'filtered-noise', frequency: 3000, endFrequency: 800, duration: 0.18, highpass: 1500, volume: 0.2, sustain: 0.3 }),
+      hit({ name: 'Thump', source: 'sine', frequency: 120, endFrequency: 38, duration: 0.4, start: 0.42, volume: 0.45, sustain: 0.3 }),
+      hit({ name: 'Click', source: 'noise', frequency: 1000, endFrequency: 1000, duration: 0.03, start: 0.5, highpass: 3000, volume: 0.3, sustain: 0.2 }),
+    ],
+  ],
+];
+kit.forEach(([name, c, layers], i) =>
+  FACTORY.push(
+    preset({
+      version: 1,
+      id: `factory-${30 + i}`,
+      name,
+      category: CATEGORIES[c],
+      seed: 52001 + i * 733,
+      layers,
+    }),
+  ),
+);

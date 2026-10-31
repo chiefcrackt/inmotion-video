@@ -465,9 +465,9 @@
             role="group"
             aria-label="Filter tools by category"
             ><button type="button" data-filter="all" aria-pressed="true"
-              >All tools <span>13</span></button
+              >All tools <span>15</span></button
             ><button type="button" data-filter="video" aria-pressed="false"
-              >Video, covers & sound <span>6</span></button
+              >Video, covers & sound <span>8</span></button
             ><button type="button" data-filter="running" aria-pressed="false"
               >Running & activity <span>4</span></button
             ><button
@@ -484,7 +484,7 @@
             role="status"
             aria-live="polite"
             aria-atomic="true"
-            >Showing all 12 tools</p
+            >Showing all 15 tools</p
           >
         </div>
         <div class="categories">
@@ -501,7 +501,7 @@
                   >Titles, thumbnails, promos and sound effects for your next
                   upload.</p
                 ></div
-              ><span class="category-count">7 tools</span></div
+              ><span class="category-count">8 tools</span></div
             >
             <div class="tools">
               <a
@@ -522,8 +522,18 @@
                 href="sound-forge/"
                 ><span class="k">Sound design</span><h3>Sound Forge</h3
                 ><p
-                  >Create layered effects from 30 original presets, synthesize
+                  >Create layered effects from 35 original presets, synthesize
                   sounds, import samples, and export stereo WAV.</p
+                ><span class="go">Open →</span></a
+              >
+              <a
+                class="tool"
+                data-keywords="audio music beat bed background track loop wav bpm lo-fi synthwave cinematic trap sections mixer"
+                href="beat-bed/"
+                ><span class="k">Music</span><h3>Beat Bed</h3
+                ><p
+                  >A music bed in eight styles. Lay it out in sections, mix the
+                  parts, shape the sound, and save a WAV that ends on the beat.</p
                 ><span class="go">Open →</span></a
               >
               <a
@@ -757,10 +767,11 @@
               String(button.dataset.filter === selected),
             ),
           );
+          const total = document.querySelectorAll('.tool').length;
           document.querySelector('#result-count').textContent =
-            count === 12
-              ? 'Showing all 12 tools'
-              : 'Showing ' + count + ' of 12 tools';
+            count === total
+              ? 'Showing all ' + total + ' tools'
+              : 'Showing ' + count + ' of ' + total + ' tools';
           document.querySelector('#empty').hidden = count !== 0;
         }
         search.addEventListener('input', update);

@@ -3,7 +3,7 @@
 Open `sound-forge/` through a local HTTP server or GitHub Pages. Select a preset,
 press **Preview**, adjust the four quick controls, and export stereo WAV.
 There is no build framework, runtime dependency, backend, API key, or paid service.
-The root tool hub links to the studio. All 30 factory sounds are original
+The root tool hub links to the studio. All 35 factory sounds are original
 procedural recipes; no third-party samples are distributed.
 
 ## Files and architecture
@@ -16,7 +16,7 @@ procedural recipes; no third-party samples are distributed.
 * `shared/sound/engine.mjs`: Web Audio oscillators, deterministic noise, FM, sweeps and
   envelopes; offline filters, convolution, distortion, stereo pan and
   delay. The complete rendered buffer is used by both preview and WAV export.
-* `shared/sound/presets.mjs`: 30 distinct multilayer recipes in six categories.
+* `shared/sound/presets.mjs`: 30 distinct multilayer recipes in six categories, plus five hand-built data-kit hits (Synth Stab, Mile Tick, Finish Chime, Down Sweep, CRT Power-Down).
 * `shared/sound/storage.mjs`: shared IndexedDB presets and original audio assets,
   a bounded decoded-buffer cache, portable project packing and unpacking.
 * `shared/sound/wav.mjs`: stereo/mono interleaved 16-bit PCM encoder and downloads.
