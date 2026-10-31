@@ -40,6 +40,8 @@ try {
   for (const link of links) {
     await page.locator(`a.tool[href="${link}"]`).click();
     assert.equal(new URL(page.url()).pathname, '/' + link);
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('h1').first().waitFor();
     assert.equal(await page.locator('h1').count(), 1);
     await page.goBack();
   }
