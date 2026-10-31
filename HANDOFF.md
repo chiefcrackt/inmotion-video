@@ -151,6 +151,7 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A4 Recap carousel artwork](#a4-recap-carousel-artwork) | waits on feature #1 | blocked | — |
 | [A5 High-res Hooper](#a5-high-res-hooper) | `special-post/artwork/hooper/` | todo | todo |
 | [A6 Sample photos for templates](#a6-sample-photos-for-templates) | `carousel-maker/samples/` | todo | todo |
+| [A7 Redraw the Special Post runners](#a7-redraw-the-special-post-runners) | `special-post/artwork/runners/<id>/` | todo (Russ first) | todo |
 
 ## Rules for every art task
 
@@ -307,3 +308,72 @@ Natural photographic look; keep a calmer area in the upper half for headlines.
 
 **Wire-in (Claude):** show the samples in template previews and offer "Try a
 sample photo" in Carousel Maker, clearly labelled as a sample.
+
+## A7 Redraw the Special Post runners
+
+**Why:** in Special Post, only the original Tristan and Sam (blue shorts) look
+natural. The others were assembled from parts never drawn to go together:
+
+- **Neck:** each head was cut from a photo with a flat line at the bottom and
+  a small skin block added as a neck, then pinned to Tristan's torso. Some
+  still carry bits of Tristan's vest strap.
+- **Chest:** each torso is Tristan's hydration-vest outline filled with one
+  flat color, so it reads as a slab with a hump on the back.
+- **Hips:** the hips and shorts are Tristan's camo shorts recolored, keeping
+  their cut and faint flame shapes. Arms also show a faint sleeve band and
+  watch.
+
+The fix is a complete, matched parts set per runner, drawn in the original
+Tristan's style so neck, chest and hips are designed together.
+
+**Order:** do **Russ first** as a pilot. Claude wires it in and Tristan
+reviews it moving before the rest are drawn.
+
+**Style and grid target:** `river-run/artwork/tristan-parts-reference.png`
+(same 3×3 grid, cell order, proportions and flat-vector look as the original
+Tristan, which is the one that looks right). Cell positions are in
+`river-run/artwork/layout.json`.
+
+**Who's who:** `special-post/artwork/runners/<id>-reference.png` shows each
+runner's current head (left) and how they look today mid-stride (right). Use
+the head for likeness and the right side for outfit colors only — not for body
+shape.
+
+| id | Runner | Look |
+|---|---|---|
+| `shades` | Russ | Long wavy brown hair, dark sunglasses, mustache and goatee; black tank top, black running shorts, white socks, tan shoes |
+| `beard` | Shirtless | Short ginger hair, full ginger beard; no shirt (natural chest and stomach, lightly defined, not a flat block), rust-brown shorts, white socks, navy shoes |
+| `samk` | Sam K | Long wavy light-brown hair; cream crop top, black shorts over black full-length leggings, light-gray shoes |
+| `leggings` | Leggings | Long dark-brown hair; white crop tank, black full-length leggings, white-gray shoes |
+| `tristan2` | Tristan 2 | Ginger hair and beard; same outfit as the original Tristan (gold shirt, navy vest with teal bottles, camo shorts with pink flames, light-blue socks, blue shoes) |
+
+**Deliver** per runner: `special-post/artwork/runners/<id>/parts-atlas.png`,
+1536×1536, transparent, plus `prompts.json`. Same grid as the Tristan
+reference:
+
+| Row | Left | Middle | Right |
+|---|---|---|---|
+| 1 | head **with full neck** | torso | hips / shorts |
+| 2 | thigh (shorts leg or legging on top) | shin (sock or legging) | shoe |
+| 3 | upper arm (sleeve if any) | near forearm | far forearm |
+
+- **Neck:** draw the whole neck as part of the head, tapering naturally into
+  the torso's neckline. No flat cut line, no separate skin block, no straps
+  from another outfit.
+- **Torso:** a real side-view chest and back for that person and outfit, with
+  a rounded shoulder where the upper arm attaches. No backpack hump unless
+  they wear a vest (only Tristan 2 does).
+- **Hips:** that runner's own shorts or leggings waistband and seat, drawn
+  fresh. Nothing traced from Tristan's camo shorts.
+- Keep the joints the same shape as Tristan's pieces (rounded caps at
+  shoulder, elbow, hip and knee) so pieces overlap cleanly when they bend.
+- Skin tone identical across every piece of one runner. No watch unless the
+  runner wears one.
+- These are real people: keep each face, hair and beard matching their
+  reference head. Tristan approves every runner before it's used.
+
+**Wire-in (Claude):** fit each atlas to the original Tristan rig (same
+approach as `river-run/outfit-fit.js`), replace that runner's pieces in
+`special-post/index.html`, check neck, shoulder and hip joints across the
+whole stride and the jump, and render a side-by-side against the original
+Tristan for review. Original Tristan and Sam stay unchanged.
