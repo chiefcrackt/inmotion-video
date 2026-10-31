@@ -154,6 +154,7 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A7 Redraw the Special Post runners](#a7-redraw-the-special-post-runners) | `special-post/artwork/runners/<id>/` | todo (Russ first) | todo |
 | [A8 Travis puppet and aid-station props](#a8-travis-puppet-and-aid-station-props) | `shared/characters/travis/` | done (PR #20), redraw in A8b | done (links-inMotion da8b0b9) |
 | [A8b Redraw Travis to Tristan's outlines](#a8b-redraw-travis-to-tristans-outlines) | `shared/characters/travis/v2/` | done (PR #21) | done (links-inMotion b8e5c29) |
+| [A8c Redraw Travis's torso only](#a8c-redraw-traviss-torso-only) | `shared/characters/travis/v2/torso.png` | todo | todo |
 
 ## Rules for every art task
 
@@ -538,4 +539,58 @@ the head before wire-in.
 **Wire-in (Claude):** build from `v2/` in `shared/characters/travis/build.py`
 (no shorts crop needed), recopy to links-inMotion `scene/travis/`, bump the
 cache version, rerun `tests/aid-station.cjs` and compare frames.
+
+## A8c Redraw Travis's torso only
+
+**Why:** A8b fixed everything except the torso. His chest and back look large
+and rounded on the live page, like a barrel. The A8b torso traced the outline
+of Tristan's torso **with the hydration vest on** and rounded it off, so it came
+out about 28% wider than Tristan's at the stomach. Everything else in A8b stays.
+
+**Redraw one piece:** Travis's torso, side view facing right.
+
+**References:**
+
+- `shared/characters/travis/v2/torso-guide.png` (512x512): the **size target**,
+  the A8b torso 20% narrower. Fill this area; do not go wider. Same position
+  in the frame.
+- Cell row 1, middle of `shared/characters/travis/v2/parts-atlas.png`: the
+  current torso, for colors, collar, pocket and neck stub.
+- `river-run/artwork/hires/parts-atlas.png`: style target (flat vector fills).
+
+**Shape (this is the fix):**
+
+- **Back (left edge): nearly straight.** A gentle shoulder-blade curve at the
+  top, then a straight line down to the hem. No bulge, no hump.
+- **Chest (right edge): one shallow curve** from the collar to the bottom of
+  the chest, then **straight down** to the hem. No round belly, no barrel.
+- The torso is **narrowest at the waist** and the hem is no wider than the
+  chest. Average build, about as wide as Tristan's chest without his vest.
+- Shoulders: rounded on top where the upper arm attaches, solid shirt (no
+  armhole cut-out).
+- Neck stub at the top in the same place and size as the current one, so the
+  head still sits on it.
+- Hem at the bottom, flat, in the same place as the current one.
+
+**Look:** same olive tee as A8b, crew-neck collar band, small chest pocket, no
+logo. Flat fills, no shading, no outlines, no texture.
+
+**Rules:** real transparent background, no glow, no soft edges, no
+checkerboard, no text. Match A8b's skin tone on the neck stub exactly.
+
+**Deliver** in `shared/characters/travis/v2/`:
+
+- `torso.png`: 512x512, transparent, torso centered like the guide.
+- Add its prompt to `shared/characters/travis/v2/prompts.json` (new entry,
+  `id: "torso"`).
+- `torso-preview.png`: the new torso and the current one side by side, so
+  Tristan can compare on his phone.
+
+**Do not** change `parts-atlas.png` or any other piece.
+
+Tristan sends Claude the preview before merging.
+
+**Wire-in (Claude):** when `v2/torso.png` exists, `build.py` uses it in place
+of the atlas torso cell. Recopy to links-inMotion `scene/travis/`, bump the
+image version, rerun `tests/aid-station.cjs` and compare frames.
 
