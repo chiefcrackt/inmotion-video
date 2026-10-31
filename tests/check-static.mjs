@@ -20,6 +20,7 @@ const files = [
   'shared/sound/storage.mjs',
   'shared/sound/picker.mjs',
   'title-maker/index.html',
+  'video-framer/index.html',
 ];
 for (const file of files) {
   const text = await readFile(file, 'utf8');

@@ -22,6 +22,7 @@
     "test:projects:browser": "node tests/projects-browser.cjs",
     "test:river:riverside": "node tests/river-riverside.cjs",
     "test:river:scenes": "node tests/river-riverside.cjs && node tests/river-riverside.cjs cyberpunk && node tests/river-riverside.cjs mountain && node tests/river-riverside.cjs night",
+    "test:framer:browser": "node tests/video-framer.cjs",
     "test:carousel:ux": "node carousel-maker/tests/ux.cjs"
   },
   "repository": {

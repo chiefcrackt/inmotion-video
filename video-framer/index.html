@@ -1,0 +1,1787 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="../favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+    <meta name="theme-color" content="#0E1A2E" />
+    <title>Video Framer</title>
+    <link rel="stylesheet" href="../shared/fonts.css" />
+    <link rel="stylesheet" href="../shared/projects.css" />
+    <script src="../shared/projects.js"></script>
+    <script src="../text-motion/alpha-video.js"></script>
+    <style>
+      /* Two-column studio: live 16:9 preview on the left, grouped controls on the right; one column under 860px.
+         Single dark look on purpose: T.im navy is the brand ground. */
+      :root {
+        --navy: #0e1a2e;
+        --panel: #13233d;
+        --panel-2: #182b49;
+        --line: #25395c;
+        --gold: #e8c96a;
+        --teal: #2e9bad;
+        --paper: #f6f4ef;
+        --muted: #9fb0c8;
+        --danger: #f08a7a;
+        --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+        background: var(--navy);
+        color: var(--paper);
+        font-family: var(--display);
+        font-size: 15px;
+        line-height: 1.45;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-top: max(20px, env(safe-area-inset-top, 0px));
+        padding-bottom: max(40px, env(safe-area-inset-bottom, 0px));
+      }
+      .wrap {
+        max-width: 1240px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      header {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      a.home {
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-size: 13px;
+        color: var(--muted);
+        text-decoration: none;
+        flex-basis: 100%;
+      }
+      a.home:hover {
+        color: var(--gold);
+      }
+      header h1 {
+        font-weight: 900;
+        font-size: clamp(30px, 5vw, 44px);
+        letter-spacing: 0.5px;
+        margin: 0;
+        text-transform: uppercase;
+      }
+      header .eyebrow {
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: var(--gold);
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        flex-basis: 100%;
+        max-width: 66ch;
+      }
+      .studio {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+      @media (max-width: 860px) {
+        .studio {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .stagebox {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: sticky;
+        top: max(12px, env(safe-area-inset-top, 0px));
+        min-width: 0;
+      }
+      @media (max-width: 860px) {
+        .stagebox {
+          position: static;
+        }
+      }
+      .stage {
+        border-radius: 6px;
+        overflow: hidden;
+        background: #000;
+        line-height: 0;
+      }
+      #cv {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+      }
+      .stagebar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .readout {
+        font-weight: 600;
+        letter-spacing: 2px;
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+      }
+      .fit {
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 14px;
+        color: var(--paper);
+        margin: 0;
+      }
+      .fit b {
+        color: var(--gold);
+        letter-spacing: 1px;
+      }
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+      }
+      fieldset {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px 14px 16px;
+        margin: 0;
+        background: var(--panel);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+      }
+      legend {
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: var(--gold);
+        font-size: 14px;
+        text-transform: uppercase;
+        padding: 0 6px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        min-width: 0;
+      }
+      .lab {
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        font-size: 13px;
+        color: var(--muted);
+        text-transform: uppercase;
+        min-width: 92px;
+      }
+      .chip {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--paper);
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 16px;
+        letter-spacing: 1px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        line-height: 1;
+        min-height: 36px;
+      }
+      .chip:hover {
+        border-color: var(--teal);
+      }
+      .chip[aria-pressed='true'] {
+        background: var(--gold);
+        color: var(--navy);
+        border-color: var(--gold);
+      }
+      .chip:focus-visible,
+      .btn:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: 3px solid var(--teal);
+        outline-offset: 2px;
+      }
+      input[type='text'],
+      textarea {
+        background: var(--navy);
+        border: 1px solid var(--line);
+        color: var(--paper);
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 17px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        letter-spacing: 0.5px;
+        flex: 1;
+        min-width: 0;
+        width: 100%;
+      }
+      textarea {
+        resize: vertical;
+        line-height: 1.2;
+      }
+      input[type='range'] {
+        flex: 1;
+        min-width: 120px;
+        accent-color: var(--teal);
+      }
+      .val {
+        font-variant-numeric: tabular-nums;
+        color: var(--muted);
+        min-width: 48px;
+        text-align: right;
+        font-size: 14px;
+      }
+      .toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 15px;
+      }
+      .toggle input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--teal);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .sub {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-left: 10px;
+        border-left: 2px solid var(--line);
+      }
+      .dim {
+        opacity: 0.45;
+        pointer-events: none;
+      }
+      .btn {
+        appearance: none;
+        border: 0;
+        border-radius: 8px;
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-size: 16px;
+        padding: 10px 15px;
+        cursor: pointer;
+        min-height: 44px;
+        color: var(--paper);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+      }
+      .btn.primary {
+        background: var(--gold);
+        color: var(--navy);
+      }
+      .btn.rec {
+        background: #d9534f;
+        color: #fff;
+      }
+      .btn.ghost {
+        background: transparent;
+        border: 1px solid var(--line);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .msg {
+        font-size: 14px;
+        margin: 0;
+      }
+      .msg.err {
+        color: var(--danger);
+      }
+      .result {
+        border: 1px solid var(--teal);
+        border-radius: 10px;
+        background: var(--panel);
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .result video {
+        width: 100%;
+        background: #000;
+        border-radius: 6px;
+      }
+      .dot {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #fff;
+        margin-right: 6px;
+        animation: blink 1s steps(2) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.2;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .dot {
+          animation: none;
+        }
+      }
+      footer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        font-weight: 700;
+        letter-spacing: 4px;
+        font-size: 13px;
+        color: var(--muted);
+        padding-top: 10px;
+      }
+      footer i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <a class="home" href="../">← All T.im video tools</a>
+        <span class="eyebrow">T.im · Vertical to YouTube</span>
+        <h1>Video Framer</h1>
+        <p
+          >A branded 16:9 frame with a window for your 9:16 clip. Save it as a
+          PNG or a looping video, put it on top of your clip in CapCut, and the
+          window shows your video. Nothing you upload leaves this device.</p
+        >
+      </header>
+
+      <div class="studio">
+        <div class="stagebox">
+          <div class="stage"
+            ><canvas
+              id="cv"
+              width="1920"
+              height="1080"
+              aria-label="Frame preview"
+            ></canvas
+          ></div>
+          <div class="stagebar">
+            <button class="btn ghost" id="play" type="button">❚❚ Pause</button>
+            <label class="btn ghost" for="clip">＋ Preview my clip</label>
+            <input
+              id="clip"
+              type="file"
+              accept="video/*,image/*"
+              hidden
+              aria-label="Preview clip" />
+            <button class="btn ghost" id="noclip" type="button" hidden
+              >Remove clip</button
+            >
+            <span class="readout" id="readout">16:9 · 1920×1080</span>
+          </div>
+          <p class="note"
+            >Your clip only shows in the preview. It isn’t saved into the
+            frame.</p
+          >
+          <p class="fit" id="fit"></p>
+          <p class="msg" id="msg" role="status"></p>
+          <div class="result" id="result" hidden>
+            <video id="vid" controls playsinline loop muted></video>
+            <div class="row">
+              <button class="btn primary" id="save" type="button"
+                >Save video</button
+              >
+              <button class="btn ghost" id="close" type="button">Close</button>
+            </div>
+            <p class="note" id="savenote"></p>
+          </div>
+        </div>
+
+        <div class="controls">
+          <fieldset>
+            <legend>01 · Layout</legend>
+            <div class="row">
+              <span class="lab">Clip</span>
+              <button class="chip" type="button" data-g="layout" data-v="center"
+                >Center</button
+              >
+              <button class="chip" type="button" data-g="layout" data-v="left"
+                >Left side</button
+              >
+              <button class="chip" type="button" data-g="layout" data-v="right"
+                >Right side</button
+              >
+            </div>
+            <div class="row" id="offsetRow">
+              <span class="lab">Edge space</span>
+              <input
+                type="range"
+                id="offset"
+                min="40"
+                max="400"
+                step="10"
+                aria-label="Space between the clip and the edge" />
+              <span class="val" data-for="offset"></span>
+            </div>
+            <div class="row">
+              <span class="lab">Clip size</span>
+              <input
+                type="range"
+                id="inset"
+                min="0"
+                max="160"
+                step="4"
+                aria-label="Space above and below the clip" />
+              <span class="val" data-for="inset"></span>
+            </div>
+            <p class="note"
+              >Clip size 0 fills the full height, which is how CapCut places a
+              vertical clip by default.</p
+            >
+          </fieldset>
+
+          <fieldset>
+            <legend>02 · Clip window</legend>
+            <div class="row">
+              <span class="lab">Corners</span>
+              <input
+                type="range"
+                id="radius"
+                min="0"
+                max="60"
+                step="2"
+                aria-label="Corner roundness" />
+              <span class="val" data-for="radius"></span>
+            </div>
+            <div class="row">
+              <span class="lab">Border</span>
+              <button class="chip" type="button" data-g="border" data-v="none"
+                >None</button
+              >
+              <button class="chip" type="button" data-g="border" data-v="gold"
+                >Gold</button
+              >
+              <button class="chip" type="button" data-g="border" data-v="teal"
+                >Teal</button
+              >
+              <button class="chip" type="button" data-g="border" data-v="paper"
+                >Paper</button
+              >
+            </div>
+            <div class="row">
+              <span class="lab">Thickness</span>
+              <input
+                type="range"
+                id="borderW"
+                min="2"
+                max="16"
+                step="1"
+                aria-label="Border thickness" />
+              <span class="val" data-for="borderW"></span>
+            </div>
+            <label class="toggle"
+              ><input type="checkbox" id="glow" /> Glow around the window</label
+            >
+            <div class="row">
+              <span class="lab">Hide top</span>
+              <input
+                type="range"
+                id="cropTop"
+                min="0"
+                max="20"
+                step="1"
+                aria-label="Hide the top of the clip (percent)" />
+              <span class="val" data-for="cropTop"></span>
+            </div>
+            <div class="row">
+              <span class="lab">Hide bottom</span>
+              <input
+                type="range"
+                id="cropBottom"
+                min="0"
+                max="20"
+                step="1"
+                aria-label="Hide the bottom of the clip (percent)" />
+              <span class="val" data-for="cropBottom"></span>
+            </div>
+            <div class="row">
+              <span class="lab">Clip zoom</span>
+              <input
+                type="range"
+                id="zoom"
+                min="100"
+                max="130"
+                step="1"
+                aria-label="Clip zoom" />
+              <span class="val" data-for="zoom"></span>
+            </div>
+            <p class="note"
+              >Hide top/bottom covers TikTok captions, usernames or watermarks.
+              Clip zoom crops all edges: the frame covers whatever spills out.
+              Zoom only changes the preview and the CapCut numbers below the
+              preview.</p
+            >
+          </fieldset>
+
+          <fieldset>
+            <legend>03 · Background</legend>
+            <div class="row" id="bgChips">
+              <button class="chip" type="button" data-g="bg" data-v="navy"
+                >Navy</button
+              >
+              <button class="chip" type="button" data-g="bg" data-v="grid"
+                >Navy grid</button
+              >
+              <button class="chip" type="button" data-g="bg" data-v="tealfade"
+                >Teal fade</button
+              >
+              <button class="chip" type="button" data-g="bg" data-v="dusk"
+                >Gold dusk</button
+              >
+            </div>
+            <div class="row" id="photoChips"></div>
+            <div class="row" id="dimRow">
+              <span class="lab">Photo dim</span>
+              <input
+                type="range"
+                id="dim"
+                min="0"
+                max="85"
+                step="5"
+                aria-label="Darken the background photo" />
+              <span class="val" data-for="dim"></span>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>04 · Text</legend>
+            <div class="row">
+              <span class="lab">Kicker</span>
+              <input type="text" id="kicker" maxlength="40" />
+            </div>
+            <div class="row">
+              <span class="lab">Title</span>
+              <textarea id="title" rows="2" maxlength="80"></textarea>
+            </div>
+            <div class="row">
+              <span class="lab">Subtitle</span>
+              <input type="text" id="subtitle" maxlength="60" />
+            </div>
+            <div class="row">
+              <span class="lab">Align</span>
+              <button class="chip" type="button" data-g="align" data-v="auto"
+                >Auto</button
+              >
+              <button class="chip" type="button" data-g="align" data-v="left"
+                >Left</button
+              >
+              <button class="chip" type="button" data-g="align" data-v="center"
+                >Center</button
+              >
+              <button class="chip" type="button" data-g="align" data-v="right"
+                >Right</button
+              >
+            </div>
+            <div class="row">
+              <span class="lab">Text size</span>
+              <input
+                type="range"
+                id="scale"
+                min="70"
+                max="130"
+                step="5"
+                aria-label="Text size" />
+              <span class="val" data-for="scale"></span>
+            </div>
+            <label class="toggle"
+              ><input type="checkbox" id="showStats" /> Run stats</label
+            >
+            <div class="sub" id="statsBox">
+              <div class="stats">
+                <input type="text" id="s1v" maxlength="14" aria-label="Stat 1 value" />
+                <input type="text" id="s1l" maxlength="16" aria-label="Stat 1 label" />
+                <input type="text" id="s2v" maxlength="14" aria-label="Stat 2 value" />
+                <input type="text" id="s2l" maxlength="16" aria-label="Stat 2 label" />
+                <input type="text" id="s3v" maxlength="14" aria-label="Stat 3 value" />
+                <input type="text" id="s3l" maxlength="16" aria-label="Stat 3 label" />
+              </div>
+              <p class="note">Value on the left, label on the right. Leave a value blank to skip that stat.</p>
+            </div>
+            <label class="toggle"
+              ><input type="checkbox" id="showCta" /> Call to action</label
+            >
+            <div class="sub" id="ctaBox">
+              <input type="text" id="cta" maxlength="34" aria-label="Call to action text" />
+            </div>
+            <label class="toggle"
+              ><input type="checkbox" id="showHandle" /> Handle lockup</label
+            >
+            <div class="sub" id="handleBox">
+              <input type="text" id="handle" maxlength="30" aria-label="Handle" />
+            </div>
+            <div class="row">
+              <button class="btn ghost" id="resetText" type="button"
+                >Reset text</button
+              >
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>05 · Motion</legend>
+            <div class="row">
+              <button class="chip" type="button" data-g="motion" data-v="animated"
+                >Animated</button
+              >
+              <button class="chip" type="button" data-g="motion" data-v="static"
+                >Static</button
+              >
+            </div>
+            <div class="sub" id="motionBox">
+              <div class="row">
+                <span class="lab">Loop</span>
+                <button class="chip" type="button" data-g="loop" data-v="4">4s</button>
+                <button class="chip" type="button" data-g="loop" data-v="6">6s</button>
+                <button class="chip" type="button" data-g="loop" data-v="8">8s</button>
+                <button class="chip" type="button" data-g="loop" data-v="10">10s</button>
+              </div>
+              <label class="toggle"><input type="checkbox" id="aDrift" /> Background drift</label>
+              <label class="toggle"><input type="checkbox" id="aParticles" /> Floating specks</label>
+              <label class="toggle"><input type="checkbox" id="aSweep" /> Light around the border</label>
+              <label class="toggle"><input type="checkbox" id="aShimmer" /> Title shimmer</label>
+              <label class="toggle"><input type="checkbox" id="aPulse" /> Pulse (dot and call to action)</label>
+              <p class="note">Every animation repeats exactly, so the end of a loop lines up with the start. Repeat it as long as your clip in CapCut.</p>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>06 · Save</legend>
+            <div class="row">
+              <span class="lab">Window</span>
+              <button class="chip" type="button" data-g="hole" data-v="green"
+                >Green screen</button
+              >
+              <button class="chip" type="button" data-g="hole" data-v="clear"
+                >Transparent</button
+              >
+            </div>
+            <div class="row" id="lengthRow">
+              <span class="lab">Video length</span>
+              <button class="chip" type="button" data-g="length" data-v="1">1 loop</button>
+              <button class="chip" type="button" data-g="length" data-v="30">~30s</button>
+              <button class="chip" type="button" data-g="length" data-v="60">~60s</button>
+            </div>
+            <div class="row">
+              <button class="btn primary" id="png" type="button">Save PNG</button>
+              <button class="btn rec" id="rec" type="button">● Make video</button>
+            </div>
+            <p class="note" id="saveHelp"></p>
+            <button class="btn ghost" id="reset" type="button">Reset all settings</button>
+          </fieldset>
+        </div>
+      </div>
+      <footer><i></i>TRISTAN.INMOTION</footer>
+    </div>
+
+    <script>
+      (function () {
+        'use strict';
+        var W = 1920,
+          H = 1080,
+          TAU = Math.PI * 2,
+          KEY = 'tim-video-framer-v1';
+        var $ = function (id) {
+          return document.getElementById(id);
+        };
+        var cv = $('cv'),
+          ctx = cv.getContext('2d');
+
+        var TEXT_DEFAULTS = {
+          kicker: 'NEW ON THE CHANNEL',
+          title: 'SUNDAY\nLONG RUN',
+          subtitle: 'FROM THE TRAIL',
+          s1v: '13.1 MI',
+          s1l: 'DISTANCE',
+          s2v: '8:45 /MI',
+          s2l: 'PACE',
+          s3v: '820 FT',
+          s3l: 'ELEVATION',
+          cta: 'SUBSCRIBE FOR MORE MILES',
+          handle: 'TRISTAN.INMOTION',
+        };
+        var DEFAULTS = Object.assign(
+          {
+            layout: 'center',
+            offset: 140,
+            inset: 0,
+            radius: 24,
+            border: 'gold',
+            borderW: 6,
+            glow: true,
+            cropTop: 0,
+            cropBottom: 0,
+            zoom: 100,
+            bg: 'grid',
+            dim: 45,
+            align: 'auto',
+            scale: 100,
+            showStats: true,
+            showCta: true,
+            showHandle: true,
+            motion: 'animated',
+            loop: '8',
+            aDrift: true,
+            aParticles: true,
+            aSweep: true,
+            aShimmer: true,
+            aPulse: true,
+            hole: 'green',
+            length: '1',
+            theme: 'tim',
+            textFont: 'Barlow Condensed',
+          },
+          TEXT_DEFAULTS,
+        );
+        var clone = function (o) {
+          return JSON.parse(JSON.stringify(o));
+        };
+        var S = clone(DEFAULTS);
+        try {
+          var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+          if (saved && typeof saved === 'object')
+            Object.keys(DEFAULTS).forEach(function (k) {
+              if (k in saved && typeof saved[k] === typeof DEFAULTS[k])
+                S[k] = saved[k];
+            });
+        } catch (e) {}
+        function persist() {
+          try {
+            localStorage.setItem(KEY, JSON.stringify(S));
+          } catch (e) {}
+        }
+
+        // Brand colors pass through the shared output theme (T.im / Minimal / Race Broadcast).
+        function col(hex) {
+          return window.TimProjects ? TimProjects.color(hex, S.theme) : hex;
+        }
+        var C = {
+          get navy() {
+            return col('#0E1A2E');
+          },
+          get paper() {
+            return col('#F6F4EF');
+          },
+          get gold() {
+            return col('#E8C96A');
+          },
+          get teal() {
+            return col('#2E9BAD');
+          },
+        };
+        function fam() {
+          return window.TimProjects
+            ? TimProjects.family(S.textFont)
+            : '"Barlow Condensed", sans-serif';
+        }
+        function font(c, weight, px, track) {
+          c.font = weight + ' ' + px + 'px ' + fam();
+          try {
+            c.letterSpacing = (track || 0) + 'px';
+          } catch (e) {}
+        }
+        function rgba(hex, a) {
+          var n = parseInt(hex.slice(1), 16);
+          return (
+            'rgba(' +
+            ((n >> 16) & 255) +
+            ',' +
+            ((n >> 8) & 255) +
+            ',' +
+            (n & 255) +
+            ',' +
+            a +
+            ')'
+          );
+        }
+
+        // ---------- background photos (the shared T.im background pack)
+        var PHOTOS = [
+          ['night-track', 'Night track'],
+          ['misty-trail', 'Misty trail'],
+          ['wet-asphalt', 'Wet asphalt'],
+          ['sunrise-road', 'Sunrise road'],
+          ['stadium-lights', 'Stadium lights'],
+          ['paper-texture', 'Paper texture'],
+        ];
+        var photos = {};
+        PHOTOS.forEach(function (p) {
+          var b = document.createElement('button');
+          b.className = 'chip';
+          b.type = 'button';
+          b.dataset.g = 'bg';
+          b.dataset.v = 'photo:' + p[0];
+          b.textContent = p[1];
+          $('photoChips').appendChild(b);
+        });
+        function photo(id) {
+          if (!photos[id]) {
+            var im = new Image();
+            im.onload = function () {
+              if (!playing) draw();
+            };
+            im.src = '../shared/backgrounds/' + id + '-landscape.jpg';
+            photos[id] = im;
+          }
+          return photos[id].complete && photos[id].naturalWidth
+            ? photos[id]
+            : null;
+        }
+
+        // ---------- geometry
+        function geom() {
+          var inset = +S.inset,
+            bh = H - 2 * inset,
+            bw = (bh * 9) / 16,
+            bx;
+          if (S.layout === 'left') bx = +S.offset;
+          else if (S.layout === 'right') bx = W - +S.offset - bw;
+          else bx = (W - bw) / 2;
+          var box = { x: bx, y: inset, w: bw, h: bh };
+          var ct = (S.cropTop / 100) * bh,
+            cb = (S.cropBottom / 100) * bh;
+          var hole = { x: bx, y: inset + ct, w: bw, h: bh - ct - cb };
+          var pad = 70,
+            gap = 70,
+            panels;
+          if (S.layout === 'center')
+            panels = [
+              { x0: pad, x1: bx - gap, side: 'left' },
+              { x0: bx + bw + gap, x1: W - pad, side: 'right' },
+            ];
+          else if (S.layout === 'left')
+            panels = [{ x0: bx + bw + gap * 1.3, x1: W - pad, side: 'right' }];
+          else panels = [{ x0: pad, x1: bx - gap * 1.3, side: 'left' }];
+          return { box: box, hole: hole, panels: panels };
+        }
+        function rr(c, x, y, w, h, r) {
+          r = Math.max(0, Math.min(r, w / 2, h / 2));
+          c.beginPath();
+          c.moveTo(x + r, y);
+          c.lineTo(x + w - r, y);
+          c.arcTo(x + w, y, x + w, y + r, r);
+          c.lineTo(x + w, y + h - r);
+          c.arcTo(x + w, y + h, x + w - r, y + h, r);
+          c.lineTo(x + r, y + h);
+          c.arcTo(x, y + h, x, y + h - r, r);
+          c.lineTo(x, y + r);
+          c.arcTo(x, y, x + r, y, r);
+          c.closePath();
+        }
+        function rand(seed) {
+          var x = Math.sin(seed * 9301 + 49297) * 233280;
+          return x - Math.floor(x);
+        }
+
+        // ---------- drawing: every moving part is a function of p = t / loop, with whole cycles per loop,
+        // so frame 0 and frame L are identical and the clip loops cleanly.
+        function drawBackground(c, p, anim) {
+          var drift = anim && S.aDrift;
+          c.fillStyle = C.navy;
+          c.fillRect(0, 0, W, H);
+          var bg = S.bg;
+          if (bg.indexOf('photo:') === 0) {
+            var im = photo(bg.slice(6));
+            if (im) {
+              var s = drift ? 1.08 : 1,
+                dx = drift ? Math.sin(TAU * p) * 40 : 0,
+                dy = drift ? Math.cos(TAU * p) * 14 : 0;
+              c.drawImage(
+                im,
+                (W - W * s) / 2 + dx,
+                (H - H * s) / 2 + dy,
+                W * s,
+                H * s,
+              );
+              c.fillStyle = rgba(C.navy, S.dim / 100);
+              c.fillRect(0, 0, W, H);
+            }
+          } else if (bg === 'tealfade') {
+            var a = drift ? Math.sin(TAU * p) * 0.35 : 0;
+            var g = c.createLinearGradient(
+              W / 2 - Math.cos(0.6 + a) * W * 0.6,
+              H / 2 - Math.sin(0.6 + a) * H * 0.9,
+              W / 2 + Math.cos(0.6 + a) * W * 0.6,
+              H / 2 + Math.sin(0.6 + a) * H * 0.9,
+            );
+            g.addColorStop(0, C.navy);
+            g.addColorStop(1, rgba(C.teal, 1));
+            c.fillStyle = g;
+            c.fillRect(0, 0, W, H);
+            c.fillStyle = rgba(C.navy, 0.35);
+            c.fillRect(0, 0, W, H);
+          } else if (bg === 'dusk') {
+            var cx = W / 2 + (drift ? Math.sin(TAU * p) * 120 : 0);
+            var rg = c.createRadialGradient(cx, H * 1.05, 40, cx, H * 1.05, W * 0.7);
+            rg.addColorStop(0, rgba(C.gold, 0.85));
+            rg.addColorStop(0.35, rgba(C.gold, 0.25));
+            rg.addColorStop(1, rgba(C.gold, 0));
+            c.fillStyle = rg;
+            c.fillRect(0, 0, W, H);
+          } else if (bg === 'grid') {
+            var step = 64,
+              off = drift ? p * step : 0;
+            c.strokeStyle = rgba(C.teal, 0.16);
+            c.lineWidth = 1.5;
+            c.beginPath();
+            for (var x = -step + off; x < W + step; x += step) {
+              c.moveTo(x, 0);
+              c.lineTo(x, H);
+            }
+            for (var y = -step + off; y < H + step; y += step) {
+              c.moveTo(0, y);
+              c.lineTo(W, y);
+            }
+            c.stroke();
+            var vg = c.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, W * 0.65);
+            vg.addColorStop(0, rgba(C.navy, 0));
+            vg.addColorStop(1, rgba(C.navy, 0.85));
+            c.fillStyle = vg;
+            c.fillRect(0, 0, W, H);
+          }
+          if (bg === 'navy') {
+            var nv = c.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W * 0.7);
+            nv.addColorStop(0, rgba(C.teal, 0.12));
+            nv.addColorStop(1, rgba(C.teal, 0));
+            c.fillStyle = nv;
+            c.fillRect(0, 0, W, H);
+          }
+          if (anim && S.aParticles) {
+            for (var i = 0; i < 42; i++) {
+              var x0 = rand(i + 1) * W,
+                y0 = rand(i + 101) * H,
+                ph = rand(i + 201),
+                rad = 18 + rand(i + 301) * 46,
+                px = x0 + Math.cos(TAU * (p + ph)) * rad,
+                py = y0 + Math.sin(TAU * (p + ph)) * rad * 0.7,
+                tw = 0.5 + 0.5 * Math.sin(TAU * (2 * p + ph)),
+                sz = 1.5 + rand(i + 401) * 2.8;
+              c.fillStyle = rgba(i % 3 ? C.teal : C.gold, 0.15 + 0.5 * tw);
+              c.beginPath();
+              c.arc(px, py, sz, 0, TAU);
+              c.fill();
+            }
+          }
+        }
+
+        function borderColor() {
+          return S.border === 'teal'
+            ? C.teal
+            : S.border === 'paper'
+              ? C.paper
+              : C.gold;
+        }
+        function perimeter(h, r) {
+          r = Math.max(0, Math.min(r, h.w / 2, h.h / 2));
+          return 2 * (h.w + h.h) - 8 * r + TAU * r;
+        }
+
+        // Text blocks: each item measures itself, then the block is centered vertically in its panel.
+        function alignFor(panel) {
+          if (S.align !== 'auto') return S.align;
+          return S.layout === 'center' ? 'center' : 'left';
+        }
+        function ax(panel, align) {
+          return align === 'left'
+            ? panel.x0
+            : align === 'right'
+              ? panel.x1
+              : (panel.x0 + panel.x1) / 2;
+        }
+        function fitPx(c, text, weight, px, track, maxW) {
+          font(c, weight, px, track);
+          var w = c.measureText(text).width;
+          return w > maxW ? Math.max(12, (px * maxW) / w) : px;
+        }
+        function stats() {
+          var out = [];
+          [1, 2, 3].forEach(function (i) {
+            var v = (S['s' + i + 'v'] || '').trim();
+            if (v) out.push([v, (S['s' + i + 'l'] || '').trim()]);
+          });
+          return S.showStats ? out : [];
+        }
+        function titleBlock(c, panel, p, anim) {
+          var k = S.scale / 100,
+            pw = panel.x1 - panel.x0,
+            items = [];
+          if (S.kicker.trim()) {
+            var kp = fitPx(c, S.kicker.toUpperCase(), 700, 32 * k, 6 * k, pw);
+            items.push({ h: kp, gap: 22 * k, draw: function (y, al) {
+              font(c, 700, kp, 6 * k);
+              c.fillStyle = C.gold;
+              c.textAlign = al;
+              c.fillText(S.kicker.toUpperCase(), ax(panel, al), y + kp * 0.85);
+            } });
+          }
+          var lines = S.title.toUpperCase().split('\n').filter(function (l) {
+            return l.trim();
+          });
+          if (lines.length) {
+            var tp = 132 * k;
+            font(c, 900, tp, 0);
+            var widest = Math.max.apply(null, lines.map(function (l) {
+              return c.measureText(l).width;
+            }));
+            if (widest > pw) tp = (tp * pw) / widest;
+            var lh = tp * 0.92;
+            items.push({ h: lh * lines.length, gap: 24 * k, draw: function (y, al) {
+              font(c, 900, tp, 0);
+              c.textAlign = al;
+              var x = ax(panel, al);
+              lines.forEach(function (l, i) {
+                var by = y + lh * i + tp * 0.8;
+                c.fillStyle = C.paper;
+                c.fillText(l, x, by);
+              });
+              if (anim && S.aShimmer) {
+                // one gold band crosses the title per loop, starting and ending off the text
+                var band = 220,
+                  sx = panel.x0 - band + p * (pw + band * 2);
+                var g = c.createLinearGradient(sx - band, 0, sx + band, 0);
+                g.addColorStop(0, rgba(C.gold, 0));
+                g.addColorStop(0.5, rgba(C.gold, 0.95));
+                g.addColorStop(1, rgba(C.gold, 0));
+                c.fillStyle = g;
+                lines.forEach(function (l, i) {
+                  c.fillText(l, x, y + lh * i + tp * 0.8);
+                });
+              }
+            } });
+          }
+          if (S.subtitle.trim()) {
+            var sp = fitPx(c, S.subtitle.toUpperCase(), 600, 38 * k, 2 * k, pw);
+            items.push({ h: sp, gap: 36 * k, draw: function (y, al) {
+              font(c, 600, sp, 2 * k);
+              c.fillStyle = rgba(C.paper, 0.72);
+              c.textAlign = al;
+              c.fillText(S.subtitle.toUpperCase(), ax(panel, al), y + sp * 0.85);
+            } });
+          }
+          return items;
+        }
+        function statsBlock(c, panel, vertical) {
+          var k = S.scale / 100,
+            pw = panel.x1 - panel.x0,
+            list = stats(),
+            items = [];
+          if (!list.length) return items;
+          if (vertical) {
+            list.forEach(function (s) {
+              var vp = fitPx(c, s[0], 900, 76 * k, 0, pw),
+                lp = 24 * k;
+              items.push({ h: vp + lp + 8 * k, gap: 30 * k, draw: function (y, al) {
+                c.textAlign = al;
+                var x = ax(panel, al);
+                font(c, 900, vp, 0);
+                c.fillStyle = C.paper;
+                c.fillText(s[0], x, y + vp * 0.82);
+                font(c, 700, lp, 5 * k);
+                c.fillStyle = C.teal;
+                c.fillText(s[1].toUpperCase(), x, y + vp + lp * 0.9);
+              } });
+            });
+          } else {
+            var colW = pw / list.length,
+              vp = 64 * k,
+              lp = 22 * k;
+            list.forEach(function (s) {
+              vp = Math.min(vp, fitPx(c, s[0], 900, 64 * k, 0, colW - 24 * k));
+            });
+            items.push({ h: vp + lp + 10 * k, gap: 40 * k, draw: function (y, al) {
+              list.forEach(function (s, i) {
+                var sub = { x0: panel.x0 + colW * i, x1: panel.x0 + colW * (i + 1) - 24 * k };
+                c.textAlign = al;
+                var x = ax(sub, al);
+                if (i) {
+                  c.fillStyle = rgba(C.teal, 0.35);
+                  c.fillRect(sub.x0 - 12 * k, y, 2, vp + lp + 6 * k);
+                }
+                font(c, 900, vp, 0);
+                c.fillStyle = C.paper;
+                c.fillText(s[0], x, y + vp * 0.82);
+                font(c, 700, lp, 5 * k);
+                c.fillStyle = C.teal;
+                c.fillText(s[1].toUpperCase(), x, y + vp + lp * 0.95);
+              });
+            } });
+          }
+          return items;
+        }
+        function ctaBlock(c, panel, p, anim) {
+          if (!S.showCta || !S.cta.trim()) return [];
+          var k = S.scale / 100,
+            pw = panel.x1 - panel.x0,
+            txt = S.cta.toUpperCase(),
+            tp = fitPx(c, txt, 800, 30 * k, 3 * k, pw - 64 * k);
+          font(c, 800, tp, 3 * k);
+          var tw = c.measureText(txt).width,
+            bw = tw + 64 * k,
+            bh = tp + 34 * k;
+          return [{ h: bh, gap: 0, draw: function (y, al) {
+            var s = anim && S.aPulse ? 1 + 0.035 * Math.sin(TAU * 2 * p) : 1;
+            var cx = al === 'left' ? panel.x0 + bw / 2 : al === 'right' ? panel.x1 - bw / 2 : (panel.x0 + panel.x1) / 2;
+            c.save();
+            c.translate(cx, y + bh / 2);
+            c.scale(s, s);
+            rr(c, -bw / 2, -bh / 2, bw, bh, bh / 2);
+            c.fillStyle = C.gold;
+            c.fill();
+            font(c, 800, tp, 3 * k);
+            c.fillStyle = C.navy;
+            c.textAlign = 'center';
+            c.fillText(txt, 0, tp * 0.36);
+            c.restore();
+          } }];
+        }
+        function layoutBlock(c, panel, items, al) {
+          if (!items.length) return;
+          var total = 0;
+          items.forEach(function (it, i) {
+            total += it.h + (i < items.length - 1 ? it.gap : 0);
+          });
+          var y = (H - total) / 2 - (S.showHandle ? 20 : 0);
+          items.forEach(function (it) {
+            it.draw(y, al);
+            y += it.h + it.gap;
+          });
+        }
+        function drawHandle(c, panel, p, anim) {
+          if (!S.showHandle || !S.handle.trim()) return;
+          var k = S.scale / 100,
+            al = alignFor(panel),
+            txt = S.handle.toUpperCase(),
+            tp = fitPx(c, txt, 700, 26 * k, 6 * k, panel.x1 - panel.x0 - 40 * k);
+          font(c, 700, tp, 6 * k);
+          var tw = c.measureText(txt).width,
+            dr = 8 * k * (anim && S.aPulse ? 1 + 0.25 * Math.sin(TAU * 2 * p) : 1),
+            gapX = 14 * k,
+            total = 16 * k + gapX + tw,
+            x0 = al === 'left' ? panel.x0 : al === 'right' ? panel.x1 - total : (panel.x0 + panel.x1 - total) / 2,
+            y = H - 74;
+          c.fillStyle = C.teal;
+          c.beginPath();
+          c.arc(x0 + 8 * k, y - tp * 0.32, dr, 0, TAU);
+          c.fill();
+          c.fillStyle = C.paper;
+          c.textAlign = 'left';
+          c.fillText(txt, x0 + 16 * k + gapX, y);
+        }
+
+        var clipEl = null; // preview-only video or image
+        function drawClip(c, g) {
+          var b = g.box,
+            z = S.zoom / 100,
+            w = b.w * z,
+            h = b.h * z,
+            x = b.x + (b.w - w) / 2,
+            y = b.y + (b.h - h) / 2;
+          if (clipEl) {
+            var sw = clipEl.videoWidth || clipEl.naturalWidth,
+              sh = clipEl.videoHeight || clipEl.naturalHeight;
+            if (sw && sh) {
+              // cover-fit the clip into the 9:16 box (a true 9:16 clip fits exactly)
+              var s = Math.max(w / sw, h / sh),
+                dw = sw * s,
+                dh = sh * s;
+              c.drawImage(clipEl, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+              return;
+            }
+          }
+          var gr = c.createLinearGradient(0, y, 0, y + h);
+          gr.addColorStop(0, '#3a4a5e');
+          gr.addColorStop(1, '#1d2633');
+          c.fillStyle = gr;
+          c.fillRect(x, y, w, h);
+          c.fillStyle = 'rgba(255,255,255,0.55)';
+          font(c, 800, 46, 4);
+          c.textAlign = 'center';
+          c.fillText('YOUR 9:16 CLIP', x + w / 2, y + h / 2);
+          font(c, 600, 26, 2);
+          c.fillStyle = 'rgba(255,255,255,0.35)';
+          c.fillText('SHOWS HERE', x + w / 2, y + h / 2 + 44);
+        }
+
+        // mode: 'preview' (clip under the window), 'green' (window filled #00FF00), 'clear' (transparent window)
+        function render(c, t, mode) {
+          var anim = S.motion === 'animated',
+            L = +S.loop,
+            p = anim ? (((t % L) + L) % L) / L : 0,
+            g = geom(),
+            h = g.hole,
+            r = +S.radius,
+            bc = borderColor(),
+            bwid = S.border === 'none' ? 0 : +S.borderW;
+          c.save();
+          c.globalCompositeOperation = 'source-over';
+          c.clearRect(0, 0, W, H);
+          drawBackground(c, p, anim);
+          var sweep = anim && S.aSweep,
+            per = perimeter(h, r),
+            seg = Math.min(per * 0.16, 460),
+            setDash = function () {
+              c.setLineDash([seg, per - seg]);
+              c.lineDashOffset = -p * per;
+            };
+          // glows go on before the window is cut, so none of them spill into it (keeps Chroma Key clean)
+          if (S.glow) {
+            c.save();
+            rr(c, h.x, h.y, h.w, h.h, r);
+            c.shadowColor = rgba(bc, 0.9);
+            c.shadowBlur = 48;
+            c.strokeStyle = rgba(bc, 0.9);
+            c.lineWidth = Math.max(bwid, 4);
+            c.stroke();
+            c.restore();
+          }
+          if (sweep) {
+            c.save();
+            rr(c, h.x, h.y, h.w, h.h, r);
+            setDash();
+            c.shadowColor = C.paper;
+            c.shadowBlur = 30;
+            c.strokeStyle = rgba(C.paper, 0.9);
+            c.lineWidth = Math.max(bwid, 4) + 2;
+            c.lineCap = 'round';
+            c.stroke();
+            c.restore();
+          }
+          c.globalCompositeOperation = 'destination-out';
+          rr(c, h.x, h.y, h.w, h.h, r);
+          c.fillStyle = '#000';
+          c.fill();
+          c.globalCompositeOperation = 'source-over';
+          if (bwid) {
+            rr(c, h.x, h.y, h.w, h.h, r);
+            c.strokeStyle = bc;
+            c.lineWidth = bwid;
+            c.stroke();
+          }
+          if (sweep) {
+            c.save();
+            rr(c, h.x, h.y, h.w, h.h, r);
+            setDash();
+            c.strokeStyle = C.paper;
+            c.lineWidth = Math.max(bwid, 4);
+            c.lineCap = 'round';
+            c.stroke();
+            c.restore();
+          }
+          // text
+          c.textBaseline = 'alphabetic';
+          if (S.layout === 'center') {
+            var L0 = g.panels[0],
+              R0 = g.panels[1];
+            layoutBlock(c, L0, titleBlock(c, L0, p, anim), alignFor(L0));
+            layoutBlock(c, R0, statsBlock(c, R0, true).concat(ctaBlock(c, R0, p, anim)), alignFor(R0));
+            drawHandle(c, L0, p, anim);
+          } else {
+            var P = g.panels[0];
+            layoutBlock(
+              c,
+              P,
+              titleBlock(c, P, p, anim).concat(statsBlock(c, P, false), ctaBlock(c, P, p, anim)),
+              alignFor(P),
+            );
+            drawHandle(c, P, p, anim);
+          }
+          try {
+            c.letterSpacing = '0px';
+          } catch (e) {}
+          // fill the window last, underneath everything already drawn
+          if (mode !== 'clear') {
+            c.globalCompositeOperation = 'destination-over';
+            if (mode === 'green') {
+              c.fillStyle = '#00FF00';
+              c.fillRect(0, 0, W, H);
+            } else {
+              drawClip(c, g);
+              c.fillStyle = '#000';
+              c.fillRect(0, 0, W, H);
+            }
+          }
+          c.restore();
+        }
+
+        // ---------- preview loop
+        var playing = true,
+          t0 = performance.now(),
+          tPaused = 0,
+          rec = null;
+        function now() {
+          return (performance.now() - t0) / 1000;
+        }
+        function draw() {
+          var t = rec ? rec.t() : playing ? now() : tPaused;
+          render(ctx, t, rec ? 'green' : 'preview');
+        }
+        function tick() {
+          var needs =
+            rec ||
+            (playing && S.motion === 'animated') ||
+            (clipEl && clipEl.tagName === 'VIDEO' && !clipEl.paused);
+          if (needs) draw();
+          requestAnimationFrame(tick);
+        }
+
+        // ---------- CapCut placement helper
+        function updateFit() {
+          var g = geom(),
+            b = g.box,
+            scale = Math.round((b.h / H) * S.zoom),
+            dx = Math.round(b.x + b.w / 2 - W / 2),
+            dy = Math.round(b.y + b.h / 2 - H / 2);
+          var where =
+            dx === 0
+              ? 'leave it centered'
+              : 'slide it ' + Math.abs(dx) + ' px ' + (dx > 0 ? 'right' : 'left') + ' (on a 1920 px wide frame)';
+          var line =
+            scale === 100 && dx === 0 && dy === 0
+              ? 'No adjusting needed: CapCut already fits a vertical clip to this window. Add the frame as an overlay above your clip.'
+              : 'Set your clip’s scale to <b>' + scale + '%</b> and ' + where + '. Then add the frame as an overlay above it.';
+          $('fit').innerHTML = '<b>LINE IT UP IN CAPCUT</b><br>' + line;
+        }
+
+        // ---------- controls
+        var NUM = ['offset', 'inset', 'radius', 'borderW', 'cropTop', 'cropBottom', 'zoom', 'dim', 'scale'];
+        var UNITS = { cropTop: '%', cropBottom: '%', zoom: '%', scale: '%', offset: 'px', inset: 'px', radius: 'px', borderW: 'px', dim: '%' };
+        function sync() {
+          document.querySelectorAll('[data-g]').forEach(function (b) {
+            b.setAttribute('aria-pressed', String(S[b.dataset.g]) === b.dataset.v ? 'true' : 'false');
+          });
+          Object.keys(S).forEach(function (k) {
+            var el = $(k);
+            if (!el || !/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.type === 'file') return;
+            if (el.type === 'checkbox') el.checked = !!S[k];
+            else if (el.value !== String(S[k])) el.value = S[k];
+          });
+          document.querySelectorAll('.val').forEach(function (v) {
+            var k = v.dataset.for;
+            v.textContent = k === 'inset' ? (S.inset == 0 ? 'Full' : '−' + S.inset * 2 + 'px') : S[k] + (UNITS[k] || '');
+          });
+          $('offsetRow').classList.toggle('dim', S.layout === 'center');
+          $('dimRow').hidden = S.bg.indexOf('photo:') !== 0;
+          $('statsBox').classList.toggle('dim', !S.showStats);
+          $('ctaBox').classList.toggle('dim', !S.showCta);
+          $('handleBox').classList.toggle('dim', !S.showHandle);
+          $('motionBox').classList.toggle('dim', S.motion !== 'animated');
+          $('borderW').disabled = S.border === 'none';
+          $('play').hidden = S.motion !== 'animated';
+          $('play').textContent = playing ? '❚❚ Pause' : '▶ Play';
+          $('lengthRow').classList.toggle('dim', S.motion !== 'animated');
+          var secs = videoSeconds();
+          $('rec').innerHTML = rec ? '<span class="dot"></span>Making… ' : '● Make ' + secs + 's video';
+          $('readout').textContent =
+            '16:9 · 1920×1080' + (S.motion === 'animated' ? ' · ' + S.loop + 's loop' : ' · static');
+          $('saveHelp').textContent =
+            S.hole === 'green'
+              ? 'Green screen works everywhere, iPhone included. In CapCut: Overlay → add the frame → Chroma Key → pick the green. The PNG keeps a green window too.'
+              : 'Transparent PNG drops straight onto your clip in CapCut, no keying. Transparent video saves as WebM with alpha and needs Chrome or Edge on a computer; use green screen on iPhone.';
+          if (S.bg.indexOf('photo:') === 0) photo(S.bg.slice(6));
+          updateFit();
+        }
+        function videoSeconds() {
+          var L = +S.loop;
+          if (S.motion !== 'animated') return 5;
+          if (S.length === '1') return L;
+          return Math.max(1, Math.round(+S.length / L)) * L;
+        }
+        function changed() {
+          persist();
+          sync();
+          draw();
+        }
+        document.addEventListener('click', function (e) {
+          var b = e.target.closest('[data-g]');
+          if (!b || rec) return;
+          S[b.dataset.g] = b.dataset.v;
+          changed();
+        });
+        document.querySelectorAll('.controls input, .controls textarea').forEach(function (el) {
+          if (!el.id || !(el.id in S)) return;
+          el.addEventListener('input', function () {
+            S[el.id] = el.type === 'checkbox' ? el.checked : NUM.indexOf(el.id) >= 0 ? +el.value : el.value;
+            changed();
+          });
+        });
+        $('resetText').onclick = function () {
+          Object.assign(S, clone(TEXT_DEFAULTS));
+          changed();
+        };
+        $('reset').onclick = function () {
+          if (rec) return;
+          var look = { theme: S.theme, textFont: S.textFont };
+          S = Object.assign(clone(DEFAULTS), look);
+          changed();
+        };
+        $('play').onclick = function () {
+          if (playing) {
+            tPaused = now();
+            playing = false;
+          } else {
+            t0 = performance.now() - tPaused * 1000;
+            playing = true;
+          }
+          sync();
+          draw();
+        };
+        var clipURL = null;
+        $('clip').onchange = function () {
+          var f = this.files && this.files[0];
+          if (!f) return;
+          if (clipURL) URL.revokeObjectURL(clipURL);
+          clipURL = URL.createObjectURL(f);
+          var isVid = /^video\//.test(f.type) || /\.(mov|mp4|m4v|webm)$/i.test(f.name);
+          var el = document.createElement(isVid ? 'video' : 'img');
+          if (isVid) {
+            el.muted = true;
+            el.loop = true;
+            el.playsInline = true;
+            el.setAttribute('playsinline', '');
+            el.onloadeddata = function () {
+              el.play().catch(function () {});
+              draw();
+            };
+          } else el.onload = draw;
+          el.src = clipURL;
+          clipEl = el;
+          $('noclip').hidden = false;
+          this.value = '';
+        };
+        $('noclip').onclick = function () {
+          if (clipEl && clipEl.pause) clipEl.pause();
+          clipEl = null;
+          if (clipURL) URL.revokeObjectURL(clipURL);
+          clipURL = null;
+          this.hidden = true;
+          draw();
+        };
+
+        // ---------- saving
+        function say(s, err) {
+          $('msg').textContent = s;
+          $('msg').classList.toggle('err', !!err);
+        }
+        var downloads = null;
+        if (window.claude && window.claude.use) {
+          window.claude
+            .use('downloads')
+            .then(function (d) {
+              downloads = d;
+            })
+            .catch(function () {});
+        }
+        function fallbackSave(name, blob, note) {
+          var file = null;
+          try {
+            file = new File([blob], name, { type: blob.type });
+          } catch (e) {}
+          function anchor() {
+            var u = URL.createObjectURL(blob),
+              a = document.createElement('a');
+            a.href = u;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(function () {
+              URL.revokeObjectURL(u);
+            }, 5000);
+            note.textContent = 'Downloaded ' + name + '.';
+          }
+          if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator
+              .share({ files: [file] })
+              .then(function () {
+                note.textContent = 'Done. If you picked Save Image or Save Video, it’s in Photos.';
+              })
+              .catch(function (e) {
+                if (e && e.name === 'AbortError') note.textContent = 'Not saved.';
+                else anchor();
+              });
+            return;
+          }
+          anchor();
+        }
+        function saveFile(name, blob, note) {
+          if (!downloads) return fallbackSave(name, blob, note);
+          downloads
+            .save({ filename: name, data: blob })
+            .then(function (r) {
+              note.textContent = r && r.status === 'saved' ? 'Saved ' + name + '.' : 'Sent ' + name + '.';
+            })
+            .catch(function (e) {
+              var c = e && e.code;
+              note.textContent =
+                c === 'declined' ? 'Not saved.' : c === 'too_large' ? 'That file is too large to save here.' : 'Couldn’t save the file here.';
+            });
+        }
+        function stem() {
+          var slug = (S.title.split('\n').join(' ') || 'frame')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '')
+            .slice(0, 30);
+          return 'tim-frame-' + (slug || 'frame') + '-' + S.layout + '-' + (S.hole === 'green' ? 'greenscreen' : 'transparent');
+        }
+        var off = document.createElement('canvas');
+        off.width = W;
+        off.height = H;
+        var octx = off.getContext('2d', { willReadFrequently: true });
+        $('png').onclick = function () {
+          if (rec) return;
+          var t = playing ? now() : tPaused;
+          render(octx, S.motion === 'animated' ? t : 0, S.hole);
+          off.toBlob(function (b) {
+            if (b) saveFile(stem() + '.png', b, $('msg'));
+            else say('Couldn’t make the PNG in this browser.', true);
+          }, 'image/png');
+        };
+
+        var lastBlob = null,
+          lastName = '',
+          lastURL = null;
+        function showResult(blob, name) {
+          lastBlob = blob;
+          lastName = name;
+          if (lastURL) URL.revokeObjectURL(lastURL);
+          lastURL = URL.createObjectURL(blob);
+          $('vid').src = lastURL;
+          $('result').hidden = false;
+          $('savenote').textContent = name + ' · ' + (blob.size / 1048576).toFixed(1) + ' MB';
+        }
+        $('save').onclick = function () {
+          if (lastBlob) saveFile(lastName, lastBlob, $('savenote'));
+        };
+        $('close').onclick = function () {
+          $('result').hidden = true;
+        };
+        function pickType() {
+          if (!window.MediaRecorder) return null;
+          var list = ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+          for (var i = 0; i < list.length; i++) {
+            try {
+              if (MediaRecorder.isTypeSupported(list[i])) return list[i];
+            } catch (e) {}
+          }
+          return '';
+        }
+        function setBusy(on) {
+          ['png', 'clip', 'reset', 'resetText'].forEach(function (id) {
+            $(id).disabled = on;
+          });
+          document.querySelector('.controls').classList.toggle('dim', on);
+          sync();
+        }
+        $('rec').onclick = function () {
+          if (rec) return;
+          var secs = videoSeconds();
+          if (S.hole === 'clear') return makeAlpha(secs);
+          var type = pickType();
+          if (type === null || !cv.captureStream) {
+            say('This browser can’t record video. Try Safari on iPhone or Chrome on a computer.', true);
+            return;
+          }
+          var stream = cv.captureStream(30),
+            mr;
+          try {
+            mr = new MediaRecorder(stream, type ? { mimeType: type, videoBitsPerSecond: 12e6 } : { videoBitsPerSecond: 12e6 });
+          } catch (e) {
+            say('Recording couldn’t start in this browser (' + e.name + ').', true);
+            return;
+          }
+          var chunks = [],
+            start = null;
+          rec = {
+            t: function () {
+              return start === null ? 0 : (performance.now() - start) / 1000;
+            },
+          };
+          mr.ondataavailable = function (e) {
+            if (e.data && e.data.size) chunks.push(e.data);
+          };
+          mr.onstart = function () {
+            start = performance.now();
+          };
+          mr.onstop = function () {
+            stream.getTracks().forEach(function (tr) {
+              tr.stop();
+            });
+            var mt = (mr.mimeType || type || 'video/webm').split(';')[0];
+            rec = null;
+            setBusy(false);
+            draw();
+            showResult(new Blob(chunks, { type: mt }), stem() + '.' + (mt.indexOf('mp4') >= 0 ? 'mp4' : 'webm'));
+            say('Done. Check it, then save it.');
+          };
+          setBusy(true);
+          say('Recording ' + secs + 's in real time. Keep this tab open.');
+          draw();
+          mr.start(1000);
+          (function watch() {
+            if (start !== null && rec && rec.t() >= secs) {
+              try {
+                mr.stop();
+              } catch (e) {}
+              return;
+            }
+            setTimeout(watch, 15);
+          })();
+        };
+        function makeAlpha(secs) {
+          if (!window.exportAlphaVideo) {
+            say('Transparent video isn’t available here. Use green screen or the PNG.', true);
+            return;
+          }
+          rec = {
+            t: function () {
+              return 0;
+            },
+          };
+          setBusy(true);
+          var mode = S.motion === 'animated';
+          window
+            .exportAlphaVideo(
+              off,
+              function (t) {
+                render(octx, mode ? t : 0, 'clear');
+              },
+              secs,
+              function (f) {
+                say('Encoding transparent video… ' + Math.round(f * 100) + '%');
+              },
+            )
+            .then(function (blob) {
+              showResult(blob, stem() + '.webm');
+              say('Done. Transparent WebM: import it into an editor that supports WebM alpha.');
+            })
+            .catch(function (e) {
+              say((e && e.message) || 'Couldn’t encode transparent video.', true);
+            })
+            .then(function () {
+              rec = null;
+              setBusy(false);
+              draw();
+            });
+        }
+
+        // ---------- saved projects & output look (shared with the other tools)
+        if (window.TimProjects) {
+          TimProjects.mount({
+            tool: 'video-framer',
+            busy: function () {
+              return !!rec;
+            },
+            get: function () {
+              return { state: S };
+            },
+            set: async function (data) {
+              var next = TimProjects.validateControls(TimProjects.checkState(data.state, S));
+              if (
+                ['tim', 'minimal', 'broadcast'].indexOf(next.theme) < 0 ||
+                ['Barlow Condensed', 'Arial', 'Georgia', 'monospace'].indexOf(next.textFont) < 0
+              )
+                throw Error('Unsupported theme or font.');
+              S = next;
+              changed();
+            },
+            look: {
+              get: function () {
+                return { font: S.textFont, theme: S.theme };
+              },
+              set: async function (v) {
+                S.textFont = v.font;
+                S.theme = v.theme;
+                changed();
+              },
+            },
+          });
+        }
+
+        // test hooks
+        window.__framer = {
+          render: render,
+          state: function () {
+            return S;
+          },
+          set: function (o) {
+            Object.assign(S, o);
+            changed();
+          },
+          geom: geom,
+        };
+
+        sync();
+        draw();
+        var fl = document.fonts && document.fonts.load;
+        Promise.all(
+          fl
+            ? [
+                document.fonts.load('900 120px "Barlow Condensed"'),
+                document.fonts.load('700 30px "Barlow Condensed"'),
+                document.fonts.load('600 30px "Barlow Condensed"'),
+                document.fonts.load('800 30px "Barlow Condensed"'),
+              ]
+            : [],
+        )
+          .catch(function () {})
+          .then(function () {
+            draw();
+            requestAnimationFrame(tick);
+          });
+      })();
+    </script>
+  </body>
+</html>
