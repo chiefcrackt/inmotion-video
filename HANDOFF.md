@@ -11,7 +11,7 @@ Feature 4 was dropped and is intentionally not listed.
 | Order | Feature | Tool | Status |
 |---|---|---|---|
 | 1 | [#3 Text-overflow detection and optional fit](#3-text-overflow-detection-and-optional-fit) | Carousel Maker | done (PR #11) |
-| 2 | [#1 Activity-to-carousel race recap](#1-activity-to-carousel-race-recap) | Activity Studio → Carousel Maker | todo |
+| 2 | [#1 Activity-to-carousel race recap](#1-activity-to-carousel-race-recap) | Activity Studio → Carousel Maker | dropped |
 | 3 | [#5 Activity trim and checkpoints](#5-activity-trim-and-checkpoints) | Activity Studio | todo |
 | 4 | [#2 Multi-select, grouping and distribution](#2-multi-select-grouping-and-distribution) | Carousel Maker | todo |
 | 5 | [#6 Shared brand kits across visual tools](#6-shared-brand-kits-across-visual-tools) | Shared | todo |
@@ -20,9 +20,8 @@ Feature 4 was dropped and is intentionally not listed.
 | 8 | [#9 Beat Bed](#9-beat-bed) | New tool `/beat-bed/` + `shared/sound/beat.mjs` | done |
 | 9 | [#10 Data-kit hit presets](#10-data-kit-hit-presets) | Sound Forge (`shared/sound/presets.mjs`) | done |
 
-Open question for #1: decide how it relates to the Race Recap download pack
-(`tools/race-recap/`) before building — a new carousel flow, or a way to feed
-activity data into that pack.
+#1 is dropped (not planned). The Race Recap download pack (`tools/race-recap/`)
+is unchanged.
 
 ## Who does what
 
@@ -55,6 +54,8 @@ warnings reflect exported clipping, fitting survives project round trips,
 and preview/thumbnail/PNG/ZIP all use the same resulting layout.
 
 ## #1 Activity-to-carousel race recap
+
+**Dropped.** Not planned; kept here for reference only.
 
 Where: `activity-studio/app.mjs`, `carousel-maker/model.mjs`.
 
@@ -213,7 +214,7 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A1 High-res runner parts sheet](#a1-high-res-runner-parts-sheet) | `river-run/artwork/hires/` | done (PR #14) | done (PR #16); also in links-inMotion rotation |
 | [A2 New River Run scene](#a2-new-river-run-scene) | `river-run/scenes/<id>/` | done: night (PR #15) | done (PR #17) |
 | [A3 More backgrounds](#a3-more-backgrounds) | `shared/backgrounds/` | todo | todo |
-| [A4 Recap carousel artwork](#a4-recap-carousel-artwork) | waits on feature #1 | blocked | — |
+| [A4 Recap carousel artwork](#a4-recap-carousel-artwork) | depends on #1 (dropped) | dropped | — |
 | [A5 High-res Hooper](#a5-high-res-hooper) | `special-post/artwork/hooper/` | todo | todo |
 | [A6 Sample photos for templates](#a6-sample-photos-for-templates) | `carousel-maker/samples/` | todo | todo |
 | [A7 Redraw the Special Post runners](#a7-redraw-the-special-post-runners) | `special-post/artwork/runners/<id>/` | todo (Russ first) | todo |
@@ -322,8 +323,7 @@ contact sheet and `tests/background-pack.cjs`.
 
 ## A4 Recap carousel artwork
 
-Blocked until feature #1 is scoped. Likely a few textured slide backgrounds
-for recap carousels; the brief will be added here then.
+**Dropped.** Depended on feature #1, which was dropped.
 
 ## A5 High-res Hooper
 
