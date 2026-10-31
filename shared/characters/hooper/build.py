@@ -103,9 +103,7 @@ def leg(name, piece):
 
 def main():
     OUT.mkdir(exist_ok=True)
-    src = HERE / 'parts-atlas-v2.png'   # A9b calmer coat, same shapes
-    if not src.exists():
-        src = HERE / 'parts-atlas.png'
+    src = HERE / 'parts-atlas.png'   # A9 coat (A9b's calmer coat was tried and reverted)
     atlas = np.asarray(Image.open(src).convert('RGBA'))
     cell = atlas.shape[0] // 3
     rig = {}
