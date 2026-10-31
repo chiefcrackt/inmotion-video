@@ -10,6 +10,10 @@
       name: 'Mountain trail',
       layers: ['distant', 'middle', 'ground', 'foreground'],
     },
+    night: {
+      name: 'Night trail',
+      layers: ['distant', 'middle', 'ground'],
+    },
   };
   const cache = new Map();
   const mod = (x, period) => ((x % period) + period) % period;
@@ -86,6 +90,7 @@
     if (!ready(id)) return;
     const entry = cache.get(id),
       city = id === 'cyberpunk',
+      night = id === 'night',
       { W, H, gy } = g,
       m = motion(g, time, speed);
     const navy = color('#0E1A2E', theme),
@@ -95,7 +100,7 @@
     ctx.save();
     const sky = ctx.createLinearGradient(0, 0, 0, pathTop);
     sky.addColorStop(0, navy);
-    sky.addColorStop(1, mix(navy, teal, city ? 0.18 : 0.31));
+    sky.addColorStop(1, mix(navy, teal, city ? 0.18 : night ? 0.12 : 0.31));
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, W, H);
     // Stationary sky lights accentuate the difference between sky and moving land.
@@ -111,6 +116,38 @@
       haze.addColorStop(1, alpha(teal, 0.2));
       ctx.fillStyle = haze;
       ctx.fillRect(0, 0, W, pathTop);
+    } else if (night) {
+      // Fixed stars and a pale crescent moon; only the land moves.
+      const paper = color('#F6F4EF', theme);
+      for (let i = 0; i < 46; i++) {
+        const x = mod(i * H * 0.241, W),
+          y = H * (0.03 + ((i * 23) % 31) / 100),
+          s = H * (i % 7 ? 0.0016 : 0.0026);
+        ctx.fillStyle = alpha(i % 5 ? paper : gold, 0.25 + (i % 4) * 0.12);
+        ctx.fillRect(x, y, s, s);
+      }
+      const x = W * 0.74,
+        y = H * 0.14,
+        r = H * 0.036;
+      const glow = ctx.createRadialGradient(x, y, 0, x, y, r * 4);
+      glow.addColorStop(0, alpha(paper, 0.16));
+      glow.addColorStop(1, alpha(paper, 0));
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, W, H * 0.5);
+      // Crescent: a disc with an offset disc cut away, drawn on its own canvas.
+      const size = Math.ceil(r * 2 + 2),
+        moon = document.createElement('canvas');
+      moon.width = moon.height = size;
+      const m2 = moon.getContext('2d');
+      m2.fillStyle = alpha(paper, 0.85);
+      m2.beginPath();
+      m2.arc(size / 2, size / 2, r, 0, Math.PI * 2);
+      m2.fill();
+      m2.globalCompositeOperation = 'destination-out';
+      m2.beginPath();
+      m2.arc(size / 2 + r * 0.45, size / 2 - r * 0.2, r * 0.88, 0, Math.PI * 2);
+      m2.fill();
+      ctx.drawImage(moon, x - size / 2, y - size / 2);
     } else {
       const x = W * 0.73,
         y = H * 0.19,
@@ -125,8 +162,13 @@
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.fill();
     }
-    const farBase = city ? pathTop - H * 0.095 : H * 0.57;
-    const farHeight = H * (city ? 0.62 : 0.6);
+    // The night forest fills most of its image, so it reaches down to the path behind the undergrowth.
+    const farBase = city
+      ? pathTop - H * 0.095
+      : night
+        ? pathTop - H * 0.008
+        : H * 0.57;
+    const farHeight = H * (city ? 0.62 : night ? 0.56 : 0.6);
     strip(
       ctx,
       artwork(entry, 'distant', theme),
@@ -137,7 +179,7 @@
       farHeight,
       entry.bottoms.distant,
     );
-    if (!city) {
+    if (!city && !night) {
       const valley = ctx.createLinearGradient(0, farBase, 0, pathTop);
       valley.addColorStop(0, mix(navy, teal, 0.24));
       valley.addColorStop(1, mix(navy, teal, 0.11));
@@ -162,7 +204,7 @@
         ctx.fill();
       }
     }
-    const middleHeight = H * (city ? 0.43 : 0.32),
+    const middleHeight = H * (city ? 0.43 : night ? 0.3 : 0.32),
       middleBase = pathTop + H * 0.008;
     strip(
       ctx,
@@ -185,7 +227,7 @@
       m.groundTile,
       H - pathTop,
     );
-    ctx.fillStyle = alpha(navy, theme === 'minimal' ? 0.1 : 0.22);
+    ctx.fillStyle = alpha(navy, theme === 'minimal' ? 0.1 : night ? 0.12 : 0.22);
     ctx.fillRect(0, pathTop, W, H - pathTop);
     if (city) {
       // Pavement joins and reflected lights move at exactly the stride-derived ground speed.
@@ -225,7 +267,7 @@
         m.reedsTile,
         g.H * 0.17,
       );
-    } else {
+    } else if (id === 'cyberpunk') {
       const H = g.H,
         period = H * 1.25,
         offset = mod(m.foreground, period),
