@@ -152,6 +152,7 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A5 High-res Hooper](#a5-high-res-hooper) | `special-post/artwork/hooper/` | todo | todo |
 | [A6 Sample photos for templates](#a6-sample-photos-for-templates) | `carousel-maker/samples/` | todo | todo |
 | [A7 Redraw the Special Post runners](#a7-redraw-the-special-post-runners) | `special-post/artwork/runners/<id>/` | todo (Russ first) | todo |
+| [A8 Travis puppet and aid-station props](#a8-travis-puppet-and-aid-station-props) | `shared/characters/travis/` | todo | todo (links-inMotion) |
 
 ## Rules for every art task
 
@@ -377,3 +378,82 @@ approach as `river-run/outfit-fit.js`), replace that runner's pieces in
 `special-post/index.html`, check neck, shoulder and hip joints across the
 whole stride and the jump, and render a side-by-side against the original
 Tristan for review. Original Tristan and Sam stay unchanged.
+
+## A8 Travis puppet and aid-station props
+
+**Why:** the links page (chiefcrackt/links-inMotion, https://in-motion.run)
+gets an **Aid station** button next to the Hooper button. Tapping it plays a
+short scene: Tristan slows to a stop, Travis (Tristan's fiancé) walks in from
+the right, hands Tristan a PB&J, and Tristan eats it. Travis needs his own
+puppet drawn to match the Tristan puppet, plus a few props.
+
+**Style and grid target:** `river-run/artwork/hires/parts-atlas.png` and its
+prompt in `river-run/artwork/hires/prompts.json` (same flat vector-style look,
+same 3×3 grid and cell order, same side view facing right). Cell positions are
+in `river-run/artwork/layout.json`. Copy that prompt's boilerplate (clean
+silhouettes, flat fills, real transparency, no halos or flecks) and change only
+the person and outfit.
+
+**Likeness:** Tristan attaches a photo of Travis in the ChatGPT chat; it is not
+stored in this repo. Use it for face, hair, beard, skin tone and build only, not
+for the outfit (the photo shows jeans and sunglasses; the puppet has neither).
+
+| Part | Travis |
+|---|---|
+| Hair | Short dark brown, a little fuller on top, short sides |
+| Beard | Full, neatly trimmed dark brown beard and mustache |
+| Skin | Fair, warm undertone, identical across every piece |
+| Face | Calm, slight smile, right-facing profile. **No sunglasses** — not on his face and not pushed up on his head |
+| Build | Broader and stockier than Tristan through the chest and middle; same joint positions so he fits the same rig |
+| Shirt | Olive / gray-green crew-neck short-sleeve tee with a chest pocket. **No logo, no tag, no text** |
+| Shorts | Casual khaki shorts, knee length (not running shorts) |
+| Socks / shoes | Short dark crew socks; dark brown low hiking shoes with a gray sole |
+| Watch | Black smartwatch on the near forearm |
+
+Travis is crew, not a runner: no hydration vest, no bib, no race gear.
+
+**Deliver** in `shared/characters/travis/`:
+
+1. `parts-atlas.png`, 1536×1536 or larger (2048 preferred), transparent, same
+   grid as the Tristan reference:
+
+   | Row | Left | Middle | Right |
+   |---|---|---|---|
+   | 1 | head **with full neck** | torso | hips / shorts |
+   | 2 | thigh (shorts leg on top) | shin (sock at bottom) | shoe |
+   | 3 | upper arm (tee sleeve) | near forearm with watch and fist | far forearm with fist |
+
+2. `props-atlas.png`, 1536×1024 or larger, transparent, 3×2 grid:
+
+   | Row | Left | Middle | Right |
+   |---|---|---|---|
+   | 1 | PB&J, whole (triangle half, side-on: tan crust, white bread, brown peanut butter, purple jelly) | PB&J with one bite out | PB&J with two bites out |
+   | 2 | last corner of crust | Travis near forearm, **open hand** palm up (watch) | Tristan near forearm, **open hand** reaching (match `river-run/artwork/hires` skin and his black watch) |
+
+   The sandwich is drawn at the size it would be in a fist, so it can sit in
+   any hand. Bites are clean rounded scallops, same piece otherwise.
+
+3. `prompts.json` with both prompts, same shape as the others.
+4. A preview PNG with Travis assembled standing next to the Tristan HD
+   reference for scale, for review on a phone.
+
+- Same rules as A7: draw the whole neck with the head (no flat cut, no skin
+  block), rounded caps at shoulder, elbow, hip and knee, real side-view chest
+  with a rounded shoulder.
+- Draw Travis facing **right** like every other piece. The page flips him to
+  face left as he walks in.
+- Do not redraw or change Tristan's head or face.
+- Travis is a real person: Tristan approves the head before anything is wired in.
+
+**Wire-in (Claude, in links-inMotion):** fit the atlas to the Tristan rig the
+way `scene/outfit-fit.js` does; copy the pieces locally under
+`scene/travis/` (no cross-site image loads). Add an **Aid station** button
+beside the Hooper button. Scene: Tristan eases to a stop and stands; Travis
+walks in from the right edge at an easy walking cadence (slower than Tristan's
+~0.6 s stride), stops a hand's reach away, raises the open hand with the
+sandwich; Tristan's hand takes it; Tristan lifts it to his mouth three times
+as the bite states advance, with a few crumbs; Travis waves and walks back out
+to the right; Tristan resumes running. Button is disabled while it plays.
+Hooper can stay in the scene. With reduced motion, show a still of the
+handoff instead. Add checks to `tests/` for the button, a full play-through,
+foot contact during Travis's walk, and the reduced-motion still.
