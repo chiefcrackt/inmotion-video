@@ -108,7 +108,15 @@ export function validProject(value) {
     )
   );
 }
-export function drawElements(c, slide, state, images, placement) {
+// `flag(area, message)` is optional; it reports text that won't fully show.
+export function drawElements(
+  c,
+  slide,
+  state,
+  images,
+  placement,
+  flag = () => {},
+) {
   for (const e of slide.elements || []) {
     if (
       e.hidden ||
@@ -164,10 +172,15 @@ export function drawElements(c, slide, state, images, placement) {
       c.lineTo(e.w - 35, e.h / 2 + 25);
       c.stroke();
     } else if (e.type === 'chart') {
-      const rows = e.text
-        .split('\n')
-        .slice(0, 12)
-        .map((r) => r.split('|'));
+      const all = e.text.split('\n');
+      if (all.length > 12)
+        flag('element:' + e.id, `Chart: ${all.length - 12} row(s) cut off`);
+      if (all.some((r) => r.split('|')[0].length > 30))
+        flag(
+          'element:' + e.id,
+          'Chart: a label is cut off after 30 characters',
+        );
+      const rows = all.slice(0, 12).map((r) => r.split('|'));
       const max = Math.max(1, ...rows.map((r) => Number(r[1]) || 0)),
         rh = e.h / Math.max(1, rows.length);
       rows.forEach((r, i) => {
@@ -184,10 +197,12 @@ export function drawElements(c, slide, state, images, placement) {
         c.globalAlpha = e.opacity;
       });
     } else if (e.type === 'table') {
-      const rows = e.text
-          .split('\n')
-          .slice(0, 12)
-          .map((r) => r.split('|').slice(0, 4)),
+      const all = e.text.split('\n');
+      if (all.length > 12)
+        flag('element:' + e.id, `Table: ${all.length - 12} row(s) cut off`);
+      if (all.some((r) => r.split('|').length > 4))
+        flag('element:' + e.id, 'Table: columns after the 4th are cut off');
+      const rows = all.slice(0, 12).map((r) => r.split('|').slice(0, 4)),
         cols = Math.max(1, ...rows.map((r) => r.length)),
         rh = e.h / Math.max(1, rows.length);
       rows.forEach((row, i) => {
@@ -234,6 +249,8 @@ export function drawElements(c, slide, state, images, placement) {
           y += e.size * e.spacing;
         };
         for (const word of paragraph.split(/\s+/)) {
+          if (c.measureText(word).width > e.w - 16)
+            flag('element:' + e.id, 'Text box: a word is too wide for the box');
           if (c.measureText(line + ' ' + word).width > e.w - 16 && line) {
             output(line);
             line = word;
@@ -241,6 +258,11 @@ export function drawElements(c, slide, state, images, placement) {
         }
         output(line);
       }
+      // y is where the next line would start; the last line ends one line
+      // height minus the leading earlier.
+      const lastBottom = y - e.size * e.spacing + e.size;
+      if (e.text.trim() && lastBottom > e.h)
+        flag('element:' + e.id, 'Text box: text runs past the bottom');
       c.restore();
     }
     if (e.border && e.type !== 'arrow') {

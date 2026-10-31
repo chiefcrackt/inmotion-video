@@ -18,6 +18,7 @@ export function organizeEditor() {
   group('Elements, layers & brand kit', [elements]);
   const photo = document.getElementById('photoControls');
   group('Photo framing & effects', [photo]);
+  group('Text size & fit', [document.getElementById('textSizeControls')]);
   const style = inspector.querySelector('.tag').parentElement;
   const styleNodes = [];
   for (

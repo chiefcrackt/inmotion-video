@@ -3,7 +3,13 @@ import { startPositioning } from './positioning.mjs';
 import { startEditor } from './editor.mjs';
 import { defaults, photoSettings } from './photo.mjs';
 import { templates, palettes, clone, move, zipStore } from './model.mjs';
-import { render, imageFor, loadSlideImages } from './render.mjs';
+import {
+  render,
+  imageFor,
+  loadSlideImages,
+  textSizes,
+  fitText,
+} from './render.mjs';
 const $ = (id) => document.getElementById(id),
   key = 'tim-carousel-v1';
 let backgroundControls;
@@ -86,6 +92,23 @@ async function paint(canvas, s, i) {
     toast('Photo could not be loaded. Please upload it again.');
   }
   render(canvas, s, i, state.slides.length, state, img);
+  return canvas.overflow || [];
+}
+// Marks a thumbnail when some of the slide's text is cut off.
+function overflowBadge(holder, issues, i) {
+  holder.querySelector('.overflowBadge')?.remove();
+  if (!issues.length) return;
+  const badge = document.createElement('b');
+  badge.className = 'overflowBadge';
+  badge.textContent = '⚠';
+  const summary =
+    `Slide ${i + 1}: text cut off — ` +
+    issues.map((x) => x.message).join('; ') +
+    '. Open Text size & fit to fix.';
+  badge.title = summary;
+  badge.setAttribute('role', 'img');
+  badge.setAttribute('aria-label', summary);
+  holder.append(badge);
 }
 async function draw() {
   const rev = ++revision;
@@ -148,7 +171,9 @@ async function draw() {
       if (Number.isInteger(from)) reorder(from, i);
     };
     $('film').append(b);
-    paint(c, s, i);
+    paint(c, s, i).then((issues) => {
+      if (rev === revision) overflowBadge(b, issues, i);
+    });
     const ob = document.createElement('button'),
       oc = document.createElement('canvas');
     ob.append(oc);
@@ -158,7 +183,9 @@ async function draw() {
       setTab(false);
     };
     $('overview').append(ob);
-    paint(oc, s, i);
+    paint(oc, s, i).then((issues) => {
+      if (rev === revision) overflowBadge(ob, issues, i);
+    });
   });
 }
 function reorder(from, to) {
@@ -175,11 +202,58 @@ function select(i) {
   $('hideFooter').checked = !!state.slides[i].hideFooter;
   for (const field of ['layout', 'kicker', 'title', 'body', 'stat'])
     $(field).value = state.slides[i][field] || '';
+  syncTextSize();
   draw();
 }
+function syncTextSize() {
+  const sizes = textSizes(state.slides[state.selected]);
+  $('titleSize').value = sizes.title;
+  $('titleSizeValue').textContent = sizes.title + ' px';
+  $('bodySize').value = sizes.body;
+  $('bodySizeValue').textContent = sizes.body + ' px';
+}
+for (const id of ['titleSize', 'bodySize'])
+  $(id).addEventListener('input', () => {
+    state.slides[state.selected][id] = Number($(id).value);
+    syncTextSize();
+    save();
+  });
+$('resetTextSize').onclick = () => {
+  const slide = state.slides[state.selected];
+  delete slide.titleSize;
+  delete slide.bodySize;
+  syncTextSize();
+  save();
+};
+$('fitText').onclick = async () => {
+  await document.fonts.ready;
+  await Promise.all(
+    [400, 700, 900].map((w) =>
+      document.fonts.load(`${w} 30px "${state.font}"`),
+    ),
+  );
+  const i = state.selected,
+    result = fitText(state.slides[i], state, i, state.slides.length);
+  if (result.changed) {
+    state.slides[i] = result.slide;
+    syncTextSize();
+    save(); // one undo step
+  }
+  toast(
+    result.remaining.length
+      ? (result.changed ? 'Shrunk as far as it can go. ' : '') +
+          'Still cut off: ' +
+          result.remaining.map((x) => x.message).join('; ') +
+          '. Shorten that text.'
+      : result.changed
+        ? 'Text fits now.'
+        : 'All text already fits on this slide.',
+  );
+};
 for (const field of ['layout', 'kicker', 'title', 'body', 'stat'])
   $(field).addEventListener('input', () => {
     state.slides[state.selected][field] = $(field).value;
+    if (field === 'layout') syncTextSize();
     save();
   });
 for (const field of ['font', 'handle', 'project']) {
