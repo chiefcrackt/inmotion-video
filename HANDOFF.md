@@ -155,7 +155,7 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A8 Travis puppet and aid-station props](#a8-travis-puppet-and-aid-station-props) | `shared/characters/travis/` | done (PR #20), redraw in A8b | done (links-inMotion da8b0b9) |
 | [A8b Redraw Travis to Tristan's outlines](#a8b-redraw-travis-to-tristans-outlines) | `shared/characters/travis/v2/` | done (PR #21) | done (links-inMotion b8e5c29) |
 | [A8c Redraw Travis's torso only](#a8c-redraw-traviss-torso-only) | `shared/characters/travis/v2/torso.png` | done (PR #22) | done (links-inMotion 9706a2f) |
-| [A9 Flat Hooper for the links page](#a9-flat-hooper-for-the-links-page) | `shared/characters/hooper/` | todo | todo (links-inMotion) |
+| [A9 Flat Hooper for the links page](#a9-flat-hooper-for-the-links-page) | `shared/characters/hooper/` | done (PR #23) | done (links-inMotion d818c0c) |
 
 ## Rules for every art task
 
