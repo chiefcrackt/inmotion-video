@@ -149,6 +149,8 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A2 New River Run scene](#a2-new-river-run-scene) | `river-run/scenes/<id>/` | todo | todo |
 | [A3 More backgrounds](#a3-more-backgrounds) | `shared/backgrounds/` | todo | todo |
 | [A4 Recap carousel artwork](#a4-recap-carousel-artwork) | waits on feature #1 | blocked | — |
+| [A5 High-res Hooper](#a5-high-res-hooper) | `special-post/artwork/hooper/` | todo | todo |
+| [A6 Sample photos for templates](#a6-sample-photos-for-templates) | `carousel-maker/samples/` | todo | todo |
 
 ## Rules for every art task
 
@@ -251,3 +253,57 @@ contact sheet and `tests/background-pack.cjs`.
 
 Blocked until feature #1 is scoped. Likely a few textured slide backgrounds
 for recap carousels; the brief will be added here then.
+
+## A5 High-res Hooper
+
+**Why:** Hooper (Tristan's dog, a brindle French bulldog) gallops beside the
+runners in Special Post, but his pieces are tiny (the torso is 139×98 px), so
+he goes soft at any real size. If A1 makes the runner bigger, Hooper needs to
+keep up.
+
+**Reference:** `special-post/artwork/hooper-parts-reference.png`, extracted
+from the pieces embedded in `special-post/index.html`
+(`DOGIMG`). Rig: `DOGPARTS` in the same file.
+
+**Deliver:** `special-post/artwork/hooper/parts-atlas.png`, 1320×1320 or
+larger, transparent, same 3×3 grid as the reference:
+
+| Row | Left | Middle | Right |
+|---|---|---|---|
+| 1 | torso (`torso`) | head with orange collar (`head`) | empty |
+| 2 | front upper leg (`fu`) | front lower leg (`fl`) | front paw (`fp`) |
+| 3 | hind thigh (`hu`) | hind shank (`hl`) | hind paw (`hp`) |
+
+- Same realistic painted look, brindle coat (dark brown with tan stripes),
+  cream chest patch, bat ears, orange collar, side view facing right.
+- Each piece keeps its shape and proportions from the reference, just
+  sharper. Legs keep rounded caps at the joints so they overlap cleanly.
+- Hooper is a real dog: keep his markings and face matching the reference.
+  Tristan approves before use.
+
+**Wire-in (Claude):** rebuild `DOGIMG` from the new atlas, refit `DOGPARTS`,
+keep the gallop timing, and check paw ground contact and joints (as in the
+earlier Hooper gait checks).
+
+## A6 Sample photos for templates
+
+**Why:** Carousel templates with photo slots (for example "What I use" and the
+photo-story layout) look empty until a real photo is uploaded. Sample photos
+make template previews look finished. They are placeholders for previews only
+and are never presented as Tristan's own photos.
+
+**Deliver:** six portrait JPEGs, 1080×1350, in `carousel-maker/samples/`, plus
+`prompts.json`:
+
+- `shoes` — a pair of running shoes on wet pavement
+- `kit` — gear flat-lay: watch, running belt, socks, gels, cap
+- `trail` — wooded singletrack trail, no runner
+- `road` — empty road at sunrise with a painted lane line
+- `stretch` — legs only, calf stretch on a park bench, no face
+- `coffee` — post-run coffee on a bench beside a water bottle
+
+Rules: no identifiable faces, no brand names or logos on products, no text.
+Natural photographic look; keep a calmer area in the upper half for headlines.
+
+**Wire-in (Claude):** show the samples in template previews and offer "Try a
+sample photo" in Carousel Maker, clearly labelled as a sample.
