@@ -576,7 +576,7 @@
       <footer><i></i>tristan.inmotion</footer>
     </div>
 
-    <script src="outfits.js"></script>
+    <script src="outfits.js?v=2"></script>
     <script src="outfit-fit.js?v=2"></script>
     <script>
       (function () {
@@ -2042,8 +2042,34 @@
         var wardrobe = {},
           outfitRequest = 0,
           outfitLoading = false;
+        // High-res pieces (handoff A1): 2x the original pieces, same joints,
+        // used as-is rather than fitted, so they load at imgScale 1.
+        var HIRES = 'artwork/hires/';
         function loadOutfit(id) {
           if (wardrobe[id]) return Promise.resolve(wardrobe[id]);
+          if (id === 'hires')
+            return Promise.all(
+              Object.keys(IMGSRC).map(function (name) {
+                return new Promise(function (resolve, reject) {
+                  var im = new Image();
+                  im.onload = function () {
+                    resolve([name, im]);
+                  };
+                  im.onerror = function () {
+                    reject(new Error('Could not load hires ' + name));
+                  };
+                  im.src = HIRES + name + '.webp';
+                });
+              }),
+            ).then(function (entries) {
+              var images = {};
+              entries.forEach(function (e) {
+                images[e[0]] = e[1];
+              });
+              return (wardrobe[id] = makePuppet(images, PARTS, {
+                imgScale: 1,
+              }));
+            });
           return Promise.all(
             Object.keys(IMGSRC).map(function (name) {
               return new Promise(function (resolve, reject) {
