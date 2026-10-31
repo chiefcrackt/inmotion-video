@@ -156,6 +156,7 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A8b Redraw Travis to Tristan's outlines](#a8b-redraw-travis-to-tristans-outlines) | `shared/characters/travis/v2/` | done (PR #21) | done (links-inMotion b8e5c29) |
 | [A8c Redraw Travis's torso only](#a8c-redraw-traviss-torso-only) | `shared/characters/travis/v2/torso.png` | done (PR #22) | done (links-inMotion 9706a2f) |
 | [A9 Flat Hooper for the links page](#a9-flat-hooper-for-the-links-page) | `shared/characters/hooper/` | done (PR #23) | done (links-inMotion d818c0c) |
+| [A9b Calmer coat for flat Hooper](#a9b-calmer-coat-for-flat-hooper) | `shared/characters/hooper/parts-atlas-v2.png` | todo | todo (links-inMotion) |
 
 ## Rules for every art task
 
@@ -680,4 +681,52 @@ refit `DOGPARTS` in `scene/runner.js` (pivots, ends, scales) to the new
 pieces, keep the gallop timing and hop, and run `tests/hooper-gait.cjs` (paw
 ground contact, fixed bone lengths, continuous joints). Compare frames before
 and after.
+
+## A9b Calmer coat for flat Hooper
+
+**Why:** A9's shapes work and are wired in, but at the size Hooper runs on a
+phone (about 60 px tall) his coat is too busy. Every piece has the same bold,
+high-contrast tiger stripes, so his near legs, far legs and body blur into one
+shape and you can't see where a leg ends. The thin dark outline on every piece
+also shows as seams where the pieces overlap at the joints.
+
+**Keep the shapes exactly. Change only the coat.**
+
+**Shape template:** `shared/characters/hooper/shape-template.png`
+(1536x1536, 3x3, 512 px cells): the A9 pieces as gray silhouettes, same grid
+and cell order as `shared/characters/hooper/parts-atlas.png`. Fill each gray
+shape exactly: same outline, size and position in the cell. The rig is already
+fitted to these shapes.
+
+**Coat:**
+
+- **Mostly solid dark brindle base** (dark chocolate brown), with **a few
+  thin, soft tan streaks**: low contrast, roughly a third as many as A9, and
+  none on the lower legs and paws.
+- **Lower legs and paws a touch darker** than the body, so legs read clearly
+  against the chest and belly.
+- **Cream chest patch** kept, a little larger so the front of the body reads.
+- **A slightly lighter top-line** along the back and the top of the head
+  (simple flat highlight band), so his silhouette pops on a dark navy page.
+- **No outlines** around any piece. Edges are just the fill color.
+- Same head details as A9: bat ears with pink inside, dark muzzle and nose,
+  orange collar, no eye.
+
+**Rules:** flat fills only (two or three tones total), real transparent
+background, no glow, no soft edges, no checkerboard, no text, no grid lines.
+Colors identical across every piece.
+
+**Deliver** `shared/characters/hooper/parts-atlas-v2.png` (1536x1536,
+transparent, same grid), add its prompt to
+`shared/characters/hooper/prompts.json` (`id: "parts-atlas-v2"`), and
+`preview-v2.png`: the A9 Hooper and the new one standing side by side on a
+**dark navy background (#0E1A2E)** and again at small size (about 60 px tall),
+so Tristan can judge it at phone size. Do not change `parts-atlas.png`.
+
+Tristan sends Claude the preview before merging.
+
+**Wire-in (Claude):** point `shared/characters/hooper/build.py` at
+`parts-atlas-v2.png` (the leg fitting reads the shapes, so pivots barely
+move), recopy to links-inMotion `scene/hooper/`, update `DOGPARTS` from the
+printed values, run `tests/hooper-gait.cjs`, compare frames at phone size.
 
