@@ -216,8 +216,6 @@
       middleHeight,
       entry.bottoms.middle,
     );
-    ctx.fillStyle = mix(navy, teal, 0.24);
-    ctx.fillRect(0, pathTop - H * 0.009, W, H * 0.018);
     strip(
       ctx,
       artwork(entry, 'ground', theme),
@@ -229,6 +227,12 @@
     );
     ctx.fillStyle = alpha(navy, theme === 'minimal' ? 0.1 : night ? 0.12 : 0.22);
     ctx.fillRect(0, pathTop, W, H - pathTop);
+    // Soft contact shadow where the background meets the path (no hard seam line).
+    const seam = ctx.createLinearGradient(0, pathTop, 0, pathTop + H * 0.035);
+    seam.addColorStop(0, alpha(navy, 0.55));
+    seam.addColorStop(1, alpha(navy, 0));
+    ctx.fillStyle = seam;
+    ctx.fillRect(0, pathTop, W, H * 0.035);
     if (city) {
       // Pavement joins and reflected lights move at exactly the stride-derived ground speed.
       const period = H * 0.38,
