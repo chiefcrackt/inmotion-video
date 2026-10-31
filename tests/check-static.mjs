@@ -15,6 +15,7 @@ const files = [
   'index.html',
   'sound-forge/index.html',
   'beat-bed/index.html',
+  'tier-list/index.html',
   'shared/sound/beat.mjs',
   'sound-forge/app.mjs',
   'shared/sound/engine.mjs',

@@ -16,7 +16,7 @@ Feature 4 was dropped and is intentionally not listed.
 | 4 | [#2 Multi-select, grouping and distribution](#2-multi-select-grouping-and-distribution) | Carousel Maker | todo |
 | 5 | [#6 Shared brand kits across visual tools](#6-shared-brand-kits-across-visual-tools) | Shared | todo |
 | 6 | [#7 Shared recording lifecycle](#7-shared-recording-lifecycle) | Shared (Title Maker first) | todo |
-| 7 | [#8 Tier List Maker](#8-tier-list-maker) | New tool `/tier-list/` | todo |
+| 7 | [#8 Tier List Maker](#8-tier-list-maker) | New tool `/tier-list/` | done |
 | 8 | [#9 Beat Bed](#9-beat-bed) | New tool `/beat-bed/` + `shared/sound/beat.mjs` | done |
 | 9 | [#10 Data-kit hit presets](#10-data-kit-hit-presets) | Sound Forge (`shared/sound/presets.mjs`) | done |
 

@@ -1,0 +1,2241 @@
+<!doctype html>
+<html lang="en"
+  ><head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover" /><link
+      rel="icon"
+      href="../favicon.svg"
+      type="image/svg+xml" /><link
+      rel="icon"
+      href="../favicon.png"
+      type="image/png" /><link
+      rel="apple-touch-icon"
+      href="../apple-touch-icon.png" /><meta
+      name="theme-color"
+      content="#0E1A2E" /><style>
+      :root {
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      body {
+        margin: 0;
+      }
+      img {
+        max-width: 100%;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      a.home {
+        font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-size: 13px;
+        color: #9fb0c8;
+        text-decoration: none;
+        flex-basis: 100%;
+      }
+      a.home:hover {
+        color: #e8c96a;
+      }</style
+    ><title>Beat Bed</title>
+    <meta name="claude:viewport-fit-sides" content="cover" />
+    <link rel="stylesheet" href="../shared/fonts.css" /></head
+  ><body
+    ><style>
+      /* Layout: a two-column studio. Live carousel or video preview on the left, grouped controls on the right; stacks to one column on phones.
+   Single dark look on purpose: the T.im navy is the brand ground. */
+      :root {
+        --navy: #0e1a2e;
+        --panel: #13233d;
+        --panel-2: #182b49;
+        --line: #25395c;
+        --gold: #e8c96a;
+        --teal: #2e9bad;
+        --paper: #f6f4ef;
+        --muted: #9fb0c8;
+        --danger: #f08a7a;
+        --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+        --body: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        background: var(--navy);
+        color: var(--paper);
+        font-family: var(--body);
+        font-size: 15px;
+        line-height: 1.45;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-block: 20px 40px;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      header {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      header h1 {
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: clamp(30px, 5vw, 44px);
+        letter-spacing: 0.5px;
+        margin: 0;
+        text-transform: uppercase;
+        text-wrap: balance;
+      }
+      header .eyebrow {
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: var(--gold);
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        flex-basis: 100%;
+        max-width: 62ch;
+      }
+      .studio {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+      @media (max-width: 860px) {
+        .studio {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .stagebox {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: sticky;
+        top: max(12px, env(safe-area-inset-top, 0px));
+      }
+      @media (max-width: 860px) {
+        .stagebox {
+          position: static;
+        }
+      }
+      .stage {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: repeating-linear-gradient(
+          45deg,
+          #0b1526 0 12px,
+          #0d182b 12px 24px
+        );
+        border-radius: 6px;
+        overflow: hidden;
+        min-height: 200px;
+      }
+      #cv {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        max-height: 62vh;
+        border-radius: 3px;
+      }
+      .stagebar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .readout {
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: 2px;
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+      }
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+      }
+      fieldset {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px 14px 16px;
+        margin: 0;
+        background: var(--panel);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+      }
+      legend {
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: var(--gold);
+        font-size: 14px;
+        text-transform: uppercase;
+        padding: 0 6px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .lab {
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        font-size: 13px;
+        color: var(--muted);
+        text-transform: uppercase;
+        min-width: 84px;
+      }
+      .chip {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--paper);
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 17px;
+        letter-spacing: 1px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        cursor: pointer;
+        line-height: 1;
+        min-height: 36px;
+      }
+      .chip:hover {
+        border-color: var(--teal);
+      }
+      .chip[aria-pressed='true'] {
+        background: var(--gold);
+        color: var(--navy);
+        border-color: var(--gold);
+      }
+      .chip.sm {
+        font-size: 15px;
+        padding: 6px 11px;
+        min-height: 32px;
+      }
+      .chip:focus-visible,
+      .btn:focus-visible,
+      input:focus-visible {
+        outline: 3px solid var(--teal);
+        outline-offset: 2px;
+      }
+      input[type='text'],
+      input[type='number'] {
+        background: var(--navy);
+        border: 1px solid var(--line);
+        color: var(--paper);
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 18px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        width: 110px;
+        letter-spacing: 1px;
+      }
+      input#label {
+        width: 150px;
+        text-transform: uppercase;
+      }
+      .toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--paper);
+      }
+      .toggle input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--teal);
+      }
+      .sounds {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+      }
+      .snd {
+        appearance: none;
+        text-align: left;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--paper);
+        border-radius: 8px;
+        padding: 9px 11px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .snd b {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 17px;
+        letter-spacing: 0.5px;
+      }
+      .snd span {
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .snd[aria-pressed='true'] {
+        border-color: var(--gold);
+        box-shadow: inset 0 0 0 1px var(--gold);
+      }
+      .snd[aria-pressed='true'] b {
+        color: var(--gold);
+      }
+      .btn {
+        appearance: none;
+        border: 0;
+        border-radius: 8px;
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-size: 17px;
+        padding: 11px 16px;
+        cursor: pointer;
+        min-height: 44px;
+      }
+      .btn.primary {
+        background: var(--gold);
+        color: var(--navy);
+      }
+      .btn.rec {
+        background: #d9534f;
+        color: #fff;
+      }
+      .btn.rec.on {
+        background: #7a2b29;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--paper);
+        border: 1px solid var(--line);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .result {
+        border: 1px solid var(--teal);
+        border-radius: 10px;
+        background: var(--panel);
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .result video {
+        width: 100%;
+        max-height: 46vh;
+        background: #000;
+        border-radius: 6px;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .msg {
+        font-size: 14px;
+        margin: 0;
+        color: var(--paper);
+      }
+      .msg.err {
+        color: var(--danger);
+      }
+      .dot {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #d9534f;
+        margin-right: 6px;
+        vertical-align: middle;
+        animation: blink 1s steps(2) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.2;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .dot {
+          animation: none;
+        }
+      }
+      /* Tier List additions */
+      .tabs {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      #cv {
+        max-height: 66vh;
+      }
+      .stage {
+        min-height: 260px;
+      }
+      .scrub {
+        width: 100%;
+        accent-color: var(--teal);
+      }
+      .items {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      details.item {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel-2);
+        min-width: 0;
+      }
+      details.item[open] {
+        border-color: var(--teal);
+      }
+      details.item summary {
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+      }
+      details.item summary::-webkit-details-marker {
+        display: none;
+      }
+      .tierdot {
+        display: inline-grid;
+        place-items: center;
+        min-width: 34px;
+        height: 34px;
+        padding: 0 6px;
+        border-radius: 6px;
+        font-weight: 900;
+        font-size: 20px;
+        line-height: 1;
+      }
+      .thumb {
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+        border-radius: 4px;
+        background: #0b1526;
+      }
+      .sumname {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .ibody {
+        padding: 4px 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+      .field > span {
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        font-size: 12.5px;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+      .controls input[type='text'],
+      .controls textarea {
+        width: 100%;
+        min-width: 0;
+        background: var(--navy);
+        border: 1px solid var(--line);
+        color: var(--paper);
+        font-family: var(--display);
+        font-weight: 600;
+        font-size: 17px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        letter-spacing: 0.3px;
+      }
+      .controls textarea {
+        resize: vertical;
+        min-height: 44px;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
+        gap: 6px;
+      }
+      .tiers5 {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .tiers5 input {
+        text-align: center;
+        text-transform: uppercase;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 8px;
+      }
+      @media (max-width: 420px) {
+        .split {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      input[type='file'] {
+        display: none;
+      }
+    </style>
+
+    <div class="wrap">
+      <header>
+        <a class="home" href="../">← All T.im video tools</a>
+        <span class="eyebrow">T.im · Rankings</span>
+        <h1>Tier List Maker</h1>
+        <p
+          >Rank anything you’ve tried. Add each item with a photo, notes and a
+          verdict, pick its tier, then save a carousel (tier list first, one
+          slide per item) or record a video where each item drops into its
+          tier with sound.</p
+        >
+      </header>
+
+      <div class="studio">
+        <div class="stagebox">
+          <div class="tabs" role="group" aria-label="Output">
+            <button class="chip" id="mCar" type="button" aria-pressed="true"
+              >Carousel</button
+            ><button class="chip" id="mVid" type="button" aria-pressed="false"
+              >Video</button
+            >
+          </div>
+          <div class="stage"
+            ><canvas
+              id="cv"
+              width="1080"
+              height="1350"
+              aria-label="Tier list preview"
+            ></canvas
+          ></div>
+
+          <div id="carBar">
+            <div class="stagebar">
+              <button class="btn ghost" id="prev" type="button" aria-label="Previous slide">←</button>
+              <button class="btn ghost" id="next" type="button" aria-label="Next slide">→</button>
+              <span class="readout" id="slideNo"></span>
+            </div>
+            <div class="stagebar" style="margin-top: 10px">
+              <button class="btn primary" id="pngOne" type="button"
+                >Save this slide</button
+              >
+              <button class="btn ghost" id="zipAll" type="button"
+                >Save all (ZIP)</button
+              >
+            </div>
+          </div>
+
+          <div id="vidBar" hidden>
+            <input
+              class="scrub"
+              type="range"
+              id="scrub"
+              min="0"
+              max="1000"
+              value="0"
+              aria-label="Preview time"
+            />
+            <div class="stagebar">
+              <button class="btn primary" id="play" type="button"
+                >▶ Play with sound</button
+              >
+              <button class="btn rec" id="rec" type="button"
+                >● Record video</button
+              >
+              <span class="readout" id="vidNo"></span>
+            </div>
+            <div class="stagebar" style="margin-top: 10px">
+              <button class="btn ghost" id="still" type="button"
+                >Save still (PNG)</button
+              >
+            </div>
+          </div>
+
+          <p class="msg" id="msg" role="status"></p>
+          <div class="result" id="result" hidden>
+            <video id="vid" controls playsinline></video>
+            <div class="row">
+              <button class="btn primary" id="save" type="button"
+                >Save video</button
+              >
+              <button class="btn ghost" id="again" type="button"
+                >Record again</button
+              >
+            </div>
+            <p class="note" id="savenote"></p>
+          </div>
+        </div>
+
+        <div class="controls">
+          <fieldset>
+            <legend>Post</legend>
+            <div class="split">
+              <label class="field"
+                ><span>Small line on top</span
+                ><input type="text" id="eyebrow" maxlength="40"
+              /></label>
+              <label class="field"
+                ><span>Big title</span
+                ><input type="text" id="title" maxlength="24"
+              /></label>
+            </div>
+            <div class="split">
+              <label class="field"
+                ><span>Slide label</span
+                ><input type="text" id="series" maxlength="30"
+              /></label>
+              <label class="field"
+                ><span>Ending question</span
+                ><input type="text" id="question" maxlength="34"
+              /></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Tiers</legend>
+            <div class="tiers5" id="tierLabels"></div>
+            <div class="row">
+              <label class="toggle"
+                ><input type="checkbox" id="showEmpty" /> Show empty tiers
+                (“nothing here”)</label
+              >
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Items</legend>
+            <div class="items" id="items"></div>
+            <div class="row">
+              <button class="btn ghost" id="add" type="button"
+                >+ Add item</button
+              >
+              <span class="note" id="countNote"></span>
+            </div>
+            <input type="file" id="file" accept="image/*" />
+            <p class="note"
+              >Photos stay on this device. “Remove white background” cuts out
+              plain product shots and trims the empty edges.</p
+            >
+          </fieldset>
+
+          <fieldset>
+            <legend>Video</legend>
+            <div class="row" id="fmtRow"><span class="lab">Format</span></div>
+            <div class="row" id="readRow"><span class="lab">Read time</span></div>
+            <div class="row" id="orderRow"><span class="lab">Order</span></div>
+            <div class="row" id="bgRow"><span class="lab">Background</span></div>
+            <div class="sounds" id="sounds"></div>
+            <div class="row">
+              <span class="lab">Volume</span>
+              <input
+                type="range"
+                id="vol"
+                min="0"
+                max="100"
+                aria-label="Volume"
+                style="flex: 1; min-width: 120px; accent-color: var(--teal)"
+              />
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { bedEvents, makeKit, playEvents } from '../shared/sound/beat.mjs';
+      import { zipStore } from '../carousel-maker/model.mjs';
+
+      const $ = (id) => document.getElementById(id);
+      const uid = () => Math.random().toString(36).slice(2, 9);
+      const C = {
+        navy: '#0E1A2E',
+        gold: '#E8C96A',
+        teal: '#2E9BAD',
+        paper: '#F6F4EF',
+        slate: '#33435C',
+        muted: '#9AA6B8',
+        green: '#00FF00',
+      };
+      const F = '"Barlow Condensed","Arial Narrow",Arial,sans-serif';
+      const TSTY = [
+        { bg: C.gold, fg: C.navy },
+        { bg: C.teal, fg: C.paper },
+        { bg: C.paper, fg: C.navy },
+        { bg: C.slate, fg: C.paper },
+        { bg: null, fg: C.paper },
+      ];
+      const SOUNDS = [
+        { id: 'cyber', name: 'Cyber', desc: 'Synth beat, stab and sub on every drop' },
+        { id: 'soft', name: 'Soft', desc: 'Warm pad bed, gentle chords' },
+        { id: 'minimal', name: 'Minimal', desc: 'No music. Clicks and drops only' },
+        { id: 'none', name: 'None', desc: 'Silent video' },
+      ];
+      const item = (o) => ({ id: uid(), name: '', short: '', sub: '', tier: 2, fields: [], verdict: '', photo: '', ...o });
+      const DEFAULT_ITEMS = () => [
+        item({ name: 'SiS GO Gel', short: 'SiS GO', sub: 'Raspberry', tier: 0, fields: [['Taste', 'Raspberry is near perfect. Some flavors are just okay.'], ['Water', 'Truly none needed.']], verdict: 'No water needed. Pick your flavor carefully.' }),
+        item({ name: 'Precision Fuel PF 30', short: 'Precision Fuel', sub: 'Original', tier: 0, fields: [['Taste', 'Perfect.'], ['Texture', 'Perfect.'], ['Consistency', 'Perfect.']], verdict: 'Nothing to fix.' }),
+        item({ name: 'UCAN Edge', short: 'UCAN Edge', sub: 'Pineapple', tier: 1, fields: [['Taste', 'Great flavor, but it can taste powdery to me.'], ['Water', 'None needed.'], ['Stomach', 'Stomach safe.']], verdict: 'Almost S tier. The powdery taste holds it back.' }),
+        item({ name: 'BPN Go Gel', short: 'BPN Go', sub: 'Mixed Berry', tier: 2, fields: [['Taste', 'Good flavor.'], ['Texture', 'Puree-like.'], ['Stomach', 'Good on my stomach.']], verdict: 'Solid choice. Good all around.' }),
+        item({ name: 'Honey Stinger', short: 'Honey Stinger', sub: 'Strawberry Kiwi', tier: 2, fields: [['Taste', 'Good flavors. Love the honey.'], ['Texture', "Sometimes too thick. Almost have to chew it, especially when it's cold."], ['Stomach', 'Stomach safe.']], verdict: 'Still reach for it. Just not on cold days.' }),
+        item({ name: 'GU Energy Gel', short: 'GU', sub: 'Salted Watermelon', tier: 4, fields: [['Taste', 'Lots of flavors, and most are decent.'], ['Texture', 'Horrible texture and consistency.'], ['Water', '100% needs to be washed down.']], verdict: "Everyone's first gel. Not my last." }),
+      ];
+      const DEF = () => ({
+        eyebrow: "EVERY GEL I'VE TRIED",
+        title: 'RANKED.',
+        series: "GELS I'VE TRIED",
+        question: "WHAT'S YOUR S TIER?",
+        tiers: ['S', 'A', 'B', 'C', 'F'],
+        showEmpty: true,
+        removeWhite: true,
+        items: DEFAULT_ITEMS(),
+        mode: 'car',
+        slide: 0,
+        fmt: 'v',
+        bg: 'navy',
+        read: 5,
+        order: 'worst',
+        sound: 'cyber',
+        vol: 80,
+      });
+      let S = DEF();
+      const KEY = 'tim_tier_list';
+      try {
+        const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+        if (saved) for (const k in saved) if (k in S) S[k] = saved[k];
+        if (!Array.isArray(S.items) || !S.items.length) S.items = DEFAULT_ITEMS();
+        S.items = S.items.map((it) => item(it));
+        if (!Array.isArray(S.tiers) || S.tiers.length !== 5) S.tiers = ['S', 'A', 'B', 'C', 'F'];
+      } catch (e) {}
+      let storeNote = '';
+      let persistTimer = 0;
+      function persist() {
+        clearTimeout(persistTimer);
+        persistTimer = setTimeout(() => {
+          storeNote = '';
+          try {
+            localStorage.setItem(KEY, JSON.stringify(S));
+          } catch (e) {
+            try {
+              localStorage.setItem(KEY, JSON.stringify({ ...S, items: S.items.map((it) => ({ ...it, photo: '' })) }));
+              storeNote = 'Photos are too big to remember on this device. They stay until you close the page.';
+            } catch (e2) {}
+          }
+          $('countNote').textContent = countText();
+        }, 250);
+      }
+      const msg = $('msg');
+      const say = (t, err) => {
+        msg.textContent = t || '';
+        msg.className = 'msg' + (err ? ' err' : '');
+      };
+      const countText = () => S.items.length + ' of 12 items' + (storeNote ? '. ' + storeNote : '');
+
+      // ---------- photos
+      const imgs = new Map();
+      function photoFor(it) {
+        if (!it.photo) return null;
+        let e = imgs.get(it.id);
+        if (!e || e.src !== it.photo) {
+          const im = new Image();
+          e = { src: it.photo, im, ok: false };
+          im.onload = () => {
+            e.ok = true;
+            draw();
+          };
+          im.src = it.photo;
+          imgs.set(it.id, e);
+        }
+        return e.ok ? e.im : null;
+      }
+      // flood-fill near-white from the edges to transparent, then trim the empty border
+      function cutWhite(d, w, h) {
+        const p = d.data,
+          seen = new Uint8Array(w * h),
+          q = new Int32Array(w * h);
+        let qh = 0,
+          qt = 0;
+        const white = (i) => {
+          const r = p[i * 4],
+            g = p[i * 4 + 1],
+            b = p[i * 4 + 2],
+            a = p[i * 4 + 3];
+          return a < 20 || (r > 228 && g > 228 && b > 228 && Math.max(r, g, b) - Math.min(r, g, b) < 26);
+        };
+        const add = (i) => {
+          if (!seen[i] && white(i)) {
+            seen[i] = 1;
+            q[qt++] = i;
+          }
+        };
+        for (let x = 0; x < w; x++) {
+          add(x);
+          add((h - 1) * w + x);
+        }
+        for (let y = 0; y < h; y++) {
+          add(y * w);
+          add(y * w + w - 1);
+        }
+        while (qh < qt) {
+          const i = q[qh++],
+            x = i % w,
+            y = (i / w) | 0;
+          p[i * 4 + 3] = 0;
+          if (x) add(i - 1);
+          if (x < w - 1) add(i + 1);
+          if (y) add(i - w);
+          if (y < h - 1) add(i + w);
+        }
+      }
+      function processPhoto(file) {
+        return new Promise((res, rej) => {
+          const url = URL.createObjectURL(file),
+            im = new Image();
+          im.onerror = () => {
+            URL.revokeObjectURL(url);
+            rej(new Error('That file didn’t open as an image.'));
+          };
+          im.onload = () => {
+            URL.revokeObjectURL(url);
+            const s = Math.min(1, 1000 / Math.max(im.width, im.height)),
+              w = Math.max(1, Math.round(im.width * s)),
+              h = Math.max(1, Math.round(im.height * s));
+            const c = document.createElement('canvas');
+            c.width = w;
+            c.height = h;
+            const x = c.getContext('2d');
+            x.drawImage(im, 0, 0, w, h);
+            const d = x.getImageData(0, 0, w, h);
+            if (S.removeWhite) cutWhite(d, w, h);
+            x.putImageData(d, 0, 0);
+            // trim to the visible pixels
+            let x0 = w,
+              y0 = h,
+              x1 = -1,
+              y1 = -1;
+            for (let y = 0; y < h; y++)
+              for (let xx = 0; xx < w; xx++)
+                if (d.data[(y * w + xx) * 4 + 3] > 12) {
+                  if (xx < x0) x0 = xx;
+                  if (xx > x1) x1 = xx;
+                  if (y < y0) y0 = y;
+                  if (y > y1) y1 = y;
+                }
+            if (x1 < 0) {
+              x0 = 0;
+              y0 = 0;
+              x1 = w - 1;
+              y1 = h - 1;
+            }
+            const cw = x1 - x0 + 1,
+              ch = y1 - y0 + 1,
+              k = Math.min(1, 720 / Math.max(cw, ch));
+            const o = document.createElement('canvas');
+            o.width = Math.max(1, Math.round(cw * k));
+            o.height = Math.max(1, Math.round(ch * k));
+            o.getContext('2d').drawImage(c, x0, y0, cw, ch, 0, 0, o.width, o.height);
+            let out = o.toDataURL('image/webp', 0.88);
+            if (!out.startsWith('data:image/webp')) out = o.toDataURL('image/png');
+            res(out);
+          };
+          im.src = url;
+        });
+      }
+
+      // ---------- text + shape helpers
+      function tracked(c, text, x, y, sp, align) {
+        const ch = [...String(text)],
+          ws = ch.map((k) => c.measureText(k).width),
+          w = ws.reduce((a, b) => a + b, 0) + sp * Math.max(0, ch.length - 1);
+        let cx = align === 'right' ? x - w : align === 'center' ? x - w / 2 : x;
+        const pa = c.textAlign;
+        c.textAlign = 'left';
+        ch.forEach((k, i) => {
+          c.fillText(k, cx, y);
+          cx += ws[i] + sp;
+        });
+        c.textAlign = pa;
+        return w;
+      }
+      function wrap(c, text, maxW) {
+        const words = String(text).split(/\s+/).filter(Boolean),
+          lines = [];
+        let line = '';
+        for (const w of words) {
+          const t = line ? line + ' ' + w : w;
+          if (c.measureText(t).width > maxW && line) {
+            lines.push(line);
+            line = w;
+          } else line = t;
+        }
+        if (line) lines.push(line);
+        return lines;
+      }
+      // largest size (≤ size) where the text fits in maxLines lines of maxW
+      function fitWrap(c, text, maxW, size, maxLines, weight = 900, min = 24) {
+        let s = size,
+          lines;
+        for (;;) {
+          c.font = weight + ' ' + s + 'px ' + F;
+          lines = wrap(c, text, maxW);
+          if ((lines.length <= maxLines && lines.every((l) => c.measureText(l).width <= maxW)) || s <= min) break;
+          s -= 3;
+        }
+        return { s, lines: lines.slice(0, Math.max(maxLines, 1)) };
+      }
+      function rr(c, x, y, w, h, r) {
+        c.beginPath();
+        c.moveTo(x + r, y);
+        c.arcTo(x + w, y, x + w, y + h, r);
+        c.arcTo(x + w, y + h, x, y + h, r);
+        c.arcTo(x, y + h, x, y, r);
+        c.arcTo(x, y, x + w, y, r);
+        c.closePath();
+      }
+      function contain(c, im, x, y, w, h) {
+        const s = Math.min(w / im.width, h / im.height),
+          dw = im.width * s,
+          dh = im.height * s;
+        c.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+      }
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const ease = (t) => (t < 0 ? 0 : t > 1 ? 1 : t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+      const pulse = (t, at, len) => {
+        const d = t - at;
+        return d < 0 || d > len ? 0 : 1 - d / len;
+      };
+      const up = (s) => String(s || '').toUpperCase();
+      const boardName = (it) => it.short || it.name || 'Untitled';
+
+      // ---------- background, frame, lockup
+      function drawBg(c, W, H, green, video) {
+        if (green) {
+          c.fillStyle = C.green;
+          c.fillRect(0, 0, W, H);
+          const P = panelRect(W, H);
+          c.fillStyle = C.navy;
+          rr(c, P.x, P.y, P.w, P.h, 24);
+          c.fill();
+          return;
+        }
+        c.fillStyle = C.navy;
+        c.fillRect(0, 0, W, H);
+        c.strokeStyle = 'rgba(246,244,239,0.035)';
+        c.lineWidth = 2;
+        for (let d = -H; d < W + H; d += 38) {
+          c.beginPath();
+          c.moveTo(d, H);
+          c.lineTo(d + H, 0);
+          c.stroke();
+        }
+        if (video) {
+          c.strokeStyle = 'rgba(46,155,173,0.06)';
+          c.lineWidth = 1;
+          for (let x = 0; x <= W; x += 90) {
+            c.beginPath();
+            c.moveTo(x, 0);
+            c.lineTo(x, H);
+            c.stroke();
+          }
+          for (let y = 0; y <= H; y += 90) {
+            c.beginPath();
+            c.moveTo(0, y);
+            c.lineTo(W, y);
+            c.stroke();
+          }
+        }
+        c.fillStyle = C.gold;
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.lineTo(W, 0);
+        c.lineTo(W, 22);
+        c.bezierCurveTo(W * 0.78, 30, W * 0.62, 6, W * 0.45, 16);
+        c.bezierCurveTo(W * 0.28, 26, W * 0.12, 30, 0, 18);
+        c.closePath();
+        c.fill();
+        const sy = W > H ? 70 : video ? 210 : 58;
+        c.lineCap = 'butt';
+        c.lineWidth = 15;
+        c.strokeStyle = C.teal;
+        c.beginPath();
+        c.moveTo(W - 230, sy + 92);
+        c.lineTo(W - 64, sy);
+        c.stroke();
+        c.strokeStyle = C.gold;
+        c.beginPath();
+        c.moveTo(W - 190, sy + 132);
+        c.lineTo(W - 64, sy + 62);
+        c.stroke();
+      }
+      function lockup(c, W, H, green) {
+        const P = green ? panelRect(W, H) : null;
+        const x = green ? P.x + 34 : 56,
+          y = green ? P.y + P.h - 34 : H - 56;
+        c.save();
+        c.fillStyle = C.teal;
+        c.beginPath();
+        c.arc(x, y, 9, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = C.paper;
+        c.font = '700 26px ' + F;
+        c.textBaseline = 'middle';
+        tracked(c, 'TRISTAN.INMOTION', x + 22, y + 1, 4.5);
+        c.restore();
+      }
+      function panelRect(W, H) {
+        return W > H ? { x: 40, y: 40, w: W - 80, h: H - 80 } : { x: 36, y: 230, w: W - 72, h: 1320 };
+      }
+      function tierBlock(c, i, x, y, w, h, size, label) {
+        const s = TSTY[i];
+        if (s.bg) {
+          c.fillStyle = s.bg;
+          rr(c, x, y, w, h, 8);
+          c.fill();
+        } else {
+          c.strokeStyle = C.paper;
+          c.lineWidth = 4;
+          rr(c, x + 2, y + 2, w - 4, h - 4, 8);
+          c.stroke();
+        }
+        const t = up(label ?? S.tiers[i]);
+        let sz = size;
+        c.font = '900 ' + sz + 'px ' + F;
+        while (c.measureText(t).width > w - 16 && sz > 20) {
+          sz -= 2;
+          c.font = '900 ' + sz + 'px ' + F;
+        }
+        c.fillStyle = s.fg;
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.fillText(t, x + w / 2, y + h / 2 + sz * 0.05);
+        c.textAlign = 'left';
+        c.textBaseline = 'alphabetic';
+      }
+
+      // ---------- tier board (shared by carousel and video)
+      function rowsShown() {
+        return [0, 1, 2, 3, 4].filter((i) => S.showEmpty || S.items.some((it) => it.tier === i));
+      }
+      function drawBoard(c, box, landed, flash, scale) {
+        const rows = rowsShown(),
+          gap = Math.round(14 * scale),
+          rowH = (box.h - gap * (rows.length - 1)) / rows.length;
+        const tierW = Math.min(rowH, 150 * scale),
+          px = box.x + tierW + gap,
+          pw = box.x + box.w - px;
+        const per = Math.max(2, ...rows.map((r) => S.items.filter((it) => it.tier === r).length));
+        const slotW = pw / per,
+          slots = {};
+        rows.forEach((r, k) => {
+          const y = box.y + k * (rowH + gap),
+            f = (flash && flash[r]) || 0;
+          tierBlock(c, r, box.x, y, tierW, rowH, Math.min(rowH * 0.62, 118 * scale));
+          if (f > 0) {
+            c.save();
+            c.globalAlpha = f * 0.5;
+            c.fillStyle = C.paper;
+            rr(c, box.x, y, tierW, rowH, 8);
+            c.fill();
+            c.restore();
+          }
+          c.fillStyle = `rgba(246,244,239,${0.05 + f * 0.12})`;
+          rr(c, px, y, pw, rowH, 8);
+          c.fill();
+          if (f > 0) {
+            c.save();
+            c.globalAlpha = f;
+            c.strokeStyle = C.teal;
+            c.lineWidth = 4;
+            rr(c, px + 2, y + 2, pw - 4, rowH - 4, 8);
+            c.stroke();
+            c.restore();
+          }
+          const list = S.items.filter((it) => it.tier === r);
+          if (!list.length) {
+            c.fillStyle = C.muted;
+            c.font = '700 ' + Math.round(28 * scale) + 'px ' + F;
+            c.textBaseline = 'middle';
+            tracked(c, 'NOTHING HERE', px + 30 * scale, y + rowH / 2, 5);
+            c.textBaseline = 'alphabetic';
+          }
+          list.forEach((it, j) => {
+            const sx = px + j * slotW,
+              imW = Math.min(rowH * 0.6, slotW * 0.38),
+              pad = 16 * scale;
+            const rect = { x: sx + pad, y: y + rowH * 0.1, w: imW, h: rowH * 0.8, textX: sx + pad + imW + 14 * scale, textW: slotW - imW - pad * 2 - 14 * scale, rowY: y, rowH };
+            const im = photoFor(it);
+            if (!im) {
+              rect.textX = sx + pad;
+              rect.textW = slotW - pad * 2;
+            }
+            slots[it.id] = rect;
+            if (landed && !landed.has(it.id)) return;
+            drawSlot(c, it, rect, 1);
+          });
+        });
+        return slots;
+      }
+      function drawSlot(c, it, r, a) {
+        const im = photoFor(it);
+        c.save();
+        c.globalAlpha *= a;
+        if (im) contain(c, im, r.x, r.y, r.w, r.h);
+        const { s, lines } = fitWrap(c, up(boardName(it)), Math.max(40, r.textW), Math.min(48, r.rowH * 0.3), 2, 900, 18);
+        c.fillStyle = C.paper;
+        const lh = s * 0.98,
+          top = r.rowY + r.rowH / 2 - ((lines.length - 1) * lh) / 2 + s * 0.34;
+        lines.forEach((l, k) => c.fillText(l, r.textX, top + k * lh));
+        c.restore();
+      }
+
+      // ---------- carousel slides (1080 × 1350)
+      function carouselSlides() {
+        return 1 + S.items.length;
+      }
+      function drawBoardSlide(c) {
+        const W = 1080,
+          H = 1350;
+        drawBg(c, W, H, false, false);
+        c.fillStyle = C.gold;
+        c.font = '700 34px ' + F;
+        tracked(c, up(S.eyebrow), 72, 150, 6);
+        c.fillStyle = C.paper;
+        const t = fitWrap(c, up(S.title), 800, 150, 1);
+        c.fillText(t.lines[0] || '', 66, 300);
+        drawBoard(c, { x: 72, y: 360, w: 936, h: 880 }, null, null, 1);
+        lockup(c, W, H, false);
+      }
+      function drawItemSlide(c, idx) {
+        const W = 1080,
+          H = 1350,
+          it = S.items[idx];
+        drawBg(c, W, H, false, false);
+        c.fillStyle = C.gold;
+        c.font = '700 30px ' + F;
+        tracked(c, `${up(S.series)} · ${String(idx + 2).padStart(2, '0')} / ${String(carouselSlides()).padStart(2, '0')}`, 72, 140, 5);
+        const tb = 150;
+        tierBlock(c, it.tier, 72, 188, tb, tb, 112);
+        const nx = 72 + tb + 28,
+          nm = fitWrap(c, up(it.name || 'Untitled'), W - 72 - nx, 96, 2, 900, 46),
+          lh = nm.s * 0.92;
+        const top = 188 + tb / 2 - (nm.lines.length * lh) / 2 + nm.s * 0.78;
+        c.fillStyle = C.paper;
+        nm.lines.forEach((l, k) => c.fillText(l, nx, top + k * lh));
+        if (it.sub) {
+          c.fillStyle = C.teal;
+          c.font = '700 32px ' + F;
+          tracked(c, up(it.sub), 72, 400, 5);
+        }
+        const im = photoFor(it),
+          ix = 650;
+        if (im) contain(c, im, ix, 440, W - 72 - ix, 600);
+        drawFields(c, it, 72, 480, (im ? ix - 40 : W - 72) - 72, 1060, 44, 26);
+        drawVerdict(c, it, 72, 1078, W - 144, 2, 60);
+        lockup(c, W, H, false);
+      }
+      function drawFields(c, it, x, y, w, bottom, size, labelSize, alphaFor) {
+        const f = it.fields.filter((p) => p[0] || p[1]);
+        let vs = size;
+        for (; vs >= 26; vs -= 2) {
+          let yy = y;
+          c.font = '500 ' + vs + 'px ' + F;
+          for (const [, v] of f) yy += wrap(c, v, w).length * vs * 1.12 + labelSize + 40;
+          if (yy <= bottom) break;
+        }
+        let yy = y;
+        f.forEach(([lab, v], k) => {
+          c.save();
+          if (alphaFor) {
+            const a = alphaFor(k);
+            c.globalAlpha *= a;
+            yy += (1 - a) * 0;
+          }
+          c.fillStyle = C.gold;
+          c.font = '700 ' + labelSize + 'px ' + F;
+          tracked(c, up(lab), x, yy, 5);
+          yy += 12 + vs * 0.95;
+          c.fillStyle = C.paper;
+          c.font = '500 ' + vs + 'px ' + F;
+          wrap(c, v, w).forEach((l) => {
+            c.fillText(l, x, yy);
+            yy += vs * 1.12;
+          });
+          yy += 40;
+          c.restore();
+        });
+      }
+      function drawVerdict(c, it, x, y, w, maxLines, size) {
+        if (!it.verdict) return;
+        c.fillStyle = C.gold;
+        c.fillRect(x, y, 64, 5);
+        c.font = '700 26px ' + F;
+        tracked(c, 'VERDICT', x + 78, y + 12, 5);
+        const v = fitWrap(c, up(it.verdict), w, size, maxLines, 900, 30);
+        c.fillStyle = C.paper;
+        v.lines.forEach((l, k) => c.fillText(l, x, y + 72 + k * v.s * 0.98));
+      }
+      function drawSlide(c, i) {
+        if (i <= 0) drawBoardSlide(c);
+        else drawItemSlide(c, i - 1);
+      }
+
+      // ---------- video
+      const VW = () => (S.fmt === 'h' ? 1920 : 1080);
+      const VH = () => (S.fmt === 'h' ? 1080 : 1920);
+      function sequence() {
+        const list = S.items.map((it, i) => ({ it, i }));
+        if (S.order === 'worst') list.sort((a, b) => b.it.tier - a.it.tier || a.i - b.i);
+        if (S.order === 'best') list.sort((a, b) => a.it.tier - b.it.tier || a.i - b.i);
+        return list.map((x) => x.it);
+      }
+      function timing() {
+        const INTRO = 2.4,
+          CARD = +S.read,
+          SEG = CARD + 2,
+          n = S.items.length,
+          END = INTRO + n * SEG;
+        return { INTRO, CARD, SEG, n, END, DUR: END + 4.5 };
+      }
+      function layout() {
+        if (S.fmt === 'h')
+          return {
+            eyebrowY: 110,
+            barY: 126,
+            tb: 150,
+            tbY: 160,
+            subY: 375,
+            img: { x: 110, y: 410, w: 420, h: 560 },
+            fields: { x: 590, y: 440, w: 560, bottom: 960 },
+            fieldsWide: { x: 110, y: 440, w: 1040, bottom: 960 },
+            verdict: { x: 1250, y: 440, w: 560, lines: 4, size: 72 },
+            board: { x: 110, y: 160, w: 1700, h: 760 },
+            questionY: 1000,
+            scale: 0.95,
+          };
+        return {
+          eyebrowY: 318,
+          barY: 334,
+          tb: 170,
+          tbY: 370,
+          subY: 620,
+          img: { x: 72, y: 670, w: 360, h: 560 },
+          fields: { x: 480, y: 700, w: 528, bottom: 1250 },
+          fieldsWide: { x: 72, y: 700, w: 936, bottom: 1250 },
+          verdict: { x: 72, y: 1290, w: 936, lines: 2, size: 76 },
+          board: { x: 72, y: 380, w: 936, h: 1030 },
+          questionY: 1490,
+          scale: 1,
+        };
+      }
+      function drawVideo(c, t) {
+        const W = VW(),
+          H = VH(),
+          G = S.bg === 'green',
+          L = layout(),
+          T = timing(),
+          seq = sequence();
+        // on green screen, fades become cuts so Chroma Key stays clean
+        const A = (x) => (G ? (x >= 0.5 ? 1 : 0) : x);
+        drawBg(c, W, H, G, true);
+        let glitch = 0;
+        if (t < T.INTRO) {
+          const a = A(ease(clamp(t / 0.5, 0, 1)) * (1 - ease(clamp((t - (T.INTRO - 0.4)) / 0.4, 0, 1))));
+          const cx = S.fmt === 'h' ? 140 : 72,
+            cy = S.fmt === 'h' ? 540 : 900,
+            cw = W - cx * 2;
+          c.save();
+          c.globalAlpha = a;
+          c.fillStyle = C.gold;
+          c.font = '700 46px ' + F;
+          tracked(c, up(S.eyebrow), cx, cy - 170, 8);
+          const ti = fitWrap(c, up(S.title), cw, S.fmt === 'h' ? 230 : 250, 2);
+          c.fillStyle = C.paper;
+          ti.lines.forEach((l, k) => c.fillText(l, cx, cy + 40 + k * ti.s * 0.9 + (G ? 0 : (1 - ease(clamp(t / 0.6, 0, 1))) * 40)));
+          c.fillStyle = C.teal;
+          c.font = '700 36px ' + F;
+          tracked(c, `${S.items.length} ${S.items.length === 1 ? 'ITEM' : 'ITEMS'} · ${up(S.tiers[0])} TO ${up(S.tiers[4])}`, cx, cy + 40 + (ti.lines.length - 1) * ti.s * 0.9 + 90, 7);
+          c.restore();
+          glitch = Math.max(pulse(t, 0.05, 0.25), pulse(t, 1.6, 0.2));
+        } else if (t < T.END) {
+          const i = Math.min(T.n - 1, Math.floor((t - T.INTRO) / T.SEG)),
+            lt = t - T.INTRO - i * T.SEG,
+            it = seq[i];
+          if (lt < T.CARD) {
+            drawCard(c, it, i, lt, T, L, A);
+            glitch = pulse(lt, 0, 0.22) * 0.8;
+          } else {
+            const bt = lt - T.CARD,
+              land = 1.0;
+            const landed = new Set(seq.slice(0, i).map((x) => x.id));
+            if (bt >= land) landed.add(it.id);
+            const flash = {};
+            flash[it.tier] = G ? 0 : pulse(bt, land, 0.7);
+            c.save();
+            c.globalAlpha = A(ease(clamp(bt / 0.25, 0, 1)));
+            if (!G) {
+              const sh = pulse(bt, land, 0.35) * 10;
+              c.translate((Math.sin(bt * 91) * sh) / 2, (Math.cos(bt * 77) * sh) / 2);
+            }
+            boardHeader(c, L, W);
+            const slots = drawBoard(c, L.board, landed, flash, L.scale);
+            c.restore();
+            if (bt < land && slots[it.id]) {
+              const p = ease(clamp((bt - 0.15) / (land - 0.15), 0, 1)),
+                s = slots[it.id];
+              const from = S.fmt === 'h' ? { x: W / 2 - 220, y: 300, w: 440, h: 520 } : { x: W / 2 - 180, y: 720, w: 360, h: 520 };
+              const im = photoFor(it);
+              const r = { x: from.x + (s.x - from.x) * p, y: from.y + (s.y - from.y) * p, w: from.w + (s.w - from.w) * p, h: from.h + (s.h - from.h) * p };
+              if (im) contain(c, im, r.x, r.y, r.w, r.h);
+              else {
+                c.fillStyle = C.paper;
+                const sz = 90 - 40 * p;
+                c.font = '900 ' + sz + 'px ' + F;
+                c.textAlign = 'center';
+                c.fillText(up(boardName(it)), r.x + r.w / 2, r.y + r.h / 2);
+                c.textAlign = 'left';
+              }
+            }
+            glitch = pulse(bt, land, 0.18);
+          }
+        } else {
+          const et = t - T.END;
+          boardHeader(c, L, W);
+          drawBoard(c, L.board, null, null, L.scale);
+          const qa = A(ease(clamp((et - 0.6) / 0.4, 0, 1)));
+          c.save();
+          c.globalAlpha = qa;
+          c.fillStyle = C.paper;
+          const q = fitWrap(c, up(S.question), W - 160, S.fmt === 'h' ? 64 : 74, 1);
+          c.textAlign = 'center';
+          c.fillText(q.lines[0] || '', W / 2, L.questionY);
+          c.textAlign = 'left';
+          c.restore();
+          glitch = Math.max(pulse(et, 0, 0.25), pulse(et, 0.6, 0.2));
+        }
+        lockup(c, W, H, G);
+        if (!G) {
+          if (glitch > 0) bandGlitch(c, W, H, glitch, Math.floor(t * 30));
+          const off = clamp((t - (T.DUR - 0.55)) / 0.45, 0, 1);
+          if (off > 0) crt(c, W, H, off);
+          c.fillStyle = 'rgba(0,0,0,0.16)';
+          for (let y = 0; y < H; y += 4) c.fillRect(0, y, W, 1);
+        }
+      }
+      function boardHeader(c, L, W) {
+        c.fillStyle = C.gold;
+        c.font = '700 34px ' + F;
+        tracked(c, `${up(S.eyebrow)} · ${up(S.title).replace(/\.$/, '')}`, L.board.x, S.fmt === 'h' ? 110 : 330, 6);
+      }
+      function drawCard(c, it, i, lt, T, L, A) {
+        const W = VW(),
+          inA = (k) => A(ease(clamp((lt - k * 0.08) / 0.4, 0, 1))),
+          out = A(1 - ease(clamp((lt - (T.CARD - 0.3)) / 0.3, 0, 1)));
+        const X0 = L.board.x;
+        c.save();
+        c.globalAlpha = out * inA(0);
+        c.fillStyle = C.gold;
+        c.font = '700 34px ' + F;
+        tracked(c, `${up(S.series)} · ${String(i + 1).padStart(2, '0')} / ${String(T.n).padStart(2, '0')}`, X0, L.eyebrowY, 6);
+        c.fillStyle = 'rgba(246,244,239,0.12)';
+        c.fillRect(X0, L.barY, 300, 5);
+        c.fillStyle = C.teal;
+        c.fillRect(X0, L.barY, 300 * clamp((lt - 0.4) / (T.CARD - 0.8), 0, 1), 5);
+        // the tier stays hidden until it drops
+        c.globalAlpha = out * inA(1);
+        c.strokeStyle = C.gold;
+        c.lineWidth = 5;
+        rr(c, X0 + 2, L.tbY + 2, L.tb - 4, L.tb - 4, 10);
+        c.stroke();
+        c.fillStyle = C.gold;
+        c.font = '900 ' + Math.round(L.tb * 0.7) + 'px ' + F;
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.fillText('?', X0 + L.tb / 2, L.tbY + L.tb / 2 + 6);
+        c.textAlign = 'left';
+        c.textBaseline = 'alphabetic';
+        const nx = X0 + L.tb + 30,
+          nm = fitWrap(c, up(it.name || 'Untitled'), W - X0 - nx, 108, 2, 900, 50),
+          lh = nm.s * 0.92;
+        const top = L.tbY + L.tb / 2 - (nm.lines.length * lh) / 2 + nm.s * 0.78;
+        c.fillStyle = C.paper;
+        nm.lines.forEach((l, k) => c.fillText(l, nx, top + k * lh + (1 - inA(1)) * 30));
+        if (it.sub) {
+          c.globalAlpha = out * inA(2);
+          c.fillStyle = C.teal;
+          c.font = '700 38px ' + F;
+          tracked(c, up(it.sub), X0, L.subY, 6);
+        }
+        const im = photoFor(it);
+        if (im) {
+          c.globalAlpha = out * inA(2);
+          const bob = S.bg === 'green' ? 0 : Math.sin(lt * 1.6) * 6;
+          contain(c, im, L.img.x, L.img.y + bob + (1 - inA(2)) * 40, L.img.w, L.img.h);
+        }
+        c.globalAlpha = out;
+        const fb = im ? L.fields : L.fieldsWide;
+        drawFields(c, it, fb.x, fb.y, fb.w, fb.bottom, 48, 28, (k) => inA(3 + k));
+        c.globalAlpha = out * inA(7);
+        drawVerdict(c, it, L.verdict.x, L.verdict.y, L.verdict.w, L.verdict.lines, L.verdict.size);
+        c.restore();
+      }
+      function bandGlitch(c, W, H, amt, seed) {
+        let r = seed * 9301 + 49297;
+        const rnd = () => {
+          r = (r * 9301 + 49297) % 233280;
+          return r / 233280;
+        };
+        for (let i = 0; i < 5; i++) {
+          const y = Math.floor(rnd() * H),
+            h = Math.floor(8 + rnd() * 70),
+            dx = Math.floor((rnd() - 0.5) * 90 * amt);
+          c.drawImage(c.canvas, 0, y, W, h, dx, y, W, h);
+          c.fillStyle = rnd() > 0.5 ? 'rgba(46,155,173,0.18)' : 'rgba(232,201,106,0.16)';
+          c.fillRect(0, y, W, h * 0.3);
+        }
+      }
+      let crtBuf = null;
+      function crt(c, W, H, p) {
+        if (!crtBuf || crtBuf.width !== W || crtBuf.height !== H) {
+          crtBuf = document.createElement('canvas');
+          crtBuf.width = W;
+          crtBuf.height = H;
+        }
+        const b = crtBuf.getContext('2d');
+        b.clearRect(0, 0, W, H);
+        b.drawImage(c.canvas, 0, 0);
+        c.fillStyle = '#000';
+        c.fillRect(0, 0, W, H);
+        const sy = Math.max(0.004, 1 - ease(clamp(p / 0.7, 0, 1))),
+          sx = p < 0.7 ? 1 : 1 - ease((p - 0.7) / 0.3) * 0.995;
+        const w = W * sx,
+          h = H * sy;
+        c.save();
+        c.globalAlpha = 1 - Math.max(0, (p - 0.85) / 0.15);
+        c.drawImage(crtBuf, (W - w) / 2, (H - h) / 2, w, h);
+        c.fillStyle = `rgba(246,244,239,${clamp(p * 1.4, 0, 0.9)})`;
+        c.fillRect((W - w) / 2, (H - h) / 2, w, h);
+        c.restore();
+      }
+
+      // ---------- sound
+      const EM = [164.81, 196, 246.94],
+        EMH = [329.63, 392, 493.88];
+      function landSound(k, t, tier, kind) {
+        if (kind === 'cyber') {
+          k.stab(t, EMH, tier === 0 ? 0.11 : 0.085);
+          k.sub(t, tier === 4 ? 0.85 : 0.7);
+          if (tier === 0) k.chime(t + 0.05, 0.035);
+          if (tier === 4) k.sweep(t + 0.05, 0.1);
+        } else if (kind === 'soft') {
+          k.pad(t, EMH, 0.7, 0.05, 0.005, 3000, 'sine', k.fx);
+          k.sub(t, 0.35);
+          if (tier === 0) k.chime(t + 0.05, 0.02);
+        } else if (kind === 'minimal') {
+          k.sub(t, 0.55);
+          k.click(t, 0.2);
+          if (tier === 0) k.chime(t + 0.05, 0.03);
+          if (tier === 4) k.blip(t + 0.05, 330, 0.05);
+        }
+      }
+      function schedule(k, t0) {
+        const kind = S.sound;
+        if (kind === 'none') return;
+        const T = timing(),
+          seq = sequence();
+        if (kind === 'cyber' || kind === 'soft') {
+          const bed = bedEvents({ style: kind, seconds: T.END - T.INTRO + 1, intro: 'cold', ending: 'cut' });
+          playEvents(k, t0 + T.INTRO, bed);
+          k.cutMusic(t0 + T.END);
+        }
+        if (kind === 'cyber') {
+          k.riser(t0, T.INTRO, 0.16);
+          k.stab(t0 + T.INTRO, EM, 0.07);
+          k.sub(t0 + T.INTRO, 0.6);
+        }
+        k.click(t0 + 0.05, 0.3);
+        seq.forEach((it, i) => {
+          const s = t0 + T.INTRO + i * T.SEG;
+          k.click(s, 0.22);
+          k.click(s + 0.08, 0.18);
+          if (kind === 'cyber') k.riser(s + T.CARD, 1, 0.12);
+          landSound(k, s + T.CARD + 1, it.tier, kind);
+        });
+        const E = t0 + T.END;
+        if (kind === 'cyber') {
+          k.kick(E, 0.8, k.fx);
+          k.stab(E, EM, 0.09);
+          k.sub(E, 0.8);
+          k.chime(E + 0.6, 0.03);
+          k.stab(E + 0.6, EMH, 0.08);
+          k.sweep(t0 + T.DUR - 0.55, 0.1);
+        } else {
+          k.sub(E, 0.6);
+          k.chime(E + 0.6, kind === 'soft' ? 0.02 : 0.03);
+        }
+      }
+      let AC = null,
+        out = null,
+        recDest = null;
+      function audio() {
+        if (!AC) {
+          const A = window.AudioContext || window.webkitAudioContext;
+          if (!A) return null;
+          AC = new A();
+          out = AC.createGain();
+          out.connect(AC.destination);
+        }
+        if (AC.state === 'suspended') AC.resume().catch(() => {});
+        return AC;
+      }
+      function newKit() {
+        const ac = audio();
+        if (!ac) return null;
+        return makeKit(ac, out, { volume: 0.5 * (S.vol / 100), seed: 7 });
+      }
+      function previewSound(kind) {
+        const k = newKit();
+        if (!k || kind === 'none') return;
+        const t = AC.currentTime + 0.05;
+        k.click(t, 0.22);
+        if (kind === 'cyber') k.riser(t + 0.05, 0.6, 0.12);
+        landSound(k, t + 0.7, 0, kind);
+      }
+
+      // ---------- stage
+      const cv = $('cv'),
+        ctx = cv.getContext('2d');
+      let vt = 1.2; // preview time in the video
+      let playing = null;
+      function sizeCanvas() {
+        const w = S.mode === 'car' ? 1080 : VW(),
+          h = S.mode === 'car' ? 1350 : VH();
+        if (cv.width !== w || cv.height !== h) {
+          cv.width = w;
+          cv.height = h;
+        }
+      }
+      function draw() {
+        sizeCanvas();
+        if (S.mode === 'car') {
+          S.slide = clamp(S.slide, 0, carouselSlides() - 1);
+          drawSlide(ctx, S.slide);
+          $('slideNo').textContent = `Slide ${S.slide + 1} of ${carouselSlides()} · 1080×1350`;
+        } else {
+          const T = timing();
+          if (!playing) vt = clamp(vt, 0, T.DUR);
+          drawVideo(ctx, vt);
+          if (!playing) $('scrub').value = Math.round((vt / T.DUR) * 1000);
+          $('vidNo').textContent = `${S.fmt === 'h' ? '16:9' : '9:16'} · ${Math.round(T.DUR)}s · ${VW()}×${VH()}`;
+        }
+      }
+      function setMode(m) {
+        S.mode = m;
+        $('mCar').setAttribute('aria-pressed', String(m === 'car'));
+        $('mVid').setAttribute('aria-pressed', String(m === 'vid'));
+        $('carBar').hidden = m !== 'car';
+        $('vidBar').hidden = m !== 'vid';
+        $('result').hidden = true;
+        persist();
+        draw();
+      }
+      $('mCar').onclick = () => {
+        stopPlay();
+        setMode('car');
+      };
+      $('mVid').onclick = () => setMode('vid');
+      $('prev').onclick = () => {
+        S.slide = (S.slide - 1 + carouselSlides()) % carouselSlides();
+        draw();
+      };
+      $('next').onclick = () => {
+        S.slide = (S.slide + 1) % carouselSlides();
+        draw();
+      };
+      $('scrub').oninput = function () {
+        if (playing) return;
+        vt = (this.value / 1000) * timing().DUR;
+        draw();
+      };
+
+      // ---------- carousel saving
+      const slug = (s) =>
+        String(s || 'item')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 40) || 'item';
+      function slideName(i) {
+        return String(i + 1).padStart(2, '0') + '-' + (i === 0 ? 'tier-list' : slug(S.items[i - 1].name)) + '.png';
+      }
+      function slideBlob(i) {
+        const c = document.createElement('canvas');
+        c.width = 1080;
+        c.height = 1350;
+        drawSlide(c.getContext('2d'), i);
+        return new Promise((r) => c.toBlob(r, 'image/png'));
+      }
+      $('pngOne').onclick = async () => {
+        const b = await slideBlob(S.slide);
+        if (b) saveFile('tim-' + slideName(S.slide), b, msg);
+      };
+      $('zipAll').onclick = async () => {
+        const btn = $('zipAll');
+        btn.disabled = true;
+        say('Packing slides…');
+        try {
+          const files = [];
+          for (let i = 0; i < carouselSlides(); i++) {
+            const b = await slideBlob(i);
+            files.push({ name: slideName(i), data: new Uint8Array(await b.arrayBuffer()) });
+          }
+          saveFile('tim-tier-list-' + slug(S.eyebrow) + '.zip', zipStore(files), msg);
+        } catch (e) {
+          say('Couldn’t pack the slides (' + (e && e.message) + ').', true);
+        } finally {
+          btn.disabled = false;
+        }
+      };
+
+      // ---------- play + record
+      function stopPlay() {
+        if (!playing) return;
+        cancelAnimationFrame(playing.raf);
+        try {
+          playing.kit && playing.kit.master.disconnect();
+        } catch (e) {}
+        const cb = playing.onDone;
+        playing = null;
+        $('play').textContent = '▶ Play with sound';
+        draw();
+        if (cb) cb(true);
+      }
+      function run(onDone, lead) {
+        lead = lead || 0.08;
+        const kit = newKit();
+        if (kit) schedule(kit, AC.currentTime + lead);
+        const T = timing();
+        playing = { start: performance.now() + lead * 1000, onDone, kit, raf: 0 };
+        const tick = (now) => {
+          if (!playing) return;
+          // frames follow the wall clock, so a recording always ends on time
+          const t = (now - playing.start) / 1000;
+          vt = clamp(t, 0, T.DUR);
+          drawVideo(ctx, vt);
+          $('scrub').value = Math.round((vt / T.DUR) * 1000);
+          if (t < T.DUR + 0.05) playing.raf = requestAnimationFrame(tick);
+          else {
+            const cb = playing.onDone;
+            playing = null;
+            $('play').textContent = '▶ Play with sound';
+            vt = 1.2;
+            draw();
+            if (cb) cb(false);
+          }
+        };
+        playing.raf = requestAnimationFrame(tick);
+      }
+      $('play').onclick = () => {
+        if (playing) {
+          stopPlay();
+          return;
+        }
+        $('play').textContent = '■ Stop';
+        run(null, 0.1);
+      };
+      function pickType() {
+        if (!window.MediaRecorder) return null;
+        for (const t of ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']) {
+          try {
+            if (MediaRecorder.isTypeSupported(t)) return t;
+          } catch (e) {}
+        }
+        return '';
+      }
+      let lastBlob = null,
+        lastName = '',
+        lastURL = null;
+      function setRec(on) {
+        const b = $('rec');
+        b.classList.toggle('on', on);
+        b.disabled = on;
+        $('play').disabled = on;
+        $('mCar').disabled = on;
+        b.innerHTML = on ? '<span class="dot"></span>Recording…' : '● Record video';
+      }
+      function record() {
+        if (playing) return;
+        const type = pickType();
+        if (type === null || !cv.captureStream) {
+          say('This browser can’t record video. Try Safari on iPhone or Chrome on a computer.', true);
+          return;
+        }
+        const ac = audio();
+        const stream = cv.captureStream(30),
+          tracks = stream.getVideoTracks().slice();
+        if (ac) {
+          if (!recDest) {
+            recDest = ac.createMediaStreamDestination();
+            out.connect(recDest);
+          }
+          recDest.stream.getAudioTracks().forEach((tr) => tracks.push(tr));
+        }
+        let mr;
+        try {
+          mr = new MediaRecorder(new MediaStream(tracks), type ? { mimeType: type, videoBitsPerSecond: 12e6, audioBitsPerSecond: 192e3 } : { videoBitsPerSecond: 12e6 });
+        } catch (e) {
+          say('Recording couldn’t start in this browser (' + e.name + ').', true);
+          return;
+        }
+        const chunks = [];
+        mr.ondataavailable = (e) => {
+          if (e.data && e.data.size) chunks.push(e.data);
+        };
+        mr.onstop = () => {
+          stream.getVideoTracks().forEach((tr) => tr.stop());
+          const mt = (mr.mimeType || type || 'video/webm').split(';')[0],
+            ext = mt.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
+          lastBlob = new Blob(chunks, { type: mt });
+          lastName = `tim-tier-list-${slug(S.eyebrow)}-${S.fmt === 'h' ? '16x9' : '9x16'}${S.bg === 'green' ? '-greenscreen' : ''}.${ext}`;
+          if (lastURL) URL.revokeObjectURL(lastURL);
+          lastURL = URL.createObjectURL(lastBlob);
+          $('vid').src = lastURL;
+          $('result').hidden = false;
+          $('savenote').textContent = lastName + ' · ' + (lastBlob.size / 1048576).toFixed(1) + ' MB';
+          setRec(false);
+          say('Recorded. Check it, then save it.');
+        };
+        setRec(true);
+        say('Recording in real time. Keep this screen open (about ' + Math.round(timing().DUR) + ' seconds).');
+        if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(() => {});
+        vt = 0;
+        drawVideo(ctx, 0);
+        mr.start(1000);
+        // short pre-roll so the first frame is already in the file
+        setTimeout(() => {
+          run((cancelled) => {
+            setTimeout(() => {
+              try {
+                mr.stop();
+              } catch (e) {}
+              if (cancelled) say('Recording stopped.');
+            }, 250);
+          }, 0.05);
+        }, 250);
+      }
+      $('rec').onclick = record;
+      $('again').onclick = () => {
+        $('result').hidden = true;
+        record();
+      };
+      $('save').onclick = () => {
+        if (lastBlob) saveFile(lastName, lastBlob, $('savenote'));
+      };
+      $('still').onclick = () => {
+        if (playing) return;
+        drawVideo(ctx, vt);
+        cv.toBlob((b) => {
+          if (b) saveFile(`tim-tier-list-${slug(S.eyebrow)}-still.png`, b, msg);
+        }, 'image/png');
+      };
+
+      // ---------- controls
+      function chip(label, pressed, onclick, cls) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip ' + (cls || 'sm');
+        b.textContent = label;
+        if (pressed !== null) b.setAttribute('aria-pressed', String(!!pressed));
+        b.onclick = onclick;
+        return b;
+      }
+      function fillRow(id, items, isOn, set) {
+        const row = $(id);
+        row.querySelectorAll('button').forEach((b) => b.remove());
+        items.forEach(([v, l]) =>
+          row.appendChild(
+            chip(l, isOn(v), () => {
+              set(v);
+              stopPlay();
+              renderVideoControls();
+              persist();
+              draw();
+            }),
+          ),
+        );
+      }
+      function renderVideoControls() {
+        fillRow('fmtRow', [['v', '9:16'], ['h', '16:9']], (v) => S.fmt === v, (v) => (S.fmt = v));
+        fillRow('readRow', [[3, '3 sec'], [5, '5 sec'], [7, '7 sec']], (v) => +S.read === v, (v) => (S.read = v));
+        fillRow('orderRow', [['worst', 'Worst → best'], ['best', 'Best → worst'], ['list', 'As listed']], (v) => S.order === v, (v) => (S.order = v));
+        fillRow('bgRow', [['navy', 'Navy'], ['green', 'Green screen']], (v) => S.bg === v, (v) => (S.bg = v));
+        const box = $('sounds');
+        box.innerHTML = '';
+        SOUNDS.forEach((s) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'snd';
+          b.setAttribute('aria-pressed', String(S.sound === s.id));
+          b.innerHTML = '<b></b><span></span>';
+          b.querySelector('b').textContent = s.name;
+          b.querySelector('span').textContent = s.desc;
+          b.onclick = () => {
+            S.sound = s.id;
+            persist();
+            renderVideoControls();
+            previewSound(s.id);
+          };
+          box.appendChild(b);
+        });
+        $('vol').value = S.vol;
+      }
+      $('vol').oninput = function () {
+        S.vol = +this.value;
+        persist();
+      };
+      function bindText(id, key) {
+        const el = $(id);
+        el.value = S[key];
+        el.oninput = () => {
+          S[key] = el.value;
+          persist();
+          draw();
+        };
+      }
+      bindText('eyebrow', 'eyebrow');
+      bindText('title', 'title');
+      bindText('series', 'series');
+      bindText('question', 'question');
+      function renderTierInputs() {
+        const box = $('tierLabels');
+        box.innerHTML = '';
+        S.tiers.forEach((t, i) => {
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.maxLength = 10;
+          inp.value = t;
+          inp.setAttribute('aria-label', 'Tier ' + (i + 1) + ' label');
+          inp.style.borderColor = TSTY[i].bg || C.paper;
+          inp.oninput = () => {
+            S.tiers[i] = inp.value || '?';
+            persist();
+            refreshSummaries();
+            draw();
+          };
+          box.appendChild(inp);
+        });
+      }
+      $('showEmpty').checked = S.showEmpty;
+      $('showEmpty').onchange = function () {
+        S.showEmpty = this.checked;
+        persist();
+        draw();
+      };
+
+      // ---------- items editor
+      let openId = null,
+        photoTarget = null;
+      function tierDot(i) {
+        const s = document.createElement('span');
+        s.className = 'tierdot';
+        s.textContent = up(S.tiers[i]);
+        s.style.background = TSTY[i].bg || 'transparent';
+        s.style.color = TSTY[i].fg;
+        if (!TSTY[i].bg) s.style.boxShadow = 'inset 0 0 0 2px ' + C.paper;
+        return s;
+      }
+      function refreshSummaries() {
+        document.querySelectorAll('details.item').forEach((d) => {
+          const it = S.items.find((x) => x.id === d.dataset.id);
+          if (!it) return;
+          const old = d.querySelector('summary .tierdot');
+          old.replaceWith(tierDot(it.tier));
+          d.querySelector('.sumname').textContent = it.name || 'Untitled';
+        });
+      }
+      function focusItem(it) {
+        const i = S.items.indexOf(it);
+        if (S.mode === 'car') S.slide = i + 1;
+        else if (!playing) {
+          const T = timing(),
+            k = sequence().indexOf(it);
+          vt = T.INTRO + k * T.SEG + Math.min(1.5, T.CARD * 0.5);
+        }
+        draw();
+      }
+      function renderItems() {
+        const box = $('items');
+        box.innerHTML = '';
+        S.items.forEach((it, i) => {
+          const d = document.createElement('details');
+          d.className = 'item';
+          d.dataset.id = it.id;
+          if (it.id === openId) d.open = true;
+          const sm = document.createElement('summary');
+          sm.appendChild(tierDot(it.tier));
+          if (it.photo) {
+            const th = document.createElement('img');
+            th.className = 'thumb';
+            th.alt = '';
+            th.src = it.photo;
+            sm.appendChild(th);
+          }
+          const nm = document.createElement('span');
+          nm.className = 'sumname';
+          nm.textContent = it.name || 'Untitled';
+          sm.appendChild(nm);
+          d.appendChild(sm);
+          d.ontoggle = () => {
+            if (d.open) {
+              openId = it.id;
+              document.querySelectorAll('details.item').forEach((o) => o !== d && (o.open = false));
+              focusItem(it);
+            } else if (openId === it.id) openId = null;
+          };
+          const body = document.createElement('div');
+          body.className = 'ibody';
+          const field = (label, val, set, opts = {}) => {
+            const l = document.createElement('label');
+            l.className = 'field';
+            const s = document.createElement('span');
+            s.textContent = label;
+            const inp = document.createElement(opts.area ? 'textarea' : 'input');
+            if (!opts.area) inp.type = 'text';
+            inp.maxLength = opts.max || 80;
+            inp.value = val;
+            if (opts.ph) inp.placeholder = opts.ph;
+            inp.oninput = () => {
+              set(inp.value);
+              persist();
+              refreshSummaries();
+              draw();
+            };
+            l.append(s, inp);
+            return l;
+          };
+          const r1 = document.createElement('div');
+          r1.className = 'split';
+          r1.append(
+            field('Name', it.name, (v) => (it.name = v), { max: 50 }),
+            field('Name on the tier list', it.short, (v) => (it.short = v), { max: 24, ph: 'Same as name' }),
+          );
+          body.append(r1, field('Small line (flavor, model…)', it.sub, (v) => (it.sub = v), { max: 40 }));
+          const tr = document.createElement('div');
+          tr.className = 'row';
+          const tl = document.createElement('span');
+          tl.className = 'lab';
+          tl.textContent = 'Tier';
+          tr.appendChild(tl);
+          S.tiers.forEach((t, ti) =>
+            tr.appendChild(
+              chip(up(t), it.tier === ti, () => {
+                it.tier = ti;
+                tr.querySelectorAll('button').forEach((b, bi) => b.setAttribute('aria-pressed', String(bi === ti)));
+                persist();
+                refreshSummaries();
+                draw();
+              }),
+            ),
+          );
+          body.appendChild(tr);
+          const pr = document.createElement('div');
+          pr.className = 'row';
+          pr.appendChild(
+            chip(it.photo ? 'Replace photo' : 'Add photo', null, () => {
+              photoTarget = it;
+              $('file').value = '';
+              $('file').click();
+            }),
+          );
+          if (it.photo)
+            pr.appendChild(
+              chip('Remove photo', null, () => {
+                it.photo = '';
+                persist();
+                renderItems();
+                draw();
+              }),
+            );
+          body.appendChild(pr);
+          const notes = document.createElement('div');
+          notes.className = 'field';
+          const nl = document.createElement('span');
+          nl.textContent = 'Notes (label and text, up to 4)';
+          notes.appendChild(nl);
+          for (let k = 0; k < 4; k++) {
+            const pair = document.createElement('div');
+            pair.className = 'pair';
+            const f = it.fields[k] || ['', ''];
+            const a = document.createElement('input'),
+              b = document.createElement('input');
+            a.type = b.type = 'text';
+            a.maxLength = 20;
+            b.maxLength = 120;
+            a.placeholder = ['Taste', 'Texture', 'Stomach', 'Water'][k];
+            b.placeholder = 'What you thought';
+            a.value = f[0];
+            b.value = f[1];
+            a.setAttribute('aria-label', 'Note ' + (k + 1) + ' label');
+            b.setAttribute('aria-label', 'Note ' + (k + 1) + ' text');
+            const sync = () => {
+              while (it.fields.length <= k) it.fields.push(['', '']);
+              it.fields[k] = [a.value, b.value];
+              while (it.fields.length && !it.fields[it.fields.length - 1][0] && !it.fields[it.fields.length - 1][1]) it.fields.pop();
+              persist();
+              draw();
+            };
+            a.oninput = b.oninput = sync;
+            pair.append(a, b);
+            notes.appendChild(pair);
+          }
+          body.appendChild(notes);
+          body.appendChild(field('Verdict (one line)', it.verdict, (v) => (it.verdict = v), { max: 90, area: true }));
+          const tools = document.createElement('div');
+          tools.className = 'row';
+          tools.appendChild(
+            chip('↑ Up', null, () => {
+              if (i) {
+                S.items.splice(i - 1, 0, S.items.splice(i, 1)[0]);
+                persist();
+                renderItems();
+                focusItem(it);
+              }
+            }),
+          );
+          tools.appendChild(
+            chip('↓ Down', null, () => {
+              if (i < S.items.length - 1) {
+                S.items.splice(i + 1, 0, S.items.splice(i, 1)[0]);
+                persist();
+                renderItems();
+                focusItem(it);
+              }
+            }),
+          );
+          tools.appendChild(
+            chip('Duplicate', null, () => {
+              if (S.items.length >= 12) return;
+              const copy = item({ ...JSON.parse(JSON.stringify(it)), id: uid(), name: it.name + ' copy' });
+              S.items.splice(i + 1, 0, copy);
+              openId = copy.id;
+              persist();
+              renderItems();
+              focusItem(copy);
+            }),
+          );
+          const del = chip('Delete', null, () => {
+            if (S.items.length <= 1) return;
+            if (!del.dataset.arm) {
+              del.dataset.arm = '1';
+              del.textContent = 'Tap again to delete';
+              setTimeout(() => {
+                delete del.dataset.arm;
+                del.textContent = 'Delete';
+              }, 3000);
+              return;
+            }
+            S.items.splice(i, 1);
+            imgs.delete(it.id);
+            persist();
+            renderItems();
+            draw();
+          });
+          tools.appendChild(del);
+          body.appendChild(tools);
+          d.appendChild(body);
+          box.appendChild(d);
+        });
+        $('countNote').textContent = countText();
+        $('add').disabled = S.items.length >= 12;
+      }
+      $('add').onclick = () => {
+        if (S.items.length >= 12) return;
+        const it = item({ name: 'New item', tier: 2 });
+        S.items.push(it);
+        openId = it.id;
+        persist();
+        renderItems();
+        focusItem(it);
+      };
+      $('file').onchange = async function () {
+        const f = this.files && this.files[0],
+          it = photoTarget;
+        if (!f || !it) return;
+        say('Preparing the photo…');
+        try {
+          it.photo = await processPhoto(f);
+          say('');
+          persist();
+          renderItems();
+          draw();
+        } catch (e) {
+          say(e.message, true);
+        }
+      };
+      const rw = document.createElement('label');
+      rw.className = 'toggle';
+      rw.innerHTML = '<input type="checkbox" id="removeWhite" /> Remove white background from new photos';
+      $('add').parentNode.after(rw);
+      $('removeWhite').checked = S.removeWhite;
+      $('removeWhite').onchange = function () {
+        S.removeWhite = this.checked;
+        persist();
+      };
+
+        // ---------- saving: artifact downloads capability, then the share sheet on phones, then a normal download
+        var downloads = null;
+        if (window.claude && claude.use) {
+          claude
+            .use('downloads')
+            .then(function (d) {
+              downloads = d;
+            })
+            .catch(function () {});
+        }
+        function typeFor(name) {
+          return /\.png$/.test(name)
+            ? 'image/png'
+            : /\.mp4$/.test(name)
+              ? 'video/mp4'
+              : /\.webm$/.test(name)
+                ? 'video/webm'
+                : /\.wav$/.test(name)
+                  ? 'audio/wav'
+                  : /\.zip$/.test(name)
+                    ? 'application/zip'
+                    : 'application/octet-stream';
+        }
+        function fallbackSave(name, data, note) {
+          var blob = data instanceof Blob ? data : new Blob([data], { type: typeFor(name) }),
+            file = null;
+          try {
+            file = new File([blob], name, { type: blob.type || typeFor(name) });
+          } catch (e) {}
+          function anchor() {
+            var u = URL.createObjectURL(blob),
+              a = document.createElement('a');
+            a.href = u;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(function () {
+              URL.revokeObjectURL(u);
+            }, 5000);
+            note.textContent = 'Downloaded ' + name + '.';
+          }
+          if (
+            file &&
+            // share sheet on phones and tablets only (Save Video → Photos); computers download directly
+            (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+              (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)) &&
+            navigator.canShare &&
+            navigator.canShare({ files: [file] })
+          ) {
+            navigator
+              .share({ files: [file] })
+              .then(function () {
+                note.textContent = /\.(mp4|webm)$/.test(name)
+                  ? 'Done. If you picked Save Video, it’s in Photos.'
+                  : /\.png$/.test(name)
+                    ? 'Done. If you picked Save Image, it’s in Photos.'
+                    : 'Done. If you picked Save to Files, it’s in Files.';
+              })
+              .catch(function (e) {
+                if (e && e.name === 'AbortError') note.textContent = 'Not saved.';
+                else anchor();
+              });
+            return;
+          }
+          anchor();
+        }
+        function saveFile(name, data, note) {
+          if (!downloads) {
+            fallbackSave(name, data, note);
+            return;
+          }
+          downloads
+            .save({ filename: name, data: data })
+            .then(function (r) {
+              note.textContent = r && r.status === 'saved' ? 'Saved ' + name + '.' : 'Sent ' + name + '.';
+            })
+            .catch(function (e) {
+              var c = e && e.code;
+              note.textContent =
+                c === 'declined'
+                  ? 'Not saved.'
+                  : c === 'rate_limited'
+                    ? 'A save is already open. Finish that one first.'
+                    : c === 'too_large'
+                      ? 'That file is too large to save here.'
+                      : 'Couldn’t save the file here.';
+            });
+        }
+
+
+      renderTierInputs();
+      renderItems();
+      renderVideoControls();
+      setMode(S.mode === 'vid' ? 'vid' : 'car');
+      Promise.all(['700 30px', '900 100px', '500 40px'].map((s) => document.fonts.load(s + ' "Barlow Condensed"')))
+        .catch(() => {})
+        .then(draw);
+
+    </script>
+  </body>
+</html>

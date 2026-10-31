@@ -36,7 +36,7 @@ try {
     .locator('a.tool')
     .evaluateAll((cards) => cards.map((c) => c.getAttribute('href')).sort());
   assert.deepEqual(links, expected);
-  assert.equal(await page.locator('a.tool:visible').count(), 15);
+  assert.equal(await page.locator('a.tool:visible').count(), 16);
   for (const link of links) {
     await page.locator(`a.tool[href="${link}"]`).click();
     assert.equal(new URL(page.url()).pathname, '/' + link);
@@ -46,7 +46,7 @@ try {
     await page.goBack();
   }
   for (const [category, count] of [
-    ['video', 8],
+    ['video', 9],
     ['running', 4],
     ['celebrations', 2],
     ['downloads', 1],
@@ -62,7 +62,7 @@ try {
   await page.locator('#search').fill('no such tool');
   assert.equal(await page.locator('#empty').isVisible(), true);
   await page.locator('#reset').click();
-  assert.equal(await page.locator('a.tool:visible').count(), 15);
+  assert.equal(await page.locator('a.tool:visible').count(), 16);
   await page.screenshot({
     path: path.join(artifacts, 'hub-desktop.png'),
     fullPage: true,
@@ -85,11 +85,11 @@ try {
   const plain = await browser.newContext({ javaScriptEnabled: false });
   const fallback = await plain.newPage();
   await fallback.goto(base);
-  assert.equal(await fallback.locator('a.tool:visible').count(), 15);
+  assert.equal(await fallback.locator('a.tool:visible').count(), 16);
   assert.equal(await fallback.locator('.finder').isVisible(), false);
   assert.deepEqual(errors, []);
   console.log(
-    'Hub passed: all 15 tool links and actual navigation, categories, search, reset, mobile widths, and no-JavaScript access.',
+    'Hub passed: all 16 tool links and actual navigation, categories, search, reset, mobile widths, and no-JavaScript access.',
   );
 } finally {
   await browser?.close();
