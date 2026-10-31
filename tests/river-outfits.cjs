@@ -27,7 +27,7 @@ const assert = require('node:assert/strict');
       document.querySelector('#msg').textContent === '',
   );
   const frames = [];
-  for (const outfit of ['original', 'race', 'trail', 'winter']) {
+  for (const outfit of ['original', 'hires', 'race', 'trail', 'winter']) {
     await page.selectOption('#outfit', outfit);
     await page.waitForFunction(
       (id) =>

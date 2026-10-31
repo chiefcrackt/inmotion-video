@@ -145,7 +145,7 @@ Tristan picks which to run and approves the art before it's wired in.
 
 | Task | Deliverable | Status | Wire-in (Claude) |
 |---|---|---|---|
-| [A1 High-res runner parts sheet](#a1-high-res-runner-parts-sheet) | `river-run/artwork/hires/` | todo | todo |
+| [A1 High-res runner parts sheet](#a1-high-res-runner-parts-sheet) | `river-run/artwork/hires/` | done (PR #14) | done (PR #16), awaiting Tristan's OK to make HD the default |
 | [A2 New River Run scene](#a2-new-river-run-scene) | `river-run/scenes/<id>/` | todo | todo |
 | [A3 More backgrounds](#a3-more-backgrounds) | `shared/backgrounds/` | todo | todo |
 | [A4 Recap carousel artwork](#a4-recap-carousel-artwork) | waits on feature #1 | blocked | — |
