@@ -138,13 +138,23 @@
         display: block;
         width: 100%;
         height: auto;
-        aspect-ratio: 16 / 9;
+        aspect-ratio: auto;
       }
       .stagebar {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
         align-items: center;
+      }
+      .stage.port {
+        display: flex;
+        justify-content: center;
+        background: #000;
+      }
+      .stage.port #cv {
+        width: auto;
+        max-width: 100%;
+        max-height: 72vh;
       }
       .readout {
         font-weight: 600;
@@ -400,12 +410,14 @@
     <div class="wrap">
       <header>
         <a class="home" href="../">← All T.im video tools</a>
-        <span class="eyebrow">T.im · Vertical to YouTube</span>
+        <span class="eyebrow">T.im · YouTube ⇄ TikTok</span>
         <h1>Video Framer</h1>
         <p
-          >A branded 16:9 frame with a window for your 9:16 clip. Save it as a
-          PNG or a looping video, put it on top of your clip in CapCut, and the
-          window shows your video. Nothing you upload leaves this device.</p
+          >A branded frame with a window for your clip: a vertical clip in a 16:9
+          frame for YouTube, or a YouTube clip in a 9:16 frame for TikTok, Reels
+          and Shorts. Save a PNG or a looping video, put it on top of your clip
+          in CapCut, and the window shows your video. Nothing you upload leaves
+          this device.</p
         >
       </header>
 
@@ -458,13 +470,19 @@
           <fieldset>
             <legend>01 · Layout</legend>
             <div class="row">
-              <span class="lab">Clip</span>
-              <button class="chip" type="button" data-g="layout" data-v="center">Center</button>
-              <button class="chip" type="button" data-g="layout" data-v="left">Left side</button>
-              <button class="chip" type="button" data-g="layout" data-v="right">Right side</button>
-              <button class="chip" type="button" data-g="layout" data-v="dual">Two clips</button>
+              <span class="lab">Make</span>
+              <button class="chip" type="button" data-g="orient" data-v="land">YouTube 16:9 (vertical clip)</button>
+              <button class="chip" type="button" data-g="orient" data-v="port">TikTok 9:16 (YouTube clip)</button>
             </div>
+            <p class="note" id="orientNote"></p>
             <div class="row">
+              <span class="lab">Clip</span>
+              <button class="chip" type="button" data-g="layout" data-v="center" id="lay_center">Center</button>
+              <button class="chip" type="button" data-g="layout" data-v="left" id="lay_left">Left side</button>
+              <button class="chip" type="button" data-g="layout" data-v="right" id="lay_right">Right side</button>
+              <button class="chip" type="button" data-g="layout" data-v="dual" id="lay_dual">Two clips</button>
+            </div>
+            <div class="row" id="aspectRow">
               <span class="lab">Window</span>
               <button class="chip" type="button" data-g="aspect" data-v="916">9:16</button>
               <button class="chip" type="button" data-g="aspect" data-v="45">4:5</button>
@@ -487,7 +505,7 @@
                 <input type="text" id="dualB" maxlength="18" aria-label="Right window label" />
               </div>
             </div>
-            <label class="toggle"><input type="checkbox" id="endScreen" /> End-screen version</label>
+            <label class="toggle" id="endToggle"><input type="checkbox" id="endScreen" /> End-screen version</label>
             <div class="sub" id="endBox">
               <div class="row">
                 <span class="lab">Heading</span>
@@ -495,7 +513,7 @@
               </div>
               <p class="note">For the last 20 seconds of a YouTube video: your clip on the left, outlined spots for two end-screen videos and a subscribe button on the right. Drag the end-screen elements onto the outlines in YouTube Studio.</p>
             </div>
-            <p class="note">Clip size 0 fills the full height, which is how CapCut places a vertical clip by default.</p>
+            <p class="note" id="sizeNote">Clip size 0 fills the full height, which is how CapCut places a vertical clip by default.</p>
           </fieldset>
 
           <fieldset>
@@ -816,7 +834,7 @@
     <script>
       (function () {
         'use strict';
-        var W = 1920,
+        var W = 1920, // set by the orientation: 1920×1080 for YouTube, 1080×1920 for TikTok
           H = 1080,
           TAU = Math.PI * 2,
           DEG = Math.PI / 180,
@@ -850,6 +868,7 @@
         };
         var DEFAULTS = Object.assign(
           {
+            orient: 'land',
             layout: 'center',
             aspect: '916',
             offset: 140,
@@ -923,6 +942,28 @@
                 S[k] = saved[k];
             });
         } catch (e) {}
+        // TikTok, Reels and Shorts cover roughly the bottom 380px with captions and buttons
+        function uiBottom() {
+          return S.orient === 'port' ? 380 : 0;
+        }
+        function port() {
+          return S.orient === 'port';
+        }
+        function setSize() {
+          var w = port() ? 1080 : 1920,
+            h = port() ? 1920 : 1080;
+          W = w;
+          H = h;
+          if (cv.width !== w || cv.height !== h) {
+            cv.width = w;
+            cv.height = h;
+          }
+          if (window.__offCanvas && (__offCanvas.width !== w || __offCanvas.height !== h)) {
+            __offCanvas.width = w;
+            __offCanvas.height = h;
+          }
+          cv.parentNode.classList.toggle('port', port());
+        }
         function persist() {
           try {
             localStorage.setItem(KEY, JSON.stringify(S));
@@ -1019,19 +1060,20 @@
         addChips('sceneChips', SCENES, 'scene:');
         var photos = {};
         function photo(id) {
-          if (!photos[id]) {
+          var key = id + (port() ? '-portrait' : '-landscape');
+          if (!photos[key]) {
             var im = new Image();
             im.onload = redrawSoon;
-            im.src = '../shared/backgrounds/' + id + '-landscape.jpg';
-            photos[id] = im;
+            im.src = '../shared/backgrounds/' + key + '.jpg';
+            photos[key] = im;
           }
-          return photos[id].complete && photos[id].naturalWidth ? photos[id] : null;
+          return photos[key].complete && photos[key].naturalWidth ? photos[key] : null;
         }
         // Scenes are drawn once (the moving layers at rest) and then drift like the photos, so the loop stays seamless.
         var sceneCache = {};
         function scene(id) {
           if (!window.RiverScenes) return null;
-          var key = id + '|' + S.theme;
+          var key = id + '|' + S.theme + '|' + S.orient;
           if (sceneCache[key] && sceneCache[key].canvas) return sceneCache[key].canvas;
           if (!sceneCache[key]) {
             sceneCache[key] = {};
@@ -1041,7 +1083,9 @@
                 c.width = W;
                 c.height = H;
                 var x = c.getContext('2d'),
-                  g = { W: W, H: H, gy: H * 0.93, hz: H * 0.6, scale: (H * 0.44) / 1140, V: false, k: 1 };
+                  g = port()
+                    ? { W: W, H: H, gy: H - 470, hz: H * 0.56, scale: (0.58 * W) / 1140, V: true, k: W / 1080 }
+                    : { W: W, H: H, gy: H * 0.93, hz: H * 0.6, scale: (H * 0.44) / 1140, V: false, k: 1 };
                 window.RiverScenes.drawBack(id, x, g, 0, 0, S.theme);
                 window.RiverScenes.drawFront(id, x, g, 0, 0, S.theme);
                 sceneCache[key].canvas = c;
@@ -1120,7 +1164,22 @@
               cb = (S.cropBottom / 100) * h;
             return { box: { x: x, y: y, w: w, h: h }, x: x, y: y + ct, w: w, h: h - ct - cb, rot: rot, kind: kind };
           }
-          if (S.endScreen) {
+          if (port()) {
+            // (two clips and the end screen are YouTube-only, so they don't apply here)
+            // a 16:9 clip full width (less the side margin); TikTok covers the bottom ~400px and the top ~250px with its own UI
+            var side = +S.inset;
+            bw = W - 2 * side;
+            bh = (bw * 9) / 16;
+            var cy = S.layout === 'left' ? H * 0.36 : S.layout === 'right' ? H * 0.58 : H / 2;
+            var by = cy - bh / 2;
+            wins.push(mk(side, by, bw, bh, tilt, 'main'));
+            var safeTop = Math.max(250, tickTop + 40),
+              safeBot = H - Math.max(400, tickBot + 40);
+            panels = [
+              { x0: pad, x1: W - pad, y0: safeTop, y1: by - 50, top: true },
+              { x0: pad, x1: W - pad, y0: by + bh + 50, y1: safeBot },
+            ];
+          } else if (S.endScreen) {
             inset = Math.max(+S.inset, 90);
             bh = H - 2 * inset;
             bw = bh * a;
@@ -1159,21 +1218,36 @@
             var d = +S.pipSize,
               m = 56,
               px = /l$/.test(S.pipCorner) ? m : W - m - d,
-              py = /^t/.test(S.pipCorner) ? m + tickTop : H - m - d - tickBot;
+              py = /^t/.test(S.pipCorner) ? m + Math.max(tickTop, port() ? 200 : 0) : H - m - d - Math.max(tickBot, uiBottom());
+            if (port() && wins[0]) {
+              // vertical: keep the facecam above or below the clip rather than on top of it
+              var mw = wins[0].box;
+              if (py < mw.y + mw.h && py + d > mw.y) py = /^t/.test(S.pipCorner) ? Math.max(m, mw.y - d - 30) : Math.min(H - d - m, mw.y + mw.h + 30);
+            }
             wins.push({ box: { x: px, y: py, w: d, h: d }, x: px, y: py, w: d, h: d, rot: 0, kind: 'pip' });
           }
           var runner = null;
           if (S.runner) {
             var rh = +S.runnerSize,
               rcx = S.runnerSpot === 'bl' ? 70 + rh * 0.3 : W - 70 - rh * 0.3;
-            runner = { x0: rcx - rh * 0.36, x1: rcx + rh * 0.36, top: H - 34 - tickBot - rh - 24, left: S.runnerSpot === 'bl' };
+            runner = { x0: rcx - rh * 0.36, x1: rcx + rh * 0.36, top: H - 34 - Math.max(tickBot, uiBottom()) - rh - 24, left: S.runnerSpot === 'bl' };
           }
           // things the text keeps clear of
           var zones = [];
-          if (runner) zones.push({ x0: runner.x0, x1: runner.x1, y0: runner.top, y1: H, left: runner.left });
+          if (runner) zones.push({ x0: runner.x0, x1: runner.x1, y0: runner.top, y1: H - Math.max(tickBot, uiBottom()), left: runner.left });
           wins.forEach(function (w) {
             if (w.kind === 'pip') zones.push({ x0: w.x - 20, x1: w.x + w.w + 20, y0: w.y - 20, y1: w.y + w.h + 20, left: w.x < W / 2 });
           });
+          if (port()) {
+            // vertical: the text bands are full width, so step sideways around the runner and facecam instead
+            panels.forEach(function (pn) {
+              zones.forEach(function (z) {
+                if (z.y1 < pn.y0 || z.y0 > pn.y1) return;
+                if (z.left) pn.x0 = Math.max(pn.x0, z.x1 + 20);
+                else pn.x1 = Math.min(pn.x1, z.x0 - 20);
+              });
+            });
+          }
           return { wins: wins, panels: panels, slots: slots, tickTop: tickTop, tickBot: tickBot, runner: runner, zones: zones };
         }
         function zonesIn(g, panel) {
@@ -1549,7 +1623,7 @@
         // Text blocks: each item measures itself, then the block is centered vertically in its panel.
         function alignFor() {
           if (S.align !== 'auto') return S.align;
-          return S.layout === 'center' || S.layout === 'dual' ? 'center' : 'left';
+          return port() || S.layout === 'center' || S.layout === 'dual' ? 'center' : 'left';
         }
         function ax(panel, align) {
           return align === 'left' ? panel.x0 : align === 'right' ? panel.x1 : (panel.x0 + panel.x1) / 2;
@@ -1640,7 +1714,7 @@
             return l.trim();
           });
           if (lines.length) {
-            var tp = (stats().length || hasDesc() ? 132 : S.layout === 'center' || S.layout === 'dual' ? 150 : 172) * k;
+            var tp = (port() ? 150 : stats().length || hasDesc() ? 132 : S.layout === 'center' || S.layout === 'dual' ? 150 : 172) * k;
             font(c, 900, tp, 0);
             var widest = Math.max.apply(null, lines.map(function (l) {
               return c.measureText(l).width;
@@ -1798,17 +1872,21 @@
           items.forEach(function (it, i) {
             total += it.h + (i < items.length - 1 ? it.gap : 0);
           });
-          var top = g.tickTop,
-            bottom = H - g.tickBot;
-          // keep clear of the runner and facecam
-          zonesIn(g, panel).forEach(function (z) {
-            if (z.y0 + z.y1 < H) top = Math.max(top, z.y1 + 10);
+          var top = Math.max(g.tickTop, panel.y0 || 0),
+            bottom = Math.min(H - g.tickBot, panel.y1 || H);
+          // keep clear of the runner and facecam (vertical frames already stepped around them)
+          (port() ? [] : zonesIn(g, panel)).forEach(function (z) {
+            if (z.y1 < top || z.y0 > bottom) return; // not in this band
+            if (z.y0 + z.y1 < top + bottom) top = Math.max(top, z.y1 + 10);
             else {
               bottom = Math.min(bottom, z.y0);
               lift = false;
             }
           });
-          var y = Math.max(top + 20, (top + bottom - total) / 2 - (lift ? 20 : 0));
+          // a top band hugs the window below it; others center
+          var y = panel.top
+            ? Math.max(top + 10, bottom - total)
+            : Math.max(top + 20, (top + bottom - total) / 2 - (lift ? 20 : 0));
           items.forEach(function (it, i) {
             var r = reveal ? reveal(i) : 1;
             if (r > 0) {
@@ -1850,7 +1928,7 @@
             sc = hgt / TimRunner.height,
             left = S.runnerSpot === 'bl',
             face = left ? 1 : -1, // he faces the clip
-            gy = H - 34 - g.tickBot,
+            gy = H - 34 - Math.max(g.tickBot, uiBottom()),
             cx = left ? 70 + hgt * 0.3 : W - 70 - hgt * 0.3,
             ps = anim ? t / STRIDE : 0.1;
           cx += (1 - r) * -face * (hgt + 300);
@@ -1895,7 +1973,7 @@
             m = 40,
             full = +S.badgeSize,
             cx = /l$/.test(S.badgeCorner) ? m + full / 2 : W - m - full / 2,
-            cy = /^t/.test(S.badgeCorner) ? m + full / 2 + g.tickTop : H - m - full / 2 - g.tickBot;
+            cy = /^t/.test(S.badgeCorner) ? m + full / 2 + Math.max(g.tickTop, port() ? 200 : 0) : H - m - full / 2 - Math.max(g.tickBot, uiBottom());
           c.drawImage(badgeImg, cx - s / 2, cy - s / 2, s, s * (1187 / 1179));
         }
         function drawTicker(c, g, p, anim, r) {
@@ -2213,7 +2291,7 @@
             c.stroke();
           });
           // labels above the two windows
-          if (S.layout === 'dual' && !S.endScreen && S.dualLabels) {
+          if (!port() && S.layout === 'dual' && !S.endScreen && S.dualLabels) {
             [S.dualA, S.dualB].forEach(function (lab, i) {
               var w = mains[i];
               if (!w || !lab.trim()) return;
@@ -2248,7 +2326,38 @@
                 }
               : null;
           };
-          if (g.slots) drawEndSlots(c, g, E(0.3, 0.75));
+          if (port()) {
+            var T0 = g.panels[0],
+              B0 = g.panels[1],
+              hiP = handleItem(c, B0, p, anim),
+              low = statsBlock(c, B0, false).concat(descBlock(c, B0), routeItems(c, B0, p, anim), ctaBlock(c, B0, p, anim));
+            if (low.length && hiP) low[low.length - 1].gap = 40 * k;
+            var blockH = function (items) {
+              return items.reduce(function (h, it, i) {
+                return h + it.h + (i < items.length - 1 ? it.gap : 0);
+              }, 0);
+            };
+            var top = titleBlock(c, T0, p, anim),
+              room = T0.y1 - T0.y0,
+              topH = blockH(top);
+            if (topH > room && topH * 0.7 <= room) {
+              // shrink the title block just enough to sit above the window
+              var keep = S.scale;
+              S.scale = (keep * room) / topH;
+              top = titleBlock(c, T0, p, anim);
+              S.scale = keep;
+              topH = blockH(top);
+            }
+            if (topH <= room + 1) {
+              layoutBlock(c, g, T0, top, alignFor(), false, rev(0.28));
+              layoutBlock(c, g, B0, low.concat(hiP ? [hiP] : []), alignFor(), false, rev(0.4));
+            } else {
+              // not enough room above the window: everything goes below it
+              var all = titleBlock(c, B0, p, anim);
+              if (all.length && low.length) all[all.length - 1].gap = 40 * k;
+              layoutBlock(c, g, B0, all.concat(low, hiP ? [hiP] : []), alignFor(), false, rev(0.28));
+            }
+          } else if (g.slots) drawEndSlots(c, g, E(0.3, 0.75));
           else if (S.layout === 'center' || S.layout === 'dual') {
             var L0 = g.panels[0],
               R0 = g.panels[1];
@@ -2409,8 +2518,12 @@
 
         // ---------- CapCut placement helper
         function placeLine(w, name) {
-          // CapCut fits a 9:16 clip to the frame height (607.5 × 1080). Cover the window, then move it.
-          var s = Math.max(w.box.h / H, w.box.w / ((H * 9) / 16)) * S.zoom,
+          // CapCut fits a clip inside the frame by default: a vertical clip to the height of a 16:9 frame,
+          // a 16:9 clip to the width of a 9:16 frame. Cover the window, then move it.
+          var clipA = port() ? 16 / 9 : 9 / 16,
+            fitW = Math.min(W, H * clipA),
+            fitH = fitW / clipA,
+            s = Math.max(w.box.h / fitH, w.box.w / fitW) * S.zoom,
             dx = Math.round(w.box.x + w.box.w / 2 - W / 2),
             dy = Math.round(w.box.y + w.box.h / 2 - H / 2),
             parts = [];
@@ -2418,7 +2531,8 @@
           if (dy) parts.push(Math.abs(dy) + ' px ' + (dy > 0 ? 'down' : 'up'));
           var line =
             name + ': scale <b>' + Math.round(s) + '%</b>' + (parts.length ? ', move ' + parts.join(' and ') : ', centered') + (w.rot ? ', rotate <b>' + w.rot + '°</b>' : '') + '.';
-          if (Math.round(s) === 100 && !dx && !dy && !w.rot) line = name + ': no adjusting needed. CapCut already fits a vertical clip to this window.';
+          if (Math.round(s) === 100 && !dx && !dy && !w.rot)
+            line = name + ': no adjusting needed. CapCut already fits ' + (port() ? 'a 16:9 clip' : 'a vertical clip') + ' to this window.';
           return line;
         }
         function updateFit() {
@@ -2426,7 +2540,7 @@
             lines = [];
           g.wins.forEach(function (w) {
             if (w.kind === 'pip') {
-              var s = Math.round((w.box.h / H) * 100),
+              var s = Math.round((w.box.h / (port() ? (W * 9) / 16 : H)) * 100),
                 dx = Math.round(w.box.x + w.box.w / 2 - W / 2),
                 dy = Math.round(w.box.y + w.box.h / 2 - H / 2);
               lines.push('Facecam (landscape clip): scale <b>' + s + '%</b>, move ' + Math.abs(dx) + ' px ' + (dx > 0 ? 'right' : 'left') + ' and ' + Math.abs(dy) + ' px ' + (dy > 0 ? 'down' : 'up') + '.');
@@ -2439,7 +2553,7 @@
               return '<br>' + l;
             }).join('') +
             '<br>Then add the frame as an overlay above.' + more +
-            (S.aspect !== '916' ? ' The window isn’t 9:16, so part of your clip is hidden behind the frame.' : '');
+            (!port() && S.aspect !== '916' ? ' The window isn’t 9:16, so part of your clip is hidden behind the frame.' : '');
         }
 
         // ---------- controls
@@ -2465,12 +2579,27 @@
             var k = v.dataset.for;
             v.textContent = k === 'inset' ? (S.inset == 0 ? 'Full' : '−' + S.inset * 2 + 'px') : k === 'routeTrim' ? (S.routeTrim == 0 ? 'Off' : S.routeTrim + 'm') : S[k] + (UNITS[k] || '');
           });
+          setSize();
+          var P = port();
+          [['center', 'Center', 'Middle'], ['left', 'Left side', 'Higher'], ['right', 'Right side', 'Lower']].forEach(function (q) {
+            $('lay_' + q[0]).textContent = P ? q[2] : q[1];
+          });
+          $('lay_dual').hidden = P;
+          $('aspectRow').hidden = P;
+          $('endToggle').hidden = P;
+          $('orientNote').textContent = P
+            ? 'Vertical 1080×1920 for TikTok, Reels and Shorts: your 16:9 clip runs across the middle, the title sits above it and the rest below, clear of TikTok’s own buttons and captions.'
+            : 'Landscape 1920×1080 for YouTube: your vertical clip sits in a window with branding at the sides.';
+          $('sizeNote').textContent = P
+            ? 'Clip size 0 runs edge to edge, which is how CapCut places a 16:9 clip in a vertical project by default.'
+            : 'Clip size 0 fills the full height, which is how CapCut places a vertical clip by default.';
           var tog = function (id, on) {
             $(id).classList.toggle('dim', !on);
           };
-          tog('offsetRow', (S.layout === 'left' || S.layout === 'right') && !S.endScreen);
-          $('dualBox').hidden = S.layout !== 'dual';
-          $('endBox').hidden = !S.endScreen;
+          tog('offsetRow', !P && (S.layout === 'left' || S.layout === 'right') && !S.endScreen);
+          $('offsetRow').hidden = P;
+          $('dualBox').hidden = P || S.layout !== 'dual';
+          $('endBox').hidden = P || !S.endScreen;
           $('pipBox').hidden = !S.pip;
           $('dimRow').hidden = !/^(photo:|scene:|upload)/.test(S.bg);
           $('uploadChip').hidden = !S.bgUpload;
@@ -2493,7 +2622,7 @@
           $('play').textContent = playing ? '❚❚ Pause' : '▶ Play';
           $('rec').innerHTML = rec && rec.kind === 'loop' ? '<span class="dot"></span>Making…' : '● Make ' + videoSeconds() + 's video';
           $('recIntro').innerHTML = rec && rec.kind === 'intro' ? '<span class="dot"></span>Making…' : '● Make ' + S.introLen + 's intro';
-          $('readout').textContent = '16:9 · 1920×1080' + (S.motion === 'animated' ? ' · ' + S.loop + 's loop' : ' · static');
+          $('readout').textContent = (port() ? '9:16 · 1080×1920' : '16:9 · 1920×1080') + (S.motion === 'animated' ? ' · ' + S.loop + 's loop' : ' · static');
           $('saveHelp').textContent =
             S.hole === 'green'
               ? 'Green screen works everywhere, iPhone included. In CapCut: Overlay → add the frame → Chroma Key → pick the green. The PNG keeps a green window too.'
@@ -2512,6 +2641,7 @@
           var b = e.target.closest('[data-g]');
           if (!b || rec) return;
           S[b.dataset.g] = b.dataset.v;
+          if (b.dataset.g === 'orient' && b.dataset.v === 'port' && S.layout === 'dual') S.layout = 'center';
           if (b.dataset.g === 'introSound' && SOUND_KINDS.indexOf(b.dataset.v) >= 0) {
             var ac = audio();
             if (ac) introSounds(ac, ac.destination, ac.currentTime + 0.05, +S.introLen, b.dataset.v);
@@ -2597,12 +2727,12 @@
           var url = URL.createObjectURL(f),
             im = new Image();
           im.onload = function () {
-            // resize to 1920×1080 (cover) so it stores small and draws fast
-            var c = document.createElement('canvas');
-            c.width = W;
-            c.height = H;
-            var s = Math.max(W / im.naturalWidth, H / im.naturalHeight);
-            c.getContext('2d').drawImage(im, (W - im.naturalWidth * s) / 2, (H - im.naturalHeight * s) / 2, im.naturalWidth * s, im.naturalHeight * s);
+            // keep its own shape, at most 1920 on the long edge, so it stores small and fills either orientation
+            var s = Math.min(1, 1920 / Math.max(im.naturalWidth, im.naturalHeight)),
+              c = document.createElement('canvas');
+            c.width = Math.round(im.naturalWidth * s);
+            c.height = Math.round(im.naturalHeight * s);
+            c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
             URL.revokeObjectURL(url);
             S.bgUpload = c.toDataURL('image/jpeg', 0.85);
             S.bg = 'upload';
@@ -2746,11 +2876,12 @@
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-|-$/g, '')
             .slice(0, 30);
-          return 'tim-frame-' + (slug || 'frame') + '-' + (S.endScreen ? 'endscreen' : S.layout) + (extra || '') + '-' + (S.hole === 'green' ? 'greenscreen' : 'transparent');
+          return 'tim-frame-' + (slug || 'frame') + (port() ? '-9x16' : '') + '-' + (S.endScreen && !port() ? 'endscreen' : S.layout) + (extra || '') + '-' + (S.hole === 'green' ? 'greenscreen' : 'transparent');
         }
         var off = document.createElement('canvas');
         off.width = W;
         off.height = H;
+        window.__offCanvas = off;
         var octx = off.getContext('2d', { willReadFrequently: true });
         $('png').onclick = function () {
           if (rec) return;

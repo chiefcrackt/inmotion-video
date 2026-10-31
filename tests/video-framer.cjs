@@ -66,8 +66,9 @@ function gpx() {
           const F = window.__framer;
           F.set(state);
           const c = document.createElement('canvas');
-          c.width = 1920;
-          c.height = 1080;
+          const cv0 = document.getElementById('cv');
+          c.width = cv0.width;
+          c.height = cv0.height;
           const x = c.getContext('2d', { willReadFrequently: true });
           F.render(x, t, mode, intro);
           let off = 0;
@@ -91,7 +92,7 @@ function gpx() {
           return {
             url: c.toDataURL(),
             corner: [...x.getImageData(960, 2, 1, 1).data],
-            edge: [...x.getImageData(4, 540, 1, 1).data],
+            edge: [...x.getImageData(4, Math.round(c.height / 2) + 200, 1, 1).data],
             off,
           };
         },
@@ -166,6 +167,39 @@ function gpx() {
           );
       }
     }
+
+    // TikTok 9:16: a YouTube clip full width in a vertical frame
+    const vert = { ...base, orient: 'port', layout: 'center', inset: 0, cropTop: 0, cropBottom: 0, endScreen: false };
+    for (const winStyle of ['standard', 'phone', 'polaroid', 'offset', 'viewfinder'])
+      for (const layout of ['center', 'left', 'right'])
+        for (const extras of [{}, { runner: true, pip: true, pipCorner: 'br', ticker: true, badge: true, sideMode: 'text' }]) {
+          const s = { ...vert, winStyle, layout, runner: false, pip: false, ticker: false, badge: false, sideMode: 'stats', ...extras };
+          const g = await probe(s, 1.3, 'green');
+          assert.equal(g.off, 0, `9:16 ${layout}/${winStyle}: windows are pure green`);
+          assert.equal((await probe(s, 1.3, 'clear')).off, 0, `9:16 ${layout}/${winStyle}: windows clear`);
+          if (!Object.keys(extras).length)
+            fs.writeFileSync(path.join(out, `vertical-${layout}-${winStyle}.png`), Buffer.from(g.url.split(',')[1], 'base64'));
+        }
+    const v0 = await probe({ ...vert, ...busy, winStyle: 'standard', loop: '6' }, 0, 'green'),
+      vL = await probe({ ...vert, ...busy, winStyle: 'standard', loop: '6' }, 6, 'green');
+    assert.equal(v0.url, vL.url, '9:16 loop is seamless');
+    assert.equal(
+      (await probe({ ...vert, loop: '6' }, 0, 'green', 1)).url,
+      (await probe({ ...vert, loop: '6' }, 0, 'green')).url,
+      '9:16 intro ends on the loop',
+    );
+    const size = await page.evaluate(() => [document.getElementById('cv').width, document.getElementById('cv').height]);
+    assert.deepEqual(size, [1080, 1920], '9:16 canvas');
+    assert.match(await page.locator('#fit').innerHTML(), /16:9 clip/);
+    assert.equal(await page.locator('#lay_left').textContent(), 'Higher');
+    assert.equal(await page.locator('#aspectRow').isVisible(), false);
+    // at phone width the tall preview still fits without sideways scrolling
+    await page.setViewportSize({ width: 400, height: 900 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), '9:16 no sideways scroll');
+    await page.screenshot({ path: path.join(out, 'page-400-vertical.png') });
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.evaluate(() => window.__framer.set({ orient: 'land' }));
+    assert.deepEqual(await page.evaluate(() => [document.getElementById('cv').width, document.getElementById('cv').height]), [1920, 1080]);
 
     // Reset to defaults, then exercise the real buttons.
     await page.locator('#reset').click();
@@ -250,6 +284,28 @@ function gpx() {
     const alphaPath = path.join(out, alpha.suggestedFilename());
     await alpha.saveAs(alphaPath);
     assert.ok(fs.statSync(alphaPath).size > 20000, 'alpha webm has content');
+
+    // vertical green-screen loop recording is 1080×1920
+    await page.locator('#close').click();
+    await page.locator('[data-g="orient"][data-v="port"]').click();
+    await page.locator('[data-g="hole"][data-v="green"]').click();
+    dl = page.waitForEvent('download');
+    await page.locator('#png').click();
+    const vpng = await dl;
+    assert.match(vpng.suggestedFilename(), /-9x16-.*greenscreen\.png$/);
+    await page.locator('#rec').click();
+    await page.locator('#result').waitFor({ state: 'visible', timeout: 20000 });
+    const dims = await page.evaluate(
+      () =>
+        new Promise((r) => {
+          const v = document.getElementById('vid');
+          if (v.videoWidth) return r([v.videoWidth, v.videoHeight]);
+          v.onloadedmetadata = () => r([v.videoWidth, v.videoHeight]);
+        }),
+    );
+    assert.deepEqual(dims, [1080, 1920], 'vertical recording size');
+    await page.locator('#close').click();
+    await page.locator('[data-g="orient"][data-v="land"]').click();
 
     // settings survive a reload
     await page.locator('[data-g="layout"][data-v="right"]').click();
