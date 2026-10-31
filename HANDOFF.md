@@ -155,6 +155,7 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A8 Travis puppet and aid-station props](#a8-travis-puppet-and-aid-station-props) | `shared/characters/travis/` | done (PR #20), redraw in A8b | done (links-inMotion da8b0b9) |
 | [A8b Redraw Travis to Tristan's outlines](#a8b-redraw-travis-to-tristans-outlines) | `shared/characters/travis/v2/` | done (PR #21) | done (links-inMotion b8e5c29) |
 | [A8c Redraw Travis's torso only](#a8c-redraw-traviss-torso-only) | `shared/characters/travis/v2/torso.png` | done (PR #22) | done (links-inMotion 9706a2f) |
+| [A9 Flat Hooper for the links page](#a9-flat-hooper-for-the-links-page) | `shared/characters/hooper/` | todo | todo (links-inMotion) |
 
 ## Rules for every art task
 
@@ -593,4 +594,90 @@ Tristan sends Claude the preview before merging.
 **Wire-in (Claude):** when `v2/torso.png` exists, `build.py` uses it in place
 of the atlas torso cell. Recopy to links-inMotion `scene/travis/`, bump the
 image version, rerun `tests/aid-station.cjs` and compare frames.
+
+## A9 Flat Hooper for the links page
+
+**Why:** on the links page (links-inMotion), Hooper gallops beside Tristan, but
+his legs look wrong. His torso piece was cut with the **tops of his legs still
+attached**: the rump hangs down like a thigh at the back, and the chest drops
+at the front. The real legs attach below those stumps, so he gets doubled-up
+legs and thin, spindly lower legs. He is also realistic painted fur, while
+Tristan and Travis are flat vector style.
+
+This is separate from A5 (high-res realistic Hooper for Special Post). A9 is a
+new **flat** Hooper for the links page.
+
+**Reference:** `shared/characters/hooper/links-reference.png` (1536x1536, 3x3,
+512 px cells): his current eight links-page pieces, all scaled by the same
+factor so their sizes relative to each other are true. Use it for likeness,
+markings, proportions and which piece is which. **Do not copy the torso's
+outline** (that is the bug).
+
+**Style target:** `river-run/artwork/hires/parts-atlas.png` (Tristan) and
+`shared/characters/travis/v2/parts-atlas.png` (Travis). Flat vector fills,
+no painted fur, no shading gradients, no outlines.
+
+**Hooper:** brindle French bulldog, side view facing right.
+
+- Coat: dark brown with tan brindle stripes, drawn as **simple flat stripes**
+  (two or three tones), not fur texture.
+- Cream chest patch at the front of the chest.
+- Bat ears, upright. Short flat muzzle, dark nose. Match the puppets' faces:
+  **no eye detail** (Tristan and Travis show none).
+- Orange collar on the neck.
+
+**Deliver** `shared/characters/hooper/parts-atlas.png`, 1536x1536,
+transparent, 512 px cells, same grid as the reference:
+
+| Row | Left | Middle | Right |
+|---|---|---|---|
+| 1 | torso | head with neck and orange collar | empty |
+| 2 | front upper leg (shoulder to elbow) | front lower leg | front paw |
+| 3 | hind thigh | hind shank | hind paw (hock and foot) |
+
+### Torso (the fix)
+
+- **Body only, no legs.** A compact, muscular barrel from the shoulders to the
+  rump. The bottom edge is the chest and belly line: deep at the chest,
+  tucking up toward the hips.
+- **Nothing hangs below that line** at either end. No thigh at the back, no
+  leg at the front.
+- **Round shoulder and hip areas** where the legs attach, so the leg tops
+  tuck in under them as the legs swing.
+- Cream chest patch at the front; tail is a short stub at the top of the rump.
+- No neck; the head piece brings the neck.
+
+### Legs
+
+- Each piece is **one solid shape with rounded caps at both joint ends**, so
+  pieces overlap cleanly when they bend.
+- **Front upper leg:** the shoulder and upper leg in one piece, wide at the
+  top. **Hind thigh:** the meaty thigh, wide at the top.
+- Lower legs are sturdy, not thin. Hooper is stocky.
+- Paws: a rounded foot with a hint of toes, same flat style.
+- Keep the same sizes as the reference pieces (same proportions to the torso).
+
+### Head
+
+- Head, neck and collar in one piece, facing right, neck tapering at the
+  bottom so it tucks into the front of the torso.
+
+### Rules
+
+- Brindle colors identical across every piece.
+- Real transparent background; no glow, no soft edges, no checkerboard, no
+  text, no grid lines.
+- Add the prompt to `shared/characters/hooper/prompts.json` (`id`,
+  `prompt`).
+- Add `preview.png`: Hooper assembled standing, next to the current Hooper
+  from the reference for comparison.
+
+Hooper is a real dog: Tristan approves the likeness. Tristan sends Claude the
+preview before merging.
+
+**Wire-in (Claude, in links-inMotion):** cut the atlas to `scene/hooper/`,
+refit `DOGPARTS` in `scene/runner.js` (pivots, ends, scales) to the new
+pieces, keep the gallop timing and hop, and run `tests/hooper-gait.cjs` (paw
+ground contact, fixed bone lengths, continuous joints). Compare frames before
+and after.
 
