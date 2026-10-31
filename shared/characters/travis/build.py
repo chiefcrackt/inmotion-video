@@ -67,6 +67,9 @@ def main():
     for r, row in enumerate(GRID):
         for c, name in enumerate(row):
             piece = cut(atlas[r * cell:(r + 1) * cell, c * cell:(c + 1) * cell])
+            if name == 'torso' and (HERE / 'v2' / 'torso.png').exists():
+                # A8c: the redrawn torso replaces the atlas cell
+                piece = cut(np.asarray(Image.open(HERE / 'v2' / 'torso.png').convert('RGBA')))
             save(hires.resize(piece, SIZE[name]), name)
 
     props = np.asarray(Image.open(HERE / 'props-atlas.png').convert('RGBA'))
