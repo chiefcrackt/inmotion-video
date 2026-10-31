@@ -153,7 +153,7 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A6 Sample photos for templates](#a6-sample-photos-for-templates) | `carousel-maker/samples/` | todo | todo |
 | [A7 Redraw the Special Post runners](#a7-redraw-the-special-post-runners) | `special-post/artwork/runners/<id>/` | todo (Russ first) | todo |
 | [A8 Travis puppet and aid-station props](#a8-travis-puppet-and-aid-station-props) | `shared/characters/travis/` | done (PR #20), redraw in A8b | done (links-inMotion da8b0b9) |
-| [A8b Redraw Travis to Tristan's outlines](#a8b-redraw-travis-to-tristans-outlines) | `shared/characters/travis/v2/` | todo | todo |
+| [A8b Redraw Travis to Tristan's outlines](#a8b-redraw-travis-to-tristans-outlines) | `shared/characters/travis/v2/` | done (PR #21) | done (links-inMotion b8e5c29) |
 
 ## Rules for every art task
 

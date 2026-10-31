@@ -1,10 +1,10 @@
-"""Build Travis's link-page pieces from parts-atlas.png and props-atlas.png (handoff A8).
+"""Build Travis's link-page pieces from v2/parts-atlas.png (handoff A8b) and props-atlas.png (A8).
 
 Cuts each atlas, removes stray flecks, colored edge fringes and the soft glow
 the props came with, and fits every body piece to the exact pixel size of the
 matching Tristan piece on the links page (30% of source), so Travis runs on
-Tristan's rig and joints with no rig changes. The shorts cell includes a leg,
-so only its waist-to-seat part is kept (the thighs carry the shorts legs).
+Tristan's rig and joints with no rig changes. v2 was drawn inside Tristan's
+outlines (v2/shape-template.png), so each piece maps straight onto his.
 
 The sandwich states are saved at a fixed width; the open-hand forearms in the
 props atlas are not used (the handoff is done fist to fist, which matches the
@@ -38,7 +38,6 @@ SIZE = {
     'thigh': (52, 111), 'shin': (29, 90), 'shoe': (64, 36),
     'upperarm': (30, 82), 'forearm': (29, 98), 'forearm_far': (29, 98),
 }
-SHORTS_KEEP = 0.56   # waistband to seat; below that is the leg the thighs draw
 SANDWICH_W = 72      # px; drawn at 0.6 image scale on the page
 SANDWICH = ['pbj-0', 'pbj-1', 'pbj-2', 'pbj-3']   # whole, one bite, two bites, crust
 
@@ -63,13 +62,11 @@ def save(img, name):
 
 def main():
     OUT.mkdir(exist_ok=True)
-    atlas = np.asarray(Image.open(HERE / 'parts-atlas.png').convert('RGBA'))
+    atlas = np.asarray(Image.open(HERE / 'v2' / 'parts-atlas.png').convert('RGBA'))
     cell = atlas.shape[0] // 3
     for r, row in enumerate(GRID):
         for c, name in enumerate(row):
             piece = cut(atlas[r * cell:(r + 1) * cell, c * cell:(c + 1) * cell])
-            if name == 'shorts':
-                piece = piece[: int(piece.shape[0] * SHORTS_KEEP)]
             save(hires.resize(piece, SIZE[name]), name)
 
     props = np.asarray(Image.open(HERE / 'props-atlas.png').convert('RGBA'))
