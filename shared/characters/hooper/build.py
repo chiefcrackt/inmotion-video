@@ -2,13 +2,13 @@
 
 Cuts the 3x3 atlas, removes stray flecks and colored edge fringes, and writes
 each piece at the exact size of the links page's previous Hooper piece, so the
-rig in links-inMotion scene/runner.js (DOGPARTS pivots, ends, scales) keeps
-working with no changes:
+rig in links-inMotion scene/runner.js keeps its gallop:
 
-- Legs, paws and head have the same framing as before (joint caps at the same
-  ends), so each is fitted to the old piece's size. The hind shank is the
-  exception: the old one was short and wide, so the new one is scaled evenly
-  and centered on the bone line rather than stretched.
+- The head has the same framing as before, so it is fitted to the old size.
+- Legs and paws keep their own proportions, with hinges at the centers of
+  their rounded ends; the script prints the new DOGPARTS pivot/end/s for them
+  (bone lengths unchanged, so the gallop is the same). Paste those into
+  scene/runner.js.
 - The torso is different on purpose: the old one included the tops of the
   legs, so its frame reaches below the belly. The new torso is scaled evenly
   to the old width and lined up at the top, which puts its belly on the old
@@ -51,10 +51,61 @@ def cut(cell):
     return piece[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
 
 
+# Leg pieces: the old rig's bone lengths in dog units (|end - pivot| * s), and
+# where the hinge sits in each piece. Legs are not squeezed into the old boxes:
+# each keeps its own proportions, its hinges go at the centers of its own
+# rounded ends, and its scale makes the bone the same length as before, so the
+# gallop is unchanged. Thighs (fu, hu) keep the old pivot's place down the wide
+# top; paws (fp, hp) end at the bottom of the toes, where they touch the ground.
+OLD = {
+    'fu': ([58, 40], [55, 212], 0.94), 'fl': ([38, 26], [40, 246], 0.85),
+    'fp': ([40, 28], [64, 98], 0.85), 'hu': ([72, 44], [70, 232], 0.82),
+    'hl': ([40, 28], [37.5, 150], 1.02), 'hp': ([37.5, 28], [77, 151], 1.02),
+}
+K = 0.3   # links page stores pieces at 30% of rig pixels
+
+
+def cap(alpha, top):
+    """Center of the rounded end at the top (or bottom) of a piece."""
+    rows = range(alpha.shape[0]) if top else range(alpha.shape[0] - 1, -1, -1)
+    rows = [y for y in rows if alpha[y].any()]
+    span = max(1, len(rows) // 5)
+    width = max(np.ptp(np.where(alpha[y])[0]) + 1 for y in rows[:span])
+    y = rows[min(len(rows) - 1, int(width / 2))]
+    xs = np.where(alpha[y])[0]
+    return np.array([(xs.min() + xs.max()) / 2, y], float)
+
+
+def leg(name, piece):
+    a = piece[..., 3] > 128
+    pv0, en0, s0 = OLD[name]
+    length = np.hypot(en0[0] - pv0[0], en0[1] - pv0[1]) * s0
+    ys = np.where(a.any(1))[0]
+    if name in ('fu', 'hu'):
+        pivot = cap(a, True)
+        pivot[1] = ys.min() + (ys.max() - ys.min()) * 0.17
+        xs = np.where(a[int(pivot[1])])[0]
+        pivot[0] = (xs.min() + xs.max()) / 2
+    else:
+        pivot = cap(a, True)
+    if name in ('fp', 'hp'):
+        bottom = ys.max()
+        xs = np.where(a[bottom - 2:bottom + 1].any(0))[0]
+        end = np.array([(xs.min() + xs.max()) / 2, bottom], float)
+    else:
+        end = cap(a, False)
+    f = length / np.hypot(*(end - pivot))   # atlas px -> rig px, with s = 1
+    w, h = round(piece.shape[1] * f * K), round(piece.shape[0] * f * K)
+    out = hires.resize(piece, (w, h))
+    pv, en = pivot * f, end * f
+    return out, {'s': 1, 'pivot': [round(pv[0], 1), round(pv[1], 1)], 'end': [round(en[0], 1), round(en[1], 1)]}
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     atlas = np.asarray(Image.open(HERE / 'parts-atlas.png').convert('RGBA'))
     cell = atlas.shape[0] // 3
+    rig = {}
     for r, row in enumerate(GRID):
         for c, name in enumerate(row):
             if not name:
@@ -66,6 +117,9 @@ def main():
                 body = hires.resize(piece, (w, round(piece.shape[0] * k)))
                 out = Image.new('RGBA', (w, h), (0, 0, 0, 0))
                 out.alpha_composite(body.crop((0, 0, w, min(body.size[1], h - TORSO_TOP))), (0, TORSO_TOP))
+            elif name in OLD:
+                out, rig[name] = leg(name, piece)
+                w, h = out.size
             elif name in KEEP_ASPECT:
                 pw = round(piece.shape[1] * h / piece.shape[0])
                 out = Image.new('RGBA', (w, h), (0, 0, 0, 0))
@@ -73,7 +127,9 @@ def main():
             else:
                 out = hires.resize(piece, (w, h))
             out.save(OUT / f'{name}.webp', 'WEBP', lossless=True, method=6)
-            print(f'{name:6s} {w}x{h}  new aspect {piece.shape[1] / piece.shape[0]:.2f}  old {w / h:.2f}')
+            print(f'{name:6s} {w}x{h}')
+    import json
+    print('DOGPARTS legs:', json.dumps(rig))
 
 
 if __name__ == '__main__':
