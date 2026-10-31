@@ -152,7 +152,8 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A5 High-res Hooper](#a5-high-res-hooper) | `special-post/artwork/hooper/` | todo | todo |
 | [A6 Sample photos for templates](#a6-sample-photos-for-templates) | `carousel-maker/samples/` | todo | todo |
 | [A7 Redraw the Special Post runners](#a7-redraw-the-special-post-runners) | `special-post/artwork/runners/<id>/` | todo (Russ first) | todo |
-| [A8 Travis puppet and aid-station props](#a8-travis-puppet-and-aid-station-props) | `shared/characters/travis/` | done (PR #20) | done (links-inMotion da8b0b9) |
+| [A8 Travis puppet and aid-station props](#a8-travis-puppet-and-aid-station-props) | `shared/characters/travis/` | done (PR #20), redraw in A8b | done (links-inMotion da8b0b9) |
+| [A8b Redraw Travis to Tristan's outlines](#a8b-redraw-travis-to-tristans-outlines) | `shared/characters/travis/v2/` | todo | todo |
 
 ## Rules for every art task
 
@@ -457,3 +458,84 @@ to the right; Tristan resumes running. Button is disabled while it plays.
 Hooper can stay in the scene. With reduced motion, show a still of the
 handoff instead. Add checks to `tests/` for the button, a full play-through,
 foot contact during Travis's walk, and the reduced-motion still.
+
+## A8b Redraw Travis to Tristan's outlines
+
+**Why:** the first Travis (A8) looks wrong next to Tristan on the live page:
+
+- **Too heavy.** A8 asked for a "stockier" build, so he was drawn with a belly,
+  then stretched to fill Tristan's torso, which is extra wide from the vest.
+- **Straight lines.** His shorts were drawn as a full shorts leg, not a hip
+  piece, so they had to be cut off flat at the hips. Sleeve and shorts cuffs
+  are flat bands where Tristan's are rounded.
+- **Different style.** His head is painted (eye, ear detail, shading, smile);
+  Tristan's is flat shapes with no eye.
+- **Hole in the shirt.** The torso has a cut-out armhole.
+
+The fix: draw Travis **inside Tristan's exact outlines**, one piece per cell.
+
+**Shape template:** `shared/characters/travis/v2/shape-template.png`
+(1536x1536, 3x3, 512 px cells). Each gray shape is Tristan's piece outline,
+traced from `river-run/artwork/hires/parts-atlas.png`. Same grid and order:
+
+| Row | Left | Middle | Right |
+|---|---|---|---|
+| 1 | head with neck | torso | shorts (hip piece only) |
+| 2 | thigh (shorts leg on top) | shin (sock at bottom) | shoe |
+| 3 | upper arm (tee sleeve) | near forearm with watch and fist | far forearm with fist |
+
+**Style target:** `river-run/artwork/hires/parts-atlas.png`. Flat vector
+fills, one or two tones per area, no painted shading, no outlines, no texture.
+
+**Likeness:** Tristan attaches the same photos of Travis in the ChatGPT chat
+(not stored in this repo). Use them for hair, beard, skin tone and profile
+only.
+
+### Per piece
+
+- **Head:** same size and outline as Tristan's head cell, same style: flat
+  shapes, **no eye, no eyebrow detail, no mouth line, no ear detail** (Tristan
+  shows none). Travis's own short dark brown hair (fuller on top, short sides)
+  and his full, neatly trimmed dark brown beard, his nose and brow profile.
+  Neck tapers into the bottom the way Tristan's does. No sunglasses.
+- **Torso:** Tristan's torso outline **without the vest**: remove the bulge on
+  the back (left side of the cell) and the bottle bulge on the chest, leaving a
+  normal side-view chest and back. **Average build, flat stomach, no belly**,
+  no wider than Tristan's chest. Olive tee, crew neck, small chest pocket, no
+  logo. **No armhole cut-out**: the shoulder is solid shirt (the upper arm
+  covers it).
+- **Shorts:** **fill the hip-piece outline only**, like Tristan's camo piece:
+  waistband to seat, rounded bottom corners. **Do not draw a shorts leg or any
+  skin.** Khaki, a belt-loop waistband, maybe one pocket seam.
+- **Thigh:** khaki shorts leg on top with a **rounded, slightly flared hem**
+  (like Tristan's thigh cell), skin below, rounded knee cap.
+- **Shin:** skin, short dark crew sock at the bottom with a soft curved top.
+- **Shoe:** dark brown low hiking shoe, gray sole, flat side view, same outline
+  as Tristan's shoe.
+- **Upper arm:** olive tee sleeve on top with a **rounded hem**, skin below,
+  rounded caps both ends.
+- **Forearms:** same as Tristan's: near one with a black watch, both ending in
+  a fist.
+
+### Rules
+
+- Every piece fills its gray shape: same outline, same size, same position in
+  the cell. Small changes are fine where the clothing needs them (hair, beard,
+  shoe tread), never a different body shape.
+- Skin tone identical across every piece.
+- Flat fills only. No gradients, no painted shading, no outlines, no texture.
+- **No glow, no soft edges**, real transparent background, no checkerboard.
+  (A8's props came with a wide orange glow that had to be cut off.)
+- No text, logos, watermark or grid lines.
+
+**Deliver** in `shared/characters/travis/v2/`: `parts-atlas.png` (1536x1536,
+transparent, 512 px cells), `prompts.json`, and a preview PNG of Travis
+assembled standing beside Tristan.
+
+Props stay as they are (the sandwich states from A8 are fine). Tristan approves
+the head before wire-in.
+
+**Wire-in (Claude):** build from `v2/` in `shared/characters/travis/build.py`
+(no shorts crop needed), recopy to links-inMotion `scene/travis/`, bump the
+cache version, rerun `tests/aid-station.cjs` and compare frames.
+
