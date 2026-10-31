@@ -24,6 +24,7 @@
     "test:river:scenes": "node tests/river-riverside.cjs && node tests/river-riverside.cjs cyberpunk && node tests/river-riverside.cjs mountain && node tests/river-riverside.cjs night",
     "test:framer:browser": "node tests/video-framer.cjs",
     "test:exits:browser": "node tests/exits-intros.cjs",
+    "test:desktop-save": "node tests/desktop-save.cjs",
     "test:carousel:ux": "node carousel-maker/tests/ux.cjs"
   },
   "repository": {

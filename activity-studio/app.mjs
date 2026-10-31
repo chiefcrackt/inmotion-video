@@ -402,7 +402,11 @@ for (const name of ['pointerup', 'pointercancel'])
   canvas.addEventListener(name, () => (drag = null));
 async function save(blob, name) {
   const file = new File([blob], name, { type: blob.type });
-  if (navigator.canShare?.({ files: [file] })) {
+  // share sheet on phones and tablets only; computers download directly
+  const phone =
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  if (phone && navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file] });
       return;

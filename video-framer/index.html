@@ -2712,7 +2712,9 @@
             }, 5000);
             note.textContent = 'Downloaded ' + name + '.';
           }
-          if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+          if (file && // share sheet on phones and tablets only (Save Video → Photos); computers download directly
+            (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)) &&
+            navigator.canShare && navigator.canShare({ files: [file] })) {
             navigator
               .share({ files: [file] })
               .then(function () {

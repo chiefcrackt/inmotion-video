@@ -2333,7 +2333,12 @@
               name = url.split('/').pop(),
               ext = b.dataset.ext;
             // iPhone and iPad: fetch the file and hand it to the share sheet so it can go straight to Photos or Files
-            var canFiles = !!(navigator.canShare && window.File);
+            // share sheet on phones and tablets only; computers download directly
+            var canFiles = !!(
+              (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)) &&
+              navigator.canShare &&
+              window.File
+            );
             var probe = null;
             try {
               probe = new File([new Blob(['x'], { type: TYPES[ext] })], name, {
