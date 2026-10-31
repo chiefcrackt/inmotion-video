@@ -197,8 +197,6 @@
       ctx.lineTo(x + H * (0.025 + (i % 4) * 0.012), y);
       ctx.stroke();
     }
-    ctx.fillStyle = mix(navy, teal, 0.25);
-    ctx.fillRect(0, pathTop - H * 0.012, W, H * 0.022);
     strip(
       ctx,
       artwork('path', theme),
@@ -210,6 +208,12 @@
     );
     ctx.fillStyle = alpha(navy, theme === 'minimal' ? 0.12 : 0.22);
     ctx.fillRect(0, pathTop, W, H - pathTop);
+    // Soft contact shadow where the background meets the path (no hard seam line).
+    const seam = ctx.createLinearGradient(0, pathTop, 0, pathTop + H * 0.035);
+    seam.addColorStop(0, alpha(navy, 0.55));
+    seam.addColorStop(1, alpha(navy, 0));
+    ctx.fillStyle = seam;
+    ctx.fillRect(0, pathTop, W, H * 0.035);
     // Larger scattered stones make the speed legible without inventing a receding road.
     for (let i = 0; i < 38; i++) {
       const x = mod((i * m.groundTile) / 19 - m.ground, m.groundTile * 2);
