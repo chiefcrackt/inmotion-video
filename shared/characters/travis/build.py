@@ -68,8 +68,16 @@ def main():
         for c, name in enumerate(row):
             piece = cut(atlas[r * cell:(r + 1) * cell, c * cell:(c + 1) * cell])
             if name == 'torso' and (HERE / 'v2' / 'torso.png').exists():
-                # A8c: the redrawn torso replaces the atlas cell
-                piece = cut(np.asarray(Image.open(HERE / 'v2' / 'torso.png').convert('RGBA')))
+                # A8c: the redrawn torso replaces the atlas cell. It was drawn in
+                # the same 512 px frame as the atlas torso, so crop it to the old
+                # torso's box (not its own) and it keeps its narrower width.
+                frame = np.asarray(Image.fromarray(
+                    atlas[0:cell, cell:2 * cell]).resize((512, 512), Image.LANCZOS))
+                ys, xs = np.where(hires.clean(frame.astype(np.float64))[..., 3] > 0)
+                new = hires.clean(np.asarray(Image.open(HERE / 'v2' / 'torso.png')
+                                             .convert('RGBA')).astype(np.float64))
+                new[..., 3] = np.where(new[..., 3] > 240, 255, new[..., 3])
+                piece = new[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
             save(hires.resize(piece, SIZE[name]), name)
 
     props = np.asarray(Image.open(HERE / 'props-atlas.png').convert('RGBA'))

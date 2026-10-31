@@ -154,7 +154,7 @@ Tristan picks which to run and approves the art before it's wired in.
 | [A7 Redraw the Special Post runners](#a7-redraw-the-special-post-runners) | `special-post/artwork/runners/<id>/` | todo (Russ first) | todo |
 | [A8 Travis puppet and aid-station props](#a8-travis-puppet-and-aid-station-props) | `shared/characters/travis/` | done (PR #20), redraw in A8b | done (links-inMotion da8b0b9) |
 | [A8b Redraw Travis to Tristan's outlines](#a8b-redraw-travis-to-tristans-outlines) | `shared/characters/travis/v2/` | done (PR #21) | done (links-inMotion b8e5c29) |
-| [A8c Redraw Travis's torso only](#a8c-redraw-traviss-torso-only) | `shared/characters/travis/v2/torso.png` | todo | todo |
+| [A8c Redraw Travis's torso only](#a8c-redraw-traviss-torso-only) | `shared/characters/travis/v2/torso.png` | done (PR #22) | done (links-inMotion 9706a2f) |
 
 ## Rules for every art task
 
