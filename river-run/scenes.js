@@ -56,9 +56,10 @@
                 ),
               );
             image.src =
-              layer === 'foreground'
+              (window.RiverSceneBase || '') +
+              (layer === 'foreground'
                 ? 'scenes/riverside/reeds.webp'
-                : 'scenes/' + id + '/' + layer + '.webp';
+                : 'scenes/' + id + '/' + layer + '.webp');
           }),
       ),
     ).catch((error) => {

@@ -60,7 +60,8 @@
                   'The moving riverside artwork could not load. Please try again.',
                 ),
               );
-            image.src = 'scenes/riverside/' + id + '.webp';
+            image.src =
+              (window.RiverSceneBase || '') + 'scenes/riverside/' + id + '.webp';
           }),
       ),
     ).catch((error) => {

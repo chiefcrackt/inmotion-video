@@ -14,6 +14,13 @@
     <link rel="stylesheet" href="../shared/projects.css" />
     <script src="../shared/projects.js"></script>
     <script src="../text-motion/alpha-video.js"></script>
+    <script src="../shared/background-pack.js"></script>
+    <script>
+      window.RiverSceneBase = '../river-run/';
+    </script>
+    <script src="../river-run/riverside.js"></script>
+    <script src="../river-run/scenes.js"></script>
+    <script src="../shared/runner.js"></script>
     <style>
       /* Two-column studio: live 16:9 preview on the left, grouped controls on the right; one column under 860px.
          Single dark look on purpose: T.im navy is the brand ground. */
@@ -245,6 +252,9 @@
         min-width: 0;
         width: 100%;
       }
+      textarea#desc {
+        font-weight: 500;
+      }
       textarea {
         resize: vertical;
         line-height: 1.2;
@@ -411,6 +421,9 @@
           ></div>
           <div class="stagebar">
             <button class="btn ghost" id="play" type="button">❚❚ Pause</button>
+            <button class="btn ghost" id="introPlay" type="button"
+              >▶ Intro</button
+            >
             <label class="btn ghost" for="clip">＋ Preview my clip</label>
             <input
               id="clip"
@@ -425,9 +438,9 @@
           </div>
           <p class="note"
             >Your clip only shows in the preview. It isn’t saved into the
-            frame.</p
+            frame. Pick two files at once to preview Two clips.</p
           >
-          <p class="fit" id="fit"></p>
+          <div class="fit" id="fit"></div>
           <p class="msg" id="msg" role="status"></p>
           <div class="result" id="result" hidden>
             <video id="vid" controls playsinline loop muted></video>
@@ -446,159 +459,155 @@
             <legend>01 · Layout</legend>
             <div class="row">
               <span class="lab">Clip</span>
-              <button class="chip" type="button" data-g="layout" data-v="center"
-                >Center</button
-              >
-              <button class="chip" type="button" data-g="layout" data-v="left"
-                >Left side</button
-              >
-              <button class="chip" type="button" data-g="layout" data-v="right"
-                >Right side</button
-              >
+              <button class="chip" type="button" data-g="layout" data-v="center">Center</button>
+              <button class="chip" type="button" data-g="layout" data-v="left">Left side</button>
+              <button class="chip" type="button" data-g="layout" data-v="right">Right side</button>
+              <button class="chip" type="button" data-g="layout" data-v="dual">Two clips</button>
+            </div>
+            <div class="row">
+              <span class="lab">Window</span>
+              <button class="chip" type="button" data-g="aspect" data-v="916">9:16</button>
+              <button class="chip" type="button" data-g="aspect" data-v="45">4:5</button>
+              <button class="chip" type="button" data-g="aspect" data-v="11">1:1</button>
             </div>
             <div class="row" id="offsetRow">
               <span class="lab">Edge space</span>
-              <input
-                type="range"
-                id="offset"
-                min="40"
-                max="400"
-                step="10"
-                aria-label="Space between the clip and the edge" />
+              <input type="range" id="offset" min="40" max="400" step="10" aria-label="Space between the clip and the edge" />
               <span class="val" data-for="offset"></span>
             </div>
             <div class="row">
               <span class="lab">Clip size</span>
-              <input
-                type="range"
-                id="inset"
-                min="0"
-                max="160"
-                step="4"
-                aria-label="Space above and below the clip" />
+              <input type="range" id="inset" min="0" max="160" step="4" aria-label="Space above and below the clip" />
               <span class="val" data-for="inset"></span>
             </div>
-            <p class="note"
-              >Clip size 0 fills the full height, which is how CapCut places a
-              vertical clip by default.</p
-            >
+            <div class="sub" id="dualBox">
+              <label class="toggle"><input type="checkbox" id="dualLabels" /> Labels above the two windows</label>
+              <div class="stats">
+                <input type="text" id="dualA" maxlength="18" aria-label="Left window label" />
+                <input type="text" id="dualB" maxlength="18" aria-label="Right window label" />
+              </div>
+            </div>
+            <label class="toggle"><input type="checkbox" id="endScreen" /> End-screen version</label>
+            <div class="sub" id="endBox">
+              <div class="row">
+                <span class="lab">Heading</span>
+                <input type="text" id="endText" maxlength="24" />
+              </div>
+              <p class="note">For the last 20 seconds of a YouTube video: your clip on the left, outlined spots for two end-screen videos and a subscribe button on the right. Drag the end-screen elements onto the outlines in YouTube Studio.</p>
+            </div>
+            <p class="note">Clip size 0 fills the full height, which is how CapCut places a vertical clip by default.</p>
           </fieldset>
 
           <fieldset>
             <legend>02 · Clip window</legend>
             <div class="row">
+              <span class="lab">Style</span>
+              <button class="chip" type="button" data-g="winStyle" data-v="standard">Standard</button>
+              <button class="chip" type="button" data-g="winStyle" data-v="phone">Phone</button>
+              <button class="chip" type="button" data-g="winStyle" data-v="polaroid">Polaroid</button>
+              <button class="chip" type="button" data-g="winStyle" data-v="offset">Offset block</button>
+              <button class="chip" type="button" data-g="winStyle" data-v="viewfinder">Viewfinder</button>
+            </div>
+            <div class="row">
               <span class="lab">Corners</span>
-              <input
-                type="range"
-                id="radius"
-                min="0"
-                max="60"
-                step="2"
-                aria-label="Corner roundness" />
+              <input type="range" id="radius" min="0" max="60" step="2" aria-label="Corner roundness" />
               <span class="val" data-for="radius"></span>
             </div>
             <div class="row">
               <span class="lab">Border</span>
-              <button class="chip" type="button" data-g="border" data-v="none"
-                >None</button
-              >
-              <button class="chip" type="button" data-g="border" data-v="gold"
-                >Gold</button
-              >
-              <button class="chip" type="button" data-g="border" data-v="teal"
-                >Teal</button
-              >
-              <button class="chip" type="button" data-g="border" data-v="paper"
-                >Paper</button
-              >
+              <button class="chip" type="button" data-g="border" data-v="none">None</button>
+              <button class="chip" type="button" data-g="border" data-v="gold">Gold</button>
+              <button class="chip" type="button" data-g="border" data-v="teal">Teal</button>
+              <button class="chip" type="button" data-g="border" data-v="paper">Paper</button>
             </div>
             <div class="row">
               <span class="lab">Thickness</span>
-              <input
-                type="range"
-                id="borderW"
-                min="2"
-                max="16"
-                step="1"
-                aria-label="Border thickness" />
+              <input type="range" id="borderW" min="2" max="16" step="1" aria-label="Border thickness" />
               <span class="val" data-for="borderW"></span>
             </div>
-            <label class="toggle"
-              ><input type="checkbox" id="glow" /> Glow around the window</label
-            >
+            <label class="toggle"><input type="checkbox" id="glow" /> Glow around the window</label>
             <div class="row">
               <span class="lab">Hide top</span>
-              <input
-                type="range"
-                id="cropTop"
-                min="0"
-                max="20"
-                step="1"
-                aria-label="Hide the top of the clip (percent)" />
+              <input type="range" id="cropTop" min="0" max="20" step="1" aria-label="Hide the top of the clip (percent)" />
               <span class="val" data-for="cropTop"></span>
             </div>
             <div class="row">
               <span class="lab">Hide bottom</span>
-              <input
-                type="range"
-                id="cropBottom"
-                min="0"
-                max="20"
-                step="1"
-                aria-label="Hide the bottom of the clip (percent)" />
+              <input type="range" id="cropBottom" min="0" max="20" step="1" aria-label="Hide the bottom of the clip (percent)" />
               <span class="val" data-for="cropBottom"></span>
             </div>
             <div class="row">
               <span class="lab">Clip zoom</span>
-              <input
-                type="range"
-                id="zoom"
-                min="100"
-                max="130"
-                step="1"
-                aria-label="Clip zoom" />
+              <input type="range" id="zoom" min="100" max="130" step="1" aria-label="Clip zoom" />
               <span class="val" data-for="zoom"></span>
             </div>
-            <p class="note"
-              >Hide top/bottom covers TikTok captions, usernames or watermarks.
-              Clip zoom crops all edges: the frame covers whatever spills out.
-              Zoom only changes the preview and the CapCut numbers below the
-              preview.</p
-            >
+            <p class="note">Hide top/bottom covers TikTok captions, usernames or watermarks. Clip zoom crops all edges: the frame covers whatever spills out. Zoom only changes the preview and the CapCut numbers.</p>
+            <label class="toggle"><input type="checkbox" id="pip" /> Facecam window</label>
+            <div class="sub" id="pipBox">
+              <div class="row">
+                <span class="lab">Shape</span>
+                <button class="chip" type="button" data-g="pipShape" data-v="circle">Circle</button>
+                <button class="chip" type="button" data-g="pipShape" data-v="rounded">Rounded</button>
+              </div>
+              <div class="row">
+                <span class="lab">Corner</span>
+                <button class="chip" type="button" data-g="pipCorner" data-v="tl">Top left</button>
+                <button class="chip" type="button" data-g="pipCorner" data-v="tr">Top right</button>
+                <button class="chip" type="button" data-g="pipCorner" data-v="bl">Bottom left</button>
+                <button class="chip" type="button" data-g="pipCorner" data-v="br">Bottom right</button>
+              </div>
+              <div class="row">
+                <span class="lab">Size</span>
+                <input type="range" id="pipSize" min="160" max="420" step="10" aria-label="Facecam size" />
+                <span class="val" data-for="pipSize"></span>
+              </div>
+            </div>
           </fieldset>
 
           <fieldset>
             <legend>03 · Background</legend>
-            <div class="row" id="bgChips">
-              <button class="chip" type="button" data-g="bg" data-v="navy"
-                >Navy</button
-              >
-              <button class="chip" type="button" data-g="bg" data-v="grid"
-                >Navy grid</button
-              >
-              <button class="chip" type="button" data-g="bg" data-v="tealfade"
-                >Teal fade</button
-              >
-              <button class="chip" type="button" data-g="bg" data-v="dusk"
-                >Gold dusk</button
-              >
+            <div class="row">
+              <button class="chip" type="button" data-g="bg" data-v="navy">Navy</button>
+              <button class="chip" type="button" data-g="bg" data-v="grid">Navy grid</button>
+              <button class="chip" type="button" data-g="bg" data-v="tealfade">Teal fade</button>
+              <button class="chip" type="button" data-g="bg" data-v="dusk">Gold dusk</button>
             </div>
             <div class="row" id="photoChips"></div>
+            <div class="row" id="sceneChips"></div>
+            <div class="row">
+              <button class="chip" type="button" data-g="bg" data-v="upload" id="uploadChip">My photo</button>
+              <label class="btn ghost" for="bgFile">＋ Choose photo</label>
+              <input id="bgFile" type="file" accept="image/*" hidden aria-label="Background photo" />
+            </div>
             <div class="row" id="dimRow">
-              <span class="lab">Photo dim</span>
-              <input
-                type="range"
-                id="dim"
-                min="0"
-                max="85"
-                step="5"
-                aria-label="Darken the background photo" />
+              <span class="lab">Dim</span>
+              <input type="range" id="dim" min="0" max="85" step="5" aria-label="Darken the background picture" />
               <span class="val" data-for="dim"></span>
             </div>
+            <div class="row">
+              <span class="lab">Texture</span>
+              <button class="chip" type="button" data-g="texture" data-v="none">None</button>
+              <button class="chip" type="button" data-g="texture" data-v="grain">Film grain</button>
+              <button class="chip" type="button" data-g="texture" data-v="scan">Scanlines</button>
+            </div>
+            <div class="row" id="textureRow">
+              <span class="lab">Strength</span>
+              <input type="range" id="textureAmt" min="10" max="100" step="5" aria-label="Texture strength" />
+              <span class="val" data-for="textureAmt"></span>
+            </div>
+            <p class="note">Your photo is resized and kept in this browser only. Texture never covers the clip window.</p>
           </fieldset>
 
           <fieldset>
             <legend>04 · Text</legend>
+            <label class="toggle"><input type="checkbox" id="showMeta" /> Series tag and date line</label>
+            <div class="sub" id="metaBox">
+              <div class="stats">
+                <input type="text" id="tag" maxlength="16" aria-label="Series tag" />
+                <input type="text" id="dateLine" maxlength="34" aria-label="Date or location line" />
+              </div>
+              <p class="note">Tag sits above the kicker (EP. 12, PART 2). The date or location line goes under the subtitle.</p>
+            </div>
             <div class="row">
               <span class="lab">Kicker</span>
               <input type="text" id="kicker" maxlength="40" />
@@ -613,34 +622,28 @@
             </div>
             <div class="row">
               <span class="lab">Align</span>
-              <button class="chip" type="button" data-g="align" data-v="auto"
-                >Auto</button
-              >
-              <button class="chip" type="button" data-g="align" data-v="left"
-                >Left</button
-              >
-              <button class="chip" type="button" data-g="align" data-v="center"
-                >Center</button
-              >
-              <button class="chip" type="button" data-g="align" data-v="right"
-                >Right</button
-              >
+              <button class="chip" type="button" data-g="align" data-v="auto">Auto</button>
+              <button class="chip" type="button" data-g="align" data-v="left">Left</button>
+              <button class="chip" type="button" data-g="align" data-v="center">Center</button>
+              <button class="chip" type="button" data-g="align" data-v="right">Right</button>
             </div>
             <div class="row">
               <span class="lab">Text size</span>
-              <input
-                type="range"
-                id="scale"
-                min="70"
-                max="130"
-                step="5"
-                aria-label="Text size" />
+              <input type="range" id="scale" min="70" max="130" step="5" aria-label="Text size" />
               <span class="val" data-for="scale"></span>
             </div>
-            <label class="toggle"
-              ><input type="checkbox" id="showStats" /> Run stats</label
-            >
+            <label class="toggle"><input type="checkbox" id="showStats" /> Run stats or description</label>
             <div class="sub" id="statsBox">
+              <div class="row">
+                <span class="lab">Show</span>
+                <button class="chip" type="button" data-g="sideMode" data-v="stats">Stats</button>
+                <button class="chip" type="button" data-g="sideMode" data-v="text">Description</button>
+              </div>
+              <div class="sub" id="descBox">
+                <textarea id="desc" rows="4" maxlength="280" aria-label="Description"></textarea>
+                <p class="note">Wraps to fit where the stats would go. Press return for a new line. Up to about 7 lines show.</p>
+              </div>
+              <div id="statFields">
               <div class="stats">
                 <input type="text" id="s1v" maxlength="14" aria-label="Stat 1 value" />
                 <input type="text" id="s1l" maxlength="16" aria-label="Stat 1 label" />
@@ -650,35 +653,103 @@
                 <input type="text" id="s3l" maxlength="16" aria-label="Stat 3 label" />
               </div>
               <p class="note">Value on the left, label on the right. Leave a value blank to skip that stat.</p>
+              <label class="toggle"><input type="checkbox" id="statIcons" /> Icons next to stats</label>
+              <div class="row">
+                <span class="lab">Units</span>
+                <button class="chip" type="button" data-g="units" data-v="typed">As typed</button>
+                <button class="chip" type="button" data-g="units" data-v="mi">Miles</button>
+                <button class="chip" type="button" data-g="units" data-v="km">KM</button>
+              </div>
+              </div>
             </div>
-            <label class="toggle"
-              ><input type="checkbox" id="showCta" /> Call to action</label
-            >
+            <div class="row">
+              <span class="lab">Activity file</span>
+              <label class="btn ghost" for="actFile">＋ GPX / FIT / TCX</label>
+              <input id="actFile" type="file" accept=".gpx,.fit,.tcx" hidden aria-label="Activity file" />
+              <button class="btn ghost" id="useStats" type="button" hidden>Use its stats</button>
+            </div>
+            <div class="sub" id="routeBox">
+              <div class="row">
+                <span class="lab">Show</span>
+                <button class="chip" type="button" data-g="route" data-v="off">Off</button>
+                <button class="chip" type="button" data-g="route" data-v="route">Route line</button>
+                <button class="chip" type="button" data-g="route" data-v="elev">Elevation</button>
+                <button class="chip" type="button" data-g="route" data-v="both">Both</button>
+              </div>
+              <div class="row">
+                <span class="lab">Hide ends</span>
+                <input type="range" id="routeTrim" min="0" max="1000" step="50" aria-label="Hide the route near the start and finish (meters)" />
+                <span class="val" data-for="routeTrim"></span>
+              </div>
+              <p class="note" id="routeNote">Read on this device only and not saved. Hide ends keeps your start and finish (home) off the route line.</p>
+            </div>
+            <label class="toggle"><input type="checkbox" id="showCta" /> Call to action</label>
             <div class="sub" id="ctaBox">
               <input type="text" id="cta" maxlength="34" aria-label="Call to action text" />
             </div>
-            <label class="toggle"
-              ><input type="checkbox" id="showHandle" /> Handle lockup</label
-            >
+            <label class="toggle"><input type="checkbox" id="showHandle" /> Handle lockup</label>
             <div class="sub" id="handleBox">
               <input type="text" id="handle" maxlength="30" aria-label="Handle" />
             </div>
+            <label class="toggle"><input type="checkbox" id="ticker" /> Scrolling ticker</label>
+            <div class="sub" id="tickerBox">
+              <input type="text" id="tickerText" maxlength="60" aria-label="Ticker text" />
+              <div class="row">
+                <span class="lab">Position</span>
+                <button class="chip" type="button" data-g="tickerPos" data-v="top">Top</button>
+                <button class="chip" type="button" data-g="tickerPos" data-v="bottom">Bottom</button>
+              </div>
+              <div class="row">
+                <span class="lab">Style</span>
+                <button class="chip" type="button" data-g="tickerStyle" data-v="gold">Gold</button>
+                <button class="chip" type="button" data-g="tickerStyle" data-v="navy">Navy</button>
+              </div>
+              <p class="note">The strip runs the full width, over the top or bottom edge of your clip. Use Hide top/bottom to line it up with TikTok text.</p>
+            </div>
             <div class="row">
-              <button class="btn ghost" id="resetText" type="button"
-                >Reset text</button
-              >
+              <button class="btn ghost" id="resetText" type="button">Reset text</button>
             </div>
           </fieldset>
 
           <fieldset>
-            <legend>05 · Motion</legend>
+            <legend>05 · Extras</legend>
+            <label class="toggle"><input type="checkbox" id="runner" /> Jogging runner</label>
+            <div class="sub" id="runnerBox">
+              <div class="row">
+                <span class="lab">Spot</span>
+                <button class="chip" type="button" data-g="runnerSpot" data-v="bl">Bottom left</button>
+                <button class="chip" type="button" data-g="runnerSpot" data-v="br">Bottom right</button>
+              </div>
+              <div class="row">
+                <span class="lab">Size</span>
+                <input type="range" id="runnerSize" min="180" max="560" step="10" aria-label="Runner height" />
+                <span class="val" data-for="runnerSize"></span>
+              </div>
+              <label class="toggle"><input type="checkbox" id="runnerGround" /> Moving ground line</label>
+              <p class="note">Jogs in place at an easy one stride per second, facing the clip. Move him or resize if he overlaps text.</p>
+            </div>
+            <label class="toggle"><input type="checkbox" id="badge" /> T.im badge</label>
+            <div class="sub" id="badgeBox">
+              <div class="row">
+                <span class="lab">Corner</span>
+                <button class="chip" type="button" data-g="badgeCorner" data-v="tl">Top left</button>
+                <button class="chip" type="button" data-g="badgeCorner" data-v="tr">Top right</button>
+                <button class="chip" type="button" data-g="badgeCorner" data-v="bl">Bottom left</button>
+                <button class="chip" type="button" data-g="badgeCorner" data-v="br">Bottom right</button>
+              </div>
+              <div class="row">
+                <span class="lab">Size</span>
+                <input type="range" id="badgeSize" min="70" max="220" step="5" aria-label="Badge size" />
+                <span class="val" data-for="badgeSize"></span>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>06 · Motion</legend>
             <div class="row">
-              <button class="chip" type="button" data-g="motion" data-v="animated"
-                >Animated</button
-              >
-              <button class="chip" type="button" data-g="motion" data-v="static"
-                >Static</button
-              >
+              <button class="chip" type="button" data-g="motion" data-v="animated">Animated</button>
+              <button class="chip" type="button" data-g="motion" data-v="static">Static</button>
             </div>
             <div class="sub" id="motionBox">
               <div class="row">
@@ -695,18 +766,33 @@
               <label class="toggle"><input type="checkbox" id="aPulse" /> Pulse (dot and call to action)</label>
               <p class="note">Every animation repeats exactly, so the end of a loop lines up with the start. Repeat it as long as your clip in CapCut.</p>
             </div>
+            <div class="row">
+              <span class="lab">Intro</span>
+              <button class="chip" type="button" data-g="introLen" data-v="1.5">1.5s</button>
+              <button class="chip" type="button" data-g="introLen" data-v="2">2s</button>
+              <button class="chip" type="button" data-g="introLen" data-v="3">3s</button>
+            </div>
+            <div class="row">
+              <span class="lab">Intro sound</span>
+              <button class="chip" type="button" data-g="introSound" data-v="cyber">Cyber</button>
+              <button class="chip" type="button" data-g="introSound" data-v="soft">Soft</button>
+              <button class="chip" type="button" data-g="introSound" data-v="minimal">Minimal</button>
+              <button class="chip" type="button" data-g="introSound" data-v="none">None</button>
+            </div>
+            <div class="row">
+              <span class="lab">Volume</span>
+              <input type="range" id="introVol" min="0" max="100" step="5" aria-label="Intro sound volume" />
+              <span class="val" data-for="introVol"></span>
+            </div>
+            <p class="note">The intro is a one-time entrance: the window opens and the text wipes in. Its last frame is exactly the loop’s first frame, so in CapCut put the intro first and the loop right after it. Tap a sound to hear it.</p>
           </fieldset>
 
           <fieldset>
-            <legend>06 · Save</legend>
+            <legend>07 · Save</legend>
             <div class="row">
               <span class="lab">Window</span>
-              <button class="chip" type="button" data-g="hole" data-v="green"
-                >Green screen</button
-              >
-              <button class="chip" type="button" data-g="hole" data-v="clear"
-                >Transparent</button
-              >
+              <button class="chip" type="button" data-g="hole" data-v="green">Green screen</button>
+              <button class="chip" type="button" data-g="hole" data-v="clear">Transparent</button>
             </div>
             <div class="row" id="lengthRow">
               <span class="lab">Video length</span>
@@ -717,6 +803,7 @@
             <div class="row">
               <button class="btn primary" id="png" type="button">Save PNG</button>
               <button class="btn rec" id="rec" type="button">● Make video</button>
+              <button class="btn rec" id="recIntro" type="button">● Make intro</button>
             </div>
             <p class="note" id="saveHelp"></p>
             <button class="btn ghost" id="reset" type="button">Reset all settings</button>
@@ -732,7 +819,9 @@
         var W = 1920,
           H = 1080,
           TAU = Math.PI * 2,
-          KEY = 'tim-video-framer-v1';
+          DEG = Math.PI / 180,
+          KEY = 'tim-video-framer-v1',
+          STRIDE = 1; // seconds per stride cycle: an easy jog, and a whole number of strides in every loop
         var $ = function (id) {
           return document.getElementById(id);
         };
@@ -751,12 +840,23 @@
           s3l: 'ELEVATION',
           cta: 'SUBSCRIBE FOR MORE MILES',
           handle: 'TRISTAN.INMOTION',
+          tag: 'EP. 12',
+          dateLine: 'OCTOBER 2026',
+          tickerText: 'NEW VIDEO EVERY SUNDAY',
+          dualA: 'BEFORE',
+          dualB: 'AFTER',
+          endText: 'WATCH NEXT',
+          desc: 'A slow, steady long run by the river. A few climbs, a lot of thinking, and one very muddy shoe.',
         };
         var DEFAULTS = Object.assign(
           {
             layout: 'center',
+            aspect: '916',
             offset: 140,
             inset: 0,
+            dualLabels: true,
+            endScreen: false,
+            winStyle: 'standard',
             radius: 24,
             border: 'gold',
             borderW: 6,
@@ -764,13 +864,36 @@
             cropTop: 0,
             cropBottom: 0,
             zoom: 100,
+            pip: false,
+            pipShape: 'circle',
+            pipCorner: 'br',
+            pipSize: 260,
             bg: 'grid',
+            bgUpload: '',
             dim: 45,
+            texture: 'none',
+            textureAmt: 35,
+            showMeta: false,
             align: 'auto',
             scale: 100,
             showStats: true,
+            sideMode: 'stats',
+            statIcons: false,
+            units: 'typed',
+            route: 'off',
+            routeTrim: 200,
             showCta: true,
             showHandle: true,
+            ticker: false,
+            tickerPos: 'bottom',
+            tickerStyle: 'gold',
+            runner: false,
+            runnerSpot: 'bl',
+            runnerSize: 320,
+            runnerGround: true,
+            badge: false,
+            badgeCorner: 'tr',
+            badgeSize: 120,
             motion: 'animated',
             loop: '8',
             aDrift: true,
@@ -778,6 +901,9 @@
             aSweep: true,
             aShimmer: true,
             aPulse: true,
+            introLen: '2',
+            introSound: 'cyber',
+            introVol: 80,
             hole: 'green',
             length: '1',
             theme: 'tim',
@@ -800,7 +926,12 @@
         function persist() {
           try {
             localStorage.setItem(KEY, JSON.stringify(S));
-          } catch (e) {}
+          } catch (e) {
+            // a large photo can exceed browser storage; keep everything else
+            try {
+              localStorage.setItem(KEY, JSON.stringify(Object.assign({}, S, { bgUpload: '' })));
+            } catch (e2) {}
+          }
         }
 
         // Brand colors pass through the shared output theme (T.im / Minimal / Race Broadcast).
@@ -822,9 +953,7 @@
           },
         };
         function fam() {
-          return window.TimProjects
-            ? TimProjects.family(S.textFont)
-            : '"Barlow Condensed", sans-serif';
+          return window.TimProjects ? TimProjects.family(S.textFont) : '"Barlow Condensed", sans-serif';
         }
         function font(c, weight, px, track) {
           c.font = weight + ' ' + px + 'px ' + fam();
@@ -833,21 +962,34 @@
           } catch (e) {}
         }
         function rgba(hex, a) {
-          var n = parseInt(hex.slice(1), 16);
-          return (
-            'rgba(' +
-            ((n >> 16) & 255) +
-            ',' +
-            ((n >> 8) & 255) +
-            ',' +
-            (n & 255) +
-            ',' +
-            a +
-            ')'
-          );
+          var m = /^#([0-9a-f]{6})$/i.exec(hex);
+          if (!m) return hex;
+          var n = parseInt(m[1], 16);
+          return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+        }
+        function clamp(v) {
+          return v < 0 ? 0 : v > 1 ? 1 : v;
+        }
+        function easeOut(v) {
+          return 1 - Math.pow(1 - clamp(v), 3);
+        }
+        function backOut(v) {
+          v = clamp(v);
+          var s = 1.4;
+          return 1 + (s + 1) * Math.pow(v - 1, 3) + s * Math.pow(v - 1, 2);
+        }
+        function frac(v) {
+          return ((v % 1) + 1) % 1;
+        }
+        function rand(seed) {
+          var x = Math.sin(seed * 9301 + 49297) * 233280;
+          return x - Math.floor(x);
+        }
+        function redrawSoon() {
+          if (!playing || S.motion !== 'animated') draw();
         }
 
-        // ---------- background photos (the shared T.im background pack)
+        // ---------- pictures: photo pack, River Run scenes, your own photo, badge
         var PHOTOS = [
           ['night-track', 'Night track'],
           ['misty-trail', 'Misty trail'],
@@ -856,59 +998,197 @@
           ['stadium-lights', 'Stadium lights'],
           ['paper-texture', 'Paper texture'],
         ];
+        var SCENES = [
+          ['riverside', 'Riverside'],
+          ['cyberpunk', 'City run'],
+          ['mountain', 'Mountain trail'],
+          ['night', 'Night trail'],
+        ];
+        function addChips(box, list, prefix) {
+          list.forEach(function (p) {
+            var b = document.createElement('button');
+            b.className = 'chip';
+            b.type = 'button';
+            b.dataset.g = 'bg';
+            b.dataset.v = prefix + p[0];
+            b.textContent = p[1];
+            $(box).appendChild(b);
+          });
+        }
+        addChips('photoChips', PHOTOS, 'photo:');
+        addChips('sceneChips', SCENES, 'scene:');
         var photos = {};
-        PHOTOS.forEach(function (p) {
-          var b = document.createElement('button');
-          b.className = 'chip';
-          b.type = 'button';
-          b.dataset.g = 'bg';
-          b.dataset.v = 'photo:' + p[0];
-          b.textContent = p[1];
-          $('photoChips').appendChild(b);
-        });
         function photo(id) {
           if (!photos[id]) {
             var im = new Image();
-            im.onload = function () {
-              if (!playing) draw();
-            };
+            im.onload = redrawSoon;
             im.src = '../shared/backgrounds/' + id + '-landscape.jpg';
             photos[id] = im;
           }
-          return photos[id].complete && photos[id].naturalWidth
-            ? photos[id]
-            : null;
+          return photos[id].complete && photos[id].naturalWidth ? photos[id] : null;
         }
+        // Scenes are drawn once (the moving layers at rest) and then drift like the photos, so the loop stays seamless.
+        var sceneCache = {};
+        function scene(id) {
+          if (!window.RiverScenes) return null;
+          var key = id + '|' + S.theme;
+          if (sceneCache[key] && sceneCache[key].canvas) return sceneCache[key].canvas;
+          if (!sceneCache[key]) {
+            sceneCache[key] = {};
+            window.RiverScenes.load(id)
+              .then(function () {
+                var c = document.createElement('canvas');
+                c.width = W;
+                c.height = H;
+                var x = c.getContext('2d'),
+                  g = { W: W, H: H, gy: H * 0.93, hz: H * 0.6, scale: (H * 0.44) / 1140, V: false, k: 1 };
+                window.RiverScenes.drawBack(id, x, g, 0, 0, S.theme);
+                window.RiverScenes.drawFront(id, x, g, 0, 0, S.theme);
+                sceneCache[key].canvas = c;
+                redrawSoon();
+              })
+              .catch(function () {
+                say('That scene couldn’t load. Check your connection and try again.', true);
+                delete sceneCache[key];
+              });
+          }
+          return null;
+        }
+        var upload = { src: '', img: null };
+        function uploaded() {
+          if (!S.bgUpload) return null;
+          if (upload.src !== S.bgUpload) {
+            upload.src = S.bgUpload;
+            upload.img = new Image();
+            upload.img.onload = redrawSoon;
+            upload.img.src = S.bgUpload;
+          }
+          return upload.img.complete && upload.img.naturalWidth ? upload.img : null;
+        }
+        var badgeImg = new Image();
+        badgeImg.onload = redrawSoon;
+        badgeImg.src = '../favicon.svg';
+        var runnerRig = null;
+        if (window.TimRunner)
+          TimRunner.load().then(function (r) {
+            runnerRig = r;
+            redrawSoon();
+          });
+        // film grain: 8 fixed noise tiles, 12 changes a second (every loop length is a multiple of 8/12 s)
+        var grain = [];
+        for (var gi = 0; gi < 8; gi++) {
+          var gc = document.createElement('canvas');
+          gc.width = gc.height = 256;
+          var gx = gc.getContext('2d'),
+            gd = gx.createImageData(256, 256);
+          for (var q = 0; q < gd.data.length; q += 4) {
+            var v = rand(gi * 70001 + q) * 255;
+            gd.data[q] = gd.data[q + 1] = gd.data[q + 2] = v;
+            gd.data[q + 3] = 60;
+          }
+          gx.putImageData(gd, 0, 0);
+          grain.push(gc);
+        }
+        var scanTile = document.createElement('canvas');
+        scanTile.width = 4;
+        scanTile.height = 4;
+        (function () {
+          var x = scanTile.getContext('2d');
+          x.fillStyle = 'rgba(0,0,0,0.55)';
+          x.fillRect(0, 2, 4, 1);
+        })();
 
         // ---------- geometry
+        var ASPECT = { 916: 9 / 16, 45: 4 / 5, 11: 1 };
         function geom() {
-          var inset = +S.inset,
-            bh = H - 2 * inset,
-            bw = (bh * 9) / 16,
-            bx;
-          if (S.layout === 'left') bx = +S.offset;
-          else if (S.layout === 'right') bx = W - +S.offset - bw;
-          else bx = (W - bw) / 2;
-          var box = { x: bx, y: inset, w: bw, h: bh };
-          var ct = (S.cropTop / 100) * bh,
-            cb = (S.cropBottom / 100) * bh;
-          var hole = { x: bx, y: inset + ct, w: bw, h: bh - ct - cb };
-          var pad = 70,
+          var a = ASPECT[S.aspect] || 9 / 16,
+            tick = S.ticker ? 60 : 0,
+            tickTop = S.ticker && S.tickerPos === 'top' ? tick : 0,
+            tickBot = S.ticker && S.tickerPos === 'bottom' ? tick : 0,
+            tilt = S.winStyle === 'polaroid' ? -3 : 0,
+            pad = 70,
             gap = 70,
-            panels;
-          if (S.layout === 'center')
+            wins = [],
+            panels = [],
+            slots = null,
+            inset,
+            bh,
+            bw,
+            bx;
+          function mk(x, y, w, h, rot, kind) {
+            var ct = (S.cropTop / 100) * h,
+              cb = (S.cropBottom / 100) * h;
+            return { box: { x: x, y: y, w: w, h: h }, x: x, y: y + ct, w: w, h: h - ct - cb, rot: rot, kind: kind };
+          }
+          if (S.endScreen) {
+            inset = Math.max(+S.inset, 90);
+            bh = H - 2 * inset;
+            bw = bh * a;
+            bx = 110;
+            wins.push(mk(bx, inset, bw, bh, tilt, 'main'));
+            slots = { x0: bx + bw + 100, x1: W - pad };
+          } else if (S.layout === 'dual') {
+            inset = Math.max(+S.inset, 110);
+            bh = H - 2 * inset;
+            bw = bh * a;
+            var g2 = 40,
+              tot = 2 * bw + g2,
+              x0 = (W - tot) / 2;
+            wins.push(mk(x0, inset, bw, bh, tilt, 'a'), mk(x0 + bw + g2, inset, bw, bh, -tilt, 'b'));
             panels = [
-              { x0: pad, x1: bx - gap, side: 'left' },
-              { x0: bx + bw + gap, x1: W - pad, side: 'right' },
+              { x0: pad, x1: x0 - gap },
+              { x0: x0 + tot + gap, x1: W - pad },
             ];
-          else if (S.layout === 'left')
-            panels = [{ x0: bx + bw + gap * 1.3, x1: W - pad, side: 'right' }];
-          else panels = [{ x0: pad, x1: bx - gap * 1.3, side: 'left' }];
-          return { box: box, hole: hole, panels: panels };
+          } else {
+            inset = +S.inset;
+            bh = H - 2 * inset;
+            bw = bh * a;
+            if (S.layout === 'left') bx = +S.offset;
+            else if (S.layout === 'right') bx = W - +S.offset - bw;
+            else bx = (W - bw) / 2;
+            wins.push(mk(bx, inset, bw, bh, tilt, 'main'));
+            if (S.layout === 'center')
+              panels = [
+                { x0: pad, x1: bx - gap },
+                { x0: bx + bw + gap, x1: W - pad },
+              ];
+            else if (S.layout === 'left') panels = [{ x0: bx + bw + gap * 1.3, x1: W - pad }];
+            else panels = [{ x0: pad, x1: bx - gap * 1.3 }];
+          }
+          if (S.pip) {
+            var d = +S.pipSize,
+              m = 56,
+              px = /l$/.test(S.pipCorner) ? m : W - m - d,
+              py = /^t/.test(S.pipCorner) ? m + tickTop : H - m - d - tickBot;
+            wins.push({ box: { x: px, y: py, w: d, h: d }, x: px, y: py, w: d, h: d, rot: 0, kind: 'pip' });
+          }
+          var runner = null;
+          if (S.runner) {
+            var rh = +S.runnerSize,
+              rcx = S.runnerSpot === 'bl' ? 70 + rh * 0.3 : W - 70 - rh * 0.3;
+            runner = { x0: rcx - rh * 0.36, x1: rcx + rh * 0.36, top: H - 34 - tickBot - rh - 24, left: S.runnerSpot === 'bl' };
+          }
+          // things the text keeps clear of
+          var zones = [];
+          if (runner) zones.push({ x0: runner.x0, x1: runner.x1, y0: runner.top, y1: H, left: runner.left });
+          wins.forEach(function (w) {
+            if (w.kind === 'pip') zones.push({ x0: w.x - 20, x1: w.x + w.w + 20, y0: w.y - 20, y1: w.y + w.h + 20, left: w.x < W / 2 });
+          });
+          return { wins: wins, panels: panels, slots: slots, tickTop: tickTop, tickBot: tickBot, runner: runner, zones: zones };
         }
-        function rr(c, x, y, w, h, r) {
+        function zonesIn(g, panel) {
+          return g.zones.filter(function (z) {
+            return panel.x0 < z.x1 && panel.x1 > z.x0;
+          });
+        }
+        function winR(w) {
+          if (w.kind === 'pip') return S.pipShape === 'circle' ? w.w / 2 : 30;
+          if (S.winStyle === 'polaroid') return Math.min(+S.radius, 6);
+          return S.winStyle === 'phone' ? Math.max(+S.radius, 48) : +S.radius;
+        }
+        function rr(c, x, y, w, h, r, keep) {
           r = Math.max(0, Math.min(r, w / 2, h / 2));
-          c.beginPath();
+          if (!keep) c.beginPath();
           c.moveTo(x + r, y);
           c.lineTo(x + w - r, y);
           c.arcTo(x + w, y, x + w, y + r, r);
@@ -920,34 +1200,285 @@
           c.arcTo(x, y, x + r, y, r);
           c.closePath();
         }
-        function rand(seed) {
-          var x = Math.sin(seed * 9301 + 49297) * 233280;
-          return x - Math.floor(x);
+        // A window's outline (optionally grown outward by `grow` px and shifted), around its own center and tilt.
+        // Points are transformed as they're added, so the path survives the restore.
+        function wpath(c, w, s, keep, grow, dx, dy, radiusAdd) {
+          grow = grow || 0;
+          var cx = w.x + w.w / 2 + (dx || 0),
+            cy = w.y + w.h / 2 + (dy || 0),
+            ww = w.w * s + 2 * grow,
+            hh = w.h * s + 2 * grow;
+          c.save();
+          c.translate(cx, cy);
+          c.rotate(w.rot * DEG);
+          rr(c, -ww / 2, -hh / 2, ww, hh, winR(w) * s + (radiusAdd || 0), keep);
+          c.restore();
+        }
+        function perimeter(w, s) {
+          var ww = w.w * s,
+            hh = w.h * s,
+            r = Math.max(0, Math.min(winR(w) * s, ww / 2, hh / 2));
+          return 2 * (ww + hh) - 8 * r + TAU * r;
+        }
+        function borderColor() {
+          return S.border === 'teal' ? C.teal : S.border === 'paper' ? C.paper : C.gold;
         }
 
-        // ---------- drawing: every moving part is a function of p = t / loop, with whole cycles per loop,
-        // so frame 0 and frame L are identical and the clip loops cleanly.
+        // ---------- units and icons for stats
+        function pad2(n) {
+          return (n < 10 ? '0' : '') + n;
+        }
+        function disp(v) {
+          if (S.units === 'typed' || !v) return v;
+          var km = S.units === 'km',
+            m;
+          if ((m = /^\s*(\d+):(\d{2})\s*\/\s*(mi|km)\s*$/i.exec(v))) {
+            var sec = +m[1] * 60 + +m[2],
+              from = m[3].toLowerCase();
+            if ((from === 'km') === km) return v;
+            sec = km ? sec / 1.609344 : sec * 1.609344;
+            sec = Math.round(sec);
+            return Math.floor(sec / 60) + ':' + pad2(sec % 60) + (km ? ' /KM' : ' /MI');
+          }
+          if ((m = /^\s*([\d.]+)\s*(mi|miles?|km|k)\s*$/i.exec(v))) {
+            var isKm = /^k/i.test(m[2]);
+            if (isKm === km) return v;
+            var d = km ? +m[1] * 1.609344 : +m[1] / 1.609344;
+            return d.toFixed(1) + (km ? ' KM' : ' MI');
+          }
+          if ((m = /^\s*([\d,]+)\s*(ft|feet|m)\s*$/i.exec(v))) {
+            var isM = /^m$/i.test(m[2]),
+              n = +m[1].replace(/,/g, '');
+            if (isM === km) return v;
+            n = Math.round(km ? n * 0.3048 : n / 0.3048);
+            return n.toLocaleString('en-US') + (km ? ' M' : ' FT');
+          }
+          return v;
+        }
+        function iconFor(label) {
+          var l = (label || '').toUpperCase();
+          if (/PACE|SPEED|SPLIT/.test(l)) return 'watch';
+          if (/ELEV|CLIMB|GAIN|VERT|ASCENT/.test(l)) return 'mountain';
+          if (/TIME|DURATION|MOVING/.test(l)) return 'clock';
+          if (/HEART|HR|BPM/.test(l)) return 'heart';
+          if (/DIST|MILE|KM|LENGTH/.test(l)) return 'route';
+          return 'bolt';
+        }
+        function drawIcon(c, kind, x, y, s, color) {
+          // x,y = top-left of an s×s box
+          c.save();
+          c.translate(x, y);
+          c.scale(s / 100, s / 100);
+          c.strokeStyle = color;
+          c.fillStyle = color;
+          c.lineWidth = 9;
+          c.lineCap = 'round';
+          c.lineJoin = 'round';
+          c.beginPath();
+          if (kind === 'watch' || kind === 'clock') {
+            c.arc(50, 56, 36, 0, TAU);
+            c.moveTo(50, 56);
+            c.lineTo(50, 34);
+            c.moveTo(50, 56);
+            c.lineTo(66, 64);
+            if (kind === 'watch') {
+              c.moveTo(38, 10);
+              c.lineTo(62, 10);
+            }
+            c.stroke();
+          } else if (kind === 'mountain') {
+            c.moveTo(6, 88);
+            c.lineTo(38, 30);
+            c.lineTo(56, 60);
+            c.lineTo(70, 42);
+            c.lineTo(94, 88);
+            c.closePath();
+            c.stroke();
+          } else if (kind === 'heart') {
+            c.moveTo(50, 88);
+            c.bezierCurveTo(10, 60, 4, 36, 22, 22);
+            c.bezierCurveTo(36, 12, 48, 22, 50, 32);
+            c.bezierCurveTo(52, 22, 64, 12, 78, 22);
+            c.bezierCurveTo(96, 36, 90, 60, 50, 88);
+            c.stroke();
+          } else if (kind === 'route') {
+            c.moveTo(16, 86);
+            c.bezierCurveTo(30, 40, 70, 80, 78, 30);
+            c.stroke();
+            c.beginPath();
+            c.arc(16, 86, 10, 0, TAU);
+            c.arc(80, 22, 10, 0, TAU);
+            c.fill();
+          } else {
+            c.moveTo(58, 6);
+            c.lineTo(24, 56);
+            c.lineTo(48, 56);
+            c.lineTo(40, 94);
+            c.lineTo(76, 42);
+            c.lineTo(52, 42);
+            c.closePath();
+            c.stroke();
+          }
+          c.restore();
+        }
+
+        // ---------- activity file: route line and elevation profile (memory only, never saved)
+        var act = null; // { raw points, summary }
+        var routeCache = { key: '', path: null, elev: null };
+        function haversine(a, b) {
+          var R = 6371000,
+            p1 = a.lat * DEG,
+            p2 = b.lat * DEG,
+            dp = (b.lat - a.lat) * DEG,
+            dl = (b.lon - a.lon) * DEG,
+            h = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+          return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+        }
+        function isCoord(p) {
+          return p && isFinite(p.lat) && isFinite(p.lon) && p.lat !== null && p.lon !== null;
+        }
+        function routeData() {
+          if (!act) return null;
+          var key = S.routeTrim + '';
+          if (routeCache.key === key) return routeCache;
+          var gps = act.points.filter(isCoord);
+          if (gps.length < 2) return null;
+          var first = gps[0],
+            last = gps[gps.length - 1],
+            lat0 = gps.reduce(function (s, p) { return s + p.lat; }, 0) / gps.length,
+            k = Math.cos(lat0 * DEG),
+            step = Math.max(1, Math.floor(gps.length / 600)),
+            segs = [],
+            cur = null,
+            minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+          for (var i = 0; i < gps.length; i += step) {
+            var p = gps[i];
+            var hidden = +S.routeTrim > 0 && (haversine(p, first) < +S.routeTrim || haversine(p, last) < +S.routeTrim);
+            if (hidden) {
+              cur = null;
+              continue;
+            }
+            var x = p.lon * k,
+              y = -p.lat;
+            if (!cur) segs.push((cur = []));
+            cur.push([x, y]);
+            minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+          }
+          var elev = [],
+            dist = 0;
+          for (var j = 0; j < gps.length; j++) {
+            if (j) dist += haversine(gps[j - 1], gps[j]);
+            if (isFinite(gps[j].elevation) && gps[j].elevation !== null && j % step === 0) elev.push([dist, gps[j].elevation]);
+          }
+          routeCache = {
+            key: key,
+            segs: segs.filter(function (s) { return s.length > 1; }),
+            bounds: [minX, minY, maxX, maxY],
+            elev: elev.length > 1 ? elev : null,
+          };
+          return routeCache;
+        }
+        function routeItems(c, panel, p, anim, al) {
+          var rd = routeData();
+          if (!rd || S.route === 'off') return [];
+          var k = S.scale / 100,
+            pw = panel.x1 - panel.x0,
+            boxW = Math.min(pw, 460 * k),
+            items = [],
+            dotQ = anim ? 0.5 - 0.5 * Math.cos(TAU * p) : 0; // there and back once per loop
+          function xFor(al2) {
+            return al2 === 'left' ? panel.x0 : al2 === 'right' ? panel.x1 - boxW : (panel.x0 + panel.x1 - boxW) / 2;
+          }
+          if ((S.route === 'route' || S.route === 'both') && rd.segs.length) {
+            var b = rd.bounds,
+              rw = Math.max(b[2] - b[0], 1e-9),
+              rh = Math.max(b[3] - b[1], 1e-9),
+              boxH = Math.min(240 * k, (boxW * rh) / rw),
+              sc = Math.min(boxW / rw, boxH / rh),
+              all = [];
+            rd.segs.forEach(function (s) { all = all.concat(s); });
+            items.push({ h: boxH, gap: 30 * k, draw: function (y, al2) {
+              var ox = xFor(al2) + (boxW - rw * sc) / 2,
+                oy = y + (boxH - rh * sc) / 2;
+              c.lineWidth = 5 * k;
+              c.lineJoin = c.lineCap = 'round';
+              c.strokeStyle = C.teal;
+              rd.segs.forEach(function (s) {
+                c.beginPath();
+                s.forEach(function (pt, i) {
+                  var X = ox + (pt[0] - b[0]) * sc,
+                    Y = oy + (pt[1] - b[1]) * sc;
+                  i ? c.lineTo(X, Y) : c.moveTo(X, Y);
+                });
+                c.stroke();
+              });
+              var d = all[Math.round(dotQ * (all.length - 1))];
+              c.fillStyle = C.gold;
+              c.beginPath();
+              c.arc(ox + (d[0] - b[0]) * sc, oy + (d[1] - b[1]) * sc, 10 * k, 0, TAU);
+              c.fill();
+            } });
+          }
+          if ((S.route === 'elev' || S.route === 'both') && rd.elev) {
+            var e = rd.elev,
+              eh = 110 * k,
+              dmax = e[e.length - 1][0] || 1,
+              lo = Math.min.apply(null, e.map(function (q) { return q[1]; })),
+              hi = Math.max.apply(null, e.map(function (q) { return q[1]; })),
+              span = Math.max(hi - lo, 1);
+            items.push({ h: eh, gap: 30 * k, draw: function (y, al2) {
+              var ox = xFor(al2);
+              function pt(q) {
+                return [ox + (q[0] / dmax) * boxW, y + eh - ((q[1] - lo) / span) * eh * 0.9];
+              }
+              c.beginPath();
+              c.moveTo(ox, y + eh);
+              e.forEach(function (q) { var P = pt(q); c.lineTo(P[0], P[1]); });
+              c.lineTo(ox + boxW, y + eh);
+              c.closePath();
+              c.fillStyle = rgba(C.teal, 0.28);
+              c.fill();
+              c.beginPath();
+              e.forEach(function (q, i) { var P = pt(q); i ? c.lineTo(P[0], P[1]) : c.moveTo(P[0], P[1]); });
+              c.strokeStyle = C.teal;
+              c.lineWidth = 4 * k;
+              c.stroke();
+              var P = pt(e[Math.round(dotQ * (e.length - 1))]);
+              c.fillStyle = C.gold;
+              c.beginPath();
+              c.arc(P[0], P[1], 9 * k, 0, TAU);
+              c.fill();
+            } });
+          }
+          return items;
+        }
+
+        // ---------- drawing. Every moving part is a function of p = t / loop with whole cycles per loop,
+        // so frame 0 and frame L match and the clip loops cleanly.
+        function drawPicture(c, im, drift, p) {
+          var s = drift ? 1.08 : 1,
+            dx = drift ? Math.sin(TAU * p) * 40 : 0,
+            dy = drift ? Math.cos(TAU * p) * 14 : 0,
+            iw = im.naturalWidth || im.width,
+            ih = im.naturalHeight || im.height,
+            cover = Math.max(W / iw, H / ih) * s;
+          c.drawImage(im, (W - iw * cover) / 2 + dx, (H - ih * cover) / 2 + dy, iw * cover, ih * cover);
+          c.fillStyle = rgba(C.navy, S.dim / 100);
+          c.fillRect(0, 0, W, H);
+        }
         function drawBackground(c, p, anim) {
-          var drift = anim && S.aDrift;
+          var drift = anim && S.aDrift,
+            bg = S.bg,
+            im;
           c.fillStyle = C.navy;
           c.fillRect(0, 0, W, H);
-          var bg = S.bg;
           if (bg.indexOf('photo:') === 0) {
-            var im = photo(bg.slice(6));
-            if (im) {
-              var s = drift ? 1.08 : 1,
-                dx = drift ? Math.sin(TAU * p) * 40 : 0,
-                dy = drift ? Math.cos(TAU * p) * 14 : 0;
-              c.drawImage(
-                im,
-                (W - W * s) / 2 + dx,
-                (H - H * s) / 2 + dy,
-                W * s,
-                H * s,
-              );
-              c.fillStyle = rgba(C.navy, S.dim / 100);
-              c.fillRect(0, 0, W, H);
-            }
+            if ((im = photo(bg.slice(6)))) drawPicture(c, im, drift, p);
+          } else if (bg.indexOf('scene:') === 0) {
+            if ((im = scene(bg.slice(6)))) drawPicture(c, im, drift, p);
+          } else if (bg === 'upload') {
+            if ((im = uploaded())) drawPicture(c, im, drift, p);
           } else if (bg === 'tealfade') {
             var a = drift ? Math.sin(TAU * p) * 0.35 : 0;
             var g = c.createLinearGradient(
@@ -990,8 +1521,7 @@
             vg.addColorStop(1, rgba(C.navy, 0.85));
             c.fillStyle = vg;
             c.fillRect(0, 0, W, H);
-          }
-          if (bg === 'navy') {
+          } else {
             var nv = c.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W * 0.7);
             nv.addColorStop(0, rgba(C.teal, 0.12));
             nv.addColorStop(1, rgba(C.teal, 0));
@@ -1016,29 +1546,13 @@
           }
         }
 
-        function borderColor() {
-          return S.border === 'teal'
-            ? C.teal
-            : S.border === 'paper'
-              ? C.paper
-              : C.gold;
-        }
-        function perimeter(h, r) {
-          r = Math.max(0, Math.min(r, h.w / 2, h.h / 2));
-          return 2 * (h.w + h.h) - 8 * r + TAU * r;
-        }
-
         // Text blocks: each item measures itself, then the block is centered vertically in its panel.
-        function alignFor(panel) {
+        function alignFor() {
           if (S.align !== 'auto') return S.align;
-          return S.layout === 'center' ? 'center' : 'left';
+          return S.layout === 'center' || S.layout === 'dual' ? 'center' : 'left';
         }
         function ax(panel, align) {
-          return align === 'left'
-            ? panel.x0
-            : align === 'right'
-              ? panel.x1
-              : (panel.x0 + panel.x1) / 2;
+          return align === 'left' ? panel.x0 : align === 'right' ? panel.x1 : (panel.x0 + panel.x1) / 2;
         }
         function fitPx(c, text, weight, px, track, maxW) {
           font(c, weight, px, track);
@@ -1049,14 +1563,70 @@
           var out = [];
           [1, 2, 3].forEach(function (i) {
             var v = (S['s' + i + 'v'] || '').trim();
-            if (v) out.push([v, (S['s' + i + 'l'] || '').trim()]);
+            if (v) out.push([disp(v).toUpperCase(), (S['s' + i + 'l'] || '').trim()]);
           });
-          return S.showStats ? out : [];
+          return S.showStats && S.sideMode === 'stats' ? out : [];
+        }
+        function hasDesc() {
+          return S.showStats && S.sideMode === 'text' && !!S.desc.trim();
+        }
+        // a paragraph that wraps to the panel (words, plus your own line breaks), at most 7 lines
+        function descBlock(c, panel) {
+          if (!hasDesc()) return [];
+          var k = S.scale / 100,
+            maxW = Math.min(panel.x1 - panel.x0, 640 * k),
+            px = 36 * k,
+            lh = px * 1.3,
+            lines = [];
+          font(c, 500, px, 0.5 * k);
+          S.desc.split('\n').forEach(function (para) {
+            var line = '';
+            para.split(/\s+/).filter(Boolean).forEach(function (word) {
+              var test = line ? line + ' ' + word : word;
+              if (c.measureText(test).width > maxW && line) {
+                lines.push(line);
+                line = word;
+              } else line = test;
+            });
+            lines.push(line);
+          });
+          while (lines.length && !lines[lines.length - 1]) lines.pop();
+          if (lines.length > 7) {
+            lines = lines.slice(0, 7);
+            lines[6] = lines[6].replace(/\s*\S*$/, '') + '…';
+          }
+          return [{ h: lh * lines.length, gap: 40 * k, draw: function (y, al) {
+            font(c, 500, px, 0.5 * k);
+            c.fillStyle = rgba(C.paper, 0.86);
+            c.textAlign = al;
+            var x = al === 'left' ? panel.x0 : al === 'right' ? panel.x1 : (panel.x0 + panel.x1) / 2;
+            lines.forEach(function (l, i) {
+              c.fillText(l, x, y + lh * i + px * 0.95);
+            });
+          } }];
         }
         function titleBlock(c, panel, p, anim) {
           var k = S.scale / 100,
             pw = panel.x1 - panel.x0,
             items = [];
+          if (S.showMeta && S.tag.trim()) {
+            var tg = S.tag.toUpperCase(),
+              tgp = fitPx(c, tg, 800, 26 * k, 4 * k, pw - 40 * k);
+            font(c, 800, tgp, 4 * k);
+            var tgw = c.measureText(tg).width + 36 * k,
+              tgh = tgp + 20 * k;
+            items.push({ h: tgh, gap: 20 * k, draw: function (y, al) {
+              var x = al === 'left' ? panel.x0 : al === 'right' ? panel.x1 - tgw : (panel.x0 + panel.x1 - tgw) / 2;
+              rr(c, x, y, tgw, tgh, tgh / 2);
+              c.strokeStyle = C.gold;
+              c.lineWidth = 3 * k;
+              c.stroke();
+              font(c, 800, tgp, 4 * k);
+              c.fillStyle = C.gold;
+              c.textAlign = 'center';
+              c.fillText(tg, x + tgw / 2, y + tgh / 2 + tgp * 0.36);
+            } });
+          }
           if (S.kicker.trim()) {
             var kp = fitPx(c, S.kicker.toUpperCase(), 700, 32 * k, 6 * k, pw);
             items.push({ h: kp, gap: 22 * k, draw: function (y, al) {
@@ -1070,7 +1640,7 @@
             return l.trim();
           });
           if (lines.length) {
-            var tp = (stats().length ? 132 : S.layout === 'center' ? 150 : 172) * k;
+            var tp = (stats().length || hasDesc() ? 132 : S.layout === 'center' || S.layout === 'dual' ? 150 : 172) * k;
             font(c, 900, tp, 0);
             var widest = Math.max.apply(null, lines.map(function (l) {
               return c.measureText(l).width;
@@ -1081,10 +1651,9 @@
               font(c, 900, tp, 0);
               c.textAlign = al;
               var x = ax(panel, al);
+              c.fillStyle = C.paper;
               lines.forEach(function (l, i) {
-                var by = y + lh * i + tp * 0.8;
-                c.fillStyle = C.paper;
-                c.fillText(l, x, by);
+                c.fillText(l, x, y + lh * i + tp * 0.8);
               });
               if (anim && S.aShimmer) {
                 // one gold band crosses the title per loop, starting and ending off the text
@@ -1110,27 +1679,48 @@
               c.fillText(S.subtitle.toUpperCase(), ax(panel, al), y + sp * 0.85);
             } });
           }
+          if (S.showMeta && S.dateLine.trim()) {
+            var dp = fitPx(c, S.dateLine.toUpperCase(), 700, 26 * k, 4 * k, pw);
+            if (items.length) items[items.length - 1].gap = 16 * k;
+            items.push({ h: dp, gap: 36 * k, draw: function (y, al) {
+              font(c, 700, dp, 4 * k);
+              c.fillStyle = C.teal;
+              c.textAlign = al;
+              c.fillText(S.dateLine.toUpperCase(), ax(panel, al), y + dp * 0.85);
+            } });
+          }
           return items;
         }
         function statsBlock(c, panel, vertical) {
           var k = S.scale / 100,
             pw = panel.x1 - panel.x0,
             list = stats(),
-            items = [];
+            items = [],
+            icons = S.statIcons;
           if (!list.length) return items;
+          function group(sub, s, vp, lp, y, al) {
+            font(c, 900, vp, 0);
+            var vw = c.measureText(s[0]).width,
+              is = icons ? vp * 0.62 : 0,
+              ig = icons ? 14 * k : 0,
+              total = is + ig + vw,
+              x0 = al === 'left' ? sub.x0 : al === 'right' ? sub.x1 - total : (sub.x0 + sub.x1 - total) / 2;
+            if (icons) drawIcon(c, iconFor(s[1]), x0, y + vp * 0.1, is, C.gold);
+            c.textAlign = 'left';
+            c.fillStyle = C.paper;
+            c.fillText(s[0], x0 + is + ig, y + vp * 0.82);
+            font(c, 700, lp, 5 * k);
+            c.fillStyle = C.teal;
+            c.textAlign = al;
+            var lx = al === 'left' ? x0 : al === 'right' ? x0 + total : x0 + total / 2;
+            c.fillText(s[1].toUpperCase(), lx, y + vp + lp * 0.9);
+          }
           if (vertical) {
             list.forEach(function (s) {
-              var vp = fitPx(c, s[0], 900, 76 * k, 0, pw),
+              var vp = fitPx(c, s[0], 900, 76 * k, 0, pw / (icons ? 1.5 : 1)),
                 lp = 24 * k;
               items.push({ h: vp + lp + 8 * k, gap: 30 * k, draw: function (y, al) {
-                c.textAlign = al;
-                var x = ax(panel, al);
-                font(c, 900, vp, 0);
-                c.fillStyle = C.paper;
-                c.fillText(s[0], x, y + vp * 0.82);
-                font(c, 700, lp, 5 * k);
-                c.fillStyle = C.teal;
-                c.fillText(s[1].toUpperCase(), x, y + vp + lp * 0.9);
+                group(panel, s, vp, lp, y, al);
               } });
             });
           } else {
@@ -1138,23 +1728,16 @@
               vp = 64 * k,
               lp = 22 * k;
             list.forEach(function (s) {
-              vp = Math.min(vp, fitPx(c, s[0], 900, 64 * k, 0, colW - 24 * k));
+              vp = Math.min(vp, fitPx(c, s[0], 900, 64 * k, 0, (colW - 24 * k) / (icons ? 1.5 : 1)));
             });
             items.push({ h: vp + lp + 10 * k, gap: 40 * k, draw: function (y, al) {
               list.forEach(function (s, i) {
                 var sub = { x0: panel.x0 + colW * i, x1: panel.x0 + colW * (i + 1) - 24 * k };
-                c.textAlign = al;
-                var x = ax(sub, al);
                 if (i) {
                   c.fillStyle = rgba(C.teal, 0.35);
                   c.fillRect(sub.x0 - 12 * k, y, 2, vp + lp + 6 * k);
                 }
-                font(c, 900, vp, 0);
-                c.fillStyle = C.paper;
-                c.fillText(s[0], x, y + vp * 0.82);
-                font(c, 700, lp, 5 * k);
-                c.fillStyle = C.teal;
-                c.fillText(s[1].toUpperCase(), x, y + vp + lp * 0.95);
+                group(sub, s, vp, lp, y, al);
               });
             } });
           }
@@ -1186,18 +1769,6 @@
             c.restore();
           } }];
         }
-        function layoutBlock(c, panel, items, al, lift) {
-          if (!items.length) return;
-          var total = 0;
-          items.forEach(function (it, i) {
-            total += it.h + (i < items.length - 1 ? it.gap : 0);
-          });
-          var y = (H - total) / 2 - (lift ? 20 : 0);
-          items.forEach(function (it) {
-            it.draw(y, al);
-            y += it.h + it.gap;
-          });
-        }
         function handleItem(c, panel, p, anim) {
           if (!S.showHandle || !S.handle.trim()) return null;
           var k = S.scale / 100,
@@ -1220,28 +1791,237 @@
             c.fillText(txt, x0 + 16 * k + gapX, base);
           } };
         }
-        function drawHandle(c, panel, p, anim) {
+        // Lays a block out centered between the tickers; `reveal(i)` (intro only) wipes each item in from the left.
+        function layoutBlock(c, g, panel, items, al, lift, reveal) {
+          if (!items.length) return;
+          var total = 0;
+          items.forEach(function (it, i) {
+            total += it.h + (i < items.length - 1 ? it.gap : 0);
+          });
+          var top = g.tickTop,
+            bottom = H - g.tickBot;
+          // keep clear of the runner and facecam
+          zonesIn(g, panel).forEach(function (z) {
+            if (z.y0 + z.y1 < H) top = Math.max(top, z.y1 + 10);
+            else {
+              bottom = Math.min(bottom, z.y0);
+              lift = false;
+            }
+          });
+          var y = Math.max(top + 20, (top + bottom - total) / 2 - (lift ? 20 : 0));
+          items.forEach(function (it, i) {
+            var r = reveal ? reveal(i) : 1;
+            if (r > 0) {
+              c.save();
+              if (r < 1) {
+                c.beginPath();
+                c.rect(panel.x0 - 60, y - 40, (panel.x1 - panel.x0 + 120) * r, it.h + 80);
+                c.clip();
+                c.translate((1 - r) * -40, 0);
+              }
+              it.draw(y, al);
+              c.restore();
+            }
+            y += it.h + it.gap;
+          });
+        }
+        function drawHandle(c, g, panel, p, anim, r) {
+          var al = alignFor(),
+            hy = H - 74 - g.tickBot;
+          zonesIn(g, panel).forEach(function (z) {
+            if (hy + 10 < z.y0 || hy - 40 > z.y1) return; // not on the handle's line
+            panel = z.left ? { x0: Math.max(panel.x0, z.x1 + 24), x1: panel.x1 } : { x0: panel.x0, x1: Math.min(panel.x1, z.x0 - 24) };
+            al = z.left ? 'left' : 'right';
+          });
           var it = handleItem(c, panel, p, anim);
-          if (it) it.draw(H - 74 - it.h * 0.85, alignFor(panel));
+          if (!it || r <= 0) return;
+          c.save();
+          if (r < 1) {
+            c.beginPath();
+            c.rect(panel.x0 - 60, 0, (panel.x1 - panel.x0 + 120) * r, H);
+            c.clip();
+          }
+          it.draw(H - 74 - g.tickBot - it.h * 0.85, al);
+          c.restore();
+        }
+        function drawRunner(c, g, t, anim, r) {
+          if (!S.runner || !runnerRig || r <= 0) return;
+          var hgt = +S.runnerSize,
+            sc = hgt / TimRunner.height,
+            left = S.runnerSpot === 'bl',
+            face = left ? 1 : -1, // he faces the clip
+            gy = H - 34 - g.tickBot,
+            cx = left ? 70 + hgt * 0.3 : W - 70 - hgt * 0.3,
+            ps = anim ? t / STRIDE : 0.1;
+          cx += (1 - r) * -face * (hgt + 300);
+          if (S.runnerGround) {
+            // dashes scroll at his ground speed; dash spacing divides the distance covered in one loop exactly
+            var L = +S.loop,
+              per = Math.abs(runnerRig.groundSpeed) * sc,
+              loopDist = per * (L / STRIDE),
+              dash = loopDist / Math.max(1, Math.round(loopDist / 70)),
+              off = anim ? ((((t / STRIDE) * per) % dash) + dash) % dash : 0,
+              half = hgt * 0.75;
+            c.save();
+            c.strokeStyle = rgba(C.teal, 0.7);
+            c.lineWidth = 4;
+            c.lineCap = 'round';
+            c.beginPath();
+            for (var x = -dash; x < half * 2 + dash; x += dash) {
+              var X = cx - half + x - off * face;
+              var a = Math.max(cx - half, X),
+                b = Math.min(cx + half, X + dash * 0.45);
+              if (b > a) {
+                c.moveTo(a, gy + 6);
+                c.lineTo(b, gy + 6);
+              }
+            }
+            c.stroke();
+            c.restore();
+          }
+          c.save();
+          c.fillStyle = 'rgba(0,0,0,0.35)';
+          c.beginPath();
+          c.ellipse(cx, gy + 4, hgt * 0.22, hgt * 0.025, 0, 0, TAU);
+          c.fill();
+          c.translate(cx, 0);
+          c.scale(face, 1);
+          runnerRig.draw(c, ps, 0, gy, sc);
+          c.restore();
+        }
+        function drawBadge(c, g, r) {
+          if (!S.badge || !badgeImg.complete || !badgeImg.naturalWidth || r <= 0) return;
+          var s = +S.badgeSize * r,
+            m = 40,
+            full = +S.badgeSize,
+            cx = /l$/.test(S.badgeCorner) ? m + full / 2 : W - m - full / 2,
+            cy = /^t/.test(S.badgeCorner) ? m + full / 2 + g.tickTop : H - m - full / 2 - g.tickBot;
+          c.drawImage(badgeImg, cx - s / 2, cy - s / 2, s, s * (1187 / 1179));
+        }
+        function drawTicker(c, g, p, anim, r) {
+          if (!S.ticker || !S.tickerText.trim() || r <= 0) return;
+          var bandH = 60,
+            top = S.tickerPos === 'top',
+            y = top ? -(1 - r) * bandH : H - bandH + (1 - r) * bandH,
+            unit = S.tickerText.toUpperCase() + '   •   ',
+            gold = S.tickerStyle === 'gold';
+          c.save();
+          c.fillStyle = gold ? C.gold : C.navy;
+          c.fillRect(0, y, W, bandH);
+          c.fillStyle = gold ? C.navy : C.teal;
+          c.fillRect(0, top ? y + bandH - 4 : y, W, 4);
+          font(c, 800, 30, 4);
+          var uw = c.measureText(unit).width,
+            L = +S.loop,
+            n = Math.max(1, Math.round((L * 90) / uw)), // about 90 px/s, a whole number of repeats per loop
+            off = anim ? frac(p * n) * uw : 0;
+          c.fillStyle = gold ? C.navy : C.gold;
+          c.textAlign = 'left';
+          c.beginPath();
+          c.rect(0, y, W, bandH);
+          c.clip();
+          for (var x = -off; x < W; x += uw) c.fillText(unit, x, y + bandH / 2 + 11);
+          c.restore();
+        }
+        function drawEndSlots(c, g, r) {
+          var sl = g.slots,
+            k = S.scale / 100,
+            w = sl.x1 - sl.x0,
+            sw = (w - 40) / 2,
+            sh = (sw * 9) / 16,
+            top = Math.max(g.tickTop + 150, 190),
+            heading = (S.endText || '').toUpperCase();
+          c.save();
+          if (r < 1) {
+            c.beginPath();
+            c.rect(sl.x0 - 40, 0, (w + 80) * r, H);
+            c.clip();
+          }
+          if (heading) {
+            var hp = fitPx(c, heading, 900, 84 * k, 0, w);
+            font(c, 900, hp, 0);
+            c.fillStyle = C.paper;
+            c.textAlign = 'left';
+            c.fillText(heading, sl.x0, top - 34);
+          }
+          c.setLineDash([16, 12]);
+          c.lineWidth = 4;
+          c.strokeStyle = rgba(C.paper, 0.6);
+          c.fillStyle = rgba(C.navy, 0.45);
+          for (var i = 0; i < 2; i++) {
+            rr(c, sl.x0 + i * (sw + 40), top, sw, sh, 18);
+            c.fill();
+            c.stroke();
+          }
+          var cy = top + sh + 60 + 120;
+          c.beginPath();
+          c.arc(sl.x0 + w / 2, cy, 120, 0, TAU);
+          c.fill();
+          c.stroke();
+          c.setLineDash([]);
+          font(c, 800, 28, 6);
+          c.fillStyle = C.gold;
+          c.textAlign = 'center';
+          c.fillText('SUBSCRIBE', sl.x0 + w / 2, cy + 120 + 48);
+          var hi = handleItem(c, { x0: sl.x0, x1: sl.x1 }, 0, false);
+          if (hi) hi.draw(H - 74 - g.tickBot - hi.h * 0.85, 'left');
+          c.restore();
+        }
+        // texture over the frame only: the window holes are excluded with an even-odd clip
+        function drawTexture(c, g, t, p, anim, ws) {
+          if (S.texture === 'none') return;
+          var amt = S.textureAmt / 100;
+          c.save();
+          c.beginPath();
+          c.rect(0, 0, W, H);
+          g.wins.forEach(function (w) {
+            wpath(c, w, w.kind === 'pip' ? ws.pip : ws.main, true);
+          });
+          c.clip('evenodd');
+          if (S.texture === 'grain') {
+            var idx = anim ? ((Math.floor(t * 12 + 1e-6) % 8) + 8) % 8 : 0;
+            c.globalAlpha = Math.min(1, amt * 1.4);
+            c.globalCompositeOperation = 'overlay';
+            c.fillStyle = c.createPattern(grain[idx], 'repeat');
+            c.fillRect(0, 0, W, H);
+          } else {
+            c.globalAlpha = amt;
+            c.fillStyle = c.createPattern(scanTile, 'repeat');
+            c.fillRect(0, 0, W, H);
+            var by = p * (H + 400) - 200,
+              bg = c.createLinearGradient(0, by - 140, 0, by + 140);
+            bg.addColorStop(0, 'rgba(255,255,255,0)');
+            bg.addColorStop(0.5, 'rgba(255,255,255,' + 0.1 * amt + ')');
+            bg.addColorStop(1, 'rgba(255,255,255,0)');
+            c.globalAlpha = 1;
+            c.fillStyle = bg;
+            c.fillRect(0, by - 140, W, 280);
+          }
+          c.restore();
         }
 
-        var clipEl = null; // preview-only video or image
-        function drawClip(c, g) {
-          var b = g.box,
-            z = S.zoom / 100,
-            w = b.w * z,
+        var clipEls = { a: null, pip: null }; // preview-only media
+        function drawMedia(c, el, b, z, label, rot) {
+          c.save();
+          if (rot) {
+            c.translate(b.x + b.w / 2, b.y + b.h / 2);
+            c.rotate(rot * DEG);
+            c.translate(-(b.x + b.w / 2), -(b.y + b.h / 2));
+          }
+          drawMediaFlat(c, el, b, z, label);
+          c.restore();
+        }
+        function drawMediaFlat(c, el, b, z, label) {
+          var w = b.w * z,
             h = b.h * z,
             x = b.x + (b.w - w) / 2,
             y = b.y + (b.h - h) / 2;
-          if (clipEl) {
-            var sw = clipEl.videoWidth || clipEl.naturalWidth,
-              sh = clipEl.videoHeight || clipEl.naturalHeight;
+          if (el) {
+            var sw = el.videoWidth || el.naturalWidth,
+              sh = el.videoHeight || el.naturalHeight;
             if (sw && sh) {
-              // cover-fit the clip into the 9:16 box (a true 9:16 clip fits exactly)
-              var s = Math.max(w / sw, h / sh),
-                dw = sw * s,
-                dh = sh * s;
-              c.drawImage(clipEl, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+              var s = Math.max(w / sw, h / sh);
+              c.drawImage(el, x + (w - sw * s) / 2, y + (h - sh * s) / 2, sw * s, sh * s);
               return;
             }
           }
@@ -1250,119 +2030,272 @@
           gr.addColorStop(1, '#1d2633');
           c.fillStyle = gr;
           c.fillRect(x, y, w, h);
-          c.fillStyle = 'rgba(255,255,255,0.55)';
-          font(c, 800, 46, 4);
+          c.fillStyle = 'rgba(255,255,255,0.5)';
+          font(c, 800, Math.min(46, w / 8), 4);
           c.textAlign = 'center';
-          c.fillText('YOUR 9:16 CLIP', x + w / 2, y + h / 2);
-          font(c, 600, 26, 2);
-          c.fillStyle = 'rgba(255,255,255,0.35)';
-          c.fillText('SHOWS HERE', x + w / 2, y + h / 2 + 44);
+          c.fillText(label, x + w / 2, y + h / 2);
         }
 
-        // mode: 'preview' (clip under the window), 'green' (window filled #00FF00), 'clear' (transparent window)
-        function render(c, t, mode) {
+        // mode: 'preview' (clip under the window), 'green' (#00FF00 window), 'clear' (transparent window).
+        // intro: null for the loop, or 0..1 through the one-time entrance (1 = the loop's first frame).
+        function render(c, t, mode, intro) {
           var anim = S.motion === 'animated',
             L = +S.loop,
-            p = anim ? (((t % L) + L) % L) / L : 0,
+            D = +S.introLen,
+            isIntro = intro !== null && intro !== undefined,
+            e = isIntro ? clamp(intro) : 1;
+          if (isIntro) t = anim ? (e - 1) * D : 0; // the intro runs into the loop: same motion, earlier time
+          var p = anim ? (((t % L) + L) % L) / L : 0,
             g = geom(),
-            h = g.hole,
-            r = +S.radius,
+            k = S.scale / 100,
+            E = function (a, b) {
+              return isIntro ? easeOut((e - a) / (b - a)) : 1;
+            },
+            ws = { main: isIntro ? backOut((e - 0.02) / 0.45) : 1, pip: isIntro ? backOut((e - 0.35) / 0.35) : 1 },
             bc = borderColor(),
-            bwid = S.border === 'none' ? 0 : +S.borderW;
+            bwid = S.border === 'none' ? 0 : +S.borderW,
+            style = S.winStyle,
+            mains = g.wins.filter(function (w) {
+              return w.kind !== 'pip';
+            }),
+            pips = g.wins.filter(function (w) {
+              return w.kind === 'pip';
+            });
           c.save();
           c.globalCompositeOperation = 'source-over';
           c.clearRect(0, 0, W, H);
           drawBackground(c, p, anim);
-          var sweep = anim && S.aSweep,
-            per = perimeter(h, r),
-            seg = Math.min(per * 0.16, 460),
-            setDash = function () {
+          // window dressing that sits behind or around the window, drawn before the cut
+          mains.forEach(function (w) {
+            var s = ws.main;
+            if (s <= 0.001) return;
+            if (style === 'offset') {
+              wpath(c, w, s, false, 0, 28 * s, 28 * s);
+              c.fillStyle = S.border === 'none' ? C.gold : bc;
+              c.fill();
+            } else if (style === 'polaroid') {
+              var cx = w.x + w.w / 2,
+                cy = w.y + w.h / 2,
+                ww = w.w * s,
+                hh = w.h * s,
+                m = 26 * s,
+                bot = 110 * s;
+              c.save();
+              c.translate(cx, cy);
+              c.rotate(w.rot * DEG);
+              c.shadowColor = 'rgba(0,0,0,0.45)';
+              c.shadowBlur = 36;
+              c.shadowOffsetY = 14;
+              c.fillStyle = C.paper;
+              c.fillRect(-ww / 2 - m, -hh / 2 - m, ww + 2 * m, hh + m + bot);
+              c.restore();
+            } else if (style === 'phone') {
+              wpath(c, w, s, false, 22 * s, 0, 0, 22 * s);
+              c.fillStyle = '#05080f';
+              c.fill();
+              c.strokeStyle = 'rgba(255,255,255,0.22)';
+              c.lineWidth = 3;
+              c.stroke();
+            }
+          });
+          // glows and the sweep go on before the windows are cut, so none of them spill in (keeps Chroma Key clean)
+          var sweep = anim && S.aSweep && style !== 'polaroid',
+            glowable = style === 'standard' || style === 'offset' || style === 'viewfinder';
+          mains.forEach(function (w) {
+            var s = ws.main;
+            if (s <= 0.001) return;
+            if (S.glow && glowable) {
+              c.save();
+              wpath(c, w, s);
+              c.shadowColor = rgba(bc, 0.9);
+              c.shadowBlur = 48;
+              c.strokeStyle = rgba(bc, 0.9);
+              c.lineWidth = Math.max(bwid, 4);
+              c.stroke();
+              c.restore();
+            }
+            if (sweep) {
+              var per = perimeter(w, s),
+                seg = Math.min(per * 0.16, 460);
+              c.save();
+              wpath(c, w, s, false, style === 'phone' ? 22 * s : 0, 0, 0, style === 'phone' ? 22 * s : 0);
               c.setLineDash([seg, per - seg]);
               c.lineDashOffset = -p * per;
-            };
-          // glows go on before the window is cut, so none of them spill into it (keeps Chroma Key clean)
-          if (S.glow) {
-            c.save();
-            rr(c, h.x, h.y, h.w, h.h, r);
-            c.shadowColor = rgba(bc, 0.9);
-            c.shadowBlur = 48;
-            c.strokeStyle = rgba(bc, 0.9);
-            c.lineWidth = Math.max(bwid, 4);
-            c.stroke();
-            c.restore();
-          }
-          if (sweep) {
-            c.save();
-            rr(c, h.x, h.y, h.w, h.h, r);
-            setDash();
-            c.shadowColor = C.paper;
-            c.shadowBlur = 30;
-            c.strokeStyle = rgba(C.paper, 0.9);
-            c.lineWidth = Math.max(bwid, 4) + 2;
-            c.lineCap = 'round';
-            c.stroke();
-            c.restore();
-          }
+              c.shadowColor = C.paper;
+              c.shadowBlur = 30;
+              c.strokeStyle = rgba(C.paper, 0.9);
+              c.lineWidth = Math.max(bwid, 4) + 2;
+              c.lineCap = 'round';
+              c.stroke();
+              c.restore();
+            }
+          });
+          drawRunner(c, g, t, anim, E(0.15, 0.6));
+          // cut the windows
           c.globalCompositeOperation = 'destination-out';
-          rr(c, h.x, h.y, h.w, h.h, r);
-          c.fillStyle = '#000';
-          c.fill();
+          g.wins.forEach(function (w) {
+            var s = w.kind === 'pip' ? ws.pip : ws.main;
+            if (s <= 0.001) return;
+            wpath(c, w, s);
+            c.fillStyle = '#000';
+            c.fill();
+          });
           c.globalCompositeOperation = 'source-over';
-          if (bwid) {
-            rr(c, h.x, h.y, h.w, h.h, r);
-            c.strokeStyle = bc;
-            c.lineWidth = bwid;
+          // borders and in-window furniture
+          mains.forEach(function (w) {
+            var s = ws.main;
+            if (s <= 0.001) return;
+            if (bwid && (style === 'standard' || style === 'offset')) {
+              wpath(c, w, s);
+              c.strokeStyle = bc;
+              c.lineWidth = bwid;
+              c.stroke();
+            }
+            if (sweep && style !== 'polaroid') {
+              var per = perimeter(w, s),
+                seg = Math.min(per * 0.16, 460);
+              c.save();
+              wpath(c, w, s, false, style === 'phone' ? 22 * s : 0, 0, 0, style === 'phone' ? 22 * s : 0);
+              c.setLineDash([seg, per - seg]);
+              c.lineDashOffset = -p * per;
+              c.strokeStyle = C.paper;
+              c.lineWidth = Math.max(bwid, 4);
+              c.lineCap = 'round';
+              c.stroke();
+              c.restore();
+            }
+            var cx = w.x + w.w / 2,
+              cy = w.y + w.h / 2,
+              ww = w.w * s,
+              hh = w.h * s;
+            if (style === 'phone') {
+              var iw = Math.min(150, ww * 0.3) * s;
+              rr(c, cx - iw / 2, cy - hh / 2 + 18 * s, iw, 38 * s, 19 * s);
+              c.fillStyle = '#05080f';
+              c.fill();
+            } else if (style === 'viewfinder') {
+              var gx0 = cx - ww / 2 - 22,
+                gy0 = cy - hh / 2 - 22,
+                gx1 = cx + ww / 2 + 22,
+                gy1 = cy + hh / 2 + 22,
+                arm = Math.min(80, ww * 0.18);
+              c.save();
+              c.strokeStyle = bwid ? bc : C.paper;
+              c.lineWidth = 7;
+              c.lineCap = 'square';
+              c.beginPath();
+              [[gx0, gy0, 1, 1], [gx1, gy0, -1, 1], [gx0, gy1, 1, -1], [gx1, gy1, -1, -1]].forEach(function (q) {
+                c.moveTo(q[0] + arm * q[2], q[1]);
+                c.lineTo(q[0], q[1]);
+                c.lineTo(q[0], q[1] + arm * q[3]);
+              });
+              c.stroke();
+              c.restore();
+              // REC blinks on and off (no fades) once a second
+              if (!anim || frac(t) < 0.5) {
+                c.fillStyle = '#e5322d';
+                c.beginPath();
+                c.arc(cx - ww / 2 + 44 * s, cy - hh / 2 + 52 * s, 12 * s, 0, TAU);
+                c.fill();
+              }
+              font(c, 800, 30 * s, 4);
+              c.fillStyle = C.paper;
+              c.textAlign = 'left';
+              c.fillText('REC', cx - ww / 2 + 66 * s, cy - hh / 2 + 63 * s);
+            }
+          });
+          pips.forEach(function (w) {
+            var s = ws.pip;
+            if (s <= 0.001) return;
+            wpath(c, w, s);
+            c.strokeStyle = S.border === 'none' ? C.gold : bc;
+            c.lineWidth = Math.max(5, bwid);
             c.stroke();
-          }
-          if (sweep) {
-            c.save();
-            rr(c, h.x, h.y, h.w, h.h, r);
-            setDash();
-            c.strokeStyle = C.paper;
-            c.lineWidth = Math.max(bwid, 4);
-            c.lineCap = 'round';
-            c.stroke();
-            c.restore();
+          });
+          // labels above the two windows
+          if (S.layout === 'dual' && !S.endScreen && S.dualLabels) {
+            [S.dualA, S.dualB].forEach(function (lab, i) {
+              var w = mains[i];
+              if (!w || !lab.trim()) return;
+              var r = E(0.3 + i * 0.08, 0.7 + i * 0.08);
+              if (r <= 0) return;
+              var txt = lab.toUpperCase(),
+                tp = fitPx(c, txt, 800, 30, 4, w.w - 40);
+              font(c, 800, tp, 4);
+              var tw = c.measureText(txt).width + 44,
+                th = tp + 22,
+                x = w.box.x + w.box.w / 2 - tw / 2,
+                y = w.box.y - th - 26 + (1 - r) * 30;
+              c.save();
+              c.beginPath();
+              c.rect(0, 0, W, w.box.y - 10);
+              c.clip();
+              rr(c, x, y, tw, th, th / 2);
+              c.fillStyle = i ? C.teal : C.gold;
+              c.fill();
+              c.fillStyle = C.navy;
+              c.textAlign = 'center';
+              c.fillText(txt, x + tw / 2, y + th / 2 + tp * 0.36);
+              c.restore();
+            });
           }
           // text
           c.textBaseline = 'alphabetic';
-          if (S.layout === 'center') {
+          var rev = function (base) {
+            return isIntro
+              ? function (i) {
+                  return E(base + i * 0.07, base + i * 0.07 + 0.3);
+                }
+              : null;
+          };
+          if (g.slots) drawEndSlots(c, g, E(0.3, 0.75));
+          else if (S.layout === 'center' || S.layout === 'dual') {
             var L0 = g.panels[0],
               R0 = g.panels[1];
-            if (stats().length) {
-              layoutBlock(c, L0, titleBlock(c, L0, p, anim), alignFor(L0), S.showHandle);
-              layoutBlock(c, R0, statsBlock(c, R0, true).concat(ctaBlock(c, R0, p, anim)), alignFor(R0));
-              drawHandle(c, L0, p, anim);
+            if (stats().length || hasDesc() || (act && S.route !== 'off')) {
+              layoutBlock(c, g, L0, titleBlock(c, L0, p, anim), alignFor(), S.showHandle, rev(0.28));
+              layoutBlock(c, g, R0, routeItems(c, R0, p, anim).concat(statsBlock(c, R0, true), descBlock(c, R0), ctaBlock(c, R0, p, anim)), alignFor(), false, rev(0.4));
+              drawHandle(c, g, L0, p, anim, E(0.7, 0.95));
             } else {
               // no stats: the right side would hold a lone button, so the handle moves over to sit under it
               var cta = ctaBlock(c, R0, p, anim),
                 hi = handleItem(c, R0, p, anim);
-              if (cta.length && hi) cta[0].gap = 34 * (S.scale / 100);
-              layoutBlock(c, L0, titleBlock(c, L0, p, anim), alignFor(L0));
-              layoutBlock(c, R0, cta.concat(hi ? [hi] : []), alignFor(R0));
+              if (cta.length && hi) cta[0].gap = 34 * k;
+              layoutBlock(c, g, L0, titleBlock(c, L0, p, anim), alignFor(), false, rev(0.28));
+              layoutBlock(c, g, R0, cta.concat(hi ? [hi] : []), alignFor(), false, rev(0.45));
             }
           } else {
             var P = g.panels[0];
             layoutBlock(
               c,
+              g,
               P,
-              titleBlock(c, P, p, anim).concat(statsBlock(c, P, false), ctaBlock(c, P, p, anim)),
-              alignFor(P),
+              titleBlock(c, P, p, anim).concat(statsBlock(c, P, false), descBlock(c, P), routeItems(c, P, p, anim), ctaBlock(c, P, p, anim)),
+              alignFor(),
               S.showHandle,
+              rev(0.28),
             );
-            drawHandle(c, P, p, anim);
+            drawHandle(c, g, P, p, anim, E(0.7, 0.95));
           }
+          drawBadge(c, g, backOut((e - 0.55) / 0.35));
+          drawTicker(c, g, p, anim, E(0.45, 0.8));
+          drawTexture(c, g, t, p, anim, ws);
           try {
             c.letterSpacing = '0px';
-          } catch (e) {}
-          // fill the window last, underneath everything already drawn
+          } catch (e2) {}
+          // fill the windows last, underneath everything already drawn
           if (mode !== 'clear') {
             c.globalCompositeOperation = 'destination-over';
             if (mode === 'green') {
               c.fillStyle = '#00FF00';
               c.fillRect(0, 0, W, H);
             } else {
-              drawClip(c, g);
+              mains.forEach(function (w, i) {
+                drawMedia(c, i === 1 ? clipEls.b || clipEls.a : clipEls.a, w.box, S.zoom / 100, mains.length > 1 ? (i ? 'CLIP B' : 'CLIP A') : 'YOUR CLIP', w.rot);
+              });
+              pips.forEach(function (w) {
+                drawMedia(c, null, w.box, 1, 'FACECAM');
+              });
               c.fillStyle = '#000';
               c.fillRect(0, 0, W, H);
             }
@@ -1370,48 +2303,154 @@
           c.restore();
         }
 
+        // ---------- sound for the intro (Web Audio, scheduled against the same clock as the picture)
+        var AC = null,
+          noiseBuf = null;
+        function audio() {
+          if (!AC) {
+            var A = window.AudioContext || window.webkitAudioContext;
+            if (!A) return null;
+            AC = new A();
+            noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+            var d = noiseBuf.getChannelData(0);
+            for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+          }
+          if (AC.state === 'suspended') AC.resume();
+          return AC;
+        }
+        function introSounds(ac, out, t0, D, kind) {
+          if (kind === 'none') return;
+          var vol = S.introVol / 100;
+          function tone(type, f, start, dur, peak, f2) {
+            var o = ac.createOscillator(),
+              g = ac.createGain();
+            o.type = type;
+            o.frequency.setValueAtTime(f, start);
+            if (f2) o.frequency.exponentialRampToValueAtTime(f2, start + dur);
+            g.gain.setValueAtTime(0.0001, start);
+            g.gain.exponentialRampToValueAtTime(peak * vol + 0.0001, start + 0.015);
+            g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+            o.connect(g);
+            g.connect(out);
+            o.start(start);
+            o.stop(start + dur + 0.05);
+          }
+          function whoosh(start, dur, f1, f2, peak) {
+            var n = ac.createBufferSource(),
+              bp = ac.createBiquadFilter(),
+              g = ac.createGain();
+            n.buffer = noiseBuf;
+            n.loop = true;
+            bp.type = 'bandpass';
+            bp.Q.value = 1.2;
+            bp.frequency.setValueAtTime(f1, start);
+            bp.frequency.exponentialRampToValueAtTime(f2, start + dur);
+            g.gain.setValueAtTime(0.0001, start);
+            g.gain.exponentialRampToValueAtTime(peak * vol + 0.0001, start + dur * 0.6);
+            g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+            n.connect(bp);
+            bp.connect(g);
+            g.connect(out);
+            n.start(start);
+            n.stop(start + dur + 0.05);
+          }
+          if (kind === 'cyber') {
+            whoosh(t0, D * 0.45, 300, 4200, 0.5);
+            [0.3, 0.38, 0.46].forEach(function (a, i) {
+              tone('square', [880, 1175, 1568][i], t0 + a * D, 0.09, 0.12);
+            });
+            tone('sawtooth', 220, t0 + 0.72 * D, 0.7, 0.12, 440);
+            tone('triangle', 1760, t0 + 0.72 * D, 0.5, 0.15);
+          } else if (kind === 'soft') {
+            tone('sine', 196, t0, D * 0.6, 0.35, 294);
+            whoosh(t0, D * 0.5, 600, 1800, 0.18);
+            tone('sine', 1318.5, t0 + 0.7 * D, 1.2, 0.28);
+            tone('sine', 2637, t0 + 0.7 * D, 0.8, 0.1);
+          } else {
+            tone('sine', 120, t0, 0.18, 0.5, 60);
+            tone('sine', 2000, t0 + 0.3 * D, 0.04, 0.25);
+            tone('sine', 2400, t0 + 0.6 * D, 0.04, 0.25);
+          }
+        }
+
         // ---------- preview loop
         var playing = true,
           t0 = performance.now(),
           tPaused = 0,
-          rec = null;
+          rec = null,
+          introRun = null;
         function now() {
           return (performance.now() - t0) / 1000;
         }
         function draw() {
-          var t = rec ? rec.t() : playing ? now() : tPaused;
-          render(ctx, t, rec ? 'green' : 'preview');
+          if (rec) return rec.paint();
+          if (introRun) {
+            var el = (performance.now() - introRun.start) / 1000,
+              D = +S.introLen;
+            if (el < D) return render(ctx, 0, 'preview', el / D);
+            introRun = null;
+            t0 = performance.now();
+            playing = true;
+            sync();
+          }
+          render(ctx, playing ? now() : tPaused, 'preview');
         }
         function tick() {
           var needs =
             rec ||
+            introRun ||
             (playing && S.motion === 'animated') ||
-            (clipEl && clipEl.tagName === 'VIDEO' && !clipEl.paused);
+            [clipEls.a, clipEls.b].some(function (el) {
+              return el && el.tagName === 'VIDEO' && !el.paused;
+            });
           if (needs) draw();
           requestAnimationFrame(tick);
         }
 
         // ---------- CapCut placement helper
+        function placeLine(w, name) {
+          // CapCut fits a 9:16 clip to the frame height (607.5 × 1080). Cover the window, then move it.
+          var s = Math.max(w.box.h / H, w.box.w / ((H * 9) / 16)) * S.zoom,
+            dx = Math.round(w.box.x + w.box.w / 2 - W / 2),
+            dy = Math.round(w.box.y + w.box.h / 2 - H / 2),
+            parts = [];
+          if (dx) parts.push(Math.abs(dx) + ' px ' + (dx > 0 ? 'right' : 'left'));
+          if (dy) parts.push(Math.abs(dy) + ' px ' + (dy > 0 ? 'down' : 'up'));
+          var line =
+            name + ': scale <b>' + Math.round(s) + '%</b>' + (parts.length ? ', move ' + parts.join(' and ') : ', centered') + (w.rot ? ', rotate <b>' + w.rot + '°</b>' : '') + '.';
+          if (Math.round(s) === 100 && !dx && !dy && !w.rot) line = name + ': no adjusting needed. CapCut already fits a vertical clip to this window.';
+          return line;
+        }
         function updateFit() {
           var g = geom(),
-            b = g.box,
-            scale = Math.round((b.h / H) * S.zoom),
-            dx = Math.round(b.x + b.w / 2 - W / 2),
-            dy = Math.round(b.y + b.h / 2 - H / 2);
-          var where =
-            dx === 0
-              ? 'leave it centered'
-              : 'slide it ' + Math.abs(dx) + ' px ' + (dx > 0 ? 'right' : 'left') + ' (on a 1920 px wide frame)';
-          var line =
-            scale === 100 && dx === 0 && dy === 0
-              ? 'No adjusting needed: CapCut already fits a vertical clip to this window. Add the frame as an overlay above your clip.'
-              : 'Set your clip’s scale to <b>' + scale + '%</b> and ' + where + '. Then add the frame as an overlay above it.';
-          $('fit').innerHTML = '<b>LINE IT UP IN CAPCUT</b><br>' + line;
+            lines = [];
+          g.wins.forEach(function (w) {
+            if (w.kind === 'pip') {
+              var s = Math.round((w.box.h / H) * 100),
+                dx = Math.round(w.box.x + w.box.w / 2 - W / 2),
+                dy = Math.round(w.box.y + w.box.h / 2 - H / 2);
+              lines.push('Facecam (landscape clip): scale <b>' + s + '%</b>, move ' + Math.abs(dx) + ' px ' + (dx > 0 ? 'right' : 'left') + ' and ' + Math.abs(dy) + ' px ' + (dy > 0 ? 'down' : 'up') + '.');
+            } else lines.push(placeLine(w, w.kind === 'a' ? 'Left clip' : w.kind === 'b' ? 'Right clip' : 'Your clip'));
+          });
+          var more = g.wins.length > 1 ? ' Each clip goes on its own track under the frame.' : '';
+          $('fit').innerHTML =
+            '<b>LINE IT UP IN CAPCUT</b>' +
+            lines.map(function (l) {
+              return '<br>' + l;
+            }).join('') +
+            '<br>Then add the frame as an overlay above.' + more +
+            (S.aspect !== '916' ? ' The window isn’t 9:16, so part of your clip is hidden behind the frame.' : '');
         }
 
         // ---------- controls
-        var NUM = ['offset', 'inset', 'radius', 'borderW', 'cropTop', 'cropBottom', 'zoom', 'dim', 'scale'];
-        var UNITS = { cropTop: '%', cropBottom: '%', zoom: '%', scale: '%', offset: 'px', inset: 'px', radius: 'px', borderW: 'px', dim: '%' };
+        var NUM = ['offset', 'inset', 'radius', 'borderW', 'cropTop', 'cropBottom', 'zoom', 'dim', 'scale', 'pipSize', 'runnerSize', 'badgeSize', 'textureAmt', 'routeTrim', 'introVol'];
+        var UNITS = { cropTop: '%', cropBottom: '%', zoom: '%', scale: '%', offset: 'px', radius: 'px', borderW: 'px', dim: '%', pipSize: 'px', runnerSize: 'px', badgeSize: 'px', textureAmt: '%', routeTrim: 'm', introVol: '%' };
+        function videoSeconds() {
+          var L = +S.loop;
+          if (S.motion !== 'animated') return 5;
+          if (S.length === '1') return L;
+          return Math.max(1, Math.round(+S.length / L)) * L;
+        }
         function sync() {
           document.querySelectorAll('[data-g]').forEach(function (b) {
             b.setAttribute('aria-pressed', String(S[b.dataset.g]) === b.dataset.v ? 'true' : 'false');
@@ -1424,48 +2463,63 @@
           });
           document.querySelectorAll('.val').forEach(function (v) {
             var k = v.dataset.for;
-            v.textContent = k === 'inset' ? (S.inset == 0 ? 'Full' : '−' + S.inset * 2 + 'px') : S[k] + (UNITS[k] || '');
+            v.textContent = k === 'inset' ? (S.inset == 0 ? 'Full' : '−' + S.inset * 2 + 'px') : k === 'routeTrim' ? (S.routeTrim == 0 ? 'Off' : S.routeTrim + 'm') : S[k] + (UNITS[k] || '');
           });
-          $('offsetRow').classList.toggle('dim', S.layout === 'center');
-          $('dimRow').hidden = S.bg.indexOf('photo:') !== 0;
-          $('statsBox').classList.toggle('dim', !S.showStats);
-          $('ctaBox').classList.toggle('dim', !S.showCta);
-          $('handleBox').classList.toggle('dim', !S.showHandle);
-          $('motionBox').classList.toggle('dim', S.motion !== 'animated');
+          var tog = function (id, on) {
+            $(id).classList.toggle('dim', !on);
+          };
+          tog('offsetRow', (S.layout === 'left' || S.layout === 'right') && !S.endScreen);
+          $('dualBox').hidden = S.layout !== 'dual';
+          $('endBox').hidden = !S.endScreen;
+          $('pipBox').hidden = !S.pip;
+          $('dimRow').hidden = !/^(photo:|scene:|upload)/.test(S.bg);
+          $('uploadChip').hidden = !S.bgUpload;
+          $('textureRow').hidden = S.texture === 'none';
+          $('metaBox').hidden = !S.showMeta;
+          tog('statsBox', S.showStats);
+          $('descBox').hidden = S.sideMode !== 'text';
+          $('statFields').hidden = S.sideMode !== 'stats';
+          tog('ctaBox', S.showCta);
+          tog('handleBox', S.showHandle);
+          $('tickerBox').hidden = !S.ticker;
+          $('runnerBox').hidden = !S.runner;
+          $('badgeBox').hidden = !S.badge;
+          $('routeBox').hidden = !act;
+          $('useStats').hidden = !act;
+          tog('motionBox', S.motion === 'animated');
+          tog('lengthRow', S.motion === 'animated');
           $('borderW').disabled = S.border === 'none';
           $('play').hidden = S.motion !== 'animated';
           $('play').textContent = playing ? '❚❚ Pause' : '▶ Play';
-          $('lengthRow').classList.toggle('dim', S.motion !== 'animated');
-          var secs = videoSeconds();
-          $('rec').innerHTML = rec ? '<span class="dot"></span>Making… ' : '● Make ' + secs + 's video';
-          $('readout').textContent =
-            '16:9 · 1920×1080' + (S.motion === 'animated' ? ' · ' + S.loop + 's loop' : ' · static');
+          $('rec').innerHTML = rec && rec.kind === 'loop' ? '<span class="dot"></span>Making…' : '● Make ' + videoSeconds() + 's video';
+          $('recIntro').innerHTML = rec && rec.kind === 'intro' ? '<span class="dot"></span>Making…' : '● Make ' + S.introLen + 's intro';
+          $('readout').textContent = '16:9 · 1920×1080' + (S.motion === 'animated' ? ' · ' + S.loop + 's loop' : ' · static');
           $('saveHelp').textContent =
             S.hole === 'green'
               ? 'Green screen works everywhere, iPhone included. In CapCut: Overlay → add the frame → Chroma Key → pick the green. The PNG keeps a green window too.'
-              : 'Transparent PNG drops straight onto your clip in CapCut, no keying. Transparent video saves as WebM with alpha and needs Chrome or Edge on a computer; use green screen on iPhone.';
+              : 'Transparent PNG drops straight onto your clip in CapCut, no keying. Transparent video saves as WebM with alpha (no sound) and needs Chrome or Edge on a computer; use green screen on iPhone.';
           if (S.bg.indexOf('photo:') === 0) photo(S.bg.slice(6));
+          if (S.bg.indexOf('scene:') === 0) scene(S.bg.slice(6));
           updateFit();
-        }
-        function videoSeconds() {
-          var L = +S.loop;
-          if (S.motion !== 'animated') return 5;
-          if (S.length === '1') return L;
-          return Math.max(1, Math.round(+S.length / L)) * L;
         }
         function changed() {
           persist();
           sync();
           draw();
         }
+        var SOUND_KINDS = ['cyber', 'soft', 'minimal', 'none'];
         document.addEventListener('click', function (e) {
           var b = e.target.closest('[data-g]');
           if (!b || rec) return;
           S[b.dataset.g] = b.dataset.v;
+          if (b.dataset.g === 'introSound' && SOUND_KINDS.indexOf(b.dataset.v) >= 0) {
+            var ac = audio();
+            if (ac) introSounds(ac, ac.destination, ac.currentTime + 0.05, +S.introLen, b.dataset.v);
+          }
           changed();
         });
         document.querySelectorAll('.controls input, .controls textarea').forEach(function (el) {
-          if (!el.id || !(el.id in S)) return;
+          if (!el.id || !(el.id in S) || el.type === 'file') return;
           el.addEventListener('input', function () {
             S[el.id] = el.type === 'checkbox' ? el.checked : NUM.indexOf(el.id) >= 0 ? +el.value : el.value;
             changed();
@@ -1477,8 +2531,8 @@
         };
         $('reset').onclick = function () {
           if (rec) return;
-          var look = { theme: S.theme, textFont: S.textFont };
-          S = Object.assign(clone(DEFAULTS), look);
+          var keep = { theme: S.theme, textFont: S.textFont, bgUpload: S.bgUpload };
+          S = Object.assign(clone(DEFAULTS), keep);
           changed();
         };
         $('play').onclick = function () {
@@ -1492,36 +2546,138 @@
           sync();
           draw();
         };
-        var clipURL = null;
+        $('introPlay').onclick = function () {
+          if (rec) return;
+          introRun = { start: performance.now() + 50 };
+          var ac = audio();
+          if (ac) introSounds(ac, ac.destination, ac.currentTime + 0.05, +S.introLen, S.introSound);
+        };
+        var clipURLs = [];
         $('clip').onchange = function () {
-          var f = this.files && this.files[0];
-          if (!f) return;
-          if (clipURL) URL.revokeObjectURL(clipURL);
-          clipURL = URL.createObjectURL(f);
-          var isVid = /^video\//.test(f.type) || /\.(mov|mp4|m4v|webm)$/i.test(f.name);
-          var el = document.createElement(isVid ? 'video' : 'img');
-          if (isVid) {
-            el.muted = true;
-            el.loop = true;
-            el.playsInline = true;
-            el.setAttribute('playsinline', '');
-            el.onloadeddata = function () {
-              el.play().catch(function () {});
-              draw();
-            };
-          } else el.onload = draw;
-          el.src = clipURL;
-          clipEl = el;
+          var files = [].slice.call(this.files || []);
+          if (!files.length) return;
+          // pick two files at once to preview the two-clip layout
+          files.slice(0, 2).forEach(function (f, i) {
+            var url = URL.createObjectURL(f);
+            clipURLs.push(url);
+            var isVid = /^video\//.test(f.type) || /\.(mov|mp4|m4v|webm)$/i.test(f.name);
+            var el = document.createElement(isVid ? 'video' : 'img');
+            if (isVid) {
+              el.muted = true;
+              el.loop = true;
+              el.playsInline = true;
+              el.setAttribute('playsinline', '');
+              el.onloadeddata = function () {
+                el.play().catch(function () {});
+                draw();
+              };
+            } else el.onload = draw;
+            el.src = url;
+            clipEls[i ? 'b' : 'a'] = el;
+          });
+          if (files.length < 2) clipEls.b = null;
           $('noclip').hidden = false;
           this.value = '';
         };
+        $('clip').multiple = true;
         $('noclip').onclick = function () {
-          if (clipEl && clipEl.pause) clipEl.pause();
-          clipEl = null;
-          if (clipURL) URL.revokeObjectURL(clipURL);
-          clipURL = null;
+          ['a', 'b'].forEach(function (k) {
+            if (clipEls[k] && clipEls[k].pause) clipEls[k].pause();
+            clipEls[k] = null;
+          });
+          clipURLs.forEach(URL.revokeObjectURL);
+          clipURLs = [];
           this.hidden = true;
           draw();
+        };
+        $('bgFile').onchange = function () {
+          var f = this.files && this.files[0];
+          this.value = '';
+          if (!f) return;
+          var url = URL.createObjectURL(f),
+            im = new Image();
+          im.onload = function () {
+            // resize to 1920×1080 (cover) so it stores small and draws fast
+            var c = document.createElement('canvas');
+            c.width = W;
+            c.height = H;
+            var s = Math.max(W / im.naturalWidth, H / im.naturalHeight);
+            c.getContext('2d').drawImage(im, (W - im.naturalWidth * s) / 2, (H - im.naturalHeight * s) / 2, im.naturalWidth * s, im.naturalHeight * s);
+            URL.revokeObjectURL(url);
+            S.bgUpload = c.toDataURL('image/jpeg', 0.85);
+            S.bg = 'upload';
+            changed();
+          };
+          im.onerror = function () {
+            say('That photo couldn’t be opened. Try a JPG or PNG.', true);
+          };
+          im.src = url;
+        };
+
+        // activity file → Activity Studio's parser worker (local only)
+        function fmtDist(m) {
+          var km = S.units === 'km';
+          return (m / (km ? 1000 : 1609.344)).toFixed(1) + (km ? ' KM' : ' MI');
+        }
+        function fmtPace(sPerKm) {
+          var km = S.units === 'km',
+            s = Math.round(km ? sPerKm : sPerKm * 1.609344);
+          return Math.floor(s / 60) + ':' + pad2(s % 60) + (km ? ' /KM' : ' /MI');
+        }
+        function fmtElev(m) {
+          var km = S.units === 'km';
+          return Math.round(km ? m : m / 0.3048).toLocaleString('en-US') + (km ? ' M' : ' FT');
+        }
+        $('actFile').onchange = function () {
+          var f = this.files && this.files[0];
+          this.value = '';
+          if (!f) return;
+          var ext = (f.name.split('.').pop() || '').toLowerCase();
+          if (['gpx', 'fit', 'tcx'].indexOf(ext) < 0) return say('Choose a GPX, FIT or TCX file.', true);
+          say('Reading ' + f.name + ' on this device…');
+          f.arrayBuffer().then(function (buffer) {
+            var wk;
+            try {
+              wk = new Worker('../activity-studio/worker.js');
+            } catch (e) {
+              return say('The activity reader couldn’t start here.', true);
+            }
+            var timer = setTimeout(function () {
+              wk.terminate();
+              say('Reading took too long. Try a smaller single-activity file.', true);
+            }, 90000);
+            wk.onmessage = function (m) {
+              clearTimeout(timer);
+              wk.terminate();
+              if (m.data.error) return say(m.data.error, true);
+              act = { points: m.data.activity.points || [], summary: m.data.activity.summary || {} };
+              routeCache = { key: '' };
+              if (S.route === 'off') S.route = 'route';
+              say('Loaded ' + f.name + '. Nothing was uploaded. Tap “Use its stats” to fill in the numbers.');
+              changed();
+            };
+            wk.onerror = function () {
+              clearTimeout(timer);
+              wk.terminate();
+              say('The activity reader couldn’t start here.', true);
+            };
+            wk.postMessage({ buffer: buffer, format: ext }, [buffer]);
+          });
+        };
+        $('useStats').onclick = function () {
+          if (!act) return;
+          var s = act.summary,
+            set = [];
+          if (s.distance) set.push([fmtDist(s.distance), 'DISTANCE']);
+          if (s.pace) set.push([fmtPace(s.pace), 'PACE']);
+          if (s.ascent) set.push([fmtElev(s.ascent), 'ELEVATION']);
+          set.slice(0, 3).forEach(function (v, i) {
+            S['s' + (i + 1) + 'v'] = v[0];
+            S['s' + (i + 1) + 'l'] = v[1];
+          });
+          S.showStats = true;
+          S.sideMode = 'stats';
+          changed();
         };
 
         // ---------- saving
@@ -1579,17 +2735,16 @@
             })
             .catch(function (e) {
               var c = e && e.code;
-              note.textContent =
-                c === 'declined' ? 'Not saved.' : c === 'too_large' ? 'That file is too large to save here.' : 'Couldn’t save the file here.';
+              note.textContent = c === 'declined' ? 'Not saved.' : c === 'too_large' ? 'That file is too large to save here.' : 'Couldn’t save the file here.';
             });
         }
-        function stem() {
+        function stem(extra) {
           var slug = (S.title.split('\n').join(' ') || 'frame')
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-|-$/g, '')
             .slice(0, 30);
-          return 'tim-frame-' + (slug || 'frame') + '-' + S.layout + '-' + (S.hole === 'green' ? 'greenscreen' : 'transparent');
+          return 'tim-frame-' + (slug || 'frame') + '-' + (S.endScreen ? 'endscreen' : S.layout) + (extra || '') + '-' + (S.hole === 'green' ? 'greenscreen' : 'transparent');
         }
         var off = document.createElement('canvas');
         off.width = W;
@@ -1597,14 +2752,12 @@
         var octx = off.getContext('2d', { willReadFrequently: true });
         $('png').onclick = function () {
           if (rec) return;
-          var t = playing ? now() : tPaused;
-          render(octx, S.motion === 'animated' ? t : 0, S.hole);
+          render(octx, S.motion === 'animated' ? (playing ? now() : tPaused) : 0, S.hole);
           off.toBlob(function (b) {
             if (b) saveFile(stem() + '.png', b, $('msg'));
             else say('Couldn’t make the PNG in this browser.', true);
           }, 'image/png');
         };
-
         var lastBlob = null,
           lastName = '',
           lastURL = null;
@@ -1623,9 +2776,11 @@
         $('close').onclick = function () {
           $('result').hidden = true;
         };
-        function pickType() {
+        function pickType(withAudio) {
           if (!window.MediaRecorder) return null;
-          var list = ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+          var list = withAudio
+            ? ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+            : ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
           for (var i = 0; i < list.length; i++) {
             try {
               if (MediaRecorder.isTypeSupported(list[i])) return list[i];
@@ -1634,59 +2789,65 @@
           return '';
         }
         function setBusy(on) {
-          ['png', 'clip', 'reset', 'resetText'].forEach(function (id) {
+          ['png', 'clip', 'reset', 'resetText', 'introPlay'].forEach(function (id) {
             $(id).disabled = on;
           });
           document.querySelector('.controls').classList.toggle('dim', on);
           sync();
         }
-        $('rec').onclick = function () {
-          if (rec) return;
-          var secs = videoSeconds();
-          if (S.hole === 'clear') return makeAlpha(secs);
-          var type = pickType();
-          if (type === null || !cv.captureStream) {
-            say('This browser can’t record video. Try Safari on iPhone or Chrome on a computer.', true);
-            return;
-          }
+        var PREROLL = 0.25;
+        // Records the canvas in real time. frameAt(seconds since start) draws a frame; sound(ac, out, at) schedules audio.
+        function recordGreen(kind, seconds, frameAt, sound, name) {
+          var withAudio = !!sound && S.introSound !== 'none',
+            type = pickType(withAudio);
+          if (type === null || !cv.captureStream) return say('This browser can’t record video. Try Safari on iPhone or Chrome on a computer.', true);
           var stream = cv.captureStream(30),
-            mr;
+            tracks = stream.getVideoTracks().slice(),
+            ac = null,
+            dest = null;
+          if (withAudio && (ac = audio())) {
+            dest = ac.createMediaStreamDestination();
+            dest.stream.getAudioTracks().forEach(function (tr) {
+              tracks.push(tr);
+            });
+          }
+          var mr;
           try {
-            mr = new MediaRecorder(stream, type ? { mimeType: type, videoBitsPerSecond: 12e6 } : { videoBitsPerSecond: 12e6 });
+            mr = new MediaRecorder(new MediaStream(tracks), type ? { mimeType: type, videoBitsPerSecond: 12e6 } : { videoBitsPerSecond: 12e6 });
           } catch (e) {
-            say('Recording couldn’t start in this browser (' + e.name + ').', true);
-            return;
+            return say('Recording couldn’t start in this browser (' + e.name + ').', true);
           }
           var chunks = [],
             start = null;
           rec = {
-            t: function () {
-              return start === null ? 0 : (performance.now() - start) / 1000;
+            kind: kind,
+            paint: function () {
+              frameAt(start === null ? 0 : (performance.now() - start) / 1000);
             },
           };
           mr.ondataavailable = function (e) {
             if (e.data && e.data.size) chunks.push(e.data);
           };
-          mr.onstart = function () {
-            start = performance.now();
-          };
           mr.onstop = function () {
-            stream.getTracks().forEach(function (tr) {
+            tracks.forEach(function (tr) {
               tr.stop();
             });
             var mt = (mr.mimeType || type || 'video/webm').split(';')[0];
             rec = null;
             setBusy(false);
             draw();
-            showResult(new Blob(chunks, { type: mt }), stem() + '.' + (mt.indexOf('mp4') >= 0 ? 'mp4' : 'webm'));
+            showResult(new Blob(chunks, { type: mt }), name + '.' + (mt.indexOf('mp4') >= 0 ? 'mp4' : 'webm'));
             say('Done. Check it, then save it.');
           };
           setBusy(true);
-          say('Recording ' + secs + 's in real time. Keep this tab open.');
-          draw();
+          say('Recording ' + seconds + 's in real time. Keep this tab open.');
+          rec.paint();
           mr.start(1000);
+          // start the clock with the recorder (its start event isn't reliable with an audio track)
+          start = performance.now();
+          if (dest) sound(ac, dest, ac.currentTime);
           (function watch() {
-            if (start !== null && rec && rec.t() >= secs) {
+            if (start !== null && (performance.now() - start) / 1000 >= seconds) {
               try {
                 mr.stop();
               } catch (e) {}
@@ -1694,32 +2855,17 @@
             }
             setTimeout(watch, 15);
           })();
-        };
-        function makeAlpha(secs) {
-          if (!window.exportAlphaVideo) {
-            say('Transparent video isn’t available here. Use green screen or the PNG.', true);
-            return;
-          }
-          rec = {
-            t: function () {
-              return 0;
-            },
-          };
+        }
+        function makeAlpha(kind, seconds, frameAt, name) {
+          if (!window.exportAlphaVideo) return say('Transparent video isn’t available here. Use green screen or the PNG.', true);
+          rec = { kind: kind, paint: function () {} };
           setBusy(true);
-          var mode = S.motion === 'animated';
           window
-            .exportAlphaVideo(
-              off,
-              function (t) {
-                render(octx, mode ? t : 0, 'clear');
-              },
-              secs,
-              function (f) {
-                say('Encoding transparent video… ' + Math.round(f * 100) + '%');
-              },
-            )
+            .exportAlphaVideo(off, frameAt, seconds, function (f) {
+              say('Encoding transparent video… ' + Math.round(f * 100) + '%');
+            })
             .then(function (blob) {
-              showResult(blob, stem() + '.webm');
+              showResult(blob, name + '.webm');
               say('Done. Transparent WebM: import it into an editor that supports WebM alpha.');
             })
             .catch(function (e) {
@@ -1731,6 +2877,35 @@
               draw();
             });
         }
+        $('rec').onclick = function () {
+          if (rec) return;
+          var secs = videoSeconds(),
+            animd = S.motion === 'animated';
+          if (S.hole === 'clear')
+            return makeAlpha('loop', secs, function (t) {
+              render(octx, animd ? t : 0, 'clear');
+            }, stem());
+          recordGreen('loop', secs, function (t) {
+            render(ctx, animd ? t : 0, 'green');
+          }, null, stem());
+        };
+        $('recIntro').onclick = function () {
+          if (rec) return;
+          var D = +S.introLen,
+            secs = PREROLL + D,
+            at = function (t) {
+              return clamp((t - PREROLL) / D);
+            };
+          if (S.hole === 'clear')
+            return makeAlpha('intro', secs, function (t) {
+              render(octx, 0, 'clear', at(t));
+            }, stem('-intro'));
+          recordGreen('intro', secs, function (t) {
+            render(ctx, 0, 'green', at(t));
+          }, function (ac, out, now) {
+            introSounds(ac, out, now + PREROLL, D, S.introSound);
+          }, stem('-intro'));
+        };
 
         // ---------- saved projects & output look (shared with the other tools)
         if (window.TimProjects) {
@@ -1744,11 +2919,8 @@
             },
             set: async function (data) {
               var next = TimProjects.validateControls(TimProjects.checkState(data.state, S));
-              if (
-                ['tim', 'minimal', 'broadcast'].indexOf(next.theme) < 0 ||
-                ['Barlow Condensed', 'Arial', 'Georgia', 'monospace'].indexOf(next.textFont) < 0
-              )
-                throw Error('Unsupported theme or font.');
+              if (['tim', 'minimal', 'broadcast'].indexOf(next.theme) < 0 || ['Barlow Condensed', 'Arial', 'Georgia', 'monospace'].indexOf(next.textFont) < 0) throw Error('Unsupported theme or font.');
+              if (next.bgUpload && !/^data:image\/(jpeg|png|webp);base64,/.test(next.bgUpload)) throw Error('Unsupported background photo.');
               S = next;
               changed();
             },
@@ -1776,6 +2948,12 @@
             changed();
           },
           geom: geom,
+          ready: function () {
+            return !!runnerRig && badgeImg.complete;
+          },
+          loadScene: function (id) {
+            return window.RiverScenes.load(id);
+          },
         };
 
         sync();
