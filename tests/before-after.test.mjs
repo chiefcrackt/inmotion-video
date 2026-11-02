@@ -8,6 +8,7 @@ import {
   timelineTimes,
   splitAt,
   fadeAt,
+  END_BOTH_SPLIT,
   labelSize,
 } from '../before-after/model.mjs';
 
@@ -86,6 +87,16 @@ test('the wipe starts on Before, ends on After, and passes the middle halfway', 
   assert.equal(splitAt(holdBefore + sweep, total), 0);
   assert.equal(splitAt(total, total), 0);
   close(splitAt(holdBefore + sweep / 2, total), 0.5);
+});
+
+test('the wipe can finish with both photos side by side', () => {
+  const total = 5;
+  const { holdBefore, sweep } = timelineTimes(total);
+  assert.equal(END_BOTH_SPLIT, 0.5);
+  close(splitAt(total, total, END_BOTH_SPLIT), 0.5);
+  close(splitAt(holdBefore + sweep, total, END_BOTH_SPLIT), 0.5);
+  close(splitAt(holdBefore + sweep / 2, total, END_BOTH_SPLIT), 0.75);
+  assert.equal(splitAt(0, total, END_BOTH_SPLIT), 1);
 });
 
 test('the fade moves from Before to After over the same timing', () => {
