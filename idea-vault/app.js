@@ -750,8 +750,9 @@ function loadPicker() {
   return pickerReady;
 }
 
-// Shows the Picker with this one document preselected. Resolves once the user
-// confirms it; rejects with a DocsError if they close the Picker instead.
+// Opens the Picker listing the user's documents, so the linked document can be
+// chosen even when the Picker cannot preselect it. Resolves only when the user
+// picks the linked document; rejects if they close the Picker or pick another one.
 async function grantDocumentAccess(docId, accessToken) {
   const { pickerApiKey, cloudProjectNumber } =
     window.TIM_IDEA_VAULT_CONFIG || {};
@@ -760,19 +761,23 @@ async function grantDocumentAccess(docId, accessToken) {
   await loadPicker();
   await new Promise((resolve, reject) => {
     const picker = new google.picker.PickerBuilder()
-      .addView(
-        new google.picker.DocsView(google.picker.ViewId.DOCUMENTS).setFileIds([
-          docId,
-        ]),
-      )
+      .addView(new google.picker.DocsView(google.picker.ViewId.DOCUMENTS))
       .setOAuthToken(accessToken)
       .setDeveloperKey(pickerApiKey)
       .setAppId(cloudProjectNumber)
-      .setTitle('Choose this document to allow reading')
+      .setTitle('Choose the linked Google Doc to allow reading')
       .setCallback((data) => {
         const action = data[google.picker.Response.ACTION];
-        if (action === google.picker.Action.PICKED) resolve();
-        else if (action === google.picker.Action.CANCEL)
+        if (action === google.picker.Action.PICKED) {
+          const picked = (data[google.picker.Response.DOCUMENTS] || [])[0];
+          if (picked?.id === docId) resolve();
+          else
+            reject(
+              new DocsError(
+                'That is not the document linked to this idea. Choose the linked document, or press Refresh document to try again.',
+              ),
+            );
+        } else if (action === google.picker.Action.CANCEL)
           reject(
             new DocsError(
               'Document access was not granted. Press Refresh document to try again.',

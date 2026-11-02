@@ -170,7 +170,7 @@ async function installFakes(context, docs, { configured = true } = {}) {
     const doc = docs.docs.get(id).content;
     return json(200, { documentId: id, ...doc });
   });
-  await context.addInitScript(() => {
+  await context.addInitScript((linkedId) => {
     window.google = window.google || {};
     window.google.accounts = {
       oauth2: {
@@ -224,13 +224,14 @@ async function installFakes(context, docs, { configured = true } = {}) {
               cb({ action: 'cancel' });
               return;
             }
+            // The user picks the document they choose (default: the linked one).
+            const chosen = window.__pickerChoice || linkedId;
             fetch(
-              'https://fake-picker.test/grant?id=' +
-                encodeURIComponent(window.__pickerFileId),
+              'https://fake-picker.test/grant?id=' + encodeURIComponent(chosen),
             ).then(() =>
               cb({
                 action: 'picked',
-                documents: [{ id: window.__pickerFileId }],
+                documents: [{ id: chosen }],
               }),
             );
           },
@@ -238,8 +239,9 @@ async function installFakes(context, docs, { configured = true } = {}) {
       }
     }
     class DocsView {
-      setFileIds(ids) {
-        window.__pickerFileId = ids[0];
+      setFileIds() {
+        // The app must not filter the Picker to one ID: see the Picker test.
+        window.__pickerFiltered = true;
         return this;
       }
     }
@@ -250,7 +252,7 @@ async function installFakes(context, docs, { configured = true } = {}) {
       Action: { PICKED: 'picked', CANCEL: 'cancel' },
       Response: { ACTION: 'action', DOCUMENTS: 'documents' },
     };
-  });
+  }, DOC_ID);
 }
 
 // ---- Harness --------------------------------------------------------------
@@ -553,6 +555,44 @@ test('a Picker the user closes without choosing shows a clear message, then reco
 
   await page.evaluate(() => {
     window.__pickerMode = 'pick';
+  });
+  await pressDocButton(page);
+  assert.match(await docStatus(page), /Loaded/);
+  assert.equal(docs.granted.has(DOC_ID), true);
+  await context.close();
+});
+
+test('the Picker lists documents unfiltered; picking a different document is refused', async ({
+  browser,
+  base,
+  docs,
+}) => {
+  const { context, page } = await openDevice(browser, base, docs);
+  await openWorkspace(page);
+  docs.docs.set('other-doc', { content: fixtureDoc('Someone else') });
+  await page.evaluate(() => {
+    window.__pickerChoice = 'other-doc';
+  });
+  await pressDocButton(page);
+  assert.match(await docStatus(page), /not the document linked to this idea/);
+  assert.equal(
+    await page.evaluate(() => window.__pickerFiltered === true),
+    false,
+    'the Picker must not be filtered to one ID',
+  );
+  assert.equal(
+    docs.granted.has(DOC_ID),
+    false,
+    'the linked document was not granted by the wrong pick',
+  );
+  assert.equal(
+    await page.locator('#doc-viewer .doc-heading').count(),
+    0,
+    'no content from the wrong document',
+  );
+
+  await page.evaluate(() => {
+    window.__pickerChoice = null;
   });
   await pressDocButton(page);
   assert.match(await docStatus(page), /Loaded/);
