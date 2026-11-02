@@ -8,7 +8,8 @@ import {
   timelineTimes,
   splitAt,
   fadeAt,
-  END_BOTH_SPLIT,
+  panelAt,
+  panelStart,
   labelSize,
 } from '../before-after/model.mjs';
 
@@ -89,14 +90,21 @@ test('the wipe starts on Before, ends on After, and passes the middle halfway', 
   close(splitAt(holdBefore + sweep / 2, total), 0.5);
 });
 
-test('the wipe can finish with both photos side by side', () => {
-  const total = 5;
-  const { holdBefore, sweep } = timelineTimes(total);
-  assert.equal(END_BOTH_SPLIT, 0.5);
-  close(splitAt(total, total, END_BOTH_SPLIT), 0.5);
-  close(splitAt(holdBefore + sweep, total, END_BOTH_SPLIT), 0.5);
-  close(splitAt(holdBefore + sweep / 2, total, END_BOTH_SPLIT), 0.75);
-  assert.equal(splitAt(0, total, END_BOTH_SPLIT), 1);
+test('the both ending moves the photos into their halves after a short pause', () => {
+  for (const total of [3, 5, 10]) {
+    const { holdBefore, sweep, total: t } = timelineTimes(total);
+    const start = panelStart(total);
+    assert.ok(start > holdBefore + sweep, 'After shows alone for a moment first');
+    assert.equal(panelAt(start - 0.01, total), null, 'nothing moves before the start');
+    close(panelAt(start, total), 0);
+    close(panelAt(t, total), 0.5);
+    let last = 0;
+    for (let i = 0; i <= 20; i++) {
+      const v = panelAt(start + ((t - start) * i) / 20, total);
+      assert.ok(v >= last - 1e-9 && v <= 0.5 + 1e-9, 'moves smoothly from the edge to the middle');
+      last = v;
+    }
+  }
 });
 
 test('the fade moves from Before to After over the same timing', () => {

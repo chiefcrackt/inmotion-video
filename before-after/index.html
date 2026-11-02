@@ -230,7 +230,7 @@
 
     <script type="module">
       import {
-        ASPECTS, PHOTO_DEFAULTS, clamp, placeImage, panRange, timelineTimes, splitAt, fadeAt, labelSize, SPLIT_DEFAULT, END_BOTH_SPLIT,
+        ASPECTS, PHOTO_DEFAULTS, clamp, placeImage, panRange, timelineTimes, splitAt, fadeAt, panelAt, labelSize, SPLIT_DEFAULT,
       } from './model.mjs';
 
       const $ = (id) => document.getElementById(id);
@@ -273,16 +273,20 @@
         if (canvas.height !== height) canvas.height = height;
       }
 
-      function drawPhoto(slot, W, H) {
+      // Draws a photo into the rectangle at (x, y) with size W x H, clipped to that rectangle.
+      function drawPhoto(slot, W, H, x = 0, y = 0) {
         const img = photos[slot];
-        if (!img) return;
+        if (!img || W <= 0 || H <= 0) return;
         const a = adj[slot];
         const p = placeImage(img.naturalWidth, img.naturalHeight, W, H, a);
         const odd = p.rotation % 180 !== 0;
         const uw = odd ? p.h : p.w; // size before the quarter turn
         const uh = odd ? p.w : p.h;
         ctx.save();
-        ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+        ctx.beginPath();
+        ctx.rect(x, y, W, H);
+        ctx.clip();
+        ctx.translate(x + p.x + p.w / 2, y + p.y + p.h / 2);
         ctx.rotate((p.rotation * Math.PI) / 180);
         ctx.drawImage(img, -uw / 2, -uh / 2, uw, uh);
         ctx.restore();
@@ -302,7 +306,8 @@
       }
 
       // Draws the frame. wipeSplit: 1 = all Before, 0 = all After. fadeAmount: 0 = all Before, 1 = all After.
-      function drawFrame({ wipeSplit = null, fadeAmount = null, fadeFrom = 0, showDivider = opt.showDivider } = {}) {
+      // panelSplit: both photos side by side, each in its own half (0.5 = the middle).
+      function drawFrame({ wipeSplit = null, fadeAmount = null, panelSplit = null, showDivider = opt.showDivider } = {}) {
         ensureCanvasSize();
         const { width: W, height: H } = frame();
         const horizontal = opt.orientation === 'horizontal';
@@ -310,17 +315,20 @@
         ctx.fillRect(0, 0, W, H);
         const boundary = horizontal ? W * clamp(wipeSplit ?? opt.split, 0, 1) : H * clamp(wipeSplit ?? opt.split, 0, 1);
 
-        if (fadeAmount !== null) {
-          // Fade: After fades in over Before. With fadeFrom set, only the part after that split fades in.
+        if (panelSplit !== null) {
+          const b = clamp(panelSplit, 0, 1);
+          if (horizontal) {
+            drawPhoto('before', W * b, H, 0, 0);
+            drawPhoto('after', W * (1 - b), H, W * b, 0);
+          } else {
+            drawPhoto('before', W, H * b, 0, 0);
+            drawPhoto('after', W, H * (1 - b), 0, H * b);
+          }
+        } else if (fadeAmount !== null) {
+          // Fade: After fades in over Before.
           drawPhoto('before', W, H);
           if (photos.after && fadeAmount > 0) {
             ctx.save();
-            if (fadeFrom > 0) {
-              ctx.beginPath();
-              if (horizontal) ctx.rect(W * fadeFrom, 0, W * (1 - fadeFrom), H);
-              else ctx.rect(0, H * fadeFrom, W, H * (1 - fadeFrom));
-              ctx.clip();
-            }
             ctx.globalAlpha = clamp(fadeAmount, 0, 1);
             drawPhoto('after', W, H);
             ctx.restore();
@@ -343,9 +351,11 @@
           ctx.restore();
         }
 
-        const fadeLine = fadeAmount !== null && fadeFrom > 0 && fadeAmount >= 0.999;
-        const lineAt = fadeLine ? (horizontal ? W * fadeFrom : H * fadeFrom) : boundary;
-        const showLine = showDivider && photos.before && photos.after && (fadeAmount === null || fadeLine) && lineAt > 0 && (horizontal ? lineAt < W : lineAt < H);
+        const lineAt = panelSplit !== null
+          ? (horizontal ? W * clamp(panelSplit, 0, 1) : H * clamp(panelSplit, 0, 1))
+          : boundary;
+        const lineAllowed = panelSplit !== null || fadeAmount === null;
+        const showLine = showDivider && photos.before && photos.after && lineAllowed && lineAt > 0 && (horizontal ? lineAt < W : lineAt < H);
         if (showLine) {
           ctx.fillStyle = '#e8c96a';
           const t = W * 0.008;
@@ -648,11 +658,12 @@
         return '';
       }
 
-      // The animation ends on After alone, or with both photos side by side at the middle.
+      // The animation ends on After alone, or with both photos side by side, each in its own half.
       function animationFrame(t) {
-        const both = opt.end === 'both';
-        if (opt.style === 'fade') drawFrame({ fadeAmount: fadeAt(t, opt.length), fadeFrom: both ? END_BOTH_SPLIT : 0 });
-        else drawFrame({ wipeSplit: splitAt(t, opt.length, both ? END_BOTH_SPLIT : 0) });
+        const panel = opt.end === 'both' ? panelAt(t, opt.length) : null;
+        if (panel !== null) return drawFrame({ panelSplit: panel });
+        if (opt.style === 'fade') drawFrame({ fadeAmount: fadeAt(t, opt.length) });
+        else drawFrame({ wipeSplit: splitAt(t, opt.length) });
       }
 
       $('clip').onclick = () => {
