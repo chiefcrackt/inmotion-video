@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at\r **https://chiefcrackt.github.io/inmotion-video/**",
   "scripts": {
+    "build:icons": "node tools/build-icon-pack.mjs",
+    "test:icons": "node tests/icon-pack.cjs",
     "test:responsive": "node tests/responsive.cjs",
     "test:hub": "node tests/hub.mjs",
     "build": "node activity-studio/build.mjs && node tests/check-static.mjs",
