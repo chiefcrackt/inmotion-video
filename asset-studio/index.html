@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en"
+  ><head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1" /><meta
+      name="theme-color"
+      content="#0e1a2e" /><title>T.im Asset Animator</title
+    ><link rel="icon" href="../favicon.svg" type="image/svg+xml" /><link
+      rel="stylesheet"
+      href="../shared/fonts.css" /><link
+      rel="stylesheet"
+      href="../shared/responsive.css" /><link
+      rel="stylesheet"
+      href="../shared/projects.css" /><link rel="stylesheet" href="style.css"
+  /></head>
+  <body
+    ><main
+      ><a class="back" href="../#ws-library">← Asset Library</a
+      ><header
+        ><p class="eyebrow">T.IM / STANDALONE OVERLAYS</p
+        ><h1>Asset <span>Animator</span></h1
+        ><p
+          >Make your graphic here. Export it, then overlay it in your own video
+          editor.</p
+        ></header
+      >
+      <div class="workspace"
+        ><section class="preview" aria-label="Overlay preview"
+          ><div class="stagebox"
+            ><div class="stage" id="stage"
+              ><canvas
+                id="canvas"
+                width="1080"
+                height="1080"
+                aria-label="Your graphic; select a layer and drag to move it"
+              ></canvas
+              ><canvas
+                id="selection"
+                width="1080"
+                height="1080"
+                aria-hidden="true"
+              ></canvas></div></div
+          ><div class="playbar"
+            ><button id="play">Play animation</button
+            ><label class="scrub"
+              >Preview time<input
+                id="scrub"
+                type="range"
+                min="0"
+                max="1"
+                step="0.001"
+                value="0" /></label></div
+          ><p class="note"
+            >Checkerboard means transparent. Select a layer to drag it; use the
+            controls for precise placement. Dashed selection guides are never
+            exported.</p
+          ><p id="status" role="status" aria-live="polite"
+            >Choose an asset to begin.</p
+          ><div id="result" hidden
+            ><video id="videoPreview" controls playsinline></video
+            ><p id="videoInfo"></p
+            ><button id="saveVideo">Save video</button></div
+          ></section
+        >
+        <aside class="controls" aria-label="Graphic controls">
+          <fieldset
+            ><legend>01 · Add graphics</legend
+            ><div class="row"
+              ><label
+                >Pack<select id="pack"
+                  ><option value="all">Both packs · 48 graphics</option
+                  ><option value="icons">Running + Creator Icons</option
+                  ><option value="motion">Motion + Stats</option></select
+                ></label
+              ><label
+                >Search<input
+                  id="search"
+                  type="search"
+                  placeholder="Arrow, shoe, panel…" /></label></div
+            ><p class="note"
+              >Tap a graphic to add it. Use up to 12 layers, including text.</p
+            ><details id="browse" open
+              ><summary>Browse assets <span id="assetCount">48</span></summary
+              ><div id="catalog" class="catalog"></div
+              ><p id="noMatches" hidden
+                >No matching graphics. Try a different search.</p
+              ></details
+            ><button id="addText">+ Add text</button></fieldset
+          >
+          <fieldset
+            ><legend>02 · Arrange layers</legend
+            ><label
+              >Selected layer<select id="layers"
+                ><option value="">No layers yet</option></select
+              ></label
+            ><p class="note">Layers at the bottom of this list draw on top.</p
+            ><div id="layerEditor" hidden
+              ><div class="row"
+                ><button id="backward">Move backward</button
+                ><button id="forward">Move forward</button></div
+              ><div id="textControls" hidden
+                ><label
+                  >Text<textarea
+                    id="text"
+                    maxlength="240"
+                    rows="3"
+                  ></textarea></label
+                ><div class="row"
+                  ><label
+                    >Text size<input
+                      id="fontSize"
+                      type="range"
+                      min="12"
+                      max="240"
+                      step="1" /></label
+                  ><label
+                    >Text colour<input id="color" type="color" /></label></div
+                ><p class="note"
+                  >Long text wraps within the layer width, up to six lines.</p
+                ></div
+              ><label
+                >Horizontal position <output id="xValue"></output
+                ><input
+                  id="x"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="0.5" /></label
+              ><label
+                >Vertical position <output id="yValue"></output
+                ><input
+                  id="y"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="0.5" /></label
+              ><label
+                >Size / text width <output id="sizeValue"></output
+                ><input
+                  id="size"
+                  type="range"
+                  min="5"
+                  max="160"
+                  step="1" /></label
+              ><label
+                >Rotation <output id="rotationValue"></output
+                ><input
+                  id="rotation"
+                  type="range"
+                  min="-180"
+                  max="180"
+                  step="1" /></label
+              ><label
+                >Opacity <output id="opacityValue"></output
+                ><input
+                  id="opacity"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1" /></label
+              ><label
+                >Motion<select id="motion"
+                  ><option value="none">Still</option
+                  ><option value="pulse">Pulse</option
+                  ><option value="float">Float</option
+                  ><option value="nudge">Nudge</option
+                  ><option value="spin">Spin</option
+                  ><option value="pop">Pop in / out</option></select
+                ></label
+              ><label class="toggle"
+                ><input type="checkbox" id="visible" />Show this layer</label
+              ><div class="row"
+                ><button id="split" hidden>Split into parts</button
+                ><button id="duplicate">Duplicate</button
+                ><button id="remove">Remove</button></div
+              ></div
+            ></fieldset
+          >
+          <fieldset
+            ><legend>03 · Export an overlay</legend
+            ><div class="row"
+              ><label
+                >Canvas<select id="format"
+                  ><option value="square">Square · 1080 × 1080</option
+                  ><option value="landscape">Landscape · 1920 × 1080</option
+                  ><option value="portrait"
+                    >Portrait · 1080 × 1920</option
+                  ></select
+                ></label
+              ><label
+                >Animation length<select id="duration"
+                  ><option value="2">2 seconds</option
+                  ><option value="4" selected>4 seconds</option
+                  ><option value="6">6 seconds</option
+                  ><option value="8">8 seconds</option></select
+                ></label
+              ></div
+            ><label
+              >Video background<select id="mode"
+                ><option value="transparent">Transparent WebM</option
+                ><option value="green">Green screen MP4 / WebM</option></select
+              ></label
+            ><div class="row"
+              ><button id="png" class="primary">Save still PNG</button
+              ><button id="export" class="primary">Make video</button
+              ><button id="cancel" hidden>Cancel recording</button></div
+            ><p class="note"
+              >PNG exports have transparent backgrounds. Transparent video needs
+              Chrome or Edge with VP9 encoding, plus an editor that supports
+              WebM alpha. On phones, use green screen and chroma key in your
+              editor. Videos have no audio.</p
+            ><button id="clear">Clear canvas</button></fieldset
+          >
+        </aside></div
+      ><footer>T.IM / BUILD ONCE. OVERLAY ANYWHERE.</footer></main
+    ><script src="../shared/projects.js"></script
+    ><script src="../text-motion/alpha-video.js"></script
+    ><script type="module" src="app.mjs"></script></body
+></html>

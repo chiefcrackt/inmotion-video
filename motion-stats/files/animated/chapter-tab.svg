@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 480 180" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Chapter tab"><title>Chapter tab</title><style>
+@keyframes pulse{0%,100%{transform:scale(.9);opacity:.65}50%{transform:scale(1);opacity:1}}
+@keyframes nudge{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+@keyframes left{0%,100%{transform:translateX(6px)}50%{transform:translateX(-6px)}}
+@keyframes slide{0%,100%{transform:translateX(-8px);opacity:.65}50%{transform:translateX(0);opacity:1}}
+@keyframes rise{0%,100%{transform:translateY(7px);opacity:.65}50%{transform:translateY(0);opacity:1}}
+@keyframes fall{0%,100%{transform:translateY(-7px)}50%{transform:translateY(7px)}}
+@keyframes turn{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+@keyframes reveal{0%,100%{transform:scaleX(.65)}50%{transform:scaleX(1)}}
+@keyframes fade{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes dash{to{stroke-dashoffset:-72}}
+.m-pulse{animation:pulse 2.4s ease-in-out infinite;transform-box:view-box}
+.m-nudge{animation:nudge 2.4s ease-in-out infinite;transform-box:view-box}
+.m-left{animation:left 2.4s ease-in-out infinite;transform-box:view-box}
+.m-slide{animation:slide 2.4s ease-in-out infinite;transform-box:view-box}
+.m-rise{animation:rise 2.4s ease-in-out infinite;transform-box:view-box}
+.m-fall{animation:fall 2.4s ease-in-out infinite;transform-box:view-box}
+.m-turn{animation:turn 3s ease-in-out infinite alternate;transform-box:view-box}
+.m-reveal{animation:reveal 2.4s ease-in-out infinite;transform-box:view-box}
+.m-fade{animation:fade 2.4s ease-in-out infinite;transform-box:view-box}
+.m-dash{animation:dash 2.4s ease-in-out infinite;transform-box:view-box}
+@media(prefers-reduced-motion:reduce){g{animation:none!important}}</style><g id="panel" class="m-slide" style="transform-origin:240px 90px;animation-delay:-0s"><path d="M24 28h396l36 62-36 62H24z" fill="#0e1a2e" stroke="#e8c96a" stroke-width="7"/></g><g id="number-field" class="m-none" style="transform-origin:240px 90px;animation-delay:-0.3s"><path d="M24 28h98v124H24z" fill="#2e9bad" stroke="#0e1a2e" stroke-width="4"/></g><g id="accent" class="m-reveal" style="transform-origin:153px 125px;animation-delay:-0.6s"><path d="M153 125h228" stroke="#e8c96a" stroke-width="5"/></g></svg>

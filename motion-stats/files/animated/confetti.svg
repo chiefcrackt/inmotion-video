@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="960" viewBox="0 0 480 480" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Confetti shower"><title>Confetti shower</title><style>
+@keyframes pulse{0%,100%{transform:scale(.9);opacity:.65}50%{transform:scale(1);opacity:1}}
+@keyframes nudge{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+@keyframes left{0%,100%{transform:translateX(6px)}50%{transform:translateX(-6px)}}
+@keyframes slide{0%,100%{transform:translateX(-8px);opacity:.65}50%{transform:translateX(0);opacity:1}}
+@keyframes rise{0%,100%{transform:translateY(7px);opacity:.65}50%{transform:translateY(0);opacity:1}}
+@keyframes fall{0%,100%{transform:translateY(-7px)}50%{transform:translateY(7px)}}
+@keyframes turn{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+@keyframes reveal{0%,100%{transform:scaleX(.65)}50%{transform:scaleX(1)}}
+@keyframes fade{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes dash{to{stroke-dashoffset:-72}}
+.m-pulse{animation:pulse 2.4s ease-in-out infinite;transform-box:view-box}
+.m-nudge{animation:nudge 2.4s ease-in-out infinite;transform-box:view-box}
+.m-left{animation:left 2.4s ease-in-out infinite;transform-box:view-box}
+.m-slide{animation:slide 2.4s ease-in-out infinite;transform-box:view-box}
+.m-rise{animation:rise 2.4s ease-in-out infinite;transform-box:view-box}
+.m-fall{animation:fall 2.4s ease-in-out infinite;transform-box:view-box}
+.m-turn{animation:turn 3s ease-in-out infinite alternate;transform-box:view-box}
+.m-reveal{animation:reveal 2.4s ease-in-out infinite;transform-box:view-box}
+.m-fade{animation:fade 2.4s ease-in-out infinite;transform-box:view-box}
+.m-dash{animation:dash 2.4s ease-in-out infinite;transform-box:view-box}
+@media(prefers-reduced-motion:reduce){g{animation:none!important}}</style><g id="gold-pieces" class="m-fall" style="transform-origin:240px 240px;animation-delay:-0s"><path d="M48 74l28-11 19 43-28 11zm280-34l27 15-23 41-27-15zM190 179l29-6 10 46-29 6zM51 329l29 11-17 43-29-11zm280 19l28-14 21 41-28 14z" fill="#e8c96a"/></g><g id="teal-pieces" class="m-rise" style="transform-origin:240px 240px;animation-delay:-0.3s"><path d="M148 48l25 17-26 38-25-17zm239 121l29-7 11 46-29 7zM114 218l26-16 24 40-26 16zm98 139l29 10-15 44-29-10z" fill="#2e9bad"/></g><g id="streamers" class="m-nudge" style="transform-origin:240px 240px;animation-delay:-0.6s"><path d="M53 171q36-31 48 6m175-40q39 10 17 46m72 82q49-6 36 33m-241 59q-36-15-24-42" stroke="#e8c96a" stroke-width="10"/></g></svg>

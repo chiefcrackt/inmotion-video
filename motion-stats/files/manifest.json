@@ -1,0 +1,1165 @@
+{
+  "version": 1,
+  "name": "T.im Motion + Stats",
+  "palette": {
+    "navy": "#0e1a2e",
+    "gold": "#e8c96a",
+    "teal": "#2e9bad",
+    "paper": "#f6f4ef"
+  },
+  "rasterScale": 2,
+  "coordinateSystem": "SVG viewBox units, origin top-left; PNG coordinates are multiplied by rasterScale.",
+  "layerPNGAvailability": "Layer PNGs are included in the ZIP; individual layer SVGs are also served in files/layers/.",
+  "assets": [
+    {
+      "id": "stat-card",
+      "name": "Stat card",
+      "category": "panels",
+      "width": 480,
+      "height": 240,
+      "pngWidth": 960,
+      "pngHeight": 480,
+      "png": "png/stat-card.png",
+      "svg": "svg/stat-card.svg",
+      "animated": "animated/stat-card.svg",
+      "textSafeAreas": [
+        [
+          64,
+          56,
+          352,
+          92
+        ],
+        [
+          64,
+          170,
+          352,
+          28
+        ]
+      ],
+      "hint": "Add a value above the divider and its label below. Slide in the panel, then reveal the text.",
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/stat-card/panel.svg",
+          "pngInArchive": "layers/stat-card/panel.png",
+          "pivot": [
+            240,
+            120
+          ],
+          "suggestedMotion": "slide"
+        },
+        {
+          "id": "accent",
+          "svg": "layers/stat-card/accent.svg",
+          "pngInArchive": "layers/stat-card/accent.png",
+          "pivot": [
+            240,
+            120
+          ],
+          "suggestedMotion": "pulse"
+        },
+        {
+          "id": "divider",
+          "svg": "layers/stat-card/divider.svg",
+          "pngInArchive": "layers/stat-card/divider.png",
+          "pivot": [
+            240,
+            120
+          ],
+          "suggestedMotion": "none"
+        }
+      ]
+    },
+    {
+      "id": "stat-pill",
+      "name": "Stat pill",
+      "category": "panels",
+      "width": 480,
+      "height": 160,
+      "pngWidth": 960,
+      "pngHeight": 320,
+      "png": "png/stat-pill.png",
+      "svg": "svg/stat-pill.svg",
+      "animated": "animated/stat-pill.svg",
+      "textSafeAreas": [
+        [
+          148,
+          45,
+          270,
+          70
+        ]
+      ],
+      "hint": "Put a metric icon on the accent disc and your value in the blank field.",
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/stat-pill/panel.svg",
+          "pngInArchive": "layers/stat-pill/panel.png",
+          "pivot": [
+            240,
+            80
+          ],
+          "suggestedMotion": "slide"
+        },
+        {
+          "id": "accent",
+          "svg": "layers/stat-pill/accent.svg",
+          "pngInArchive": "layers/stat-pill/accent.png",
+          "pivot": [
+            76,
+            80
+          ],
+          "suggestedMotion": "pulse"
+        },
+        {
+          "id": "divider",
+          "svg": "layers/stat-pill/divider.svg",
+          "pngInArchive": "layers/stat-pill/divider.png",
+          "pivot": [
+            240,
+            80
+          ],
+          "suggestedMotion": "none"
+        }
+      ]
+    },
+    {
+      "id": "lower-third",
+      "name": "Lower third",
+      "category": "panels",
+      "width": 640,
+      "height": 200,
+      "pngWidth": 1280,
+      "pngHeight": 400,
+      "png": "png/lower-third.png",
+      "svg": "svg/lower-third.svg",
+      "animated": "animated/lower-third.svg",
+      "textSafeAreas": [
+        [
+          72,
+          62,
+          455,
+          64
+        ]
+      ],
+      "hint": "Add a name or chapter title above the teal rule. Keep type inside the navy area.",
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/lower-third/panel.svg",
+          "pngInArchive": "layers/lower-third/panel.png",
+          "pivot": [
+            320,
+            100
+          ],
+          "suggestedMotion": "slide"
+        },
+        {
+          "id": "accent",
+          "svg": "layers/lower-third/accent.svg",
+          "pngInArchive": "layers/lower-third/accent.png",
+          "pivot": [
+            320,
+            100
+          ],
+          "suggestedMotion": "none"
+        },
+        {
+          "id": "tag",
+          "svg": "layers/lower-third/tag.svg",
+          "pngInArchive": "layers/lower-third/tag.png",
+          "pivot": [
+            320,
+            100
+          ],
+          "suggestedMotion": "nudge"
+        }
+      ]
+    },
+    {
+      "id": "split-card",
+      "name": "Compare card",
+      "category": "panels",
+      "width": 480,
+      "height": 260,
+      "pngWidth": 960,
+      "pngHeight": 520,
+      "png": "png/split-card.png",
+      "svg": "svg/split-card.svg",
+      "animated": "animated/split-card.svg",
+      "textSafeAreas": [
+        [
+          48,
+          50,
+          156,
+          120
+        ],
+        [
+          276,
+          50,
+          156,
+          120
+        ]
+      ],
+      "hint": "Reveal a before and after, target and actual, or two race splits independently.",
+      "layers": [
+        {
+          "id": "left",
+          "svg": "layers/split-card/left.svg",
+          "pngInArchive": "layers/split-card/left.png",
+          "pivot": [
+            240,
+            130
+          ],
+          "suggestedMotion": "slide"
+        },
+        {
+          "id": "right",
+          "svg": "layers/split-card/right.svg",
+          "pngInArchive": "layers/split-card/right.png",
+          "pivot": [
+            240,
+            130
+          ],
+          "suggestedMotion": "rise"
+        },
+        {
+          "id": "accents",
+          "svg": "layers/split-card/accents.svg",
+          "pngInArchive": "layers/split-card/accents.png",
+          "pivot": [
+            240,
+            130
+          ],
+          "suggestedMotion": "none"
+        }
+      ]
+    },
+    {
+      "id": "result-badge",
+      "name": "Result badge",
+      "category": "panels",
+      "width": 320,
+      "height": 320,
+      "pngWidth": 640,
+      "pngHeight": 640,
+      "png": "png/result-badge.png",
+      "svg": "svg/result-badge.svg",
+      "animated": "animated/result-badge.svg",
+      "textSafeAreas": [
+        [
+          105,
+          86,
+          110,
+          90
+        ]
+      ],
+      "hint": "Place a finish time or milestone in the empty centre. Ribbons and rings are separate.",
+      "layers": [
+        {
+          "id": "ribbons",
+          "svg": "layers/result-badge/ribbons.svg",
+          "pngInArchive": "layers/result-badge/ribbons.png",
+          "pivot": [
+            160,
+            160
+          ],
+          "suggestedMotion": "rise"
+        },
+        {
+          "id": "disc",
+          "svg": "layers/result-badge/disc.svg",
+          "pngInArchive": "layers/result-badge/disc.png",
+          "pivot": [
+            160,
+            136
+          ],
+          "suggestedMotion": "pulse"
+        },
+        {
+          "id": "inner-ring",
+          "svg": "layers/result-badge/inner-ring.svg",
+          "pngInArchive": "layers/result-badge/inner-ring.png",
+          "pivot": [
+            160,
+            136
+          ],
+          "suggestedMotion": "turn"
+        }
+      ]
+    },
+    {
+      "id": "progress-bar",
+      "name": "Progress bar",
+      "category": "panels",
+      "width": 640,
+      "height": 120,
+      "pngWidth": 1280,
+      "pngHeight": 240,
+      "png": "png/progress-bar.png",
+      "svg": "svg/progress-bar.svg",
+      "animated": "animated/progress-bar.svg",
+      "textSafeAreas": [],
+      "hint": "Scale or mask the fill from its left anchor. Move the marker to match your actual progress.",
+      "layers": [
+        {
+          "id": "track",
+          "svg": "layers/progress-bar/track.svg",
+          "pngInArchive": "layers/progress-bar/track.png",
+          "pivot": [
+            320,
+            60
+          ],
+          "suggestedMotion": "none"
+        },
+        {
+          "id": "fill",
+          "svg": "layers/progress-bar/fill.svg",
+          "pngInArchive": "layers/progress-bar/fill.png",
+          "pivot": [
+            32,
+            60
+          ],
+          "suggestedMotion": "reveal"
+        },
+        {
+          "id": "marker",
+          "svg": "layers/progress-bar/marker.svg",
+          "pngInArchive": "layers/progress-bar/marker.png",
+          "pivot": [
+            388,
+            60
+          ],
+          "suggestedMotion": "pulse"
+        }
+      ]
+    },
+    {
+      "id": "arrow-straight",
+      "name": "Direction arrow",
+      "category": "pointers",
+      "width": 320,
+      "height": 160,
+      "pngWidth": 640,
+      "pngHeight": 320,
+      "png": "png/arrow-straight.png",
+      "svg": "svg/arrow-straight.svg",
+      "animated": "animated/arrow-straight.svg",
+      "textSafeAreas": [],
+      "hint": "Move the shaft and head together for a nudge; rotate the full group to point anywhere.",
+      "layers": [
+        {
+          "id": "shaft",
+          "svg": "layers/arrow-straight/shaft.svg",
+          "pngInArchive": "layers/arrow-straight/shaft.png",
+          "pivot": [
+            160,
+            80
+          ],
+          "suggestedMotion": "nudge"
+        },
+        {
+          "id": "head",
+          "svg": "layers/arrow-straight/head.svg",
+          "pngInArchive": "layers/arrow-straight/head.png",
+          "pivot": [
+            160,
+            80
+          ],
+          "suggestedMotion": "nudge"
+        }
+      ]
+    },
+    {
+      "id": "arrow-curve",
+      "name": "Curved arrow",
+      "category": "pointers",
+      "width": 320,
+      "height": 240,
+      "pngWidth": 640,
+      "pngHeight": 480,
+      "png": "png/arrow-curve.png",
+      "svg": "svg/arrow-curve.svg",
+      "animated": "animated/arrow-curve.svg",
+      "textSafeAreas": [],
+      "hint": "Reveal the curve before the arrowhead to guide attention toward a detail.",
+      "layers": [
+        {
+          "id": "curve",
+          "svg": "layers/arrow-curve/curve.svg",
+          "pngInArchive": "layers/arrow-curve/curve.png",
+          "pivot": [
+            160,
+            120
+          ],
+          "suggestedMotion": "fade"
+        },
+        {
+          "id": "head",
+          "svg": "layers/arrow-curve/head.svg",
+          "pngInArchive": "layers/arrow-curve/head.png",
+          "pivot": [
+            160,
+            120
+          ],
+          "suggestedMotion": "nudge"
+        }
+      ]
+    },
+    {
+      "id": "chevrons",
+      "name": "Triple chevron",
+      "category": "pointers",
+      "width": 320,
+      "height": 160,
+      "pngWidth": 640,
+      "pngHeight": 320,
+      "png": "png/chevrons.png",
+      "svg": "svg/chevrons.svg",
+      "animated": "animated/chevrons.svg",
+      "textSafeAreas": [],
+      "hint": "Stagger the three layers for forward motion, or use as a chapter transition.",
+      "layers": [
+        {
+          "id": "chevron-1",
+          "svg": "layers/chevrons/chevron-1.svg",
+          "pngInArchive": "layers/chevrons/chevron-1.png",
+          "pivot": [
+            160,
+            80
+          ],
+          "suggestedMotion": "nudge"
+        },
+        {
+          "id": "chevron-2",
+          "svg": "layers/chevrons/chevron-2.svg",
+          "pngInArchive": "layers/chevrons/chevron-2.png",
+          "pivot": [
+            160,
+            80
+          ],
+          "suggestedMotion": "nudge"
+        },
+        {
+          "id": "chevron-3",
+          "svg": "layers/chevrons/chevron-3.svg",
+          "pngInArchive": "layers/chevrons/chevron-3.png",
+          "pivot": [
+            160,
+            80
+          ],
+          "suggestedMotion": "nudge"
+        }
+      ]
+    },
+    {
+      "id": "route-pin",
+      "name": "Route pin",
+      "category": "pointers",
+      "width": 240,
+      "height": 320,
+      "pngWidth": 480,
+      "pngHeight": 640,
+      "png": "png/route-pin.png",
+      "svg": "svg/route-pin.svg",
+      "animated": "animated/route-pin.svg",
+      "textSafeAreas": [],
+      "hint": "Pin and centre move together; keep the ground halo fixed and pulse its scale.",
+      "layers": [
+        {
+          "id": "halo",
+          "svg": "layers/route-pin/halo.svg",
+          "pngInArchive": "layers/route-pin/halo.png",
+          "pivot": [
+            120,
+            276
+          ],
+          "suggestedMotion": "pulse"
+        },
+        {
+          "id": "pin",
+          "svg": "layers/route-pin/pin.svg",
+          "pngInArchive": "layers/route-pin/pin.png",
+          "pivot": [
+            120,
+            160
+          ],
+          "suggestedMotion": "rise"
+        },
+        {
+          "id": "centre",
+          "svg": "layers/route-pin/centre.svg",
+          "pngInArchive": "layers/route-pin/centre.png",
+          "pivot": [
+            120,
+            160
+          ],
+          "suggestedMotion": "rise"
+        }
+      ]
+    },
+    {
+      "id": "route-trail",
+      "name": "Route trail",
+      "category": "pointers",
+      "width": 480,
+      "height": 280,
+      "pngWidth": 960,
+      "pngHeight": 560,
+      "png": "png/route-trail.png",
+      "svg": "svg/route-trail.svg",
+      "animated": "animated/route-trail.svg",
+      "textSafeAreas": [],
+      "hint": "Animate the dashed route or reveal it with a mask. Endpoints stay on separate layers.",
+      "layers": [
+        {
+          "id": "trail",
+          "svg": "layers/route-trail/trail.svg",
+          "pngInArchive": "layers/route-trail/trail.png",
+          "pivot": [
+            240,
+            140
+          ],
+          "suggestedMotion": "dash"
+        },
+        {
+          "id": "start",
+          "svg": "layers/route-trail/start.svg",
+          "pngInArchive": "layers/route-trail/start.png",
+          "pivot": [
+            240,
+            140
+          ],
+          "suggestedMotion": "none"
+        },
+        {
+          "id": "finish",
+          "svg": "layers/route-trail/finish.svg",
+          "pngInArchive": "layers/route-trail/finish.png",
+          "pivot": [
+            425,
+            94
+          ],
+          "suggestedMotion": "pulse"
+        }
+      ]
+    },
+    {
+      "id": "locator",
+      "name": "Location pulse",
+      "category": "pointers",
+      "width": 240,
+      "height": 240,
+      "pngWidth": 480,
+      "pngHeight": 480,
+      "png": "png/locator.png",
+      "svg": "svg/locator.svg",
+      "animated": "animated/locator.svg",
+      "textSafeAreas": [],
+      "hint": "Pulse both rings around the fixed centre dot, with a short delay between them.",
+      "layers": [
+        {
+          "id": "outer-ring",
+          "svg": "layers/locator/outer-ring.svg",
+          "pngInArchive": "layers/locator/outer-ring.png",
+          "pivot": [
+            120,
+            120
+          ],
+          "suggestedMotion": "pulse"
+        },
+        {
+          "id": "inner-ring",
+          "svg": "layers/locator/inner-ring.svg",
+          "pngInArchive": "layers/locator/inner-ring.png",
+          "pivot": [
+            120,
+            120
+          ],
+          "suggestedMotion": "pulse"
+        },
+        {
+          "id": "dot",
+          "svg": "layers/locator/dot.svg",
+          "pngInArchive": "layers/locator/dot.png",
+          "pivot": [
+            120,
+            120
+          ],
+          "suggestedMotion": "none"
+        }
+      ]
+    },
+    {
+      "id": "speed-lines",
+      "name": "Speed streaks",
+      "category": "motion",
+      "width": 480,
+      "height": 240,
+      "pngWidth": 960,
+      "pngHeight": 480,
+      "png": "png/speed-lines.png",
+      "svg": "svg/speed-lines.svg",
+      "animated": "animated/speed-lines.svg",
+      "textSafeAreas": [],
+      "hint": "Offset and stagger the streaks behind a runner, product or moving title.",
+      "layers": [
+        {
+          "id": "top",
+          "svg": "layers/speed-lines/top.svg",
+          "pngInArchive": "layers/speed-lines/top.png",
+          "pivot": [
+            240,
+            120
+          ],
+          "suggestedMotion": "nudge"
+        },
+        {
+          "id": "middle",
+          "svg": "layers/speed-lines/middle.svg",
+          "pngInArchive": "layers/speed-lines/middle.png",
+          "pivot": [
+            240,
+            120
+          ],
+          "suggestedMotion": "nudge"
+        },
+        {
+          "id": "bottom",
+          "svg": "layers/speed-lines/bottom.svg",
+          "pngInArchive": "layers/speed-lines/bottom.png",
+          "pivot": [
+            240,
+            120
+          ],
+          "suggestedMotion": "nudge"
+        }
+      ]
+    },
+    {
+      "id": "dust-puff",
+      "name": "Dust puff",
+      "category": "motion",
+      "width": 400,
+      "height": 240,
+      "pngWidth": 800,
+      "pngHeight": 480,
+      "png": "png/dust-puff.png",
+      "svg": "svg/dust-puff.svg",
+      "animated": "animated/dust-puff.svg",
+      "textSafeAreas": [],
+      "hint": "Scale the cloud from its base and fade it out after a footstep or landing.",
+      "layers": [
+        {
+          "id": "cloud",
+          "svg": "layers/dust-puff/cloud.svg",
+          "pngInArchive": "layers/dust-puff/cloud.png",
+          "pivot": [
+            198,
+            176
+          ],
+          "suggestedMotion": "pulse"
+        },
+        {
+          "id": "flecks",
+          "svg": "layers/dust-puff/flecks.svg",
+          "pngInArchive": "layers/dust-puff/flecks.png",
+          "pivot": [
+            200,
+            120
+          ],
+          "suggestedMotion": "rise"
+        },
+        {
+          "id": "ground",
+          "svg": "layers/dust-puff/ground.svg",
+          "pngInArchive": "layers/dust-puff/ground.png",
+          "pivot": [
+            200,
+            120
+          ],
+          "suggestedMotion": "none"
+        }
+      ]
+    },
+    {
+      "id": "impact-burst",
+      "name": "Impact burst",
+      "category": "motion",
+      "width": 320,
+      "height": 320,
+      "pngWidth": 640,
+      "pngHeight": 640,
+      "png": "png/impact-burst.png",
+      "svg": "svg/impact-burst.svg",
+      "animated": "animated/impact-burst.svg",
+      "textSafeAreas": [],
+      "hint": "Pop the outer burst first, then rotate or scale the centre for a beat hit.",
+      "layers": [
+        {
+          "id": "burst",
+          "svg": "layers/impact-burst/burst.svg",
+          "pngInArchive": "layers/impact-burst/burst.png",
+          "pivot": [
+            160,
+            160
+          ],
+          "suggestedMotion": "pulse"
+        },
+        {
+          "id": "centre",
+          "svg": "layers/impact-burst/centre.svg",
+          "pngInArchive": "layers/impact-burst/centre.png",
+          "pivot": [
+            160,
+            160
+          ],
+          "suggestedMotion": "turn"
+        }
+      ]
+    },
+    {
+      "id": "sparkle",
+      "name": "Sparkle cluster",
+      "category": "motion",
+      "width": 320,
+      "height": 320,
+      "pngWidth": 640,
+      "pngHeight": 640,
+      "png": "png/sparkle.png",
+      "svg": "svg/sparkle.svg",
+      "animated": "animated/sparkle.svg",
+      "textSafeAreas": [],
+      "hint": "Stagger the sparkle sizes for gear highlights, achievements or a clean reveal.",
+      "layers": [
+        {
+          "id": "large",
+          "svg": "layers/sparkle/large.svg",
+          "pngInArchive": "layers/sparkle/large.png",
+          "pivot": [
+            143,
+            137
+          ],
+          "suggestedMotion": "pulse"
+        },
+        {
+          "id": "small-top",
+          "svg": "layers/sparkle/small-top.svg",
+          "pngInArchive": "layers/sparkle/small-top.png",
+          "pivot": [
+            261,
+            65
+          ],
+          "suggestedMotion": "pulse"
+        },
+        {
+          "id": "small-bottom",
+          "svg": "layers/sparkle/small-bottom.svg",
+          "pngInArchive": "layers/sparkle/small-bottom.png",
+          "pivot": [
+            68,
+            258
+          ],
+          "suggestedMotion": "pulse"
+        }
+      ]
+    },
+    {
+      "id": "confetti",
+      "name": "Confetti shower",
+      "category": "motion",
+      "width": 480,
+      "height": 480,
+      "pngWidth": 960,
+      "pngHeight": 960,
+      "png": "png/confetti.png",
+      "svg": "svg/confetti.svg",
+      "animated": "animated/confetti.svg",
+      "textSafeAreas": [],
+      "hint": "Move the colour groups at different speeds and rotate them for a celebration.",
+      "layers": [
+        {
+          "id": "gold-pieces",
+          "svg": "layers/confetti/gold-pieces.svg",
+          "pngInArchive": "layers/confetti/gold-pieces.png",
+          "pivot": [
+            240,
+            240
+          ],
+          "suggestedMotion": "fall"
+        },
+        {
+          "id": "teal-pieces",
+          "svg": "layers/confetti/teal-pieces.svg",
+          "pngInArchive": "layers/confetti/teal-pieces.png",
+          "pivot": [
+            240,
+            240
+          ],
+          "suggestedMotion": "rise"
+        },
+        {
+          "id": "streamers",
+          "svg": "layers/confetti/streamers.svg",
+          "pngInArchive": "layers/confetti/streamers.png",
+          "pivot": [
+            240,
+            240
+          ],
+          "suggestedMotion": "nudge"
+        }
+      ]
+    },
+    {
+      "id": "finish-tape",
+      "name": "Finish tape",
+      "category": "motion",
+      "width": 640,
+      "height": 240,
+      "pngWidth": 1280,
+      "pngHeight": 480,
+      "png": "png/finish-tape.png",
+      "svg": "svg/finish-tape.svg",
+      "animated": "animated/finish-tape.svg",
+      "textSafeAreas": [],
+      "hint": "Separate the torn tape halves outward while keeping both posts fixed.",
+      "layers": [
+        {
+          "id": "left-post",
+          "svg": "layers/finish-tape/left-post.svg",
+          "pngInArchive": "layers/finish-tape/left-post.png",
+          "pivot": [
+            320,
+            120
+          ],
+          "suggestedMotion": "none"
+        },
+        {
+          "id": "right-post",
+          "svg": "layers/finish-tape/right-post.svg",
+          "pngInArchive": "layers/finish-tape/right-post.png",
+          "pivot": [
+            320,
+            120
+          ],
+          "suggestedMotion": "none"
+        },
+        {
+          "id": "left-tape",
+          "svg": "layers/finish-tape/left-tape.svg",
+          "pngInArchive": "layers/finish-tape/left-tape.png",
+          "pivot": [
+            320,
+            120
+          ],
+          "suggestedMotion": "left"
+        },
+        {
+          "id": "right-tape",
+          "svg": "layers/finish-tape/right-tape.svg",
+          "pngInArchive": "layers/finish-tape/right-tape.png",
+          "pivot": [
+            320,
+            120
+          ],
+          "suggestedMotion": "nudge"
+        }
+      ]
+    },
+    {
+      "id": "underline",
+      "name": "Highlight underline",
+      "category": "callouts",
+      "width": 480,
+      "height": 120,
+      "pngWidth": 960,
+      "pngHeight": 240,
+      "png": "png/underline.png",
+      "svg": "svg/underline.svg",
+      "animated": "animated/underline.svg",
+      "textSafeAreas": [],
+      "hint": "Reveal from the left beneath a title, result or product name.",
+      "layers": [
+        {
+          "id": "main-stroke",
+          "svg": "layers/underline/main-stroke.svg",
+          "pngInArchive": "layers/underline/main-stroke.png",
+          "pivot": [
+            30,
+            60
+          ],
+          "suggestedMotion": "reveal"
+        },
+        {
+          "id": "echo",
+          "svg": "layers/underline/echo.svg",
+          "pngInArchive": "layers/underline/echo.png",
+          "pivot": [
+            76,
+            90
+          ],
+          "suggestedMotion": "reveal"
+        }
+      ]
+    },
+    {
+      "id": "brackets",
+      "name": "Focus brackets",
+      "category": "callouts",
+      "width": 480,
+      "height": 240,
+      "pngWidth": 960,
+      "pngHeight": 480,
+      "png": "png/brackets.png",
+      "svg": "svg/brackets.svg",
+      "animated": "animated/brackets.svg",
+      "textSafeAreas": [],
+      "hint": "Frame footage or a metric. Move the two bracket halves inward to focus attention.",
+      "layers": [
+        {
+          "id": "left",
+          "svg": "layers/brackets/left.svg",
+          "pngInArchive": "layers/brackets/left.png",
+          "pivot": [
+            240,
+            120
+          ],
+          "suggestedMotion": "left"
+        },
+        {
+          "id": "right",
+          "svg": "layers/brackets/right.svg",
+          "pngInArchive": "layers/brackets/right.png",
+          "pivot": [
+            240,
+            120
+          ],
+          "suggestedMotion": "nudge"
+        },
+        {
+          "id": "accents",
+          "svg": "layers/brackets/accents.svg",
+          "pngInArchive": "layers/brackets/accents.png",
+          "pivot": [
+            240,
+            120
+          ],
+          "suggestedMotion": "pulse"
+        }
+      ]
+    },
+    {
+      "id": "speech-bubble",
+      "name": "Speech bubble",
+      "category": "callouts",
+      "width": 480,
+      "height": 280,
+      "pngWidth": 960,
+      "pngHeight": 560,
+      "png": "png/speech-bubble.png",
+      "svg": "svg/speech-bubble.svg",
+      "animated": "animated/speech-bubble.svg",
+      "textSafeAreas": [
+        [
+          62,
+          68,
+          348,
+          96
+        ]
+      ],
+      "hint": "Add a short quote or training note. Keep text above the pointer tail.",
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/speech-bubble/panel.svg",
+          "pngInArchive": "layers/speech-bubble/panel.png",
+          "pivot": [
+            240,
+            140
+          ],
+          "suggestedMotion": "rise"
+        },
+        {
+          "id": "accent",
+          "svg": "layers/speech-bubble/accent.svg",
+          "pngInArchive": "layers/speech-bubble/accent.png",
+          "pivot": [
+            240,
+            140
+          ],
+          "suggestedMotion": "pulse"
+        }
+      ]
+    },
+    {
+      "id": "chapter-tab",
+      "name": "Chapter tab",
+      "category": "callouts",
+      "width": 480,
+      "height": 180,
+      "pngWidth": 960,
+      "pngHeight": 360,
+      "png": "png/chapter-tab.png",
+      "svg": "svg/chapter-tab.svg",
+      "animated": "animated/chapter-tab.svg",
+      "textSafeAreas": [
+        [
+          42,
+          48,
+          62,
+          84
+        ],
+        [
+          150,
+          50,
+          245,
+          58
+        ]
+      ],
+      "hint": "Put a chapter number in the teal block and a title in the blank navy field.",
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/chapter-tab/panel.svg",
+          "pngInArchive": "layers/chapter-tab/panel.png",
+          "pivot": [
+            240,
+            90
+          ],
+          "suggestedMotion": "slide"
+        },
+        {
+          "id": "number-field",
+          "svg": "layers/chapter-tab/number-field.svg",
+          "pngInArchive": "layers/chapter-tab/number-field.png",
+          "pivot": [
+            240,
+            90
+          ],
+          "suggestedMotion": "none"
+        },
+        {
+          "id": "accent",
+          "svg": "layers/chapter-tab/accent.svg",
+          "pngInArchive": "layers/chapter-tab/accent.png",
+          "pivot": [
+            153,
+            125
+          ],
+          "suggestedMotion": "reveal"
+        }
+      ]
+    },
+    {
+      "id": "radial-ring",
+      "name": "Radial progress ring",
+      "category": "callouts",
+      "width": 320,
+      "height": 320,
+      "pngWidth": 640,
+      "pngHeight": 640,
+      "png": "png/radial-ring.png",
+      "svg": "svg/radial-ring.svg",
+      "animated": "animated/radial-ring.svg",
+      "textSafeAreas": [],
+      "hint": "Rotate for a loading loop, or trim the progress stroke to show a real percentage.",
+      "layers": [
+        {
+          "id": "track",
+          "svg": "layers/radial-ring/track.svg",
+          "pngInArchive": "layers/radial-ring/track.png",
+          "pivot": [
+            160,
+            160
+          ],
+          "suggestedMotion": "none"
+        },
+        {
+          "id": "progress",
+          "svg": "layers/radial-ring/progress.svg",
+          "pngInArchive": "layers/radial-ring/progress.png",
+          "pivot": [
+            160,
+            160
+          ],
+          "suggestedMotion": "turn"
+        },
+        {
+          "id": "ticks",
+          "svg": "layers/radial-ring/ticks.svg",
+          "pngInArchive": "layers/radial-ring/ticks.png",
+          "pivot": [
+            160,
+            160
+          ],
+          "suggestedMotion": "pulse"
+        }
+      ]
+    },
+    {
+      "id": "podium",
+      "name": "Milestone podium",
+      "category": "callouts",
+      "width": 480,
+      "height": 320,
+      "pngWidth": 960,
+      "pngHeight": 640,
+      "png": "png/podium.png",
+      "svg": "svg/podium.svg",
+      "animated": "animated/podium.svg",
+      "textSafeAreas": [
+        [
+          55,
+          221,
+          82,
+          40
+        ],
+        [
+          193,
+          150,
+          94,
+          78
+        ],
+        [
+          343,
+          245,
+          82,
+          28
+        ]
+      ],
+      "hint": "Add rankings or milestone numbers to the blank steps; pop the star after the reveal.",
+      "layers": [
+        {
+          "id": "base",
+          "svg": "layers/podium/base.svg",
+          "pngInArchive": "layers/podium/base.png",
+          "pivot": [
+            240,
+            160
+          ],
+          "suggestedMotion": "rise"
+        },
+        {
+          "id": "accents",
+          "svg": "layers/podium/accents.svg",
+          "pngInArchive": "layers/podium/accents.png",
+          "pivot": [
+            240,
+            160
+          ],
+          "suggestedMotion": "none"
+        },
+        {
+          "id": "star",
+          "svg": "layers/podium/star.svg",
+          "pngInArchive": "layers/podium/star.png",
+          "pivot": [
+            240,
+            54
+          ],
+          "suggestedMotion": "pulse"
+        }
+      ]
+    }
+  ]
+}

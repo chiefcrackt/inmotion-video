@@ -1,0 +1,34 @@
+T.im / Motion + Stats Kit
+
+24 original reusable graphics in navy #0E1A2E, gold #E8C96A and teal #2E9BAD.
+68 separate movable layers. All PNGs have transparent backgrounds.
+
+CONTENTS
+png/ — composed PNGs, at twice the SVG viewBox size (up to 1280 pixels wide).
+svg/ — composed SVGs with named groups for editable layers.
+animated/ — animated SVG demos; playback needs an SVG animation-capable viewer.
+layers/<asset>/ — separate SVG + PNG for each movable part.
+manifest.json — dimensions, layer order, pivot points, text-safe areas and hints.
+preview.html — open in a browser to see all the animation examples offline.
+contact-sheet.png — overview of the 24 designs.
+
+IN CAPCUT / CANVA / YOUR VIDEO EDITOR
+Use the composed PNG for a quick overlay. Add your own text on a separate layer.
+Panels intentionally have no sample numbers, labels or placeholder text.
+For custom motion, import each PNG in a layers/<asset>/ folder at identical size
+and centre them together. Each part keeps the full canvas, so they line up.
+Animate the parts separately with position, scale, rotation or opacity keyframes.
+Pivots in manifest.json use SVG units; multiply by rasterScale (2) for PNG pixels.
+For a progress bar, adjust the fill and marker to your actual result. Demos are
+decorative examples, not measured progress. SVG animations do not play in all
+video editors. Use the PNG layers and your editor's keyframes in that case.
+
+ANIMATION EXAMPLES
+The browser examples loop slowly to show how parts can move. They respect the
+system reduced-motion preference. Each composed SVG retains the group names;
+each separate layer file contains just that piece on the original canvas.
+Gold/teal accents need contrast against footage; use a navy backing if needed.
+The navy fill inside panels is intentional and is not a full-canvas background.
+
+Original T.im artwork. Reuse and adapt in personal and commercial content.
+No attribution required. No third-party logos or fonts are included.
