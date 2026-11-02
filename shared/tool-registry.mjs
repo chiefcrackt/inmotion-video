@@ -38,6 +38,15 @@ export const TOOLS = Object.freeze([
     icon: 'idea',
   },
   {
+    id: 'before-after',
+    name: 'Before & After',
+    href: 'before-after/',
+    description: 'Two photos in one frame: export a still, or an animated wipe from before to after.',
+    workspaces: ['graphics', 'publishing'],
+    keywords: ['before', 'after', 'compare', 'wipe', 'transformation', 'progress', 'split', 'reveal'],
+    icon: 'cover',
+  },
+  {
     id: 'shoot-planner',
     name: 'Shoot Planner',
     href: 'shoot-planner/',

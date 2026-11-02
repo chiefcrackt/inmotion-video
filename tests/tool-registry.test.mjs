@@ -22,7 +22,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 // The tool pages the homepage links to. Keeping them here stops a tool from being dropped by accident.
 const EXPECTED_HREFS = [
-  'content-planner/', 'shoot-planner/', 'teleprompter/', 'idea-vault/', 'title-maker/', 'text-motion/', 'video-framer/', 'carousel-maker/',
+  'content-planner/', 'shoot-planner/', 'teleprompter/', 'before-after/', 'idea-vault/', 'title-maker/', 'text-motion/', 'video-framer/', 'carousel-maker/',
   'tier-list/', 'start-line/', 'river-run/', 'mile-marker/', 'activity-studio/',
   'special-post/', 'celebrate/', 'sound-forge/', 'beat-bed/', 'cover-maker/',
   'promo-maker/', 'downloads/',
@@ -63,7 +63,7 @@ test('the spec placements hold: Running Studio and Publishing Studio contents', 
   const ids = (ws) => toolsInWorkspace(ws).map((t) => t.id).sort();
   assert.deepEqual(ids('running'), ['activity-studio', 'mile-marker', 'river-run', 'start-line']);
   assert.deepEqual(ids('audio'), ['beat-bed', 'sound-forge']);
-  assert.deepEqual(ids('publishing'), ['carousel-maker', 'content-planner', 'cover-maker', 'promo-maker', 'tier-list']);
+  assert.deepEqual(ids('publishing'), ['before-after', 'carousel-maker', 'content-planner', 'cover-maker', 'promo-maker', 'tier-list']);
   assert.deepEqual(ids('library'), ['downloads']);
   assert.deepEqual(ids('plan'), ['content-planner', 'idea-vault', 'shoot-planner', 'teleprompter']);
 });

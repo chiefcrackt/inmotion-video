@@ -10,6 +10,8 @@ const files = [
   'content-planner/app.mjs',
   'shoot-planner/index.html',
   'teleprompter/index.html',
+  'before-after/index.html',
+  'before-after/model.mjs',
   'teleprompter/model.mjs',
   'text-motion/index.html',
   'text-motion/app.js',
