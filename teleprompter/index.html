@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="../favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+    <meta name="theme-color" content="#0E1A2E" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Teleprompter</title>
+    <link rel="stylesheet" href="../shared/fonts.css" />
+    <link rel="stylesheet" href="../shared/responsive.css" />
+    <style>
+      :root {
+        --navy: #0e1a2e;
+        --panel: #13233d;
+        --line: #25395c;
+        --gold: #e8c96a;
+        --muted: #9fb0c8;
+        --paper: #f6f4ef;
+        --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+        --body: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--navy); color: var(--paper); font-family: var(--body); }
+      [hidden] { display: none !important; }
+      a.home { color: var(--muted); text-decoration: none; font: 700 13px var(--display); letter-spacing: 2px; text-transform: uppercase; }
+      a.home:hover { color: var(--gold); }
+      button, input, textarea { font: inherit; }
+      button {
+        min-height: 44px; min-width: 44px; padding: 0 16px; border-radius: 10px;
+        border: 1px solid var(--line); background: var(--panel); color: var(--paper);
+        font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+      }
+      button.primary { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+      button[aria-pressed="true"] { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+
+      /* Edit view */
+      #edit { max-width: 880px; margin: 0 auto; padding: 16px; }
+      header.bar { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 20px; justify-content: space-between; margin-bottom: 14px; }
+      h1 { margin: 0; font: 700 34px/1 var(--display); letter-spacing: 1px; text-transform: uppercase; }
+      .muted { color: var(--muted); font-size: 15px; }
+      textarea#script {
+        width: 100%; min-height: 46vh; resize: vertical; padding: 14px; border-radius: 12px;
+        border: 1px solid var(--line); background: var(--panel); color: var(--paper);
+        font-size: 19px; line-height: 1.5;
+      }
+      .controls { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; margin: 14px 0; }
+      @media (max-width: 640px) { .controls { grid-template-columns: 1fr; } }
+      .control { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+      .control label { display: flex; justify-content: space-between; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+      input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--gold); }
+      .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      #stats { font-size: 17px; }
+
+      /* Prompt view */
+      #prompt { position: fixed; inset: 0; background: #000; color: #fff; overflow: hidden; touch-action: manipulation; }
+      #stage { position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      #stage::-webkit-scrollbar { display: none; }
+      #text {
+        padding: 42vh 6vw; font-size: var(--size, 56px); line-height: 1.42; font-weight: 600;
+        text-align: left; max-width: 980px; margin: 0 auto; transform: scaleX(var(--mirror, 1));
+        transform-origin: center;
+      }
+      #text p { margin: 0 0 0.7em; }
+      #guide {
+        position: absolute; left: 0; right: 0; top: 40%; height: 3px; pointer-events: none;
+        background: linear-gradient(90deg, transparent, var(--gold) 15%, var(--gold) 85%, transparent);
+        opacity: 0.7;
+      }
+      #bar {
+        position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+        padding: 10px; background: rgba(14, 26, 46, 0.92); border-top: 1px solid var(--line);
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      }
+      #bar button { background: #182b49; }
+      #bar button.primary { background: var(--gold); }
+      #hint { position: absolute; top: 12px; left: 0; right: 0; text-align: center; color: var(--muted); font-size: 14px; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <main id="edit">
+      <header class="bar">
+        <div>
+          <a class="home" href="../">← T.IM Studio</a>
+          <h1>Teleprompter</h1>
+          <p class="muted">Paste your script, set the pace, then open the prompter. Saved on this device.</p>
+        </div>
+      </header>
+
+      <label for="script" class="muted">Script</label>
+      <textarea id="script" placeholder="Paste or type your script. Blank lines start a new paragraph."></textarea>
+      <p id="stats" class="muted" role="status" aria-live="polite"></p>
+
+      <div class="controls">
+        <div class="control">
+          <label for="wpm">Speed <span id="wpm-value"></span></label>
+          <input id="wpm" type="range" min="60" max="260" step="5" />
+          <div class="row" style="margin-top: 8px">
+            <button id="slower" type="button" aria-label="Slower">−5</button>
+            <button id="faster" type="button" aria-label="Faster">+5</button>
+          </div>
+        </div>
+        <div class="control">
+          <label for="size">Text size <span id="size-value"></span></label>
+          <input id="size" type="range" min="28" max="120" step="2" />
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="open" class="primary" type="button">Open prompter</button>
+        <button id="clear" type="button">Clear script</button>
+      </div>
+    </main>
+
+    <section id="prompt" hidden aria-label="Prompter">
+      <div id="stage">
+        <div id="text"></div>
+      </div>
+      <div id="guide" aria-hidden="true"></div>
+      <div id="hint">Tap the text to start or pause. Drag to scroll by hand.</div>
+      <nav id="bar" aria-label="Prompter controls">
+        <button id="play" class="primary" type="button">Start</button>
+        <button id="restart" type="button">Top</button>
+        <button id="smaller" type="button" aria-label="Smaller text">A−</button>
+        <button id="bigger" type="button" aria-label="Larger text">A+</button>
+        <button id="mirror" type="button" aria-pressed="false">Mirror</button>
+        <button id="exit" type="button">Exit</button>
+      </nav>
+    </section>
+
+    <script type="module">
+      import {
+        WPM_DEFAULT,
+        clamp,
+        wordCount,
+        estimateSeconds,
+        formatDuration,
+        scrollPxPerSecond,
+      } from './model.mjs';
+
+      const KEY = 'tim-teleprompter-v1';
+      const $ = (id) => document.getElementById(id);
+      const els = {
+        script: $('script'), stats: $('stats'), wpm: $('wpm'), wpmValue: $('wpm-value'),
+        size: $('size'), sizeValue: $('size-value'), open: $('open'), clear: $('clear'),
+        slower: $('slower'), faster: $('faster'),
+        edit: $('edit'), prompt: $('prompt'), stage: $('stage'), text: $('text'),
+        play: $('play'), restart: $('restart'), smaller: $('smaller'), bigger: $('bigger'),
+        mirror: $('mirror'), exit: $('exit'),
+      };
+
+      // Settings and script are saved on this device. Bad saved data falls back to defaults.
+      const state = { script: '', wpm: WPM_DEFAULT, size: 56, mirror: false };
+      try {
+        const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+        if (saved && typeof saved === 'object') {
+          if (typeof saved.script === 'string') state.script = saved.script;
+          if (Number.isFinite(saved.wpm)) state.wpm = clamp(saved.wpm, 60, 260);
+          if (Number.isFinite(saved.size)) state.size = clamp(saved.size, 28, 120);
+          if (typeof saved.mirror === 'boolean') state.mirror = saved.mirror;
+        }
+      } catch {
+        /* unreadable settings: keep the defaults */
+      }
+
+      function persist() {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(state));
+        } catch {
+          /* storage full or blocked: the prompter still works for this visit */
+        }
+      }
+
+      function renderEdit() {
+        els.script.value = state.script;
+        els.wpm.value = state.wpm;
+        els.wpmValue.textContent = state.wpm + ' wpm';
+        els.size.value = state.size;
+        els.sizeValue.textContent = state.size + ' px';
+        const words = wordCount(state.script);
+        els.stats.textContent = words
+          ? `${words} words · about ${formatDuration(estimateSeconds(state.script, state.wpm))} at this speed`
+          : 'No script yet.';
+        els.open.disabled = !words;
+      }
+
+      els.script.addEventListener('input', () => {
+        state.script = els.script.value;
+        persist();
+        renderEdit();
+      });
+      els.wpm.addEventListener('input', () => {
+        state.wpm = clamp(Number(els.wpm.value), 60, 260);
+        persist();
+        renderEdit();
+      });
+      els.size.addEventListener('input', () => {
+        state.size = clamp(Number(els.size.value), 28, 120);
+        persist();
+        renderEdit();
+      });
+      els.slower.onclick = () => { state.wpm = clamp(state.wpm - 5, 60, 260); persist(); renderEdit(); };
+      els.faster.onclick = () => { state.wpm = clamp(state.wpm + 5, 60, 260); persist(); renderEdit(); };
+      els.clear.onclick = () => {
+        if (!state.script || !confirm('Clear the script on this device?')) return;
+        state.script = '';
+        persist();
+        renderEdit();
+      };
+
+      // ---- Prompter -------------------------------------------------------
+      let playing = false;
+      let pos = 0;        // scroll position we are steering, in px
+      let lastSet = 0;    // value we last wrote, to tell our scrolling from the reader's
+      let frame = 0;
+      let last = 0;
+      let lock = null;
+      let words = 0;
+
+      function renderPrompt() {
+        els.text.replaceChildren();
+        const paragraphs = state.script.split(/\n\s*\n/).filter((p) => p.trim());
+        for (const block of paragraphs) {
+          const p = document.createElement('p');
+          block.split('\n').forEach((line, i) => {
+            if (i) p.append(document.createElement('br'));
+            p.append(document.createTextNode(line.trim()));
+          });
+          els.text.append(p);
+        }
+        words = wordCount(state.script);
+        document.documentElement.style.setProperty('--size', state.size + 'px');
+        document.documentElement.style.setProperty('--mirror', state.mirror ? '-1' : '1');
+        els.mirror.setAttribute('aria-pressed', String(state.mirror));
+      }
+
+      const maxScroll = () => Math.max(0, els.stage.scrollHeight - els.stage.clientHeight);
+
+      function setPos(value) {
+        pos = clamp(value, 0, maxScroll());
+        lastSet = pos;
+        els.stage.scrollTop = pos;
+      }
+
+      function updatePlayButton() {
+        els.play.textContent = playing ? 'Pause' : 'Start';
+      }
+
+      function tick(now) {
+        const seconds = (now - last) / 1000;
+        last = now;
+        const speed = scrollPxPerSecond(state.wpm, words, maxScroll());
+        setPos(pos + speed * seconds);
+        if (pos >= maxScroll() - 0.5) {
+          pause();
+          return;
+        }
+        frame = requestAnimationFrame(tick);
+      }
+
+      function play() {
+        if (playing || !words) return;
+        if (pos >= maxScroll() - 0.5) setPos(0);
+        playing = true;
+        last = performance.now();
+        frame = requestAnimationFrame(tick);
+        updatePlayButton();
+      }
+
+      function pause() {
+        playing = false;
+        cancelAnimationFrame(frame);
+        updatePlayButton();
+      }
+
+      // A finger drag or wheel scroll moves the text away from where we put it: stop and follow the reader.
+      els.stage.addEventListener('scroll', () => {
+        if (Math.abs(els.stage.scrollTop - lastSet) > 2) {
+          pos = els.stage.scrollTop;
+          lastSet = pos;
+          if (playing) pause();
+        }
+      });
+
+      // Tapping the text toggles playback, but not when the reader was dragging.
+      let tapStart = null;
+      els.stage.addEventListener('pointerdown', (e) => { tapStart = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+      els.stage.addEventListener('pointerup', (e) => {
+        if (!tapStart) return;
+        const moved = Math.hypot(e.clientX - tapStart.x, e.clientY - tapStart.y);
+        const quick = performance.now() - tapStart.t < 400;
+        tapStart = null;
+        if (moved < 10 && quick) playing ? pause() : play();
+      });
+
+      async function keepAwake() {
+        try {
+          if ('wakeLock' in navigator && !lock) {
+            lock = await navigator.wakeLock.request('screen');
+            lock.addEventListener('release', () => { lock = null; });
+          }
+        } catch {
+          /* not supported or denied: the screen may dim, which is fine */
+        }
+      }
+      function releaseAwake() {
+        lock?.release().catch(() => {});
+        lock = null;
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') pause();
+        else if (!els.prompt.hidden) keepAwake();
+      });
+
+      function openPrompt() {
+        renderPrompt();
+        els.edit.hidden = true;
+        els.prompt.hidden = false;
+        setPos(pos);
+        keepAwake();
+        requestAnimationFrame(() => setPos(pos)); // layout settles after showing
+      }
+
+      function closePrompt() {
+        pause();
+        releaseAwake();
+        els.prompt.hidden = true;
+        els.edit.hidden = false;
+        renderEdit();
+      }
+
+      els.open.onclick = openPrompt;
+      els.exit.onclick = closePrompt;
+      els.play.onclick = (e) => { e.stopPropagation(); playing ? pause() : play(); };
+      els.restart.onclick = () => { pause(); setPos(0); };
+      els.smaller.onclick = () => { state.size = clamp(state.size - 4, 28, 120); persist(); renderPrompt(); setPos(pos); };
+      els.bigger.onclick = () => { state.size = clamp(state.size + 4, 28, 120); persist(); renderPrompt(); setPos(pos); };
+      els.mirror.onclick = () => { state.mirror = !state.mirror; persist(); renderPrompt(); };
+      renderEdit();
+    </script>
+  </body>
+</html>

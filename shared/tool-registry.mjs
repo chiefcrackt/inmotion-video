@@ -29,6 +29,15 @@ export const TOOLS = Object.freeze([
     icon: 'idea',
   },
   {
+    id: 'teleprompter',
+    name: 'Teleprompter',
+    href: 'teleprompter/',
+    description: 'Paste a script and scroll it at a steady pace on an iPad, with mirror mode and a reading line.',
+    workspaces: ['plan'],
+    keywords: ['teleprompter', 'script', 'prompter', 'read', 'ipad', 'scroll', 'speech', 'mirror'],
+    icon: 'idea',
+  },
+  {
     id: 'shoot-planner',
     name: 'Shoot Planner',
     href: 'shoot-planner/',

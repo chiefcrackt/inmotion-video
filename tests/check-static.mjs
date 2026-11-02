@@ -9,6 +9,8 @@ const files = [
   'content-planner/index.html',
   'content-planner/app.mjs',
   'shoot-planner/index.html',
+  'teleprompter/index.html',
+  'teleprompter/model.mjs',
   'text-motion/index.html',
   'text-motion/app.js',
   'text-motion/alpha-video.js',
