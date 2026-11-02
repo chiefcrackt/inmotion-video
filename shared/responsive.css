@@ -1,0 +1,70 @@
+/* Shared ergonomics; preview bitmap/export dimensions stay in each tool. */
+html {
+  scroll-padding-block: 20px;
+  -webkit-text-size-adjust: 100%;
+}
+:where(button, input, select, textarea, summary, a) {
+  touch-action: manipulation;
+}
+:where(button, input, select, textarea, summary, a):focus-visible {
+  outline: 3px solid #e8c96a;
+  outline-offset: 3px;
+}
+html body :is(button, select, textarea, input:not([type='checkbox']):not([type='radio']):not([type='range'])) {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 40px;
+}
+:where(fieldset, .studio > *, .workspace > *, .layout > *, .tim-project-body) {
+  min-width: 0;
+}
+:where(dialog) {
+  box-sizing: border-box;
+  max-width: calc(100% - 24px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+}
+:where(.tim-projects summary, .home) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.tim-projects summary { display: list-item; align-content: center; }
+/* A horizontal row's 180px basis must not become a vertical field height. */
+.controls fieldset > .field { flex: 0 1 auto; }
+
+@media (min-width: 900px) {
+  .chips { flex-wrap: wrap; }
+  .desk-nav a { display: inline-flex; align-items: center; min-height: 44px; }
+}
+
+@media (max-width: 650px), (pointer: coarse) {
+  html body :is(button, select, textarea, input:not([type='checkbox']):not([type='radio']):not([type='range'])) {
+    min-height: 44px;
+  }
+  input[type='range'] { min-height: 36px; }
+  html body :is(input, select, textarea) { font-size: 16px; }
+  :where(.resizeHandle) { width: 24px; height: 24px; right: -12px; bottom: -12px; }
+}
+
+@media (max-width: 650px) {
+  body {
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  }
+  body#top { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .stagebox { padding: 10px; }
+  .stagebox .stage { min-height: 140px; }
+  .stagebox #cv { max-height: 42svh; object-fit: contain; }
+  .preview .stage { height: clamp(200px, 42svh, 360px); padding: 12px; }
+  .stagebar { gap: 8px; }
+  .stagebar .readout { flex-basis: 100%; margin-left: 0; letter-spacing: 1px; }
+  .section-head { flex-wrap: wrap; gap: 4px 12px; }
+  .pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tim-actions > * { min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
