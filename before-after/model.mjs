@@ -13,29 +13,54 @@ export const DEFAULT_LENGTH = 5; // seconds for the animated version
 export const MIN_LENGTH = 3;
 export const MAX_LENGTH = 10;
 
+export const ZOOM_MIN = 1;
+export const ZOOM_MAX = 3;
+export const SPLIT_DEFAULT = 0.5;
+
+// Per-photo adjustments. Defaults show the photo filling the frame, centred, unrotated.
+export const PHOTO_DEFAULTS = Object.freeze({ zoom: 1, panX: 0, panY: 0, rotation: 0, fit: 'fill' });
+
 export function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-// Scale and crop an image to cover a frame, centred. Returns the source rectangle and the destination rectangle.
-export function coverRects(imgW, imgH, frameW, frameH) {
-  if (!(imgW > 0) || !(imgH > 0) || !(frameW > 0) || !(frameH > 0)) {
-    return { src: { x: 0, y: 0, w: 0, h: 0 }, dst: { x: 0, y: 0, w: frameW || 0, h: frameH || 0 } };
+// Where a photo is drawn inside the frame. Returns the destination rectangle, in frame pixels.
+// fill: the photo covers the frame and the overflow can be panned. fit: the whole photo shows,
+// with bars where it does not reach the edges. zoom multiplies the fill/fit scale. pan runs from -1 to 1
+// and moves the photo to its edge of available overflow, so 0 is centred.
+export function placeImage(imgW, imgH, frameW, frameH, adjust = {}) {
+  const a = { ...PHOTO_DEFAULTS, ...adjust };
+  const rot = ((Math.round(a.rotation / 90) % 4) + 4) % 4;
+  // Rotating a photo a quarter turn swaps its width and height.
+  const w = rot % 2 ? imgH : imgW;
+  const h = rot % 2 ? imgW : imgH;
+  if (!(w > 0) || !(h > 0) || !(frameW > 0) || !(frameH > 0)) {
+    return { x: 0, y: 0, w: 0, h: 0, rotation: rot * 90 };
   }
-  const scale = Math.max(frameW / imgW, frameH / imgH);
-  const srcW = frameW / scale;
-  const srcH = frameH / scale;
+  const zoom = clamp(Number(a.zoom) || 1, ZOOM_MIN, ZOOM_MAX);
+  const base = a.fit === 'fit' ? Math.min(frameW / w, frameH / h) : Math.max(frameW / w, frameH / h);
+  const scale = base * zoom;
+  const dw = w * scale;
+  const dh = h * scale;
+  const overX = Math.max(0, (dw - frameW) / 2);
+  const overY = Math.max(0, (dh - frameH) / 2);
   return {
-    src: { x: (imgW - srcW) / 2, y: (imgH - srcH) / 2, w: srcW, h: srcH },
-    dst: { x: 0, y: 0, w: frameW, h: frameH },
+    x: (frameW - dw) / 2 + clamp(Number(a.panX) || 0, -1, 1) * overX,
+    y: (frameH - dh) / 2 + clamp(Number(a.panY) || 0, -1, 1) * overY,
+    w: dw,
+    h: dh,
+    rotation: rot * 90,
   };
 }
 
-// Where the divider sits, from 0 (far left) to 1 (far right). The Before image shows left of it, After right of it.
-export const SPLIT_DEFAULT = 0.5;
+// How far, in frame pixels, a photo can move in each direction before its edge shows. Used to turn
+// a drag into pan values.
+export function panRange(imgW, imgH, frameW, frameH, adjust = {}) {
+  const r = placeImage(imgW, imgH, frameW, frameH, { ...adjust, panX: 0, panY: 0 });
+  return { x: Math.max(0, (r.w - frameW) / 2), y: Math.max(0, (r.h - frameH) / 2) };
+}
 
-// Timeline for the animated version: hold on Before, sweep the divider from the right edge to the left
-// revealing After, then hold on After until the total length is reached.
+// Timeline for the animated version: hold on Before, change to After, then hold on After until the total length.
 export function timelineTimes(totalSeconds) {
   const total = clamp(Number(totalSeconds) || DEFAULT_LENGTH, MIN_LENGTH, MAX_LENGTH);
   const hold = 1.0;
@@ -43,17 +68,27 @@ export function timelineTimes(totalSeconds) {
   return { total, holdBefore: hold, sweep, holdAfter: Math.max(0.5, total - hold - sweep) };
 }
 
-// Divider position at time t (seconds from the start of the animation).
+// Wipe: divider position at time t, from 1 (all Before) to 0 (all After), eased in and out.
 export function splitAt(t, totalSeconds) {
   const { holdBefore, sweep, total } = timelineTimes(totalSeconds);
   if (t <= holdBefore) return 1;
   if (t >= holdBefore + sweep || t >= total) return 0;
   const k = (t - holdBefore) / sweep;
-  const eased = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; // ease in-out cubic
+  const eased = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
   return 1 - eased;
 }
 
-// Chosen frame for a label chip: a clear space at the top of the frame, scaled to the frame width.
-export function labelSize(frameWidth) {
-  return { font: Math.round(frameWidth * 0.042), pad: Math.round(frameWidth * 0.024) };
+// Fade: how much After shows at time t, from 0 (all Before) to 1 (all After).
+export function fadeAt(t, totalSeconds) {
+  const { holdBefore, sweep, total } = timelineTimes(totalSeconds);
+  if (t <= holdBefore) return 0;
+  if (t >= holdBefore + sweep || t >= total) return 1;
+  const k = (t - holdBefore) / sweep;
+  return k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+}
+
+// Label chip sizes, scaled to the frame's shorter side so they stay proportionate in every format.
+export function labelSize(frameWidth, frameHeight = frameWidth) {
+  const s = Math.min(frameWidth, frameHeight);
+  return { font: Math.round(s * 0.042), pad: Math.round(s * 0.024) };
 }

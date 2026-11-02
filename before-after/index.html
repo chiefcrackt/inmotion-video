@@ -32,43 +32,54 @@
       a.home:hover { color: var(--gold); }
       button, input, select { font: inherit; }
       button {
-        min-height: 44px; min-width: 44px; padding: 0 16px; border-radius: 10px;
+        min-height: 44px; min-width: 44px; padding: 0 14px; border-radius: 10px;
         border: 1px solid var(--line); background: var(--panel); color: var(--paper);
         font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
       }
       button.primary { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+      button[aria-pressed="true"] { background: var(--gold); color: var(--navy); border-color: var(--gold); }
       button:disabled { opacity: 0.45; cursor: default; }
       input[type="text"], select {
         width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 10px;
         border: 1px solid var(--line); background: var(--navy); color: var(--paper);
       }
       input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--gold); }
+      input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--gold); }
       h1 { margin: 0; font: 700 34px/1 var(--display); letter-spacing: 1px; text-transform: uppercase; }
       .muted { color: var(--muted); font-size: 15px; }
-      .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+      .wrap { max-width: 1140px; margin: 0 auto; padding: 16px; }
       header { margin-bottom: 16px; }
       .layout { display: grid; gap: 18px; grid-template-columns: 1fr; }
-      @media (min-width: 900px) { .layout { grid-template-columns: 360px 1fr; align-items: start; } }
+      @media (min-width: 960px) { .layout { grid-template-columns: 380px 1fr; align-items: start; } }
       .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 12px; }
       .panel h2 { margin: 0; font: 700 18px/1 var(--display); letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); }
-      .photo { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center; }
+      .photo-card { border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 10px; }
+      .photo-head { display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: center; }
       .thumb {
-        width: 72px; height: 72px; border-radius: 10px; border: 1px dashed var(--line);
-        background: var(--navy) center / cover no-repeat; display: grid; place-items: center; color: var(--muted); font-size: 12px;
+        width: 64px; height: 64px; border-radius: 10px; border: 1px dashed var(--line);
+        background: var(--navy) center / cover no-repeat;
       }
-      .thumb.has { border-style: solid; border-color: var(--teal); color: transparent; }
-      .photo input[type="file"] { width: 100%; min-height: 44px; color: var(--muted); }
-      .photo label { display: grid; gap: 6px; }
-      .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-      .seg button[aria-pressed="true"] { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+      .thumb.has { border-style: solid; border-color: var(--teal); }
+      .photo-head input[type="file"] { width: 100%; min-height: 44px; color: var(--muted); }
+      .adjust { display: grid; gap: 8px; }
+      .adjust label { display: grid; gap: 4px; font-size: 15px; color: var(--muted); }
+      .adjust label span.val { float: right; color: var(--paper); }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .swatches { display: flex; gap: 8px; }
+      .swatch { width: 44px; height: 44px; border-radius: 10px; border: 2px solid var(--line); padding: 0; min-width: 0; }
+      .swatch[aria-pressed="true"] { border-color: var(--gold); }
+      .check { display: flex; gap: 10px; align-items: center; min-height: 44px; }
       .actions { display: grid; gap: 10px; }
       #msg { min-height: 1.4em; margin: 0; font-size: 16px; color: var(--muted); }
       #msg.err { color: var(--danger); }
       .preview { display: grid; gap: 12px; justify-items: center; }
+      .mode { display: grid; grid-template-columns: repeat(3, auto); gap: 8px; justify-content: center; }
       #canvas {
-        display: block; width: auto; height: auto; max-width: 100%; max-height: 72vh;
-        border-radius: 12px; border: 1px solid var(--line); background: #000; touch-action: none; cursor: ew-resize;
+        display: block; width: auto; height: auto; max-width: 100%; max-height: 70vh;
+        border-radius: 12px; border: 1px solid var(--line); background: #000; touch-action: none;
       }
+      #canvas.grab { cursor: grab; }
       #canvas.busy { cursor: progress; }
       .hint { font-size: 15px; color: var(--muted); text-align: center; margin: 0; }
     </style>
@@ -78,99 +89,182 @@
       <header>
         <a class="home" href="../">← All T.im video tools</a>
         <h1>Before &amp; After</h1>
-        <p class="muted">Add two photos. Export a still image, or an animated wipe from before to after.</p>
+        <p class="muted">Add two photos, frame each one, then export a still or an animation.</p>
       </header>
 
       <div class="layout">
         <aside class="panel" aria-label="Settings">
           <h2>Photos</h2>
-          <div class="photo">
-            <div id="thumb-before" class="thumb">Before</div>
-            <label>
-              <span class="muted">Before photo</span>
-              <input id="file-before" type="file" accept="image/*" />
-            </label>
-          </div>
-          <div class="photo">
-            <div id="thumb-after" class="thumb">After</div>
-            <label>
-              <span class="muted">After photo</span>
-              <input id="file-after" type="file" accept="image/*" />
-            </label>
-          </div>
-          <button id="swap" type="button">Swap before and after</button>
 
-          <h2>Labels</h2>
-          <label class="muted">Before label <input id="label-before" type="text" maxlength="20" value="Before" /></label>
-          <label class="muted">After label <input id="label-after" type="text" maxlength="20" value="After" /></label>
-          <label class="muted">Caption (optional) <input id="caption" type="text" maxlength="60" placeholder="e.g. 12 weeks in" /></label>
+          <div class="photo-card" data-slot="before">
+            <div class="photo-head">
+              <div class="thumb" id="thumb-before"></div>
+              <label class="muted">Before photo <input id="file-before" type="file" accept="image/*" /></label>
+            </div>
+            <div class="adjust">
+              <div class="row">
+                <button type="button" data-fit="before" data-value="fill" aria-pressed="true">Fill frame</button>
+                <button type="button" data-fit="before" data-value="fit" aria-pressed="false">Show whole</button>
+              </div>
+              <label>Zoom <span class="val" id="zoom-before-v"></span><input id="zoom-before" type="range" min="100" max="300" step="1" /></label>
+              <label>Move left / right <span class="val" id="panx-before-v"></span><input id="panx-before" type="range" min="-100" max="100" step="1" /></label>
+              <label>Move up / down <span class="val" id="pany-before-v"></span><input id="pany-before" type="range" min="-100" max="100" step="1" /></label>
+              <div class="row">
+                <button type="button" data-rotate="before">Rotate ↻</button>
+                <button type="button" data-reset="before">Reset photo</button>
+              </div>
+            </div>
+          </div>
 
-          <h2>Format</h2>
+          <div class="photo-card" data-slot="after">
+            <div class="photo-head">
+              <div class="thumb" id="thumb-after"></div>
+              <label class="muted">After photo <input id="file-after" type="file" accept="image/*" /></label>
+            </div>
+            <div class="adjust">
+              <div class="row">
+                <button type="button" data-fit="after" data-value="fill" aria-pressed="true">Fill frame</button>
+                <button type="button" data-fit="after" data-value="fit" aria-pressed="false">Show whole</button>
+              </div>
+              <label>Zoom <span class="val" id="zoom-after-v"></span><input id="zoom-after" type="range" min="100" max="300" step="1" /></label>
+              <label>Move left / right <span class="val" id="panx-after-v"></span><input id="panx-after" type="range" min="-100" max="100" step="1" /></label>
+              <label>Move up / down <span class="val" id="pany-after-v"></span><input id="pany-after" type="range" min="-100" max="100" step="1" /></label>
+              <div class="row">
+                <button type="button" data-rotate="after">Rotate ↻</button>
+                <button type="button" data-reset="after">Reset photo</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <button id="swap" type="button">Swap</button>
+            <button id="reset" type="button">Clear both</button>
+          </div>
+
+          <h2>Layout</h2>
+          <label class="muted">Split
+            <select id="orientation">
+              <option value="horizontal">Left and right</option>
+              <option value="vertical">Top and bottom</option>
+            </select>
+          </label>
           <label class="muted">Frame
             <select id="aspect"></select>
           </label>
           <label class="muted">Still divider position <span id="split-value"></span>
             <input id="split" type="range" min="0" max="100" step="1" />
           </label>
-          <label class="muted">Animation length <span id="length-value"></span>
+          <div class="check"><input id="show-divider" type="checkbox" checked /><label for="show-divider">Show divider line</label></div>
+          <div class="check"><input id="show-labels" type="checkbox" checked /><label for="show-labels">Show labels</label></div>
+          <label class="muted">Label position
+            <select id="label-pos">
+              <option value="top">Top</option>
+              <option value="bottom">Bottom</option>
+            </select>
+          </label>
+          <label class="muted">Before label <input id="label-before" type="text" maxlength="20" value="Before" /></label>
+          <label class="muted">After label <input id="label-after" type="text" maxlength="20" value="After" /></label>
+          <label class="muted">Caption (optional) <input id="caption" type="text" maxlength="60" placeholder="e.g. 12 weeks in" /></label>
+          <div>
+            <p class="muted" style="margin: 0 0 6px">Background (shows behind photos set to “Show whole”)</p>
+            <div class="swatches" id="bg-swatches">
+              <button class="swatch" type="button" data-bg="#0e1a2e" style="background:#0e1a2e" aria-label="Navy" aria-pressed="true"></button>
+              <button class="swatch" type="button" data-bg="#000000" style="background:#000" aria-label="Black" aria-pressed="false"></button>
+              <button class="swatch" type="button" data-bg="#f6f4ef" style="background:#f6f4ef" aria-label="White" aria-pressed="false"></button>
+            </div>
+          </div>
+
+          <h2>Animation</h2>
+          <label class="muted">Style
+            <select id="style">
+              <option value="wipe">Wipe across</option>
+              <option value="fade">Fade</option>
+            </select>
+          </label>
+          <label class="muted">Length <span id="length-value"></span>
             <input id="length" type="range" min="3" max="10" step="0.5" />
           </label>
 
           <div class="actions">
             <button id="png" class="primary" type="button">Save still (PNG)</button>
             <button id="clip" type="button">Record animation</button>
-            <button id="reset" type="button">Clear photos</button>
           </div>
           <p id="msg" role="status" aria-live="polite"></p>
         </aside>
 
         <section class="preview" aria-label="Preview">
+          <div class="mode" role="group" aria-label="Drag on the preview to">
+            <button type="button" data-mode="divider" aria-pressed="true">Move divider</button>
+            <button type="button" data-mode="before" aria-pressed="false">Move before photo</button>
+            <button type="button" data-mode="after" aria-pressed="false">Move after photo</button>
+          </div>
           <canvas id="canvas" width="1080" height="1920" aria-label="Before and after preview"></canvas>
-          <p class="hint">Drag across the preview to move the divider. The animation starts with Before and wipes to After.</p>
+          <p class="hint" id="hint">Drag across the preview to move the divider.</p>
         </section>
       </div>
     </div>
 
     <script type="module">
-      import { ASPECTS, DEFAULT_ASPECT, DEFAULT_LENGTH, clamp, coverRects, timelineTimes, splitAt, labelSize, SPLIT_DEFAULT } from './model.mjs';
+      import {
+        ASPECTS, PHOTO_DEFAULTS, clamp, placeImage, panRange, timelineTimes, splitAt, fadeAt, labelSize, SPLIT_DEFAULT,
+      } from './model.mjs';
 
       const $ = (id) => document.getElementById(id);
       const canvas = $('canvas');
       const ctx = canvas.getContext('2d');
+      const SLOTS = ['before', 'after'];
       const photos = { before: null, after: null };
       const urls = { before: null, after: null };
-      let aspect = DEFAULT_ASPECT;
-      let split = SPLIT_DEFAULT;
-      let length = DEFAULT_LENGTH;
+      const adj = { before: { ...PHOTO_DEFAULTS }, after: { ...PHOTO_DEFAULTS } };
+      const opt = {
+        aspect: '9:16',
+        orientation: 'horizontal',
+        split: SPLIT_DEFAULT,
+        showDivider: true,
+        showLabels: true,
+        labelPos: 'top',
+        bg: '#0e1a2e',
+        style: 'wipe',
+        length: 5,
+        mode: 'divider',
+      };
       let recording = false;
+      const fontFamily = getComputedStyle(document.body).fontFamily;
 
-      for (const [key, info] of Object.entries(ASPECTS)) {
-        $('aspect').add(new Option(info.label + ' (' + key + ')', key));
-      }
-      $('aspect').value = aspect;
+      for (const [key, info] of Object.entries(ASPECTS)) $('aspect').add(new Option(info.label + ' (' + key + ')', key));
 
       function say(text, isError) {
         $('msg').textContent = text;
         $('msg').classList.toggle('err', !!isError);
       }
 
-      function frameSize() {
-        return ASPECTS[aspect];
+      function frame() {
+        return ASPECTS[opt.aspect];
       }
 
-      function setCanvasSize() {
-        const { width, height } = frameSize();
+      function ensureCanvasSize() {
+        const { width, height } = frame();
         if (canvas.width !== width) canvas.width = width;
         if (canvas.height !== height) canvas.height = height;
       }
 
-      function drawCover(img, W, H) {
-        const r = coverRects(img.naturalWidth, img.naturalHeight, W, H);
-        ctx.drawImage(img, r.src.x, r.src.y, r.src.w, r.src.h, r.dst.x, r.dst.y, r.dst.w, r.dst.h);
+      function drawPhoto(slot, W, H) {
+        const img = photos[slot];
+        if (!img) return;
+        const a = adj[slot];
+        const p = placeImage(img.naturalWidth, img.naturalHeight, W, H, a);
+        const odd = p.rotation % 180 !== 0;
+        const uw = odd ? p.h : p.w; // size before the quarter turn
+        const uh = odd ? p.w : p.h;
+        ctx.save();
+        ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.drawImage(img, -uw / 2, -uh / 2, uw, uh);
+        ctx.restore();
       }
 
       function chip(text, x, y, font, pad, alignRight) {
-        ctx.font = `700 ${font}px ${getComputedStyle(document.body).fontFamily}`;
+        ctx.font = `700 ${font}px ${fontFamily}`;
         ctx.textBaseline = 'top';
         const label = text.toUpperCase();
         const w = ctx.measureText(label).width + pad * 2;
@@ -182,48 +276,68 @@
         ctx.fillText(label, left + pad, y + font * 0.22);
       }
 
-      // Draws the whole frame with the divider at `at` (0 = all After, 1 = all Before).
-      function drawFrame(at) {
-        const { width: W, height: H } = frameSize();
-        setCanvasSize();
-        ctx.fillStyle = '#0e1a2e';
+      // Draws the frame. wipeSplit: 1 = all Before, 0 = all After. fadeAmount: 0 = all Before, 1 = all After.
+      function drawFrame({ wipeSplit = null, fadeAmount = null, showDivider = opt.showDivider } = {}) {
+        ensureCanvasSize();
+        const { width: W, height: H } = frame();
+        const horizontal = opt.orientation === 'horizontal';
+        ctx.fillStyle = opt.bg;
         ctx.fillRect(0, 0, W, H);
-        const x = Math.round(W * clamp(at, 0, 1));
-        if (photos.after) {
+        const boundary = horizontal ? W * clamp(wipeSplit ?? opt.split, 0, 1) : H * clamp(wipeSplit ?? opt.split, 0, 1);
+
+        if (fadeAmount !== null) {
+          drawPhoto('before', W, H);
+          if (photos.after && fadeAmount > 0) {
+            ctx.save();
+            ctx.globalAlpha = clamp(fadeAmount, 0, 1);
+            drawPhoto('after', W, H);
+            ctx.restore();
+          }
+        } else {
+          // Before fills the first part of the frame (left or top), After the rest.
           ctx.save();
           ctx.beginPath();
-          ctx.rect(x, 0, W - x, H);
+          if (horizontal) ctx.rect(0, 0, boundary, H);
+          else ctx.rect(0, 0, W, boundary);
           ctx.clip();
-          drawCover(photos.after, W, H);
+          drawPhoto('before', W, H);
           ctx.restore();
-        }
-        if (photos.before) {
           ctx.save();
           ctx.beginPath();
-          ctx.rect(0, 0, x, H);
+          if (horizontal) ctx.rect(boundary, 0, W - boundary, H);
+          else ctx.rect(0, boundary, W, H - boundary);
           ctx.clip();
-          drawCover(photos.before, W, H);
+          drawPhoto('after', W, H);
           ctx.restore();
         }
-        if (photos.before && photos.after && x > 0 && x < W) {
+
+        const showLine = showDivider && photos.before && photos.after && fadeAmount === null && boundary > 0 && (horizontal ? boundary < W : boundary < H);
+        if (showLine) {
           ctx.fillStyle = '#e8c96a';
-          ctx.fillRect(x - W * 0.004, 0, W * 0.008, H);
-          const r = W * 0.035;
+          const t = W * 0.008;
+          if (horizontal) ctx.fillRect(boundary - t / 2, 0, t, H);
+          else ctx.fillRect(0, boundary - t / 2, W, t);
+          const r = Math.min(W, H) * 0.035;
+          const cx = horizontal ? boundary : W / 2;
+          const cy = horizontal ? H / 2 : boundary;
           ctx.beginPath();
-          ctx.arc(x, H / 2, r, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#0e1a2e';
-          ctx.beginPath();
-          ctx.moveTo(x - r * 0.45, H / 2); ctx.lineTo(x - r * 0.9, H / 2 - r * 0.45); ctx.lineTo(x - r * 0.9, H / 2 + r * 0.45);
-          ctx.moveTo(x + r * 0.45, H / 2); ctx.lineTo(x + r * 0.9, H / 2 - r * 0.45); ctx.lineTo(x + r * 0.9, H / 2 + r * 0.45);
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
           ctx.fill();
         }
-        const size = labelSize(W);
-        if (photos.before) chip($('label-before').value || 'Before', size.pad, size.pad, size.font, size.pad, false);
-        if (photos.after) chip($('label-after').value || 'After', W - size.pad, size.pad, size.font, size.pad, true);
+
+        const size = labelSize(W, H);
+        const top = opt.labelPos === 'top';
+        if (opt.showLabels) {
+          const y = top ? size.pad : (horizontal ? H - size.pad - size.font * 1.5 : H - size.pad - size.font * 1.5);
+          if (photos.before) chip(($('label-before').value || 'Before'), size.pad, y, size.font, size.pad, false);
+          if (photos.after) {
+            if (horizontal) chip(($('label-after').value || 'After'), W - size.pad, y, size.font, size.pad, true);
+            else chip(($('label-after').value || 'After'), size.pad, top ? H - size.pad - size.font * 1.5 : size.pad, size.font, size.pad, false);
+          }
+        }
         const caption = $('caption').value.trim();
         if (caption && photos.before && photos.after) {
-          ctx.font = `700 ${size.font * 1.1}px ${getComputedStyle(document.body).fontFamily}`;
+          ctx.font = `700 ${size.font * 1.1}px ${fontFamily}`;
           ctx.textBaseline = 'middle';
           ctx.textAlign = 'center';
           ctx.fillStyle = 'rgba(14, 26, 46, 0.88)';
@@ -236,11 +350,11 @@
       }
 
       function drawStill() {
-        drawFrame(split);
+        drawFrame({ wipeSplit: opt.split });
         if (!photos.before && !photos.after) {
-          const { width: W, height: H } = frameSize();
+          const { width: W, height: H } = frame();
           ctx.fillStyle = '#9fb0c8';
-          ctx.font = `700 ${Math.round(W * 0.04)}px ${getComputedStyle(document.body).fontFamily}`;
+          ctx.font = `700 ${Math.round(Math.min(W, H) * 0.045)}px ${fontFamily}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('Add a before and an after photo', W / 2, H / 2);
@@ -248,11 +362,36 @@
         }
       }
 
+      function setPressed(selector, attr, value) {
+        document.querySelectorAll(selector).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset[attr] === value)));
+      }
+
       function syncControls() {
-        $('split-value').textContent = Math.round(split * 100) + '% before';
-        $('split').value = Math.round(split * 100);
-        $('length-value').textContent = length.toFixed(1) + ' s';
-        $('length').value = length;
+        $('split-value').textContent = Math.round(opt.split * 100) + '%';
+        $('split').value = Math.round(opt.split * 100);
+        $('orientation').value = opt.orientation;
+        $('aspect').value = opt.aspect;
+        $('show-divider').checked = opt.showDivider;
+        $('show-labels').checked = opt.showLabels;
+        $('label-pos').value = opt.labelPos;
+        $('style').value = opt.style;
+        $('length-value').textContent = opt.length.toFixed(1) + ' s';
+        $('length').value = opt.length;
+        setPressed('[data-bg]', 'bg', opt.bg);
+        setPressed('[data-mode]', 'mode', opt.mode);
+        for (const slot of SLOTS) {
+          const a = adj[slot];
+          $('zoom-' + slot).value = Math.round(a.zoom * 100);
+          $('zoom-' + slot + '-v').textContent = Math.round(a.zoom * 100) + '%';
+          $('panx-' + slot).value = Math.round(a.panX * 100);
+          $('panx-' + slot + '-v').textContent = Math.round(a.panX * 100);
+          $('pany-' + slot).value = Math.round(a.panY * 100);
+          $('pany-' + slot + '-v').textContent = Math.round(a.panY * 100);
+          document.querySelectorAll(`[data-fit="${slot}"]`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.value === a.fit)));
+          const t = $('thumb-' + slot);
+          t.classList.toggle('has', !!photos[slot]);
+          t.style.backgroundImage = urls[slot] ? `url("${urls[slot]}")` : '';
+        }
         const ready = !!(photos.before && photos.after);
         $('png').disabled = !ready || recording;
         $('clip').disabled = !ready || recording;
@@ -260,11 +399,10 @@
         $('reset').disabled = recording;
         $('aspect').disabled = recording;
         canvas.classList.toggle('busy', recording);
-        for (const key of ['before', 'after']) {
-          const t = $('thumb-' + key);
-          t.classList.toggle('has', !!photos[key]);
-          t.style.backgroundImage = urls[key] ? `url("${urls[key]}")` : '';
-        }
+        canvas.classList.toggle('grab', opt.mode !== 'divider');
+        $('hint').textContent = opt.mode === 'divider'
+          ? 'Drag across the preview to move the divider.'
+          : 'Drag the preview to move the ' + opt.mode + ' photo. Use the sliders for fine control.';
       }
 
       function refresh() {
@@ -272,7 +410,7 @@
         syncControls();
       }
 
-      async function loadPhoto(file, key) {
+      async function loadPhoto(file, slot) {
         if (!file) return;
         const url = URL.createObjectURL(file);
         const img = new Image();
@@ -284,55 +422,110 @@
           say('That photo could not be opened. Try a JPEG or PNG.', true);
           return;
         }
-        if (urls[key]) URL.revokeObjectURL(urls[key]);
-        photos[key] = img;
-        urls[key] = url;
+        if (urls[slot]) URL.revokeObjectURL(urls[slot]);
+        photos[slot] = img;
+        urls[slot] = url;
+        adj[slot] = { ...PHOTO_DEFAULTS };
         say('');
         refresh();
       }
 
-      $('file-before').onchange = (e) => loadPhoto(e.target.files[0], 'before');
-      $('file-after').onchange = (e) => loadPhoto(e.target.files[0], 'after');
+      for (const slot of SLOTS) {
+        $('file-' + slot).onchange = (e) => loadPhoto(e.target.files[0], slot);
+        $('zoom-' + slot).oninput = (e) => { adj[slot].zoom = clamp(Number(e.target.value) / 100, 1, 3); refresh(); };
+        $('panx-' + slot).oninput = (e) => { adj[slot].panX = clamp(Number(e.target.value) / 100, -1, 1); refresh(); };
+        $('pany-' + slot).oninput = (e) => { adj[slot].panY = clamp(Number(e.target.value) / 100, -1, 1); refresh(); };
+      }
+      document.querySelectorAll('[data-fit]').forEach((b) => {
+        b.onclick = () => { adj[b.dataset.fit].fit = b.dataset.value; refresh(); };
+      });
+      document.querySelectorAll('[data-rotate]').forEach((b) => {
+        b.onclick = () => { const a = adj[b.dataset.rotate]; a.rotation = (a.rotation + 90) % 360; refresh(); };
+      });
+      document.querySelectorAll('[data-reset]').forEach((b) => {
+        b.onclick = () => { adj[b.dataset.reset] = { ...PHOTO_DEFAULTS }; refresh(); };
+      });
+      document.querySelectorAll('[data-bg]').forEach((b) => {
+        b.onclick = () => { opt.bg = b.dataset.bg; refresh(); };
+      });
+      document.querySelectorAll('[data-mode]').forEach((b) => {
+        b.onclick = () => { opt.mode = b.dataset.mode; refresh(); };
+      });
+
       $('swap').onclick = () => {
         [photos.before, photos.after] = [photos.after, photos.before];
         [urls.before, urls.after] = [urls.after, urls.before];
+        [adj.before, adj.after] = [adj.after, adj.before];
         refresh();
       };
       $('reset').onclick = () => {
-        if (!confirm('Clear both photos?')) return;
-        for (const key of ['before', 'after']) {
-          if (urls[key]) URL.revokeObjectURL(urls[key]);
-          photos[key] = null;
-          urls[key] = null;
+        if (!confirm('Clear both photos and their settings?')) return;
+        for (const slot of SLOTS) {
+          if (urls[slot]) URL.revokeObjectURL(urls[slot]);
+          photos[slot] = null;
+          urls[slot] = null;
+          adj[slot] = { ...PHOTO_DEFAULTS };
         }
         say('');
         refresh();
       };
+      $('orientation').onchange = (e) => { opt.orientation = e.target.value; refresh(); };
+      $('aspect').onchange = (e) => { opt.aspect = e.target.value; refresh(); };
+      $('split').oninput = (e) => { opt.split = clamp(Number(e.target.value) / 100, 0, 1); refresh(); };
+      $('show-divider').onchange = (e) => { opt.showDivider = e.target.checked; refresh(); };
+      $('show-labels').onchange = (e) => { opt.showLabels = e.target.checked; refresh(); };
+      $('label-pos').onchange = (e) => { opt.labelPos = e.target.value; refresh(); };
+      $('style').onchange = (e) => { opt.style = e.target.value; syncControls(); };
+      $('length').oninput = (e) => { opt.length = Number(e.target.value); syncControls(); };
       ['label-before', 'label-after', 'caption'].forEach((id) => $(id).addEventListener('input', refresh));
-      $('aspect').onchange = () => { aspect = $('aspect').value; refresh(); };
-      $('split').oninput = () => { split = clamp(Number($('split').value) / 100, 0, 1); refresh(); };
-      $('length').oninput = () => { length = Number($('length').value); syncControls(); };
 
-      // Drag across the preview to move the divider.
-      let dragging = false;
-      function splitFromEvent(e) {
+      // Dragging on the preview: move the divider, or pan the chosen photo.
+      let drag = null;
+      function pointerToFrame(e) {
         const rect = canvas.getBoundingClientRect();
-        return clamp((e.clientX - rect.left) / rect.width, 0, 1);
+        const sx = canvas.width / rect.width;
+        const sy = canvas.height / rect.height;
+        return { x: (e.clientX - rect.left) * sx, y: (e.clientY - rect.top) * sy, rect };
       }
       canvas.addEventListener('pointerdown', (e) => {
-        if (recording || !(photos.before && photos.after)) return;
-        dragging = true;
+        if (recording) return;
+        const { x, y, rect } = pointerToFrame(e);
+        const { width: W, height: H } = frame();
+        if (opt.mode === 'divider') {
+          if (!(photos.before && photos.after)) return;
+          drag = { kind: 'divider' };
+          opt.split = clamp(opt.orientation === 'horizontal' ? x / W : y / H, 0, 1);
+          refresh();
+        } else {
+          const slot = opt.mode;
+          if (!photos[slot]) return;
+          drag = { kind: 'photo', slot, lastX: x, lastY: y, rect };
+        }
         canvas.setPointerCapture(e.pointerId);
-        split = splitFromEvent(e);
-        refresh();
       });
       canvas.addEventListener('pointermove', (e) => {
-        if (!dragging) return;
-        split = splitFromEvent(e);
+        if (!drag) return;
+        const { x, y } = pointerToFrame(e);
+        const { width: W, height: H } = frame();
+        if (drag.kind === 'divider') {
+          opt.split = clamp(opt.orientation === 'horizontal' ? x / W : y / H, 0, 1);
+          refresh();
+          return;
+        }
+        const img = photos[drag.slot];
+        const a = adj[drag.slot];
+        const range = panRange(img.naturalWidth, img.naturalHeight, W, H, a);
+        const dx = x - drag.lastX;
+        const dy = y - drag.lastY;
+        drag.lastX = x;
+        drag.lastY = y;
+        if (range.x > 0) a.panX = clamp(a.panX + dx / range.x, -1, 1);
+        if (range.y > 0) a.panY = clamp(a.panY + dy / range.y, -1, 1);
         refresh();
       });
-      canvas.addEventListener('pointerup', () => { dragging = false; });
-      canvas.addEventListener('pointercancel', () => { dragging = false; });
+      const endDrag = () => { drag = null; };
+      canvas.addEventListener('pointerup', endDrag);
+      canvas.addEventListener('pointercancel', endDrag);
 
       // Delivery: the iPad share sheet when it can take a file, otherwise a normal download.
       async function deliver(blob, name) {
@@ -358,7 +551,7 @@
 
       function stem() {
         const base = ($('caption').value || 'before-after').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-        return (base || 'before-after') + '-' + aspect.replace(':', 'x');
+        return (base || 'before-after') + '-' + opt.aspect.replace(':', 'x');
       }
 
       $('png').onclick = () => {
@@ -382,6 +575,11 @@
         return '';
       }
 
+      function animationFrame(t) {
+        if (opt.style === 'fade') drawFrame({ fadeAmount: fadeAt(t, opt.length) });
+        else drawFrame({ wipeSplit: splitAt(t, opt.length) });
+      }
+
       $('clip').onclick = () => {
         if (!(photos.before && photos.after)) return;
         const type = pickType();
@@ -395,12 +593,12 @@
         }
         recording = true;
         syncControls();
-        const total = timelineTimes(length).total;
+        const total = timelineTimes(opt.length).total;
         const start = performance.now();
-        const frame = () => {
+        const step = () => {
           const t = (performance.now() - start) / 1000;
-          drawFrame(splitAt(t, length));
-          if (t < total) requestAnimationFrame(frame);
+          animationFrame(t);
+          if (t < total) requestAnimationFrame(step);
           else if (mr.state !== 'inactive') mr.stop();
         };
         mr.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
@@ -414,7 +612,7 @@
         };
         mr.start(500);
         say('Recording ' + total.toFixed(1) + ' s. Keep this page open.');
-        frame();
+        step();
       };
 
       refresh();
