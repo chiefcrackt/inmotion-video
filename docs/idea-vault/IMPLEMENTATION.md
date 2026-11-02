@@ -8,7 +8,7 @@ The app caches its working data in localStorage pending Google authorization. Cl
 ## Current limits and next development
 - Imported source items are linked metadata only, not copied outline text. PDF duplicate omitted. Reference docs are differentiated from video ideas.
 - Cloud mode is intentionally opt-in and not configured yet: needs real Google OAuth client ID. Browser sync only occurs while the page is open and authorized.
-- AppData file uses Drive file metadata version preflight before writing, and rejects a stale remote version. This is **not an atomic compare-and-swap**. Do not advertise reliable simultaneous editing; future work should use per-idea files or a transactional backend if concurrent writes become common.
+- AppData file is reconciled before writing: when the cloud version differs from the last one seen, the cloud copy is merged per idea (newer `updatedAt` wins, ties keep local, nothing is deleted) and a local safety snapshot is saved first. The upload is still **not an atomic compare-and-swap**: a write by another device between the version check and the upload can be overwritten. Do not advertise reliable simultaneous editing; future work should use per-idea files or a transactional backend if concurrent writes become common. Duplicate workspace files are refused rather than picked.
 - Local draft is browser-local, and explicit remote conflict must be resolved manually. Export JSON regularly.
 - A client OAuth consent screen in Testing can require periodic reauthorization. No refresh tokens or private keys are stored.
 - Future: structured sections, rich shot lists, Docs creation via drive.file/Docs, automatic scan of folder using Picker, T.IM tool handoffs, full IndexedDB queue, privacy-safe secured backup.
