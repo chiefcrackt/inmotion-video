@@ -7,8 +7,12 @@ import {
   clamp,
   formats,
   splitLayer,
+  motionOptions,
+  suggestedMotion,
+  entranceMotions,
 } from './model.mjs';
 import { image, prepare, render, selection, hitTest } from './render.mjs';
+import { templates, templateScene } from '../product-spotlight/templates.mjs';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas'),
   key = 'tim-asset-animator-v1';
@@ -23,6 +27,7 @@ let state = initial(),
   videoName = '',
   videoURL = '',
   cancelRecording = null;
+let timelinePreview = false;
 try {
   const saved = JSON.parse(localStorage.getItem(key) || 'null');
   if (saved) state = validate(saved);
@@ -50,7 +55,7 @@ function stop() {
   $('play').textContent = 'Play animation';
 }
 function paint() {
-  render(canvas, state, position, { still: !playing && position === 0 });
+  render(canvas, state, position, { still: !playing && !timelinePreview });
   selection($('selection'), state, playing ? '' : selected);
   const [w, h] = formats[state.format];
   $('stage').style.aspectRatio = w + '/' + h;
@@ -75,6 +80,21 @@ function sync() {
   const l = chosen();
   $('layerEditor').hidden = !l;
   if (l) {
+    $('motion').replaceChildren(
+      ...motionOptions(l).map((m) => new Option(m.label, m.value)),
+    );
+    $('entranceControls').hidden = !entranceMotions.includes(l.motion);
+    $('delay').max = (state.duration - 0.1).toFixed(1);
+    $('entrance').max = (state.duration - (l.delay ?? 0)).toFixed(1);
+    $('delay').value = l.delay ?? 0;
+    $('entrance').value = l.entrance ?? Math.min(1.4, state.duration);
+    $('delayValue').value = Number(l.delay ?? 0).toFixed(1) + 's';
+    $('entranceValue').value =
+      Number(l.entrance ?? Math.min(1.4, state.duration)).toFixed(1) + 's';
+    $('motionHint').textContent =
+      l.kind === 'text'
+        ? 'Type-on keeps each letter in its final position. Entrances finish and hold.'
+        : 'Draw-in follows the actual vector paths. Build-in moves separate parts. Entrances finish and hold.';
     $('textControls').hidden = l.kind !== 'text';
     for (const field of [
       'x',
@@ -114,12 +134,14 @@ function sync() {
     b.disabled = busy || state.layers.length >= 12;
   $('png').disabled = $('export').disabled =
     busy || !state.layers.some((l) => l.visible);
+  $('sequence').disabled = busy || !state.layers.length;
   paint();
 }
 function change(fn) {
   if (busy) return;
   stop();
   position = 0;
+  timelinePreview = false;
   fn();
   persist();
   sync();
@@ -138,6 +160,7 @@ async function addAsset(asset) {
     selected = l.id;
     stop();
     position = 0;
+    timelinePreview = false;
     persist();
     say(asset.name + ' added. Drag it or use the position controls.');
     return true;
@@ -178,6 +201,48 @@ function filter() {
   $('noMatches').hidden = n > 0;
 }
 $('pack').onchange = $('search').oninput = filter;
+for (const [id, item] of templates)
+  $('template').add(new Option(item.name, id));
+async function applyTemplate(id) {
+  if (busy) return false;
+  if (!templates.has(id)) {
+    say('That Product Spotlight template was not found.');
+    return false;
+  }
+  if (
+    state.layers.length &&
+    !confirm(
+      'Replace the current graphic with this Product Spotlight template?',
+    )
+  )
+    return false;
+  busy = true;
+  sync();
+  try {
+    const next = validate(templateScene(id));
+    await prepare(next);
+    await document.fonts.ready;
+    stop();
+    position = 0;
+    timelinePreview = false;
+    state = next;
+    selected = state.layers[1]?.id || state.layers[0].id;
+    persist();
+    say('Template ready. Select a text layer to change the wording.');
+    return true;
+  } catch (e) {
+    say(e.message);
+    return false;
+  } finally {
+    busy = false;
+    sync();
+  }
+}
+$('template').onchange = () => {
+  const id = $('template').value;
+  $('template').value = '';
+  if (id) applyTemplate(id);
+};
 $('addText').onclick = () =>
   change(() => {
     if (state.layers.length >= 12) return;
@@ -189,6 +254,7 @@ $('layers').onchange = () => {
   if (busy) return;
   stop();
   position = 0;
+  timelinePreview = false;
   selected = $('layers').value;
   sync();
 };
@@ -203,6 +269,8 @@ for (const field of [
   'color',
   'motion',
   'visible',
+  'delay',
+  'entrance',
 ])
   $(field).addEventListener('input', () =>
     change(() => {
@@ -214,6 +282,11 @@ for (const field of [
             : ['text', 'color', 'motion'].includes(field)
               ? $(field).value
               : Number($(field).value);
+      if (l && field === 'delay')
+        l.entrance = Math.max(
+          0.1,
+          Math.min(l.entrance ?? 1.4, state.duration - l.delay),
+        );
     }),
   );
 for (const [button, step] of [
@@ -252,6 +325,7 @@ $('split').onclick = async () => {
     await prepare(next);
     stop();
     position = 0;
+    timelinePreview = false;
     state = next;
     selected = state.layers[index].id;
     persist();
@@ -267,11 +341,18 @@ $('split').onclick = async () => {
 };
 for (const field of ['format', 'duration', 'mode'])
   $(field).onchange = () =>
-    change(
-      () =>
-        (state[field] =
-          field === 'duration' ? Number($(field).value) : $(field).value),
-    );
+    change(() => {
+      state[field] =
+        field === 'duration' ? Number($(field).value) : $(field).value;
+      if (field === 'duration')
+        for (const l of state.layers) {
+          l.delay = Math.min(l.delay ?? 0, state.duration - 0.1);
+          l.entrance = Math.max(
+            0.1,
+            Math.min(l.entrance ?? 1.4, state.duration - l.delay),
+          );
+        }
+    });
 $('clear').onclick = () => {
   if (
     !busy &&
@@ -279,6 +360,43 @@ $('clear').onclick = () => {
     confirm('Remove all layers from this canvas?')
   )
     change(() => (state.layers = []));
+};
+function previewFromStart() {
+  position = 0;
+  timelinePreview = true;
+  playing = true;
+  started = performance.now();
+  $('play').textContent = 'Pause animation';
+  paint();
+}
+$('suggest').onclick = () => {
+  if (busy || !chosen()) return;
+  change(() => {
+    const l = chosen();
+    l.motion = suggestedMotion(l);
+    l.delay = 0;
+    l.entrance = Math.min(1.5, state.duration);
+  });
+  previewFromStart();
+};
+$('sequence').onclick = () => {
+  if (busy || !state.layers.length) return;
+  change(() => {
+    state.layers.forEach((l, i) => {
+      l.motion = suggestedMotion(l);
+      l.delay = Math.min(
+        state.duration * 0.45,
+        i * state.duration * 0.055 +
+          (l.kind === 'text' ? state.duration * 0.22 : 0),
+      );
+      l.entrance = Math.min(
+        state.duration - l.delay,
+        state.duration * (l.kind === 'text' ? 0.32 : 0.38),
+      );
+    });
+  });
+  say('Entrance sequence ready. Each layer reveals, then holds.');
+  previewFromStart();
 };
 $('play').onclick = () => {
   if (busy) return;
@@ -288,6 +406,7 @@ $('play').onclick = () => {
     return;
   }
   playing = true;
+  timelinePreview = true;
   started = performance.now() - position * 1000;
   $('play').textContent = 'Pause animation';
 };
@@ -295,6 +414,7 @@ $('scrub').oninput = () => {
   if (busy) return;
   stop();
   position = Number($('scrub').value) * state.duration;
+  timelinePreview = true;
   paint();
 };
 function tick(now) {
@@ -315,6 +435,7 @@ canvas.addEventListener('pointerdown', (e) => {
   if (busy) return;
   stop();
   position = 0;
+  timelinePreview = false;
   const p = coordinates(e),
     l = hitTest(state, p.x, p.y);
   if (!l) {
@@ -526,6 +647,7 @@ window.TimProjects.mount({
     state = next;
     selected = state.layers.at(-1)?.id || '';
     position = 0;
+    timelinePreview = false;
     persist();
     sync();
   },
@@ -544,6 +666,14 @@ prepare(state)
     sync();
     const url = new URL(location.href),
       requested = url.searchParams.get('asset');
+    const preset = url.searchParams.get('template');
+    if (preset) {
+      await applyTemplate(preset);
+      url.searchParams.delete('template');
+      url.searchParams.delete('asset');
+      history.replaceState(null, '', url);
+      return;
+    }
     if (requested) {
       const item = byId.get(requested);
       if (item) {

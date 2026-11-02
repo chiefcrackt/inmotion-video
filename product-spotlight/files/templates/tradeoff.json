@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — Pros + trade-off",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "tradeoff-graphic",
+          "kind": "asset",
+          "asset": "spotlight:tradeoff"
+        },
+        {
+          "x": 50,
+          "y": 54.2375,
+          "size": 69.66666666666667,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "tradeoff-text-0",
+          "kind": "text",
+          "text": "WORKS FOR ME",
+          "color": "#e8c96a",
+          "fontSize": 41
+        },
+        {
+          "x": 50,
+          "y": 58.775,
+          "size": 69.66666666666667,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "tradeoff-text-1",
+          "kind": "text",
+          "text": "Add a specific benefit",
+          "color": "#f6f4ef",
+          "fontSize": 42
+        },
+        {
+          "x": 50,
+          "y": 68.125,
+          "size": 69.66666666666667,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "tradeoff-text-2",
+          "kind": "text",
+          "text": "WORTH CONSIDERING",
+          "color": "#2e9bad",
+          "fontSize": 41
+        },
+        {
+          "x": 50,
+          "y": 72.6625,
+          "size": 69.66666666666667,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "tradeoff-text-3",
+          "kind": "text",
+          "text": "Add a practical trade-off",
+          "color": "#f6f4ef",
+          "fontSize": 42
+        }
+      ]
+    }
+  }
+}

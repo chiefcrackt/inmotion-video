@@ -1,5 +1,11 @@
 import { byId } from './catalog.mjs';
-import { formats, transform } from './model.mjs';
+import {
+  formats,
+  transform,
+  entranceMotions,
+  entranceProgress,
+} from './model.mjs';
+import { prepareNative, drawNative } from './native-motion.mjs';
 const images = new Map();
 export async function image(id) {
   if (images.has(id)) return images.get(id);
@@ -29,7 +35,10 @@ export async function prepare(state) {
   await Promise.all(
     state.layers
       .filter((l) => l.kind === 'asset')
-      .map(async (l) => readyImages.set(l.asset, await image(l.asset))),
+      .map(async (l) => {
+        readyImages.set(l.asset, await image(l.asset));
+        await prepareNative(l.asset);
+      }),
   );
 }
 export function box(layer, width, height) {
@@ -81,14 +90,26 @@ export function render(
     const b = box(l, w, h),
       t = transform(l, seconds, state.duration, still),
       unit = Math.min(w, h);
+    const entrance = !still && entranceMotions.includes(l.motion),
+      progress = entrance ? entranceProgress(l, seconds, state.duration) : 1;
     c.save();
     c.translate(b.x + t.x * unit, b.y + t.y * unit);
     c.rotate(t.rotation);
     c.scale(t.scale, t.scale);
     c.globalAlpha = t.alpha;
+    if (entrance && l.motion === 'wipe') {
+      c.beginPath();
+      c.rect(-b.w / 2 - 2, -b.h / 2 - 3, (b.w + 4) * progress, b.h + 6);
+      c.clip();
+    }
     if (l.kind === 'asset') {
       const im = readyImages.get(l.asset);
-      if (im) c.drawImage(im, -b.w / 2, -b.h / 2, b.w, b.h);
+      const native =
+        entrance &&
+        l.motion !== 'wipe' &&
+        (progress < 1 || l.motion === 'break');
+      if (native) drawNative(c, l.asset, l.motion, progress, b.w, b.h);
+      else if (im) c.drawImage(im, -b.w / 2, -b.h / 2, b.w, b.h);
     } else {
       const size = (l.fontSize * unit) / 1080;
       c.font = `800 ${size}px "Barlow Condensed",Arial,sans-serif`;
@@ -96,9 +117,26 @@ export function render(
       c.textBaseline = 'middle';
       c.fillStyle = l.color;
       const lines = wrap(c, l.text, b.w);
-      lines.forEach((line, i) =>
-        c.fillText(line, 0, (i - (lines.length - 1) / 2) * size * 1.15),
+      let remaining = Math.floor(
+        lines.reduce((n, line) => n + [...line].length, 0) * progress,
       );
+      lines.forEach((line, i) => {
+        const chars = [...line],
+          shown =
+            entrance && l.motion === 'type'
+              ? chars.slice(0, Math.max(0, remaining)).join('')
+              : line;
+        remaining -= chars.length;
+        // Position partial text at the complete line's left edge, so it types in place.
+        if (entrance && l.motion === 'type') {
+          c.textAlign = 'left';
+          c.fillText(
+            shown,
+            -c.measureText(line).width / 2,
+            (i - (lines.length - 1) / 2) * size * 1.15,
+          );
+        } else c.fillText(shown, 0, (i - (lines.length - 1) / 2) * size * 1.15);
+      });
     }
     c.restore();
   }

@@ -4,7 +4,72 @@ export const formats = {
   landscape: [1920, 1080],
   portrait: [1080, 1920],
 };
-export const motions = ['none', 'pulse', 'float', 'nudge', 'spin', 'pop'];
+export const entranceMotions = [
+  'draw',
+  'build',
+  'wipe',
+  'trace',
+  'burst',
+  'break',
+  'drop',
+  'type',
+];
+export const motions = [
+  'none',
+  'pulse',
+  'float',
+  'nudge',
+  'spin',
+  'pop',
+  ...entranceMotions,
+];
+const labels = {
+  none: 'Still',
+  pulse: 'Pulse',
+  float: 'Float',
+  nudge: 'Nudge',
+  spin: 'Spin',
+  pop: 'Pop in / out',
+  draw: 'Draw the outline + fill',
+  build: 'Build piece by piece',
+  wipe: 'Wipe on',
+  trace: 'Trace with a moving marker',
+  burst: 'Burst / scatter',
+  break: 'Break the finish tape',
+  drop: 'Pin drop + landing ripple',
+  type: 'Type on',
+};
+export function motionOptions(layer) {
+  const list = ['none'];
+  if (layer.kind === 'text') list.push('type', 'wipe');
+  else {
+    list.push('draw', 'build', 'wipe');
+    const id = layer.asset || '';
+    if (
+      /route|trail|feature-(left|right|pin)|arrow-curve|ring|locator|halo/.test(
+        id,
+      )
+    )
+      list.push('trace');
+    if (/confetti|sparkle|impact|dust/.test(id)) list.push('burst');
+    if (id === 'motion:finish-tape') list.push('break');
+    if (id === 'motion:route-pin') list.push('drop');
+  }
+  list.push('pop', 'pulse', 'float', 'nudge', 'spin');
+  return list.map((value) => ({ value, label: labels[value] }));
+}
+export function suggestedMotion(layer) {
+  if (layer.kind === 'text') return 'type';
+  const available = new Set(motionOptions(layer).map((m) => m.value));
+  for (const m of ['break', 'burst', 'drop', 'trace'])
+    if (available.has(m)) return m;
+  return byId.get(layer.asset)?.parts?.length ? 'build' : 'draw';
+}
+export function entranceProgress(layer, seconds, duration) {
+  const delay = layer.delay ?? 0,
+    entrance = layer.entrance ?? Math.min(1.4, duration - delay);
+  return clamp((seconds - delay) / entrance, 0, 1);
+}
 export const initial = () => ({
   format: 'square',
   duration: 4,
@@ -73,6 +138,15 @@ export function validate(input) {
       out.color = l.color;
       out.fontSize = number(l.fontSize, 12, 240, 'text size');
     }
+    if (!motionOptions(out).some((m) => m.value === out.motion))
+      throw Error('This motion does not match the selected layer.');
+    out.delay = number(l.delay ?? 0, 0, duration - 0.1, 'start delay');
+    out.entrance = number(
+      l.entrance ?? Math.min(1.4, duration - out.delay),
+      0.1,
+      duration - out.delay,
+      'entrance duration',
+    );
     return out;
   });
   return { format: input.format, duration, mode: input.mode, layers };
@@ -88,6 +162,8 @@ export function newLayer(kind, asset) {
     opacity: 100,
     motion: 'none',
     visible: true,
+    delay: 0,
+    entrance: 1.4,
   };
   return kind === 'asset'
     ? { ...l, asset }
@@ -102,7 +178,12 @@ export function splitLayer(state, id) {
     throw Error('Remove a layer first to make room for these parts.');
   return [
     ...state.layers.slice(0, index),
-    ...parts.map((p) => ({ ...l, id: crypto.randomUUID(), asset: p.id })),
+    ...parts.map((p) => {
+      const part = { ...l, id: crypto.randomUUID(), asset: p.id };
+      if (!motionOptions(part).some((m) => m.value === part.motion))
+        part.motion = 'draw';
+      return part;
+    }),
     ...state.layers.slice(index + 1),
   ];
 }

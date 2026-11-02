@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — Affiliate link label",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "affiliate-label-graphic",
+          "kind": "asset",
+          "asset": "spotlight:affiliate-label"
+        },
+        {
+          "x": 55.5,
+          "y": 64,
+          "size": 58.666666666666664,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "affiliate-label-text-0",
+          "kind": "text",
+          "text": "Affiliate link",
+          "color": "#f6f4ef",
+          "fontSize": 45
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — Compact product tag",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "product-tag-graphic",
+          "kind": "asset",
+          "asset": "spotlight:product-tag"
+        },
+        {
+          "x": 46.22857142857143,
+          "y": 64,
+          "size": 61.28571428571428,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "product-tag-text-0",
+          "kind": "text",
+          "text": "PRODUCT NAME",
+          "color": "#f6f4ef",
+          "fontSize": 68
+        }
+      ]
+    }
+  }
+}

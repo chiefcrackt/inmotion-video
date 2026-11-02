@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — Product nameplate",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "product-name-graphic",
+          "kind": "asset",
+          "asset": "spotlight:product-name"
+        },
+        {
+          "x": 51.22222222222222,
+          "y": 63.45,
+          "size": 64.77777777777777,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "product-name-text-0",
+          "kind": "text",
+          "text": "PRODUCT NAME",
+          "color": "#f6f4ef",
+          "fontSize": 63
+        }
+      ]
+    }
+  }
+}

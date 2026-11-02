@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — Why I use it",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "why-use-graphic",
+          "kind": "asset",
+          "asset": "spotlight:why-use"
+        },
+        {
+          "x": 50,
+          "y": 58.225,
+          "size": 70.88888888888889,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "why-use-text-0",
+          "kind": "text",
+          "text": "WHY I USE IT",
+          "color": "#e8c96a",
+          "fontSize": 50
+        },
+        {
+          "x": 50,
+          "y": 66.8875,
+          "size": 68.44444444444446,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "why-use-text-1",
+          "kind": "text",
+          "text": "Add your own reason",
+          "color": "#f6f4ef",
+          "fontSize": 53
+        }
+      ]
+    }
+  }
+}

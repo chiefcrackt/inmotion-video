@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — Feature callout · right",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "feature-right-graphic",
+          "kind": "asset",
+          "asset": "spotlight:feature-right"
+        },
+        {
+          "x": 62.83333333333333,
+          "y": 63.3125,
+          "size": 47.66666666666667,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "feature-right-text-0",
+          "kind": "text",
+          "text": "FEATURE / DETAIL",
+          "color": "#f6f4ef",
+          "fontSize": 46
+        }
+      ]
+    }
+  }
+}

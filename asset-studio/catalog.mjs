@@ -1,6 +1,31 @@
 import { icons } from '../icon-pack/icons.mjs';
 import { assets } from '../motion-stats/assets.mjs';
+import { assets as spotlight } from '../product-spotlight/assets.mjs';
 export const catalog = Object.freeze([
+  ...spotlight.map((a) => ({
+    id: 'spotlight:' + a.id,
+    name: a.name,
+    pack: 'spotlight',
+    category: a.category,
+    width: a.width,
+    height: a.height,
+    src: new URL(
+      '../product-spotlight/files/svg/' + a.id + '.svg',
+      import.meta.url,
+    ).href,
+    parts: a.layers.map((l) => ({
+      id: 'spotlight-part:' + a.id + ':' + l.id,
+      name: a.name + ' / ' + l.id.replaceAll('-', ' '),
+      pack: 'spotlight',
+      category: a.category,
+      width: a.width,
+      height: a.height,
+      src: new URL(
+        '../product-spotlight/files/layers/' + a.id + '/' + l.id + '.svg',
+        import.meta.url,
+      ).href,
+    })),
+  })),
   ...icons.map((a) => ({
     id: 'icon:' + a.id,
     name: a.name,
