@@ -721,10 +721,36 @@ function showDocSection(i) {
     );
   }
   $('doc-refresh').textContent = cached ? 'Refresh document' : 'Show document';
-  // Opening the workspace refreshes the document, but only when access is already
-  // held. A popup is never opened for this, so it cannot be blocked or surprise you.
-  if (i.sourceId && docsToken && Date.now() < docsTokenExpiresAt) {
+  // Opening the workspace refreshes the document. It never opens a popup or the
+  // Picker: if Google can renew access silently, the document loads; otherwise the
+  // "Show document" button stays as the one manual step.
+  if (!i.sourceId) return;
+  if (docsTokenValid()) {
     loadDocument(i, { auto: true });
+    return;
+  }
+  silentDocsToken().then((ok) => {
+    if (ok && selected === i.id) loadDocument(i, { auto: true });
+  });
+}
+
+function docsTokenValid() {
+  return Boolean(docsToken) && Date.now() < docsTokenExpiresAt;
+}
+
+// Asks Google for a drive.file token without any prompt. Resolves false when the
+// browser cannot do it silently (no Google session, blocked third-party cookies).
+async function silentDocsToken() {
+  if (docsTokenValid()) return true;
+  if (!window.google?.accounts?.oauth2) return false;
+  try {
+    const grant = await requestGrant(DRIVE_FILE_SCOPE, '');
+    docsToken = grant.access_token;
+    docsTokenExpiresAt =
+      Date.now() + ((Number(grant.expires_in) || 3600) - 60) * 1000;
+    return true;
+  } catch {
+    return false;
   }
 }
 

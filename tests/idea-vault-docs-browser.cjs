@@ -300,6 +300,17 @@ async function openWorkspace(page) {
 // Press the document button and wait until the load has finished (success or error).
 async function pressDocButton(page) {
   await page.click('#doc-refresh');
+  // Wait for this press to start loading (busy), then for it to finish. Waiting only
+  // for "not loading" can match a status left by an earlier automatic attempt.
+  await page
+    .waitForFunction(
+      () =>
+        document.getElementById('doc-viewer').getAttribute('aria-busy') ===
+        'true',
+      null,
+      { timeout: 1500 },
+    )
+    .catch(() => {});
   await page.waitForFunction(
     () =>
       document.getElementById('doc-viewer').getAttribute('aria-busy') ===
@@ -308,6 +319,19 @@ async function pressDocButton(page) {
       !/^(Loading|Refreshing)/.test(
         document.getElementById('doc-status').textContent,
       ),
+  );
+}
+
+// Opening an idea with a linked document makes one automatic attempt. Wait for it
+// to settle so a test's own press or injected fault is not used up by it.
+async function waitForAutoAttempt(page) {
+  await page.waitForFunction(
+    () =>
+      /Press Refresh|Loaded|Could not|expired|sign-in|not granted/i.test(
+        document.getElementById('doc-status')?.textContent || '',
+      ),
+    null,
+    { timeout: 8000 },
   );
 }
 
@@ -333,6 +357,7 @@ test('the viewer loads through the Picker grant, renders structure, and fits an 
 }) => {
   const { context, page, errors } = await openDevice(browser, base, docs);
   await openWorkspace(page);
+  await waitForAutoAttempt(page);
   assert.equal(
     await page.locator('#doc-section').isHidden(),
     false,
@@ -348,8 +373,8 @@ test('the viewer loads through the Picker grant, renders structure, and fits an 
   );
   assert.deepEqual(
     docs.requests.map((r) => r.method),
-    ['GET', 'GET'],
-    'first request is refused, then retried after the grant',
+    ['GET', 'GET', 'GET'],
+    'automatic attempt refused, the press refused, then retried after the grant',
   );
   assert.ok(
     docs.requests.every((r) => r.auth.startsWith('Bearer ')),
@@ -516,6 +541,7 @@ test('expired authorization asks for sign-in, and pressing again recovers', asyn
 }) => {
   const { context, page } = await openDevice(browser, base, docs);
   await openWorkspace(page);
+  await waitForAutoAttempt(page);
   docs.faults.push({ status: 401 });
   await pressDocButton(page);
   assert.match(
@@ -600,6 +626,37 @@ test('the Picker lists documents unfiltered; picking a different document is ref
   await context.close();
 });
 
+test('opening an idea loads its document silently after one pick, even after a reload', async ({
+  browser,
+  base,
+  docs,
+}) => {
+  const { context, page } = await openDevice(browser, base, docs);
+  await openWorkspace(page);
+  // First open: nothing granted yet. No Picker, no popup; the button stays.
+  await waitForAutoAttempt(page);
+  assert.equal(await page.evaluate(() => window.__pickerOpens || 0), 0);
+  assert.match(await docStatus(page), /Press Refresh document/);
+
+  await pressDocButton(page);
+  assert.match(await docStatus(page), /Loaded/);
+  assert.equal(await page.evaluate(() => window.__pickerOpens || 0), 1);
+
+  // Reload: the in-memory token is gone. Opening the idea renews it silently and
+  // loads the document without the Picker or any tap.
+  await page.reload();
+  await openWorkspace(page);
+  await page.waitForFunction(
+    () => document.querySelector('#doc-status')?.textContent.includes('Loaded'),
+    null,
+    { timeout: 10000 },
+  );
+  // The reload reset the page's counter: no Picker was needed this time.
+  assert.equal(await page.evaluate(() => window.__pickerOpens || 0), 0);
+  assert.match(await viewerText(page), /Week one/);
+  await context.close();
+});
+
 test('a network failure shows a clear message, and retry works', async ({
   browser,
   base,
@@ -607,6 +664,7 @@ test('a network failure shows a clear message, and retry works', async ({
 }) => {
   const { context, page } = await openDevice(browser, base, docs);
   await openWorkspace(page);
+  await waitForAutoAttempt(page);
   docs.faults.push({ network: true });
   await pressDocButton(page);
   assert.match(
