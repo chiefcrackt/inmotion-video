@@ -86,7 +86,7 @@
 
       /* Quick launch */
       .quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-      @media (min-width: 700px) { .quick { grid-template-columns: repeat(6, 1fr); } }
+      @media (min-width: 700px) { .quick { grid-template-columns: repeat(7, 1fr); } }
       .quick a {
         display: grid; justify-items: center; gap: 8px; text-align: center; text-decoration: none;
         background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
@@ -192,8 +192,8 @@
       </div>
 
       <section id="continue" aria-labelledby="continue-h">
-        <div class="section-head"><h2 id="continue-h">Continue creating</h2><span>Start with your ideas</span></div>
-        <a class="feature" id="feature" href="idea-vault/"></a>
+        <div class="section-head"><h2 id="continue-h">Continue creating</h2><span>Plan your next video</span></div>
+        <a class="feature" id="feature" href="content-planner/"><span><span class="eyebrow">Plan &amp; Organize</span><h3>Content Planner</h3><p>Move videos from idea to published, with outlines, shoot plans and assets together.</p></span><span class="go">Open Content Planner →</span></a>
       </section>
 
       <section aria-labelledby="quick-h">
@@ -239,7 +239,7 @@
     <script type="module">
       import {
         WORKSPACES, TOOLS, featuredTool, quickLaunch, workspaceCounts, searchTools, getWorkspace,
-      } from './shared/tool-registry.mjs';
+      } from './shared/tool-registry.mjs?v=20261102-planners';
       import { iconSvg } from './shared/icons.mjs';
 
       const $ = (sel) => document.querySelector(sel);
@@ -271,7 +271,7 @@
         text(el('h3'), feature.name),
         text(el('p'), feature.description),
       );
-      featureEl.replaceChildren(tile, body, text(el('span', { class: 'go' }), 'Open Idea Vault →'));
+      featureEl.replaceChildren(tile, body, text(el('span', { class: 'go' }), 'Open ' + feature.name + ' →'));
 
       // Quick launch
       const quick = $('#quick');

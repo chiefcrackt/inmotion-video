@@ -18,6 +18,9 @@ export const WORKSPACES = Object.freeze([
 export const TOOLS = Object.freeze([
   {
     id: 'content-planner',
+    featured: true,
+    quick: true,
+    quickLabel: 'Plan videos',
     name: 'Content Planner',
     href: 'content-planner/',
     description: 'Move videos from idea to published, with outlines, footage and thumbnails together.',
@@ -42,7 +45,6 @@ export const TOOLS = Object.freeze([
     workspaces: ['plan'],
     keywords: ['ideas', 'planning', 'outline', 'google drive', 'production', 'notes', 'youtube'],
     icon: 'idea',
-    featured: true,
     quick: true,
     quickLabel: 'New Idea',
   },
