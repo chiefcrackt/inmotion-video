@@ -11,6 +11,11 @@ import {
   validateBackup,
 } from './model.mjs';
 import { TOOLS, getTool } from '../shared/tool-registry.mjs';
+import {
+  IDEA_KEY,
+  STAGE_FOR_STATUS,
+  reconcileLinked,
+} from '../shared/pipeline-link.mjs';
 const $ = (id) => document.getElementById(id),
   say = (t) => {
     $('status').textContent = t;
@@ -46,6 +51,18 @@ try {
       e.message,
   );
 }
+// Idea Vault ideas stored on this device. Null when missing or unreadable, so nothing is written over them.
+function readIdeas() {
+  try {
+    const d = JSON.parse(localStorage.getItem(IDEA_KEY) || 'null');
+    return d?.version === 1 && Array.isArray(d.ideas) ? d.ideas : null;
+  } catch {
+    return null;
+  }
+}
+function writeIdeas(ideas) {
+  localStorage.setItem(IDEA_KEY, JSON.stringify({ version: 1, ideas }));
+}
 function save() {
   if (loadFailed) {
     say(
@@ -62,6 +79,9 @@ function save() {
     }
     saving = true;
     try {
+      // Keep promoted ideas in step with their projects before writing either side.
+      const ideas = readIdeas();
+      if (ideas && reconcileLinked(projects, ideas)) writeIdeas(ideas);
       lastSaved = saveProjects(projects, lastSaved);
     } finally {
       saving = false;
@@ -513,7 +533,7 @@ if (new URLSearchParams(location.search).get('view') === 'shoot') {
   else say('Create a video to start its shoot plan.');
 }
 
-// Idea Vault is the source for captured ideas; copying is explicit and never edits its data.
+// Idea Vault is the source for captured ideas. Promoting an idea links it to a project, and the two stay in step.
 try {
   const vault = JSON.parse(localStorage.getItem('tim-idea-vault-v1') || 'null');
   for (const idea of (vault?.ideas || []).filter(
@@ -542,16 +562,7 @@ try {
     p.outline = String(idea.notes || '');
     p.outlineUrl = safeUrl(idea.docUrl || '');
     p.publishDate = String(idea.dueDate || '');
-    p.stage =
-      {
-        Inbox: 'Idea',
-        Developing: 'Outline',
-        'Ready to Film': 'Film',
-        Filmed: 'Edit',
-        Editing: 'Edit',
-        Scheduled: 'Scheduled',
-        Published: 'Published',
-      }[idea.status] || 'Idea';
+    p.stage = STAGE_FOR_STATUS[idea.status] || 'Idea';
     projects.push(p);
     save();
     tab = 'details';
@@ -560,6 +571,23 @@ try {
 } catch {
   $('from-idea').disabled = true;
 }
+// Bring linked ideas up to date on open, and again whenever the Idea Vault changes in another tab.
+if (!loadFailed && projects.length) {
+  const ideas = readIdeas();
+  if (ideas && reconcileLinked(projects, ideas)) {
+    writeIdeas(ideas);
+    save();
+    renderBoard();
+  }
+}
+window.addEventListener('storage', (e) => {
+  if (e.key !== IDEA_KEY || loadFailed) return;
+  const ideas = readIdeas();
+  if (!ideas || !reconcileLinked(projects, ideas)) return;
+  save();
+  renderBoard();
+  if (current) open(current.id);
+});
 
 mountDriveControls($('drive-panel'));
 function refreshFromStorage() {

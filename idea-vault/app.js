@@ -1,3 +1,4 @@
+import { PLANNER_KEY, reconcileLinked } from '../shared/pipeline-link.mjs';
 import {
   WORKSPACE_FILE,
   isWorkspace,
@@ -1131,7 +1132,23 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('online', () => syncer.notifyOnline());
 
+// Projects saved by Content Planner on this device, for keeping promoted ideas in step.
+function plannerProjects() {
+  try {
+    const d = JSON.parse(localStorage.getItem(PLANNER_KEY) || 'null');
+    return d?.version === 1 && Array.isArray(d.projects) ? d.projects : [];
+  } catch {
+    return [];
+  }
+}
 load();
+if (reconcileLinked(plannerProjects(), items, now())) persist();
+window.addEventListener('storage', (e) => {
+  if (e.key !== KEY && e.key !== PLANNER_KEY) return;
+  if (e.key === KEY) load();
+  if (reconcileLinked(plannerProjects(), items, now())) persist();
+  else render();
+});
 render();
 renderSyncState();
 // Opening Idea Vault checks the cloud and uploads anything left unsynced.
