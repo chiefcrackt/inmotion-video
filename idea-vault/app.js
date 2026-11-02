@@ -16,6 +16,14 @@ import {
   folderIdFrom,
   planImport,
 } from './vault-core.mjs';
+import {
+  documentRequestUrl,
+  classifyDocsResponse,
+  networkErrorMessage,
+  documentToModel,
+  DRIVE_FILE_SCOPE,
+} from './docs-core.mjs';
+import { renderDocument } from './docs-view.mjs';
 
 // Storage keys. Changing KEY would strand existing user data, so it stays fixed.
 const KEY = 'tim-idea-vault-v1'; // ideas, version 1 (unchanged)
@@ -36,6 +44,13 @@ let items = [],
   token = null,
   remote = null,
   importing = false;
+
+// Read-only Google Docs viewer state. Document content stays in memory only.
+let docsToken = null,
+  docsTokenExpiresAt = 0,
+  docRequest = 0,
+  pickerReady = null;
+const docCache = new Map(); // idea id -> { model, loadedAt }
 
 function notify(s) {
   $('message').textContent = s;
@@ -160,11 +175,14 @@ function open(id) {
   $('doclink').hidden = !i.docUrl;
   if (i.docUrl) $('doclink').href = i.docUrl;
   $('resolve').hidden = !i.conflictOf;
+  showDocSection(i);
   $('editor').classList.add('open');
   $('e-title').focus();
 }
 
 function close() {
+  docRequest++; // ignore any document load still running
+  setDocBusy(false);
   $('editor').classList.remove('open');
   selected = null;
 }
@@ -306,20 +324,24 @@ $('importfile').onchange = async (e) => {
 
 // ---- Google Drive appData sync -------------------------------------------
 
-function requestToken(scope) {
+// Resolves the full token response (access_token, expires_in).
+// prompt '' lets Google skip the consent screen when access already exists.
+function requestGrant(scope, prompt = 'consent') {
   return new Promise((resolve, reject) => {
     const client = google.accounts.oauth2.initTokenClient({
       client_id: window.TIM_IDEA_VAULT_CONFIG.googleClientId,
       scope,
       callback: (response) =>
-        response.error
-          ? reject(Error(response.error))
-          : resolve(response.access_token),
+        response.error ? reject(Error(response.error)) : resolve(response),
       error_callback: (e) =>
         reject(Error(e?.type || 'Google authorization cancelled')),
     });
-    client.requestAccessToken({ prompt: 'consent' });
+    client.requestAccessToken({ prompt });
   });
+}
+
+function requestToken(scope) {
+  return requestGrant(scope).then((r) => r.access_token);
 }
 
 async function driveJson(url, options = {}) {
@@ -536,6 +558,199 @@ async function sync() {
     );
   }
 }
+
+// ---- Read-only Google Docs viewer ----------------------------------------
+// Access uses drive.file: the user confirms the document in Google Picker,
+// which grants this app access to that one file. The only request made is a
+// GET to the Docs API. Nothing in this section writes to Google or to ideas.
+
+const PICKER_NOT_CONFIGURED =
+  'Document reading needs Google Picker setup. See docs/idea-vault/IMPLEMENTATION.md.';
+
+class DocsError extends Error {}
+
+function setDocStatus(s) {
+  $('doc-status').textContent = s;
+}
+function setDocBusy(busy) {
+  $('doc-refresh').disabled = busy;
+  $('doc-viewer').setAttribute('aria-busy', String(busy));
+}
+function showDocPlaceholder(s) {
+  const v = $('doc-viewer');
+  v.replaceChildren();
+  txt(v, 'p', s, 'muted');
+}
+
+function showDocSection(i) {
+  docRequest++; // cancel any load still running for another idea
+  setDocBusy(false);
+  $('doc-section').hidden = !i.sourceId;
+  setDocStatus('');
+  const cached = docCache.get(i.id);
+  if (cached) {
+    renderDocument($('doc-viewer'), cached.model);
+    setDocStatus(
+      'Showing the version loaded at ' +
+        cached.loadedAt.toLocaleTimeString() +
+        '.',
+    );
+  } else {
+    showDocPlaceholder(
+      'The document is not loaded yet. Nothing in it will be changed.',
+    );
+  }
+  $('doc-refresh').textContent = cached ? 'Refresh document' : 'Show document';
+}
+
+function loadPicker() {
+  if (!pickerReady) {
+    pickerReady = new Promise((resolve, reject) => {
+      if (!window.gapi?.load)
+        return reject(
+          Error(
+            'Google Picker has not loaded. Check your connection and try again.',
+          ),
+        );
+      window.gapi.load('picker', {
+        callback: resolve,
+        onerror: () =>
+          reject(Error('Google Picker could not load. Try again.')),
+      });
+    }).catch((e) => {
+      pickerReady = null;
+      throw e;
+    });
+  }
+  return pickerReady;
+}
+
+// Shows the Picker with this one document preselected. Resolves once the user
+// confirms it; rejects with a DocsError if they close the Picker instead.
+async function grantDocumentAccess(docId, accessToken) {
+  const { pickerApiKey, cloudProjectNumber } =
+    window.TIM_IDEA_VAULT_CONFIG || {};
+  if (!pickerApiKey || !cloudProjectNumber)
+    throw new DocsError(PICKER_NOT_CONFIGURED);
+  await loadPicker();
+  await new Promise((resolve, reject) => {
+    const picker = new google.picker.PickerBuilder()
+      .addView(
+        new google.picker.DocsView(google.picker.ViewId.DOCUMENTS).setFileIds([
+          docId,
+        ]),
+      )
+      .setOAuthToken(accessToken)
+      .setDeveloperKey(pickerApiKey)
+      .setAppId(cloudProjectNumber)
+      .setTitle('Choose this document to allow reading')
+      .setCallback((data) => {
+        const action = data[google.picker.Response.ACTION];
+        if (action === google.picker.Action.PICKED) resolve();
+        else if (action === google.picker.Action.CANCEL)
+          reject(
+            new DocsError(
+              'Document access was not granted. Press Refresh document to try again.',
+            ),
+          );
+      })
+      .build();
+    picker.setVisible(true);
+  });
+}
+
+// Reuses the drive.file token in memory until shortly before it expires.
+async function docsAccessToken() {
+  if (docsToken && Date.now() < docsTokenExpiresAt) return docsToken;
+  const grant = await requestGrant(DRIVE_FILE_SCOPE, '');
+  docsToken = grant.access_token;
+  docsTokenExpiresAt =
+    Date.now() + ((Number(grant.expires_in) || 3600) - 60) * 1000;
+  return docsToken;
+}
+
+async function requestDocument(docId, accessToken) {
+  const url = documentRequestUrl(docId);
+  try {
+    return await fetch(url, {
+      method: 'GET',
+      headers: { Authorization: 'Bearer ' + accessToken },
+    });
+  } catch {
+    // fetch rejects only when the network request itself fails.
+    throw new DocsError(networkErrorMessage());
+  }
+}
+
+async function readDocumentJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    throw new DocsError(
+      'Google Docs returned content this viewer could not read.',
+    );
+  }
+}
+
+async function loadDocument(i) {
+  const request = ++docRequest;
+  const current = () => request === docRequest && selected === i.id;
+  const cached = docCache.get(i.id);
+  setDocBusy(true);
+  setDocStatus(cached ? 'Refreshing…' : 'Loading document…');
+  try {
+    const accessToken = await docsAccessToken();
+    let response = await requestDocument(i.sourceId, accessToken);
+    let outcome = classifyDocsResponse(response.status);
+
+    if (outcome.kind === 'expired') {
+      docsToken = null; // force a fresh sign-in on the next attempt
+      throw new DocsError(outcome.message);
+    }
+    if (outcome.kind === 'forbidden' || outcome.kind === 'notfound') {
+      // The file has not been granted to this app yet: ask via Picker, then retry once.
+      await grantDocumentAccess(i.sourceId, accessToken);
+      if (!current()) return;
+      response = await requestDocument(i.sourceId, accessToken);
+      outcome = classifyDocsResponse(response.status);
+    }
+    if (outcome.kind !== 'ok') throw new DocsError(outcome.message);
+
+    const model = documentToModel(await readDocumentJson(response));
+    if (!current()) return;
+    const loadedAt = new Date();
+    docCache.set(i.id, { model, loadedAt });
+    renderDocument($('doc-viewer'), model);
+    $('doc-refresh').textContent = 'Refresh document';
+    setDocStatus(
+      'Loaded ' + loadedAt.toLocaleTimeString() + '. Read-only copy.',
+    );
+  } catch (e) {
+    if (!current()) return;
+    const message =
+      e instanceof DocsError
+        ? e.message
+        : e.message || 'Could not load the document. Try again.';
+    if (docCache.has(i.id)) {
+      // Keep the last good content on screen and say why it is not current.
+      setDocStatus(
+        message +
+          ' Showing the version loaded at ' +
+          docCache.get(i.id).loadedAt.toLocaleTimeString() +
+          '.',
+      );
+    } else {
+      setDocStatus(message);
+    }
+  } finally {
+    if (current()) setDocBusy(false);
+  }
+}
+
+$('doc-refresh').onclick = () => {
+  const i = items.find((x) => x.id === selected);
+  if (i?.sourceId) loadDocument(i);
+};
 
 // ---- Additive Google Docs import -----------------------------------------
 

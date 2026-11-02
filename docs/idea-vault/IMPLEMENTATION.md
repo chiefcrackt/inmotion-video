@@ -36,3 +36,39 @@ Open Idea Vault, paste the Google Drive folder URL into **Google Drive outlines 
 **OAuth considerations:** `drive.metadata.readonly` is a restricted Drive scope; Google's authorization warning, testing-user restrictions, and verification requirements may apply. This personal testing build must not be represented as publicly verified. If Google refuses this scope, revisit the design for Google Picker / `drive.file`, which supports user-selected files, or an import via a local JSON export. No permission to modify documents is requested.
 
 **Manual validation:** test on the actual published origin with the test Google account; import twice and confirm no duplicates; verify only Google Docs are included and PDF files ignored; create one new outline in the folder and refresh; save new cards with Sync now; confirm they load on a second device; test rejection of an inaccessible folder and denial of consent. Cloud sync's current remote-version preflight is not atomic and cannot safely merge simultaneous edits.
+
+## Read-only Google Docs viewer
+Each imported card with a linked Google Doc has an **Imported Google Doc · read-only** section in its editor. **Show document** (then **Refresh document**) reads the document through the Google Docs API (`documents.get`) and shows headings, paragraphs, bullet and numbered lists, checklists, simple tables, and links. Production notes are a separate editable field; the document content is never written into them.
+
+**Read-only by construction.** The only request is a `GET` to `https://docs.googleapis.com/v1/documents/{id}`. The viewer never calls Drive or the Docs write methods, and it stores nothing: document content and the access token live in memory only, not in localStorage, not in the ideas file, and not in the repository. Text is rendered with `textContent`; only `http(s)` links are kept.
+
+**Authorization (minimum practical scope).** The viewer requests `https://www.googleapis.com/auth/drive.file`, a non-sensitive scope that grants access only to files the user selects. Selection happens in **Google Picker**, opened with the document preselected. Flow:
+1. The first press asks for `drive.file` consent (token kept in memory until about a minute before expiry).
+2. The Docs API request is made. If Google refuses it (403/404, because the file has not been granted to this app), the Picker opens with the document preselected. Confirming it grants access, and the request is retried once.
+3. Expired authorization (401) clears the in-memory token and asks the user to press Refresh document again.
+
+The existing `drive.metadata.readonly` import scope and `drive.appdata` sync scope are unchanged.
+
+**Failure handling.** Each case shows a message in the status line: expired authorization, Picker closed without a choice, document not found or not granted, rate limit (429), Google outage (5xx), network failure, and unreadable response. A failed refresh keeps the last loaded content on screen and says when that version was loaded.
+
+### Google Cloud configuration (required before the viewer works)
+In the same Google Cloud project as the OAuth client:
+1. **Enable APIs:** Google Docs API and Google Picker API.
+2. **OAuth consent screen:** add the scope `.../auth/drive.file` (non-sensitive). Keep `drive.appdata` and `drive.metadata.readonly` as they are.
+3. **Create a browser API key** (APIs & Services → Credentials). Restrict it: *Application restrictions* → HTTP referrers, listing the GitHub Pages origin (`https://chiefcrackt.github.io/*`) and `http://localhost/*` for local testing. *API restrictions* → Google Picker API only.
+4. **Put public identifiers in `idea-vault/config.js`:**
+   - `pickerApiKey`: the restricted browser key above.
+   - `cloudProjectNumber`: the numeric project number (not the project ID). It is passed to Picker as `appId`.
+   Neither value is a secret, but do not add OAuth client secrets, tokens, or document content to this file. Without both values the viewer shows "needs Google Picker setup" and reads nothing.
+5. The OAuth client's authorized JavaScript origins must already include the origin the app runs on (unchanged from the existing setup).
+
+### Tests
+- `npm run test:idea-vault:docs`: unit tests for document parsing (headings, paragraphs, bullet, numbered and nested, roman and alpha numbering, checklists, safe and unsafe links, inline image and footnote placeholders, tables, empty documents), request-URL validation, and HTTP status classification.
+- `npm run test:idea-vault:docs:browser`: fake Docs API, Google Identity Services, and Picker, at 390×844. Covers the Picker grant and retry, rendering and formatting, no horizontal overflow, 44px touch target, script-like text as plain text, read-only behavior (only GET requests, no Drive calls, no change to ideas or notes, no new storage keys), refresh, failed refresh keeping prior content, expired authorization and recovery, Picker cancelled and recovery, network failure and retry, missing Picker configuration, and idea cards without a linked doc.
+
+### Not verified live (must check before relying on it)
+The tests use fakes. These behaviors are unverified against real Google services and must be checked on the published origin with a test account:
+- `documents.get` returns the document for a token whose only file access comes from a Picker `drive.file` grant. This is the core assumption; if Google refuses it, the viewer will keep showing the Picker prompt.
+- Picker opens with the document preselected and reports `PICKED`/`CANCEL` as the code expects.
+- Checklist state: the Docs API exposes checkbox symbols but checked state may be limited; the viewer shows open boxes unless a checked symbol is present.
+- Real-device check on iPhone Safari (scroll inside the document panel, touch targets).
