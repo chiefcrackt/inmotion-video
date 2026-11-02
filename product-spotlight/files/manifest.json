@@ -1,0 +1,681 @@
+{
+  "version": 1,
+  "name": "T.im Product Spotlight",
+  "palette": {
+    "navy": "#0e1a2e",
+    "gold": "#e8c96a",
+    "teal": "#2e9bad",
+    "paper": "#f6f4ef"
+  },
+  "rasterScale": 2,
+  "assets": [
+    {
+      "id": "product-name",
+      "name": "Product nameplate",
+      "category": "product",
+      "width": 720,
+      "height": 200,
+      "svg": "svg/product-name.svg",
+      "png": "png/product-name.png",
+      "template": "templates/product-name.json",
+      "hint": "Name the item while your footage shows it. Add a model or size if useful.",
+      "textAreas": [
+        {
+          "x": 370,
+          "y": 92,
+          "width": 530,
+          "fontSize": 48
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/product-name/panel.svg",
+          "pngInArchive": "layers/product-name/panel.png"
+        },
+        {
+          "id": "accent",
+          "svg": "layers/product-name/accent.svg",
+          "pngInArchive": "layers/product-name/accent.png"
+        }
+      ]
+    },
+    {
+      "id": "product-tag",
+      "name": "Compact product tag",
+      "category": "product",
+      "width": 560,
+      "height": 160,
+      "svg": "svg/product-tag.svg",
+      "png": "png/product-tag.png",
+      "template": "templates/product-tag.json",
+      "hint": "A short label for quick demonstrations, unboxings and gear close-ups.",
+      "textAreas": [
+        {
+          "x": 256,
+          "y": 80,
+          "width": 390,
+          "fontSize": 40
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/product-tag/panel.svg",
+          "pngInArchive": "layers/product-tag/panel.png"
+        },
+        {
+          "id": "accent",
+          "svg": "layers/product-tag/accent.svg",
+          "pngInArchive": "layers/product-tag/accent.png"
+        }
+      ]
+    },
+    {
+      "id": "product-two-line",
+      "name": "Name + detail",
+      "category": "product",
+      "width": 720,
+      "height": 260,
+      "svg": "svg/product-two-line.svg",
+      "png": "png/product-two-line.png",
+      "template": "templates/product-two-line.json",
+      "hint": "Keep the name and its specific variant on separate editable lines.",
+      "textAreas": [
+        {
+          "x": 360,
+          "y": 96,
+          "width": 560,
+          "fontSize": 46
+        },
+        {
+          "x": 360,
+          "y": 184,
+          "width": 560,
+          "fontSize": 31
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/product-two-line/panel.svg",
+          "pngInArchive": "layers/product-two-line/panel.png"
+        },
+        {
+          "id": "divider",
+          "svg": "layers/product-two-line/divider.svg",
+          "pngInArchive": "layers/product-two-line/divider.png"
+        },
+        {
+          "id": "corner",
+          "svg": "layers/product-two-line/corner.svg",
+          "pngInArchive": "layers/product-two-line/corner.png"
+        }
+      ]
+    },
+    {
+      "id": "product-badge",
+      "name": "Product badge",
+      "category": "product",
+      "width": 720,
+      "height": 220,
+      "svg": "svg/product-badge.svg",
+      "png": "png/product-badge.png",
+      "template": "templates/product-badge.json",
+      "hint": "Use the disc as a visual marker or place an icon over it.",
+      "textAreas": [
+        {
+          "x": 420,
+          "y": 110,
+          "width": 460,
+          "fontSize": 44
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/product-badge/panel.svg",
+          "pngInArchive": "layers/product-badge/panel.png"
+        },
+        {
+          "id": "disc",
+          "svg": "layers/product-badge/disc.svg",
+          "pngInArchive": "layers/product-badge/disc.png"
+        }
+      ]
+    },
+    {
+      "id": "product-focus",
+      "name": "Product focus frame",
+      "category": "product",
+      "width": 720,
+      "height": 440,
+      "svg": "svg/product-focus.svg",
+      "png": "png/product-focus.png",
+      "template": "templates/product-focus.json",
+      "hint": "Leave the open centre over your actual product footage, with the name beneath it.",
+      "textAreas": [
+        {
+          "x": 360,
+          "y": 364,
+          "width": 530,
+          "fontSize": 40
+        }
+      ],
+      "layers": [
+        {
+          "id": "brackets",
+          "svg": "layers/product-focus/brackets.svg",
+          "pngInArchive": "layers/product-focus/brackets.png"
+        },
+        {
+          "id": "ticks",
+          "svg": "layers/product-focus/ticks.svg",
+          "pngInArchive": "layers/product-focus/ticks.png"
+        },
+        {
+          "id": "label",
+          "svg": "layers/product-focus/label.svg",
+          "pngInArchive": "layers/product-focus/label.png"
+        }
+      ]
+    },
+    {
+      "id": "product-halo",
+      "name": "Product spotlight halo",
+      "category": "product",
+      "width": 480,
+      "height": 560,
+      "svg": "svg/product-halo.svg",
+      "png": "png/product-halo.png",
+      "template": "templates/product-halo.json",
+      "hint": "Frame a product in your footage. The centre stays transparent.",
+      "textAreas": [
+        {
+          "x": 240,
+          "y": 486,
+          "width": 350,
+          "fontSize": 32
+        }
+      ],
+      "layers": [
+        {
+          "id": "halo",
+          "svg": "layers/product-halo/halo.svg",
+          "pngInArchive": "layers/product-halo/halo.png"
+        },
+        {
+          "id": "accent-ring",
+          "svg": "layers/product-halo/accent-ring.svg",
+          "pngInArchive": "layers/product-halo/accent-ring.png"
+        },
+        {
+          "id": "label",
+          "svg": "layers/product-halo/label.svg",
+          "pngInArchive": "layers/product-halo/label.png"
+        }
+      ]
+    },
+    {
+      "id": "feature-left",
+      "name": "Feature callout · left",
+      "category": "features",
+      "width": 720,
+      "height": 260,
+      "svg": "svg/feature-left.svg",
+      "png": "png/feature-left.png",
+      "template": "templates/feature-left.json",
+      "hint": "Place the dot on the detail you are showing and explain it in your own words.",
+      "textAreas": [
+        {
+          "x": 255,
+          "y": 120,
+          "width": 390,
+          "fontSize": 35
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/feature-left/panel.svg",
+          "pngInArchive": "layers/feature-left/panel.png"
+        },
+        {
+          "id": "leader",
+          "svg": "layers/feature-left/leader.svg",
+          "pngInArchive": "layers/feature-left/leader.png"
+        },
+        {
+          "id": "point",
+          "svg": "layers/feature-left/point.svg",
+          "pngInArchive": "layers/feature-left/point.png"
+        }
+      ]
+    },
+    {
+      "id": "feature-right",
+      "name": "Feature callout · right",
+      "category": "features",
+      "width": 720,
+      "height": 260,
+      "svg": "svg/feature-right.svg",
+      "png": "png/feature-right.png",
+      "template": "templates/feature-right.json",
+      "hint": "A mirrored callout for details on the other side of your shot.",
+      "textAreas": [
+        {
+          "x": 465,
+          "y": 120,
+          "width": 390,
+          "fontSize": 35
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/feature-right/panel.svg",
+          "pngInArchive": "layers/feature-right/panel.png"
+        },
+        {
+          "id": "leader",
+          "svg": "layers/feature-right/leader.svg",
+          "pngInArchive": "layers/feature-right/leader.png"
+        },
+        {
+          "id": "point",
+          "svg": "layers/feature-right/point.svg",
+          "pngInArchive": "layers/feature-right/point.png"
+        }
+      ]
+    },
+    {
+      "id": "feature-pin",
+      "name": "Feature pin",
+      "category": "features",
+      "width": 640,
+      "height": 360,
+      "svg": "svg/feature-pin.svg",
+      "png": "png/feature-pin.png",
+      "template": "templates/feature-pin.json",
+      "hint": "Point out a button, strap, material, opening or other visible feature.",
+      "textAreas": [
+        {
+          "x": 408,
+          "y": 101,
+          "width": 350,
+          "fontSize": 37
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/feature-pin/panel.svg",
+          "pngInArchive": "layers/feature-pin/panel.png"
+        },
+        {
+          "id": "leader",
+          "svg": "layers/feature-pin/leader.svg",
+          "pngInArchive": "layers/feature-pin/leader.png"
+        },
+        {
+          "id": "point",
+          "svg": "layers/feature-pin/point.svg",
+          "pngInArchive": "layers/feature-pin/point.png"
+        }
+      ]
+    },
+    {
+      "id": "detail-ring",
+      "name": "Detail ring",
+      "category": "features",
+      "width": 600,
+      "height": 480,
+      "svg": "svg/detail-ring.svg",
+      "png": "png/detail-ring.png",
+      "template": "templates/detail-ring.json",
+      "hint": "Highlight a close-up without covering the feature itself.",
+      "textAreas": [
+        {
+          "x": 300,
+          "y": 406,
+          "width": 390,
+          "fontSize": 34
+        }
+      ],
+      "layers": [
+        {
+          "id": "ring",
+          "svg": "layers/detail-ring/ring.svg",
+          "pngInArchive": "layers/detail-ring/ring.png"
+        },
+        {
+          "id": "handle",
+          "svg": "layers/detail-ring/handle.svg",
+          "pngInArchive": "layers/detail-ring/handle.png"
+        },
+        {
+          "id": "label",
+          "svg": "layers/detail-ring/label.svg",
+          "pngInArchive": "layers/detail-ring/label.png"
+        }
+      ]
+    },
+    {
+      "id": "feature-stack",
+      "name": "Three feature notes",
+      "category": "features",
+      "width": 720,
+      "height": 460,
+      "svg": "svg/feature-stack.svg",
+      "png": "png/feature-stack.png",
+      "template": "templates/feature-stack.json",
+      "hint": "Use three short, specific observations. Each row can move independently.",
+      "textAreas": [
+        {
+          "x": 392,
+          "y": 84,
+          "width": 510,
+          "fontSize": 36
+        },
+        {
+          "x": 392,
+          "y": 229,
+          "width": 510,
+          "fontSize": 36
+        },
+        {
+          "x": 392,
+          "y": 374,
+          "width": 510,
+          "fontSize": 36
+        }
+      ],
+      "layers": [
+        {
+          "id": "note-1",
+          "svg": "layers/feature-stack/note-1.svg",
+          "pngInArchive": "layers/feature-stack/note-1.png"
+        },
+        {
+          "id": "note-2",
+          "svg": "layers/feature-stack/note-2.svg",
+          "pngInArchive": "layers/feature-stack/note-2.png"
+        },
+        {
+          "id": "note-3",
+          "svg": "layers/feature-stack/note-3.svg",
+          "pngInArchive": "layers/feature-stack/note-3.png"
+        }
+      ]
+    },
+    {
+      "id": "feature-highlight",
+      "name": "Feature highlight",
+      "category": "features",
+      "width": 720,
+      "height": 180,
+      "svg": "svg/feature-highlight.svg",
+      "png": "png/feature-highlight.png",
+      "template": "templates/feature-highlight.json",
+      "hint": "Give one visible feature or practical detail its own moment.",
+      "textAreas": [
+        {
+          "x": 360,
+          "y": 84,
+          "width": 570,
+          "fontSize": 39
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/feature-highlight/panel.svg",
+          "pngInArchive": "layers/feature-highlight/panel.png"
+        },
+        {
+          "id": "underline",
+          "svg": "layers/feature-highlight/underline.svg",
+          "pngInArchive": "layers/feature-highlight/underline.png"
+        }
+      ]
+    },
+    {
+      "id": "why-use",
+      "name": "Why I use it",
+      "category": "experience",
+      "width": 720,
+      "height": 340,
+      "svg": "svg/why-use.svg",
+      "png": "png/why-use.png",
+      "template": "templates/why-use.json",
+      "hint": "Share your actual reason for using the product, with room for a concise explanation.",
+      "textAreas": [
+        {
+          "x": 360,
+          "y": 86,
+          "width": 580,
+          "fontSize": 38
+        },
+        {
+          "x": 360,
+          "y": 212,
+          "width": 560,
+          "fontSize": 40
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/why-use/panel.svg",
+          "pngInArchive": "layers/why-use/panel.png"
+        },
+        {
+          "id": "divider",
+          "svg": "layers/why-use/divider.svg",
+          "pngInArchive": "layers/why-use/divider.png"
+        },
+        {
+          "id": "accent",
+          "svg": "layers/why-use/accent.svg",
+          "pngInArchive": "layers/why-use/accent.png"
+        }
+      ]
+    },
+    {
+      "id": "routine-note",
+      "name": "In my routine",
+      "category": "experience",
+      "width": 720,
+      "height": 300,
+      "svg": "svg/routine-note.svg",
+      "png": "png/routine-note.png",
+      "template": "templates/routine-note.json",
+      "hint": "Explain when or where the item fits into your own routine.",
+      "textAreas": [
+        {
+          "x": 370,
+          "y": 82,
+          "width": 550,
+          "fontSize": 36
+        },
+        {
+          "x": 370,
+          "y": 194,
+          "width": 540,
+          "fontSize": 38
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/routine-note/panel.svg",
+          "pngInArchive": "layers/routine-note/panel.png"
+        },
+        {
+          "id": "stripe",
+          "svg": "layers/routine-note/stripe.svg",
+          "pngInArchive": "layers/routine-note/stripe.png"
+        },
+        {
+          "id": "divider",
+          "svg": "layers/routine-note/divider.svg",
+          "pngInArchive": "layers/routine-note/divider.png"
+        }
+      ]
+    },
+    {
+      "id": "field-note",
+      "name": "What I noticed",
+      "category": "experience",
+      "width": 720,
+      "height": 340,
+      "svg": "svg/field-note.svg",
+      "png": "png/field-note.png",
+      "template": "templates/field-note.json",
+      "hint": "Use a firsthand observation from your demonstration or time with the item.",
+      "textAreas": [
+        {
+          "x": 360,
+          "y": 82,
+          "width": 580,
+          "fontSize": 37
+        },
+        {
+          "x": 360,
+          "y": 190,
+          "width": 560,
+          "fontSize": 36
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/field-note/panel.svg",
+          "pngInArchive": "layers/field-note/panel.png"
+        },
+        {
+          "id": "divider",
+          "svg": "layers/field-note/divider.svg",
+          "pngInArchive": "layers/field-note/divider.png"
+        }
+      ]
+    },
+    {
+      "id": "tradeoff",
+      "name": "Pros + trade-off",
+      "category": "experience",
+      "width": 720,
+      "height": 420,
+      "svg": "svg/tradeoff.svg",
+      "png": "png/tradeoff.png",
+      "template": "templates/tradeoff.json",
+      "hint": "Give a balanced account of what suits you and what someone else should consider.",
+      "textAreas": [
+        {
+          "x": 360,
+          "y": 68,
+          "width": 570,
+          "fontSize": 31
+        },
+        {
+          "x": 360,
+          "y": 134,
+          "width": 570,
+          "fontSize": 32
+        },
+        {
+          "x": 360,
+          "y": 270,
+          "width": 570,
+          "fontSize": 31
+        },
+        {
+          "x": 360,
+          "y": 336,
+          "width": 570,
+          "fontSize": 32
+        }
+      ],
+      "layers": [
+        {
+          "id": "top-card",
+          "svg": "layers/tradeoff/top-card.svg",
+          "pngInArchive": "layers/tradeoff/top-card.png"
+        },
+        {
+          "id": "bottom-card",
+          "svg": "layers/tradeoff/bottom-card.svg",
+          "pngInArchive": "layers/tradeoff/bottom-card.png"
+        }
+      ]
+    },
+    {
+      "id": "my-take",
+      "name": "My take",
+      "category": "experience",
+      "width": 720,
+      "height": 240,
+      "svg": "svg/my-take.svg",
+      "png": "png/my-take.png",
+      "template": "templates/my-take.json",
+      "hint": "Close with your own concise view, rather than an automatic rating or sales claim.",
+      "textAreas": [
+        {
+          "x": 116,
+          "y": 120,
+          "width": 145,
+          "fontSize": 30
+        },
+        {
+          "x": 420,
+          "y": 120,
+          "width": 365,
+          "fontSize": 36
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/my-take/panel.svg",
+          "pngInArchive": "layers/my-take/panel.png"
+        },
+        {
+          "id": "divider",
+          "svg": "layers/my-take/divider.svg",
+          "pngInArchive": "layers/my-take/divider.png"
+        }
+      ]
+    },
+    {
+      "id": "affiliate-label",
+      "name": "Affiliate link label",
+      "category": "experience",
+      "width": 720,
+      "height": 140,
+      "svg": "svg/affiliate-label.svg",
+      "png": "png/affiliate-label.png",
+      "template": "templates/affiliate-label.json",
+      "hint": "An optional plain-language label you can place alongside your own disclosure and call to action.",
+      "textAreas": [
+        {
+          "x": 405,
+          "y": 70,
+          "width": 480,
+          "fontSize": 34
+        }
+      ],
+      "layers": [
+        {
+          "id": "panel",
+          "svg": "layers/affiliate-label/panel.svg",
+          "pngInArchive": "layers/affiliate-label/panel.png"
+        },
+        {
+          "id": "link-mark",
+          "svg": "layers/affiliate-label/link-mark.svg",
+          "pngInArchive": "layers/affiliate-label/link-mark.png"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+T.im / Product Spotlight Kit
+
+18 original graphics for product names, feature callouts and your own experiences.
+Navy, gold and teal. PNGs are transparent; the navy panels are intentional.
+
+QUICK START
+Open the Product Spotlight catalog and choose Edit this template. Each design
+opens in the standalone Asset Animator, with the wording on separate text layers.
+Change the product name and your notes; move, resize and animate the layers.
+Export a transparent PNG or animation and overlay it on your own product footage.
+
+OFFLINE / OTHER EDITORS
+png/ and svg/ contain BLANK graphics: no baked-in wording or product photos.
+layers/<design>/ contains aligned PNG + SVG components on the same canvas.
+templates/<design>.json is an editable Asset Animator project: import it using
+Saved projects > Import JSON. Text remains editable and uses generic placeholders.
+previews/ contains illustrated examples only; these example PNGs have placeholder
+text baked in. They are previews, not the blank overlay assets.
+manifest.json records dimensions, text positions and component names.
+
+Keep names concise. Use your own specific observations, reasons and trade-offs.
+Text uses generic placeholders. Add your own product name and observations.
+The optional Affiliate link label can be edited or removed.
+Default portrait placement is a starting point: check it against your footage,
+captions and TikTok's interface before posting.
+
+Original T.im artwork. Reuse and adapt in personal and commercial content.
+No product images, third-party logos or fonts are included in this pack.

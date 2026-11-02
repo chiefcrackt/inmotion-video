@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — My take",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "my-take-graphic",
+          "kind": "asset",
+          "asset": "spotlight:my-take"
+        },
+        {
+          "x": 20.177777777777774,
+          "y": 64,
+          "size": 17.72222222222222,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "my-take-text-0",
+          "kind": "text",
+          "text": "MY TAKE",
+          "color": "#e8c96a",
+          "fontSize": 40
+        },
+        {
+          "x": 57.333333333333336,
+          "y": 64,
+          "size": 44.611111111111114,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "my-take-text-1",
+          "kind": "text",
+          "text": "Your short verdict",
+          "color": "#f6f4ef",
+          "fontSize": 48
+        }
+      ]
+    }
+  }
+}

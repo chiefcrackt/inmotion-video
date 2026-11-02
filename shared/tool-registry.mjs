@@ -229,6 +229,15 @@ export const TOOLS = Object.freeze([
     icon: 'star',
   },
   {
+    id: 'product-spotlight',
+    name: 'Product Spotlight Kit',
+    href: 'product-spotlight/',
+    description: '18 editable product labels, feature callouts and experience cards for your TikTok demos and affiliate videos.',
+    workspaces: ['library'],
+    keywords: ['product', 'spotlight', 'affiliate', 'tiktok', 'demo', 'features', 'callouts', 'templates', 'overlays'],
+    icon: 'megaphone',
+  },
+  {
     id: 'icon-pack',
     name: 'Running + Creator Icons',
     href: 'icon-pack/',

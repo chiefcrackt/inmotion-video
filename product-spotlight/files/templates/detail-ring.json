@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — Detail ring",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 46,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "detail-ring-graphic",
+          "kind": "asset",
+          "asset": "spotlight:detail-ring"
+        },
+        {
+          "x": 50,
+          "y": 59.695,
+          "size": 57.199999999999996,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "detail-ring-text-0",
+          "kind": "text",
+          "text": "DETAIL CLOSE-UP",
+          "color": "#f6f4ef",
+          "fontSize": 54
+        }
+      ]
+    }
+  }
+}

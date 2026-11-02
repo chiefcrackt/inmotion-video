@@ -1,7 +1,7 @@
 # Asset Animator
 
 A standalone composition and export tool. It does not modify Video Framer.
-Uses the 48 static SVG assets from the Running + Creator and Motion + Stats packs.
+Uses 66 graphics from Running + Creator, Motion + Stats and Product Spotlight.
 
 - Up to 12 layers, including editable text. Reorder, duplicate, hide, resize,
   rotate, fade, drag and precisely position each layer.
@@ -24,3 +24,7 @@ demos in the downloadable kit are separate from this tool's motion presets.
 
 Run `npm run test:asset-studio` to check validation, motion, composition, dragging,
 layer order, draft/project round trips, PNG alpha and actual video output.
+
+Product Spotlight provides 18 editable starting scenes. Text is separate from
+the graphic; known template links and the template selector validate and decode
+the next scene before replacement. Existing drafts require confirmation.

@@ -9,6 +9,7 @@ import {
   splitLayer,
 } from './model.mjs';
 import { image, prepare, render, selection, hitTest } from './render.mjs';
+import { templates, templateScene } from '../product-spotlight/templates.mjs';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas'),
   key = 'tim-asset-animator-v1';
@@ -178,6 +179,47 @@ function filter() {
   $('noMatches').hidden = n > 0;
 }
 $('pack').onchange = $('search').oninput = filter;
+for (const [id, item] of templates)
+  $('template').add(new Option(item.name, id));
+async function applyTemplate(id) {
+  if (busy) return false;
+  if (!templates.has(id)) {
+    say('That Product Spotlight template was not found.');
+    return false;
+  }
+  if (
+    state.layers.length &&
+    !confirm(
+      'Replace the current graphic with this Product Spotlight template?',
+    )
+  )
+    return false;
+  busy = true;
+  sync();
+  try {
+    const next = validate(templateScene(id));
+    await prepare(next);
+    await document.fonts.ready;
+    stop();
+    position = 0;
+    state = next;
+    selected = state.layers[1]?.id || state.layers[0].id;
+    persist();
+    say('Template ready. Select a text layer to change the wording.');
+    return true;
+  } catch (e) {
+    say(e.message);
+    return false;
+  } finally {
+    busy = false;
+    sync();
+  }
+}
+$('template').onchange = () => {
+  const id = $('template').value;
+  $('template').value = '';
+  if (id) applyTemplate(id);
+};
 $('addText').onclick = () =>
   change(() => {
     if (state.layers.length >= 12) return;
@@ -544,6 +586,14 @@ prepare(state)
     sync();
     const url = new URL(location.href),
       requested = url.searchParams.get('asset');
+    const preset = url.searchParams.get('template');
+    if (preset) {
+      await applyTemplate(preset);
+      url.searchParams.delete('template');
+      url.searchParams.delete('asset');
+      history.replaceState(null, '', url);
+      return;
+    }
     if (requested) {
       const item = byId.get(requested);
       if (item) {

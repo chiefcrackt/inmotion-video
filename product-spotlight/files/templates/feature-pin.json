@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — Feature pin",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "feature-pin-graphic",
+          "kind": "asset",
+          "asset": "spotlight:feature-pin"
+        },
+        {
+          "x": 62.099999999999994,
+          "y": 57.88984375,
+          "size": 48.125,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "feature-pin-text-0",
+          "kind": "text",
+          "text": "LOOK HERE",
+          "color": "#f6f4ef",
+          "fontSize": 55
+        }
+      ]
+    }
+  }
+}

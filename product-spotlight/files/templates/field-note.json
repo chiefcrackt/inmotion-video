@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — What I noticed",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "field-note-graphic",
+          "kind": "asset",
+          "asset": "spotlight:field-note"
+        },
+        {
+          "x": 50,
+          "y": 57.95,
+          "size": 70.88888888888889,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "field-note-text-0",
+          "kind": "text",
+          "text": "WHAT I NOTICED",
+          "color": "#e8c96a",
+          "fontSize": 49
+        },
+        {
+          "x": 50,
+          "y": 65.375,
+          "size": 68.44444444444446,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "field-note-text-1",
+          "kind": "text",
+          "text": "Add your own experience",
+          "color": "#f6f4ef",
+          "fontSize": 48
+        }
+      ]
+    }
+  }
+}

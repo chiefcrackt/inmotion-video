@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — Name + detail",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "product-two-line-graphic",
+          "kind": "asset",
+          "asset": "spotlight:product-two-line"
+        },
+        {
+          "x": 50,
+          "y": 61.6625,
+          "size": 68.44444444444446,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "product-two-line-text-0",
+          "kind": "text",
+          "text": "PRODUCT NAME",
+          "color": "#f6f4ef",
+          "fontSize": 61
+        },
+        {
+          "x": 50,
+          "y": 67.7125,
+          "size": 68.44444444444446,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "product-two-line-text-1",
+          "kind": "text",
+          "text": "Model / size / colour",
+          "color": "#e8c96a",
+          "fontSize": 41
+        }
+      ]
+    }
+  }
+}

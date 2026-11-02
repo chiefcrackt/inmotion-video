@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "tool": "asset-studio",
+  "name": "Product Spotlight — Product badge",
+  "payload": {
+    "scene": {
+      "format": "portrait",
+      "duration": 4,
+      "mode": "transparent",
+      "layers": [
+        {
+          "x": 50,
+          "y": 64,
+          "size": 88,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "product-badge-graphic",
+          "kind": "asset",
+          "asset": "spotlight:product-badge"
+        },
+        {
+          "x": 57.333333333333336,
+          "y": 64,
+          "size": 56.22222222222223,
+          "rotation": 0,
+          "opacity": 100,
+          "motion": "none",
+          "visible": true,
+          "id": "product-badge-text-0",
+          "kind": "text",
+          "text": "PRODUCT NAME",
+          "color": "#f6f4ef",
+          "fontSize": 58
+        }
+      ]
+    }
+  }
+}
