@@ -68,14 +68,17 @@ export function timelineTimes(totalSeconds) {
   return { total, holdBefore: hold, sweep, holdAfter: Math.max(0.5, total - hold - sweep) };
 }
 
-// Wipe: divider position at time t, from 1 (all Before) to 0 (all After), eased in and out.
-export function splitAt(t, totalSeconds) {
+// Where the wipe ends: 0 leaves only After showing, END_BOTH_SPLIT leaves both photos side by side.
+export const END_BOTH_SPLIT = 0.5;
+
+// Wipe: divider position at time t, from 1 (all Before) towards endAt, eased in and out.
+export function splitAt(t, totalSeconds, endAt = 0) {
   const { holdBefore, sweep, total } = timelineTimes(totalSeconds);
   if (t <= holdBefore) return 1;
-  if (t >= holdBefore + sweep || t >= total) return 0;
+  if (t >= holdBefore + sweep || t >= total) return endAt;
   const k = (t - holdBefore) / sweep;
   const eased = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-  return 1 - eased;
+  return 1 - (1 - endAt) * eased;
 }
 
 // Fade: how much After shows at time t, from 0 (all Before) to 1 (all After).

@@ -181,6 +181,12 @@
               <option value="fade">Fade</option>
             </select>
           </label>
+          <label class="muted">Ending
+            <select id="end">
+              <option value="after">After photo only</option>
+              <option value="both">Both photos side by side</option>
+            </select>
+          </label>
           <label class="muted">Length <span id="length-value"></span>
             <input id="length" type="range" min="3" max="10" step="0.5" />
           </label>
@@ -206,7 +212,7 @@
 
     <script type="module">
       import {
-        ASPECTS, PHOTO_DEFAULTS, clamp, placeImage, panRange, timelineTimes, splitAt, fadeAt, labelSize, SPLIT_DEFAULT,
+        ASPECTS, PHOTO_DEFAULTS, clamp, placeImage, panRange, timelineTimes, splitAt, fadeAt, labelSize, SPLIT_DEFAULT, END_BOTH_SPLIT,
       } from './model.mjs';
 
       const $ = (id) => document.getElementById(id);
@@ -225,6 +231,7 @@
         labelPos: 'top',
         bg: '#0e1a2e',
         style: 'wipe',
+        end: 'after',
         length: 5,
         mode: 'divider',
       };
@@ -277,7 +284,7 @@
       }
 
       // Draws the frame. wipeSplit: 1 = all Before, 0 = all After. fadeAmount: 0 = all Before, 1 = all After.
-      function drawFrame({ wipeSplit = null, fadeAmount = null, showDivider = opt.showDivider } = {}) {
+      function drawFrame({ wipeSplit = null, fadeAmount = null, fadeFrom = 0, showDivider = opt.showDivider } = {}) {
         ensureCanvasSize();
         const { width: W, height: H } = frame();
         const horizontal = opt.orientation === 'horizontal';
@@ -286,9 +293,16 @@
         const boundary = horizontal ? W * clamp(wipeSplit ?? opt.split, 0, 1) : H * clamp(wipeSplit ?? opt.split, 0, 1);
 
         if (fadeAmount !== null) {
+          // Fade: After fades in over Before. With fadeFrom set, only the part after that split fades in.
           drawPhoto('before', W, H);
           if (photos.after && fadeAmount > 0) {
             ctx.save();
+            if (fadeFrom > 0) {
+              ctx.beginPath();
+              if (horizontal) ctx.rect(W * fadeFrom, 0, W * (1 - fadeFrom), H);
+              else ctx.rect(0, H * fadeFrom, W, H * (1 - fadeFrom));
+              ctx.clip();
+            }
             ctx.globalAlpha = clamp(fadeAmount, 0, 1);
             drawPhoto('after', W, H);
             ctx.restore();
@@ -311,15 +325,17 @@
           ctx.restore();
         }
 
-        const showLine = showDivider && photos.before && photos.after && fadeAmount === null && boundary > 0 && (horizontal ? boundary < W : boundary < H);
+        const fadeLine = fadeAmount !== null && fadeFrom > 0 && fadeAmount >= 0.999;
+        const lineAt = fadeLine ? (horizontal ? W * fadeFrom : H * fadeFrom) : boundary;
+        const showLine = showDivider && photos.before && photos.after && (fadeAmount === null || fadeLine) && lineAt > 0 && (horizontal ? lineAt < W : lineAt < H);
         if (showLine) {
           ctx.fillStyle = '#e8c96a';
           const t = W * 0.008;
-          if (horizontal) ctx.fillRect(boundary - t / 2, 0, t, H);
-          else ctx.fillRect(0, boundary - t / 2, W, t);
+          if (horizontal) ctx.fillRect(lineAt - t / 2, 0, t, H);
+          else ctx.fillRect(0, lineAt - t / 2, W, t);
           const r = Math.min(W, H) * 0.035;
-          const cx = horizontal ? boundary : W / 2;
-          const cy = horizontal ? H / 2 : boundary;
+          const cx = horizontal ? lineAt : W / 2;
+          const cy = horizontal ? H / 2 : lineAt;
           ctx.beginPath();
           ctx.arc(cx, cy, r, 0, Math.PI * 2);
           ctx.fill();
@@ -375,6 +391,7 @@
         $('show-labels').checked = opt.showLabels;
         $('label-pos').value = opt.labelPos;
         $('style').value = opt.style;
+        $('end').value = opt.end;
         $('length-value').textContent = opt.length.toFixed(1) + ' s';
         $('length').value = opt.length;
         setPressed('[data-bg]', 'bg', opt.bg);
@@ -476,6 +493,7 @@
       $('show-labels').onchange = (e) => { opt.showLabels = e.target.checked; refresh(); };
       $('label-pos').onchange = (e) => { opt.labelPos = e.target.value; refresh(); };
       $('style').onchange = (e) => { opt.style = e.target.value; syncControls(); };
+      $('end').onchange = (e) => { opt.end = e.target.value; syncControls(); };
       $('length').oninput = (e) => { opt.length = Number(e.target.value); syncControls(); };
       ['label-before', 'label-after', 'caption'].forEach((id) => $(id).addEventListener('input', refresh));
 
@@ -575,9 +593,11 @@
         return '';
       }
 
+      // The animation ends on After alone, or with both photos side by side at the middle.
       function animationFrame(t) {
-        if (opt.style === 'fade') drawFrame({ fadeAmount: fadeAt(t, opt.length) });
-        else drawFrame({ wipeSplit: splitAt(t, opt.length) });
+        const both = opt.end === 'both';
+        if (opt.style === 'fade') drawFrame({ fadeAmount: fadeAt(t, opt.length), fadeFrom: both ? END_BOTH_SPLIT : 0 });
+        else drawFrame({ wipeSplit: splitAt(t, opt.length, both ? END_BOTH_SPLIT : 0) });
       }
 
       $('clip').onclick = () => {
