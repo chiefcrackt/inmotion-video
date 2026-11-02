@@ -1,11 +1,18 @@
 // Pure data-integrity logic for the Idea Vault. No DOM, no fetch, no storage:
 // everything here is deterministic so it can be unit tested in Node.
 //
-// Guiding rules:
+// Concurrency model (per idea):
+//  - Every local edit bumps `revision`.
+//  - Each device remembers the revision it last synced per idea: `base`.
+//  - Only one side changed since base  -> take that side. No data is lost.
+//  - Both sides changed (or the base is unknown and copies differ) -> the
+//    local copy stays, and the cloud copy is kept as a conflict copy
+//    (`conflictOf`). Neither edit is discarded; the user resolves it.
+//  - updatedAt is informational only. Clock skew never decides a conflict.
+//
+// Non-negotiable rules:
 //  - Never silently discard an idea. Unparseable entries pass through merges.
-//  - Last-writer-wins is decided per idea by updatedAt, not per whole file.
-//  - Ties keep the local copy, so the device that is looking at the data is
-//    never overwritten by an equal-age copy.
+//  - Repeated merges must not create duplicate conflict copies.
 
 export const WORKSPACE_FILE = 'tim-idea-vault-v1.json';
 export const WORKSPACE_VERSION = 1;
@@ -28,6 +35,19 @@ export function hasIdentity(idea) {
   );
 }
 
+// A revision is an opaque unique token, one per edit. Counters would collide
+// across devices (two devices can both reach "2" independently), so revisions
+// are only ever compared for equality. Legacy ideas without one read as null.
+export function newRevision() {
+  return globalThis.crypto.randomUUID();
+}
+
+export function rev(idea) {
+  return typeof idea?.revision === 'string' && idea.revision
+    ? idea.revision
+    : null;
+}
+
 // Drive returns `version` as a string. Compare as strings so a number and a
 // string for the same revision are treated as equal (no false conflicts).
 export function sameVersion(a, b) {
@@ -38,6 +58,27 @@ export function sameVersion(a, b) {
     b !== null &&
     String(a) === String(b)
   );
+}
+
+// Deterministic JSON (sorted keys), so equal content compares equal.
+export function stableStringify(value) {
+  if (Array.isArray(value))
+    return '[' + value.map(stableStringify).join(',') + ']';
+  if (value && typeof value === 'object') {
+    return (
+      '{' +
+      Object.keys(value)
+        .sort()
+        .map((k) => JSON.stringify(k) + ':' + stableStringify(value[k]))
+        .join(',') +
+      '}'
+    );
+  }
+  return JSON.stringify(value === undefined ? null : value);
+}
+
+export function sameContent(a, b) {
+  return stableStringify(a) === stableStringify(b);
 }
 
 export function workspaceListQuery(name = WORKSPACE_FILE) {
@@ -58,9 +99,19 @@ export function pickWorkspaceFile(files, name = WORKSPACE_FILE) {
   return matches[0] || null;
 }
 
-function timeOf(idea) {
-  const parsed = Date.parse(idea?.updatedAt || '');
-  return Number.isFinite(parsed) ? parsed : 0;
+// Record a local edit: bump the revision and the informational timestamp.
+export function touch(idea, timestamp) {
+  idea.revision = newRevision();
+  idea.updatedAt = timestamp;
+  return idea;
+}
+
+// The base map that matches an upload of `ideas`: every idea at its revision.
+export function baseOf(ideas) {
+  const base = {};
+  for (const idea of ideas || [])
+    if (hasIdentity(idea)) base[idea.id] = rev(idea);
+  return base;
 }
 
 function canonical(ideas) {
@@ -73,71 +124,184 @@ function canonical(ideas) {
   );
 }
 
+const defaultId = () => globalThis.crypto.randomUUID();
+const copyKey = (idea) => idea.conflictOf + '\u0000' + idea.conflictRevision;
+
 /**
- * Merge a cloud workspace into the local list, per idea.
+ * Merge a cloud workspace into local data using per-idea revisions.
  *
- * - Local-only ideas are kept (and will be uploaded by the next sync).
- * - Cloud-only ideas are added.
- * - Same id: the copy with the newer updatedAt wins; ties keep the local copy.
- * - Same sourceId (the same Google Doc imported on two devices under two
- *   ids): exactly one survives, chosen by the same rule.
- * - Entries without a string id are passed through unchanged, so they are
- *   never dropped by an upload.
+ * @param local   local ideas (not mutated)
+ * @param cloud   cloud ideas (not mutated)
+ * @param base    { [id]: revision } last synced per idea on this device
+ * @param makeId  id generator for conflict copies
  *
- * Returns { ideas, changed, needsUpload }:
- *   changed     - the local list differs from the input local list
- *   needsUpload - the merged list differs from the cloud list
+ * Returns:
+ *   ideas        merged list
+ *   changed      merge altered the local list
+ *   needsUpload  merged list differs from the cloud list
+ *   conflicts    [{ id, copyId }] new conflict copies created by this merge
+ *   synced       { [id]: revision } ideas whose merged copy equals the cloud copy
  */
-export function mergeIdeas(local, cloud) {
+export function mergeIdeas(local, cloud, base = {}, makeId = defaultId) {
   const localList = Array.isArray(local) ? local : [];
   const cloudList = Array.isArray(cloud) ? cloud : [];
 
-  const order = []; // ordered result slots
-  const byId = new Map(); // id -> index in order
+  const cloudById = new Map();
+  for (const c of cloudList) {
+    if (hasIdentity(c) && !cloudById.has(c.id)) cloudById.set(c.id, c);
+  }
+  const localIds = new Set(localList.filter(hasIdentity).map((l) => l.id));
 
-  const place = (idea) => {
-    if (!hasIdentity(idea)) {
-      order.push({ opaque: true, idea });
-      return;
+  const out = [];
+  const synced = {};
+  const conflicts = [];
+  const copies = new Set(
+    [...localList, ...cloudList].filter((x) => x?.conflictOf).map(copyKey),
+  );
+
+  for (const l of localList) {
+    if (!hasIdentity(l)) {
+      out.push(l);
+      continue;
     }
-    if (byId.has(idea.id)) {
-      const index = byId.get(idea.id);
-      if (timeOf(idea) > timeOf(order[index].idea)) order[index].idea = idea;
-      return;
+    const c = cloudById.get(l.id);
+    if (!c) {
+      out.push(l);
+      continue;
     }
-    byId.set(idea.id, order.length);
-    order.push({ opaque: false, idea });
-  };
-
-  for (const idea of localList) place(idea);
-  for (const idea of cloudList) place(idea);
-
-  // Collapse duplicate sourceIds. Keep the newest; on a tie keep the earlier
-  // slot, which is the local copy because local ideas are placed first.
-  const bySource = new Map();
-  for (let i = 0; i < order.length; i++) {
-    const slot = order[i];
-    if (slot.opaque || !slot.idea.sourceId) continue;
-    const key = slot.idea.sourceId;
-    if (!bySource.has(key)) {
-      bySource.set(key, i);
-    } else {
-      const kept = bySource.get(key);
-      if (timeOf(slot.idea) > timeOf(order[kept].idea)) {
-        order[kept].dropped = true;
-        bySource.set(key, i);
-      } else {
-        slot.dropped = true;
-      }
+    if (sameContent(l, c)) {
+      out.push(l);
+      if (rev(l) === rev(c)) synced[l.id] = rev(c);
+      continue;
+    }
+    const b = base[l.id];
+    const localChanged = b === undefined || rev(l) !== b;
+    const cloudChanged = b === undefined || rev(c) !== b;
+    if (cloudChanged && !localChanged) {
+      out.push(c);
+      synced[c.id] = rev(c);
+      continue;
+    }
+    if (localChanged && !cloudChanged) {
+      out.push(l);
+      continue;
+    }
+    // Both changed, or the base cannot tell: keep local, keep cloud as a copy.
+    out.push(l);
+    const probe = { conflictOf: l.id, conflictRevision: rev(c) };
+    if (!copies.has(copyKey(probe))) {
+      const copy = {
+        ...c,
+        id: makeId(),
+        conflictOf: l.id,
+        conflictRevision: rev(c),
+      };
+      copies.add(copyKey(probe));
+      out.push(copy);
+      conflicts.push({ id: l.id, copyId: copy.id });
     }
   }
 
-  const ideas = order.filter((slot) => !slot.dropped).map((slot) => slot.idea);
+  // Cloud-only ideas are added. A repeated cloud id (corruption) is kept as a
+  // conflict copy of the first occurrence, so no entry is ever dropped.
+  const seenCloud = new Set();
+  for (const c of cloudList) {
+    if (!hasIdentity(c)) {
+      out.push(c);
+      continue;
+    }
+    if (seenCloud.has(c.id)) {
+      const probe = { conflictOf: c.id, conflictRevision: rev(c) };
+      if (!copies.has(copyKey(probe))) {
+        const copy = {
+          ...c,
+          id: makeId(),
+          conflictOf: c.id,
+          conflictRevision: rev(c),
+        };
+        copies.add(copyKey(probe));
+        out.push(copy);
+        conflicts.push({ id: c.id, copyId: copy.id });
+      }
+      continue;
+    }
+    seenCloud.add(c.id);
+    if (localIds.has(c.id)) continue; // handled in the local pass above
+    out.push(c);
+    synced[c.id] = rev(c);
+  }
+
+  // Legacy duplicate imports of one Google Doc under different ids.
+  // Identical copies collapse to one. Different copies are both kept, the later
+  // one marked as a conflict copy, so no edit is dropped.
+  const bySource = new Map();
+  const result = [];
+  for (const idea of out) {
+    if (!hasIdentity(idea) || idea.conflictOf || !idea.sourceId) {
+      result.push(idea);
+      continue;
+    }
+    const first = bySource.get(idea.sourceId);
+    if (!first) {
+      bySource.set(idea.sourceId, idea);
+      result.push(idea);
+      continue;
+    }
+    if (sameContent({ ...first, id: null }, { ...idea, id: null })) continue;
+    const probe = { conflictOf: first.id, conflictRevision: rev(idea) };
+    if (copies.has(copyKey(probe))) continue;
+    copies.add(copyKey(probe));
+    const marked = {
+      ...idea,
+      conflictOf: first.id,
+      conflictRevision: rev(idea),
+    };
+    result.push(marked);
+    conflicts.push({ id: first.id, copyId: marked.id });
+  }
+
   return {
-    ideas,
-    changed: canonical(ideas) !== canonical(localList),
-    needsUpload: canonical(ideas) !== canonical(cloudList),
+    ideas: result,
+    changed: canonical(result) !== canonical(localList),
+    needsUpload: canonical(result) !== canonical(cloudList),
+    conflicts,
+    synced,
   };
+}
+
+// Resolve a conflict by making the conflict copy's content the original.
+// The copy is archived, not deleted, so its history remains.
+export function useCopyAsOriginal(ideas, copyId, timestamp) {
+  const copy = ideas.find((x) => x.id === copyId);
+  if (!copy || !copy.conflictOf)
+    throw new Error('That is not a conflict copy.');
+  const original = ideas.find((x) => x.id === copy.conflictOf);
+  if (!original)
+    throw new Error('The original idea is missing. Nothing was changed.');
+  const {
+    id,
+    conflictOf,
+    conflictRevision,
+    archived,
+    revision,
+    updatedAt,
+    ...content
+  } = copy;
+  Object.assign(original, content, { archived: false });
+  touch(original, timestamp);
+  copy.archived = true;
+  touch(copy, timestamp);
+  return ideas;
+}
+
+// Resolve a conflict by keeping the original and archiving the copy.
+export function discardCopy(ideas, copyId, timestamp) {
+  const copy = ideas.find((x) => x.id === copyId);
+  if (!copy || !copy.conflictOf)
+    throw new Error('That is not a conflict copy.');
+  copy.archived = true;
+  touch(copy, timestamp);
+  return ideas;
 }
 
 export function isGoogleDoc(file) {
@@ -219,6 +383,7 @@ export function planImport(existing, docs, makeId, timestamp) {
         'https://docs.google.com/document/d/' + doc.id + '/edit',
       createdAt: doc.createdTime || timestamp,
       updatedAt: timestamp,
+      revision: makeId(),
       archived: false,
     });
   }
