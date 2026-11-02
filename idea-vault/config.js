@@ -5,6 +5,6 @@
 window.TIM_IDEA_VAULT_CONFIG = {
   googleClientId:
     '11245908730-cq0ku5f7o7u8d1228guo0n5n7nprhf3m.apps.googleusercontent.com', // Public OAuth client ID only.
-  pickerApiKey: '',
-  cloudProjectNumber: '',
+  pickerApiKey: 'AIzaSyD_SGKerLekmI0HGyvKa0KMrL4O3sUBW4Y',
+  cloudProjectNumber: '11245908730',
 };

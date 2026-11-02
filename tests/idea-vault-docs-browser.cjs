@@ -104,12 +104,18 @@ async function installFakes(context, docs, { configured = true } = {}) {
   await context.route('https://apis.google.com/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/javascript', body: '' }),
   );
-  if (configured) {
+  {
+    const keys = configured
+      ? "pickerApiKey: 'test-key', cloudProjectNumber: '123456'"
+      : "pickerApiKey: '', cloudProjectNumber: ''";
     await context.route('**/idea-vault/config.js', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'text/javascript',
-        body: "window.TIM_IDEA_VAULT_CONFIG = { googleClientId: 'test-client', pickerApiKey: 'test-key', cloudProjectNumber: '123456' };",
+        body:
+          "window.TIM_IDEA_VAULT_CONFIG = { googleClientId: 'test-client', " +
+          keys +
+          ' };',
       }),
     );
   }
