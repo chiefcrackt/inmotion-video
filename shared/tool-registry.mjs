@@ -11,7 +11,7 @@ export const WORKSPACES = Object.freeze([
   { id: 'running', number: '03', name: 'Running Studio', blurb: 'Running content, route graphics and stats.', icon: 'workspace-running' },
   { id: 'audio', number: '04', name: 'Audio Studio', blurb: 'Music, sound effects and audio elements.', icon: 'workspace-audio' },
   { id: 'publishing', number: '05', name: 'Publishing Studio', blurb: 'Thumbnails, promo graphics and social posts.', icon: 'workspace-publishing' },
-  { id: 'library', number: '06', name: 'Asset Library', blurb: 'Ready-made icons, animations, templates and downloads.', icon: 'workspace-library' },
+  { id: 'library', number: '06', name: 'Asset Library', blurb: 'Reusable icons, graphics, animations and downloads.', icon: 'workspace-library' },
 ]);
 
 // quick: true places the tool in Quick Launch. quickLabel overrides its short label.
@@ -209,6 +209,15 @@ export const TOOLS = Object.freeze([
     workspaces: ['library'],
     keywords: ['download', 'animation', 'trailer', 'capcut', 'ready-made', 'pack', 'templates'],
     icon: 'folder',
+  },
+  {
+    id: 'motion-stats',
+    name: 'Motion + Stats Kit',
+    href: 'motion-stats/',
+    description: '24 modular graphics with 68 movable layers: blank stat panels, arrows, routes and celebrations. PNGs, SVGs and animated examples.',
+    workspaces: ['library'],
+    keywords: ['assets', 'motion', 'stats', 'panels', 'arrows', 'confetti', 'layers', 'svg', 'png', 'overlays', 'download'],
+    icon: 'grid',
   },
   {
     id: 'icon-pack',

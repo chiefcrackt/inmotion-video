@@ -5,6 +5,8 @@
   "scripts": {
     "build:icons": "node tools/build-icon-pack.mjs",
     "test:icons": "node tests/icon-pack.cjs",
+    "build:motion-stats": "node tools/build-motion-stats.mjs",
+    "test:motion-stats": "node tests/motion-stats.cjs",
     "test:responsive": "node tests/responsive.cjs",
     "test:hub": "node tests/hub.mjs",
     "build": "node activity-studio/build.mjs && node tests/check-static.mjs",

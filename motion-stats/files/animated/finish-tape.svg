@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 640 240" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Finish tape"><title>Finish tape</title><style>
+@keyframes pulse{0%,100%{transform:scale(.9);opacity:.65}50%{transform:scale(1);opacity:1}}
+@keyframes nudge{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+@keyframes left{0%,100%{transform:translateX(6px)}50%{transform:translateX(-6px)}}
+@keyframes slide{0%,100%{transform:translateX(-8px);opacity:.65}50%{transform:translateX(0);opacity:1}}
+@keyframes rise{0%,100%{transform:translateY(7px);opacity:.65}50%{transform:translateY(0);opacity:1}}
+@keyframes fall{0%,100%{transform:translateY(-7px)}50%{transform:translateY(7px)}}
+@keyframes turn{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+@keyframes reveal{0%,100%{transform:scaleX(.65)}50%{transform:scaleX(1)}}
+@keyframes fade{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes dash{to{stroke-dashoffset:-72}}
+.m-pulse{animation:pulse 2.4s ease-in-out infinite;transform-box:view-box}
+.m-nudge{animation:nudge 2.4s ease-in-out infinite;transform-box:view-box}
+.m-left{animation:left 2.4s ease-in-out infinite;transform-box:view-box}
+.m-slide{animation:slide 2.4s ease-in-out infinite;transform-box:view-box}
+.m-rise{animation:rise 2.4s ease-in-out infinite;transform-box:view-box}
+.m-fall{animation:fall 2.4s ease-in-out infinite;transform-box:view-box}
+.m-turn{animation:turn 3s ease-in-out infinite alternate;transform-box:view-box}
+.m-reveal{animation:reveal 2.4s ease-in-out infinite;transform-box:view-box}
+.m-fade{animation:fade 2.4s ease-in-out infinite;transform-box:view-box}
+.m-dash{animation:dash 2.4s ease-in-out infinite;transform-box:view-box}
+@media(prefers-reduced-motion:reduce){g{animation:none!important}}</style><g id="left-post" class="m-none" style="transform-origin:320px 120px;animation-delay:-0s"><path d="M39 29v182" stroke="#2e9bad" stroke-width="18"/><circle cx="39" cy="28" r="13" fill="#e8c96a"/></g><g id="right-post" class="m-none" style="transform-origin:320px 120px;animation-delay:-0.3s"><path d="M601 29v182" stroke="#2e9bad" stroke-width="18"/><circle cx="601" cy="28" r="13" fill="#e8c96a"/></g><g id="left-tape" class="m-left" style="transform-origin:320px 120px;animation-delay:-0.6s"><path d="M39 69l270 20-29 25 29 28L39 121z" fill="#e8c96a" stroke="#0e1a2e" stroke-width="6"/></g><g id="right-tape" class="m-nudge" style="transform-origin:320px 120px;animation-delay:-0.8999999999999999s"><path d="M601 69L331 89l29 25-29 28 270-21z" fill="#e8c96a" stroke="#0e1a2e" stroke-width="6"/></g></svg>
