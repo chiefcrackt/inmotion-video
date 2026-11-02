@@ -68,17 +68,35 @@ export function timelineTimes(totalSeconds) {
   return { total, holdBefore: hold, sweep, holdAfter: Math.max(0.5, total - hold - sweep) };
 }
 
-// Where the wipe ends: 0 leaves only After showing, END_BOTH_SPLIT leaves both photos side by side.
-export const END_BOTH_SPLIT = 0.5;
-
-// Wipe: divider position at time t, from 1 (all Before) towards endAt, eased in and out.
-export function splitAt(t, totalSeconds, endAt = 0) {
+// Wipe: divider position at time t, from 1 (all Before) to 0 (all After), eased in and out.
+export function splitAt(t, totalSeconds) {
   const { holdBefore, sweep, total } = timelineTimes(totalSeconds);
   if (t <= holdBefore) return 1;
-  if (t >= holdBefore + sweep || t >= total) return endAt;
+  if (t >= holdBefore + sweep || t >= total) return 0;
   const k = (t - holdBefore) / sweep;
   const eased = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-  return 1 - (1 - endAt) * eased;
+  return 1 - eased;
+}
+
+// "Both" ending: after the reveal, the two photos move into their own halves and stay there.
+// Pause on After alone first, then slide the divider from the edge to the middle.
+const PANEL_PAUSE = 0.4;
+const PANEL_MOVE = 1.0;
+export function panelStart(totalSeconds) {
+  const { holdBefore, sweep } = timelineTimes(totalSeconds);
+  return holdBefore + sweep + PANEL_PAUSE;
+}
+
+// Returns where the divider sits (0 = After fills the frame, 0.5 = each photo has half), or null before the move starts.
+export function panelAt(t, totalSeconds) {
+  const { total } = timelineTimes(totalSeconds);
+  const start = panelStart(totalSeconds);
+  if (t < start) return null;
+  const move = Math.min(PANEL_MOVE, (total - start) * 0.6);
+  if (t >= start + move) return 0.5;
+  const k = (t - start) / move;
+  const eased = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+  return 0.5 * eased;
 }
 
 // Fade: how much After shows at time t, from 0 (all Before) to 1 (all After).
