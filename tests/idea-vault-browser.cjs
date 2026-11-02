@@ -19,6 +19,7 @@ function createFakeDrive() {
     nextId: 1,
     requests: [],
     listRepeatPage: false,
+    faults: { lostCreateReplies: 0 },
   };
   drive.workspaceFiles = () =>
     [...drive.files.values()].filter((f) => f.name === WORKSPACE);
@@ -123,6 +124,10 @@ async function installFakeDrive(context, drive) {
         version: 1,
         content: payload,
       });
+      if (drive.faults.lostCreateReplies > 0) {
+        drive.faults.lostCreateReplies--;
+        return json(500, { error: 'reply lost after the file was stored' });
+      }
       return json(200, { id, name: meta.name, version: '1' });
     }
 
@@ -204,6 +209,15 @@ async function clearMessage(page) {
 
 // Every action path in app.js ends by setting #message, so a non-empty message
 // after clearing it means that action has finished.
+async function liveTitles(page) {
+  return page.evaluate(() =>
+    JSON.parse(localStorage.getItem('tim-idea-vault-v1') || '{"ideas":[]}')
+      .ideas.filter((i) => !i.archived)
+      .map((i) => i.title)
+      .sort(),
+  );
+}
+
 async function connect(page) {
   await clearMessage(page);
   await page.click('#connect');
@@ -239,11 +253,23 @@ test('save → sync → reload → reconnect keeps the same data (no false confl
 
   await a.page.reload();
   await connect(a.page);
+  const versionBeforeNoop = drive.workspaceFiles()[0].version;
+  const writesBeforeNoop = writeCount(drive);
   await sync(a.page);
   assert.match(
     await message(a.page),
-    /Cloud sync complete/,
-    'second sync must not report a conflict',
+    /Already up to date/,
+    'an unchanged workspace must not be re-uploaded',
+  );
+  assert.equal(
+    writeCount(drive),
+    writesBeforeNoop,
+    'no upload request was sent',
+  );
+  assert.equal(
+    drive.workspaceFiles()[0].version,
+    versionBeforeNoop,
+    'Drive version unchanged',
   );
   assert.deepEqual(await localTitles(a.page), beforeReload);
   assert.deepEqual(
@@ -514,6 +540,295 @@ test('Drive import is additive, idempotent, and never resurrects an archived car
     await a.page.locator('#results article').count(),
     1,
     'archived card stays hidden',
+  );
+  await a.context.close();
+});
+
+function writeCount(drive) {
+  return drive.requests.filter((r) => /^(POST|PATCH) \/upload\//.test(r))
+    .length;
+}
+
+async function editIdea(page, currentTitle, changes) {
+  await page
+    .locator('#results article', { hasText: currentTitle })
+    .locator('button')
+    .click();
+  if (changes.title !== undefined) await page.fill('#e-title', changes.title);
+  if (changes.notes !== undefined) await page.fill('#e-notes', changes.notes);
+  await page.click('#save');
+}
+
+async function cloudIdeas(drive) {
+  return drive.workspace()?.ideas || [];
+}
+
+test('repeated syncs with no local changes never upload or bump the Drive version', async ({
+  browser,
+  base,
+  drive,
+}) => {
+  const a = await openDevice(browser, base, drive);
+  await connect(a.page);
+  await addIdea(a.page, 'Stable idea');
+  await sync(a.page);
+  const version = drive.workspaceFiles()[0].version;
+  const writes = writeCount(drive);
+  for (let k = 0; k < 3; k++) {
+    await sync(a.page);
+    assert.match(await message(a.page), /Already up to date/);
+  }
+  await a.page.reload();
+  await connect(a.page);
+  await sync(a.page);
+  assert.match(await message(a.page), /Already up to date/);
+  assert.equal(
+    writeCount(drive),
+    writes,
+    'no upload requests across repeated syncs',
+  );
+  assert.equal(
+    drive.workspaceFiles()[0].version,
+    version,
+    'Drive version never bumped',
+  );
+  await a.context.close();
+});
+
+test('a no-op sync still detects a change made on another device, and uploads nothing', async ({
+  browser,
+  base,
+  drive,
+}) => {
+  const a = await openDevice(browser, base, drive);
+  await connect(a.page);
+  await addIdea(a.page, 'Desktop idea');
+  await sync(a.page);
+
+  const other = await openDevice(browser, base, drive);
+  await connect(other.page);
+  await addIdea(other.page, 'Phone idea');
+  await sync(other.page);
+  await other.context.close();
+
+  const writes = writeCount(drive);
+  await sync(a.page);
+  assert.match(await message(a.page), /Merged changes from another device/);
+  assert.equal(
+    writeCount(drive),
+    writes,
+    'desktop only pulled; it did not upload',
+  );
+  assert.deepEqual(
+    await localTitles(a.page),
+    ['Desktop idea', 'Phone idea'].sort(),
+  );
+  await a.context.close();
+});
+
+test('two devices edit different fields of the same idea: both edits are kept as a conflict copy', async ({
+  browser,
+  base,
+  drive,
+}) => {
+  const phone = await openDevice(browser, base, drive);
+  await connect(phone.page);
+  await addIdea(phone.page, 'Shared idea');
+  await sync(phone.page);
+
+  const desktop = await openDevice(browser, base, drive);
+  await connect(desktop.page);
+
+  await editIdea(phone.page, 'Shared idea', { title: 'Phone title' });
+  await sync(phone.page);
+
+  await editIdea(desktop.page, 'Shared idea', { notes: 'Desktop notes' });
+  await sync(desktop.page);
+  assert.match(
+    await message(desktop.page),
+    /1 edit conflicted/,
+    'the conflict is reported, not hidden',
+  );
+
+  const local = await desktop.page.evaluate(
+    () => JSON.parse(localStorage.getItem('tim-idea-vault-v1')).ideas,
+  );
+  const original = local.find((i) => i.title === 'Shared idea');
+  const copy = local.find((i) => i.conflictOf);
+  assert.ok(original, 'the desktop copy stays on the original card');
+  assert.equal(original.notes, 'Desktop notes', 'the desktop edit is kept');
+  assert.ok(copy, 'the phone edit is kept as a conflict copy');
+  assert.equal(copy.title, 'Phone title', 'the phone edit is not discarded');
+
+  const cloud = await cloudIdeas(drive);
+  assert.equal(cloud.length, 2, 'both versions reached Drive');
+  assert.ok(cloud.some((i) => i.conflictOf === original.id));
+  await phone.context.close();
+  await desktop.context.close();
+});
+
+test('repeated syncs after a conflict do not create more conflict copies', async ({
+  browser,
+  base,
+  drive,
+}) => {
+  const phone = await openDevice(browser, base, drive);
+  await connect(phone.page);
+  await addIdea(phone.page, 'Shared idea');
+  await sync(phone.page);
+  const desktop = await openDevice(browser, base, drive);
+  await connect(desktop.page);
+  await editIdea(phone.page, 'Shared idea', { title: 'Phone title' });
+  await sync(phone.page);
+  await editIdea(desktop.page, 'Shared idea', { notes: 'Desktop notes' });
+  await sync(desktop.page);
+  for (let k = 0; k < 3; k++) {
+    await sync(desktop.page);
+    await sync(phone.page);
+  }
+  const copies = (await localTitles(desktop.page)).length;
+  assert.equal(copies, 2, 'still exactly one original and one conflict copy');
+  assert.equal((await cloudIdeas(drive)).filter((i) => i.conflictOf).length, 1);
+  await phone.context.close();
+  await desktop.context.close();
+});
+
+test('resolving a conflict with "Use this version" leaves one live card and syncs cleanly', async ({
+  browser,
+  base,
+  drive,
+}) => {
+  const phone = await openDevice(browser, base, drive);
+  await connect(phone.page);
+  await addIdea(phone.page, 'Shared idea');
+  await sync(phone.page);
+  const desktop = await openDevice(browser, base, drive);
+  await connect(desktop.page);
+  await editIdea(phone.page, 'Shared idea', { title: 'Phone title' });
+  await sync(phone.page);
+  await editIdea(desktop.page, 'Shared idea', { notes: 'Desktop notes' });
+  await sync(desktop.page);
+
+  await desktop.page
+    .locator('#results article', { hasText: 'Conflict copy' })
+    .locator('button')
+    .click();
+  await desktop.page.click('#resolve-use');
+  await sync(desktop.page);
+  assert.match(
+    await message(desktop.page),
+    /Cloud sync complete|Already up to date/,
+  );
+
+  const live = await desktop.page.locator('#results article').count();
+  assert.equal(live, 1, 'the archived copy is hidden; one live card remains');
+  assert.deepEqual(await liveTitles(desktop.page), ['Phone title']);
+  // The phone sees the resolved card and must not invent a new conflict.
+  await sync(phone.page);
+  assert.deepEqual(
+    await liveTitles(phone.page),
+    ['Phone title'],
+    'phone sees exactly one live card',
+  );
+  await phone.context.close();
+  await desktop.context.close();
+});
+
+test('resolving a conflict with "Keep original" archives the copy and keeps the original', async ({
+  browser,
+  base,
+  drive,
+}) => {
+  const phone = await openDevice(browser, base, drive);
+  await connect(phone.page);
+  await addIdea(phone.page, 'Shared idea');
+  await sync(phone.page);
+  const desktop = await openDevice(browser, base, drive);
+  await connect(desktop.page);
+  await editIdea(phone.page, 'Shared idea', { title: 'Phone title' });
+  await sync(phone.page);
+  await editIdea(desktop.page, 'Shared idea', { notes: 'Desktop notes' });
+  await sync(desktop.page);
+
+  await desktop.page
+    .locator('#results article', { hasText: 'Conflict copy' })
+    .locator('button')
+    .click();
+  await desktop.page.click('#resolve-discard');
+  assert.deepEqual(await liveTitles(desktop.page), ['Shared idea']);
+  assert.equal(await desktop.page.locator('#results article').count(), 1);
+  await phone.context.close();
+  await desktop.context.close();
+});
+
+test('a failed upload keeps local edits pending and the next sync recovers without duplicates', async ({
+  browser,
+  base,
+  drive,
+}) => {
+  const a = await openDevice(browser, base, drive);
+  await connect(a.page);
+  await addIdea(a.page, 'Before failure');
+  await sync(a.page);
+  const versionBefore = drive.workspaceFiles()[0].version;
+
+  await a.context.route('https://www.googleapis.com/upload/**', (route) =>
+    route.fulfill({ status: 500, contentType: 'text/plain', body: 'boom' }),
+  );
+  await addIdea(a.page, 'Written during outage');
+  await sync(a.page);
+  assert.match(
+    await a.page.locator('#cloudstatus').textContent(),
+    /failed.*local changes kept/,
+  );
+  assert.equal(
+    drive.workspaceFiles()[0].version,
+    versionBefore,
+    'a failed upload changed nothing in Drive',
+  );
+  await a.context.unroute('https://www.googleapis.com/upload/**');
+
+  await sync(a.page);
+  assert.match(await message(a.page), /Cloud sync complete/);
+  assert.equal(drive.workspaceFiles().length, 1, 'no duplicate workspace file');
+  assert.deepEqual((await cloudIdeas(drive)).map((i) => i.title).sort(), [
+    'Before failure',
+    'Written during outage',
+  ]);
+  assert.equal(
+    drive.workspaceFiles()[0].version,
+    versionBefore + 1,
+    'exactly one successful upload',
+  );
+  await a.context.close();
+});
+
+test('a lost create response does not create a second workspace file on retry', async ({
+  browser,
+  base,
+  drive,
+}) => {
+  const a = await openDevice(browser, base, drive);
+  await connect(a.page);
+  await addIdea(a.page, 'Created then reply lost');
+  drive.faults.lostCreateReplies = 1;
+  await sync(a.page);
+  assert.match(await a.page.locator('#cloudstatus').textContent(), /failed/);
+  assert.equal(
+    drive.workspaceFiles().length,
+    1,
+    'the file was stored before the reply was lost',
+  );
+
+  await sync(a.page);
+  assert.equal(
+    drive.workspaceFiles().length,
+    1,
+    'retry found the existing file; no duplicate',
+  );
+  assert.deepEqual(
+    (await cloudIdeas(drive)).map((i) => i.title),
+    ['Created then reply lost'],
   );
   await a.context.close();
 });

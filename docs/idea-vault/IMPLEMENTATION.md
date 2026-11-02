@@ -8,10 +8,23 @@ The app caches its working data in localStorage pending Google authorization. Cl
 ## Current limits and next development
 - Imported source items are linked metadata only, not copied outline text. PDF duplicate omitted. Reference docs are differentiated from video ideas.
 - Cloud mode is intentionally opt-in and not configured yet: needs real Google OAuth client ID. Browser sync only occurs while the page is open and authorized.
-- AppData file is reconciled before writing: when the cloud version differs from the last one seen, the cloud copy is merged per idea (newer `updatedAt` wins, ties keep local, nothing is deleted) and a local safety snapshot is saved first. The upload is still **not an atomic compare-and-swap**: a write by another device between the version check and the upload can be overwritten. Do not advertise reliable simultaneous editing; future work should use per-idea files or a transactional backend if concurrent writes become common. Duplicate workspace files are refused rather than picked.
+- AppData sync model (per idea): every edit gets a unique `revision` token; each device keeps a `base` of the revision it last synced. If only one side changed since base, that side is kept. If both changed, the local idea stays, the cloud copy is kept as a **Conflict copy** (`conflictOf`), and the user chooses which to keep in the editor. Clock time (`updatedAt`) never decides a conflict. Sync uploads only when there are pending local changes or no cloud file exists, so repeated syncs do not bump the Drive version. Duplicate workspace files are refused rather than picked.
 - Local draft is browser-local, and explicit remote conflict must be resolved manually. Export JSON regularly.
 - A client OAuth consent screen in Testing can require periodic reauthorization. No refresh tokens or private keys are stored.
 - Future: structured sections, rich shot lists, Docs creation via drive.file/Docs, automatic scan of folder using Picker, T.IM tool handoffs, full IndexedDB queue, privacy-safe secured backup.
+
+## Concurrency limits (read before relying on sync)
+- **Not an atomic compare-and-swap.** Drive `files.update` is used without a conditional write. A write by another device between the reconcile read and the upload can still be overwritten. The window is small but not zero. Per-idea Drive files or a transactional backend would remove it.
+- **Conflicts are manual.** Both versions are kept, but resolution is a user choice ("Use this version" / "Keep original"). Nothing is merged field by field.
+- **Base is per device.** If a device's sync state is cleared, every differing idea becomes a conflict copy on the next connect. This is safe but noisy.
+- **Legacy data** (ideas saved before revisions existed) has no revision. Identical copies merge silently; differing copies become conflict copies.
+- **Deletes are archives.** No hard delete is propagated. Archived ideas stay in the file.
+- **Whole-file uploads.** The single `tim-idea-vault-v1.json` is re-uploaded in full whenever there are pending changes, so very large libraries will grow the upload size.
+- **Residual clock issue.** Clock time is used only for display order, not for conflicts.
+
+## Tests
+- `npm run test:idea-vault` runs the unit tests (`node --test`) for merge, revisions, conflict resolution, and import rules.
+- `npm run test:idea-vault:browser` runs the browser tests against a fake Google Drive with two devices in separate browser contexts. It needs Chrome (`CHROME_PATH`) and Playwright.
 
 ## Verification
 Run existing `npm run test:hub`, `npm run build`, and browser tests. Verify Google auth only after a real configured client ID exists. Avoid claiming cloud or Docs integration tested until authorized end-to-end.

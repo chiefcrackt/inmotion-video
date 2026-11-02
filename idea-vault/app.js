@@ -2,10 +2,16 @@ import {
   WORKSPACE_FILE,
   isWorkspace,
   hasIdentity,
+  rev,
+  touch,
+  baseOf,
   sameVersion,
+  newRevision,
   workspaceListQuery,
   pickWorkspaceFile,
   mergeIdeas,
+  useCopyAsOriginal,
+  discardCopy,
   isGoogleDoc,
   folderIdFrom,
   planImport,
@@ -13,7 +19,7 @@ import {
 
 // Storage keys. Changing KEY would strand existing user data, so it stays fixed.
 const KEY = 'tim-idea-vault-v1'; // ideas, version 1 (unchanged)
-const SYNC_KEY = 'tim-idea-vault-sync-v1'; // { pending, lastSyncedAt }
+const SYNC_KEY = 'tim-idea-vault-sync-v1'; // { pending, lastSyncedAt, base }
 const BACKUP_KEY = 'tim-idea-vault-backups-v1'; // rolling safety copies, newest first
 const UNREADABLE_KEY = 'tim-idea-vault-unreadable-v1'; // raw copy of unreadable local data
 const FOLDER_KEY = 'tim-idea-vault-import-folder';
@@ -29,7 +35,6 @@ let items = [],
   selected = null,
   token = null,
   remote = null,
-  tokenClient = null,
   importing = false;
 
 function notify(s) {
@@ -99,7 +104,7 @@ function load() {
   );
 }
 
-// ---- Rendering and editing (unchanged behavior) --------------------------
+// ---- Rendering and editing -----------------------------------------------
 
 function txt(parent, tag, value, cls) {
   const n = document.createElement(tag);
@@ -131,7 +136,7 @@ function render() {
     String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')),
   )) {
     const card = txt($('results'), 'article', '', 'card');
-    txt(card, 'span', i.status, 'pill');
+    txt(card, 'span', i.conflictOf ? 'Conflict copy' : i.status, 'pill');
     txt(card, 'h3', i.title);
     txt(card, 'small', i.platform + ' · ' + (i.category || 'General'));
     if (i.sourceId) txt(card, 'small', 'Linked Google Doc');
@@ -154,6 +159,7 @@ function open(id) {
   $('e-priority').value = i.priority || 'Normal';
   $('doclink').hidden = !i.docUrl;
   if (i.docUrl) $('doclink').href = i.docUrl;
+  $('resolve').hidden = !i.conflictOf;
   $('editor').classList.add('open');
   $('e-title').focus();
 }
@@ -177,6 +183,7 @@ $('capture').onsubmit = (e) => {
     priority: 'Normal',
     createdAt: now(),
     updatedAt: now(),
+    revision: newRevision(),
     archived: false,
   });
   persist();
@@ -197,8 +204,8 @@ $('save').onclick = () => {
     category: $('e-category').value,
     status: $('e-status').value,
     priority: $('e-priority').value,
-    updatedAt: now(),
   });
+  touch(i, now());
   persist();
   close();
   notify('Saved on this device');
@@ -212,9 +219,33 @@ $('archive').onclick = () => {
   )
     return;
   i.archived = true;
-  i.updatedAt = now();
+  touch(i, now());
   persist();
   close();
+};
+
+// Conflict resolution. Both actions archive the copy, so nothing is deleted.
+$('resolve-use').onclick = () => {
+  try {
+    useCopyAsOriginal(items, selected, now());
+    persist();
+    close();
+    notify(
+      'Original replaced with the conflict copy. Press Sync now to upload.',
+    );
+  } catch (e) {
+    notify(e.message);
+  }
+};
+$('resolve-discard').onclick = () => {
+  try {
+    discardCopy(items, selected, now());
+    persist();
+    close();
+    notify('Conflict copy archived. The original was kept.');
+  } catch (e) {
+    notify(e.message);
+  }
 };
 
 $('close').onclick = close;
@@ -259,6 +290,7 @@ $('importfile').onchange = async (e) => {
         ...x,
         notes: String(x.notes || ''),
         updatedAt: x.updatedAt || now(),
+        revision: rev(x) || newRevision(),
       });
       count++;
     }
@@ -327,19 +359,37 @@ async function downloadWorkspace(id) {
   return d;
 }
 
-// Merge the cloud copy into local data. A safety snapshot is written first, and
-// if that fails the merge is aborted, so local data is never replaced unprotected.
+// Merge the cloud copy into local data using per-idea revisions and the
+// device's base. A safety snapshot is written first; if it cannot be saved the
+// merge is aborted, so local data is never replaced unprotected.
 async function reconcileWith(latest) {
   const cloud = await downloadWorkspace(latest.id);
-  const result = mergeIdeas(items, cloud.ideas);
+  const base = readSync().base || {};
+  const result = mergeIdeas(items, cloud.ideas, base, () =>
+    crypto.randomUUID(),
+  );
   if (result.changed) {
     snapshot('before cloud merge', items);
     items = result.ideas;
     localStorage.setItem(KEY, JSON.stringify({ version: 1, ideas: items }));
   }
   remote = latest;
-  writeSync({ pending: result.needsUpload });
+  writeSync({
+    pending: result.needsUpload,
+    base: { ...base, ...result.synced },
+  });
   return result;
+}
+
+function conflictNote(result) {
+  const n = result.conflicts.length;
+  if (!n) return '';
+  return (
+    ' ' +
+    n +
+    (n === 1 ? ' edit conflicted' : ' edits conflicted') +
+    ': both versions were kept (see "Conflict copy" cards). Open each one and choose which to keep.'
+  );
 }
 
 async function createWorkspace(payload) {
@@ -418,7 +468,8 @@ async function connect() {
           : 'Connected to Google Drive · up to date',
       );
       notify(
-        'Connected. Existing ideas were merged per idea; nothing was deleted.',
+        'Connected. Existing ideas were merged; nothing was deleted.' +
+          conflictNote(result),
       );
     } else {
       remote = null;
@@ -437,29 +488,45 @@ async function connect() {
   }
 }
 
+// Sync uploads only when there is something to upload: local changes that are
+// pending, or no cloud copy yet. An unchanged, already-synced workspace is
+// checked against Drive but never re-uploaded, so the Drive version stays put.
 async function sync() {
   if (!token) return connect();
   try {
     const latest = pickWorkspaceFile(await listWorkspaceFiles());
-    let mergedFromCloud = false;
-    // Reconcile whenever the cloud version is not the one we last saw. This covers
-    // a change made on another device and a copy created while this page was open.
+    let result = null;
     if (latest && (!remote || !sameVersion(latest.version, remote.version))) {
-      mergedFromCloud = (await reconcileWith(latest)).changed;
+      result = await reconcileWith(latest);
+    }
+    const note = result ? conflictNote(result) : '';
+    if (latest && !hasPendingChanges()) {
+      setCloudStatus(
+        'Up to date with Google Drive · checked ' +
+          new Date().toLocaleTimeString(),
+      );
+      notify(
+        (result?.changed
+          ? 'Merged changes from another device. '
+          : 'Already up to date. Nothing uploaded. ') + note,
+      );
+      render();
+      return;
     }
     const payload = JSON.stringify({ version: 1, ideas: items });
     remote = latest
       ? await updateWorkspace(latest.id, payload)
       : await createWorkspace(payload);
-    writeSync({ pending: false, lastSyncedAt: now() });
+    writeSync({ pending: false, lastSyncedAt: now(), base: baseOf(items) });
     setCloudStatus(
       'Synced to Google Drive at ' + new Date().toLocaleTimeString(),
     );
     notify(
-      mergedFromCloud
-        ? 'Merged changes from another device, then synced.'
-        : 'Cloud sync complete',
+      (result?.changed
+        ? 'Merged changes from another device, then synced. '
+        : 'Cloud sync complete. ') + note,
     );
+    render();
   } catch (e) {
     notify(e.message);
     setCloudStatus(
