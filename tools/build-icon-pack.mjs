@@ -70,7 +70,7 @@ try {
   await writeFile(root + 'files/TIM_Running_Creator_Icons.zip', new Uint8Array(await zip.arrayBuffer()));
 } finally { await browser.close(); }
 
-const cards = icons.map(i => `<article class="card" data-category="${i.category}"><div class="art"><img src="files/svg/${i.id}.svg" alt="${i.name}" width="128" height="128" loading="lazy"></div><div class="cardbody"><span class="tag">${i.category}</span><h2>${i.name}</h2><div class="files"><a href="files/png/${i.id}.png" download="tim-${i.id}.png">PNG <span>1024px</span></a><a href="files/svg/${i.id}.svg" download="tim-${i.id}.svg">SVG <span>Vector</span></a></div></div></article>`).join('\n');
+const cards = icons.map(i => `<article class="card" data-category="${i.category}"><div class="art"><img src="files/svg/${i.id}.svg" alt="${i.name}" width="128" height="128" loading="lazy"></div><div class="cardbody"><span class="tag">${i.category}</span><h2>${i.name}</h2><div class="files"><a href="files/png/${i.id}.png" download="tim-${i.id}.png">PNG <span>1024px</span></a><a href="files/svg/${i.id}.svg" download="tim-${i.id}.svg">SVG <span>Vector</span></a></div><a href="../asset-studio/?asset=icon:${i.id}" style="display:inline-flex;min-height:44px;align-items:center;font-size:13px">Animate this →</a></div></article>`).join('\n');
 const template = await readFile(new URL('../icon-pack/template.html', import.meta.url), 'utf8');
 await writeFile(root + 'index.html', template.replace('<!-- ICON_CARDS -->', cards));
 console.log(`Built ${icons.length} SVGs, ${icons.length} transparent PNGs, contact sheet, ZIP and catalog.`);

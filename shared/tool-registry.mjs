@@ -220,6 +220,15 @@ export const TOOLS = Object.freeze([
     icon: 'grid',
   },
   {
+    id: 'asset-studio',
+    name: 'Asset Animator',
+    href: 'asset-studio/',
+    description: 'Arrange library graphics and text on a transparent canvas. Export standalone PNGs or animations to overlay in your own editor.',
+    workspaces: ['graphics', 'library'],
+    keywords: ['assets', 'animator', 'standalone', 'transparent', 'png', 'webm', 'overlay', 'layers', 'motion'],
+    icon: 'star',
+  },
+  {
     id: 'icon-pack',
     name: 'Running + Creator Icons',
     href: 'icon-pack/',
