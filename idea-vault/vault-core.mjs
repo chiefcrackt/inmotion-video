@@ -389,3 +389,119 @@ export function planImport(existing, docs, makeId, timestamp) {
   }
   return { additions, existingCount, invalid };
 }
+
+// ---- Due dates and checklists ----------------------------------------------
+// A due date is a calendar day (YYYY-MM-DD), not an instant: it means the same
+// day on every device. Anything that is not a real day is dropped.
+
+export const DEFAULT_CHECKLIST_STEPS = [
+  'Script',
+  'Shot list',
+  'Filmed',
+  'Edited',
+  'Posted',
+];
+const CHECKLIST_TEXT_MAX = 120;
+
+export function validDueDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value))
+    return '';
+  const d = new Date(value + 'T00:00:00Z');
+  return Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== value
+    ? ''
+    : value;
+}
+
+// The local calendar day as YYYY-MM-DD, for comparing with due dates.
+export function localDay(date = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return (
+    date.getFullYear() +
+    '-' +
+    pad(date.getMonth() + 1) +
+    '-' +
+    pad(date.getDate())
+  );
+}
+
+export function defaultChecklist() {
+  return DEFAULT_CHECKLIST_STEPS.map((text) => ({ text, done: false }));
+}
+
+// Keeps only usable steps: a non-empty text and a boolean done flag.
+export function normalizeChecklist(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((x) => x && typeof x.text === 'string' && x.text.trim())
+    .map((x) => ({
+      text: x.text.trim().slice(0, CHECKLIST_TEXT_MAX),
+      done: x.done === true,
+    }));
+}
+
+export function checklistProgress(idea) {
+  const list = normalizeChecklist(idea?.checklist);
+  return { done: list.filter((x) => x.done).length, total: list.length };
+}
+
+// Overdue: the due day has passed and the idea is not published or archived.
+export function isOverdue(idea, today) {
+  const due = validDueDate(idea?.dueDate);
+  return (
+    !!due &&
+    due < today &&
+    idea?.status !== 'Published' &&
+    idea?.archived !== true
+  );
+}
+
+// ---- Export ----------------------------------------------------------------
+
+const CSV_FORMULA_START = /^[=+\-@\t\r]/;
+
+// One CSV cell. Text that a spreadsheet would run as a formula gets a leading
+// apostrophe, so an idea title cannot execute code when the file is opened.
+export function csvCell(value) {
+  let s = value === undefined || value === null ? '' : String(value);
+  if (CSV_FORMULA_START.test(s)) s = "'" + s;
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+// Due-date rows: earliest due first, undated ideas last, then by title.
+// Archived ideas and conflict copies are left out.
+export function dueDateRows(ideas) {
+  return (ideas || [])
+    .filter((i) => hasIdentity(i) && !i.archived && !i.conflictOf)
+    .map((i) => ({
+      title: i.title || '',
+      dueDate: validDueDate(i.dueDate),
+      status: i.status || 'Inbox',
+      platform: i.platform || '',
+      progress: checklistProgress(i),
+    }))
+    .sort((a, b) => {
+      if (a.dueDate !== b.dueDate) {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return a.dueDate < b.dueDate ? -1 : 1;
+      }
+      return a.title.localeCompare(b.title);
+    });
+}
+
+// CSV text with a UTF-8 byte-order mark, so Excel reads accented titles correctly.
+export function dueDateCsv(ideas) {
+  const header = ['Title', 'Due date', 'Status', 'Platform', 'Checklist'];
+  const lines = dueDateRows(ideas).map((r) => [
+    r.title,
+    r.dueDate,
+    r.status,
+    r.platform,
+    r.progress.total ? r.progress.done + '/' + r.progress.total : '',
+  ]);
+  return (
+    '﻿' +
+    [header, ...lines].map((row) => row.map(csvCell).join(',')).join('\r\n') +
+    '\r\n'
+  );
+}
