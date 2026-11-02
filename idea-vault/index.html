@@ -153,6 +153,51 @@
       .card small {
         color: #9fb0c8;
       }
+      .card small.due {
+        color: #e8c77a;
+      }
+      .card small.due.overdue {
+        color: #ff8f7a;
+        font-weight: 700;
+      }
+      .checklist {
+        border-top: 1px solid rgba(159, 176, 200, 0.25);
+        padding-top: 12px;
+        margin-top: 4px;
+      }
+      .checklist h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+      .checklist-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 8px;
+        display: grid;
+        gap: 6px;
+      }
+      .checklist-list li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .checklist-list li input[type='text'] {
+        flex: 1;
+        min-width: 0;
+      }
+      .checklist-list li input[type='checkbox'] {
+        width: 20px;
+        height: 20px;
+        flex: none;
+      }
+      .checklist-add {
+        display: flex;
+        gap: 8px;
+      }
+      .checklist-add input {
+        flex: 1;
+        min-width: 0;
+      }
       .pill {
         font-size: 12px;
         padding: 2px 6px;
@@ -378,6 +423,7 @@
             ><div class="top-actions" style="justify-content: space-between"
               ><h2>Production Library</h2
               ><button id="export">Export backup</button
+              ><button id="export-due">Export due dates</button
               ><label style="max-width: 150px"
                 >Import JSON<input
                   id="importfile"
@@ -469,6 +515,22 @@
               ><option>Low</option></select
             ></label
           ></div
+        ><div class="cols"
+          ><label>Due date<input id="e-due" type="date" /></label></div
+        ><section class="checklist" aria-labelledby="checklist-heading"
+          ><h3 id="checklist-heading">Checklist</h3
+          ><ul id="e-checklist" class="checklist-list"></ul
+          ><p id="e-checklist-empty" class="hint" hidden>No steps yet.</p
+          ><div class="checklist-add"
+            ><input
+              id="e-step-new"
+              maxlength="120"
+              placeholder="Add a step"
+              aria-label="New checklist step"
+            /><button id="e-step-add" type="button">Add step</button></div
+          ><button id="e-step-defaults" type="button" hidden
+            >Use default steps</button
+          ></section
         ><section
           id="doc-section"
           class="doc-section"
