@@ -69,20 +69,6 @@
       .section-head h2 { font: 700 24px/1.1 var(--display); letter-spacing: .04em; text-transform: uppercase; }
       .section-head span { color: var(--muted); font-size: 15px; }
 
-      /* Continue creating */
-      .feature {
-        display: grid; gap: 14px; text-decoration: none;
-        background: linear-gradient(135deg, var(--panel-2), var(--panel));
-        border: 1px solid var(--teal); border-radius: 14px; padding: 18px;
-        box-shadow: 0 0 0 1px rgba(95, 208, 223, 0.08), 0 12px 30px rgba(0, 0, 0, 0.25);
-      }
-      .feature .tile { color: var(--gold); }
-      .feature h3 { font: 700 30px/1 var(--display); letter-spacing: .02em; }
-      .feature p { color: var(--muted); }
-      .feature .go { color: var(--teal-bright); font-weight: 700; }
-      .feature .tile { width: 56px; height: 56px; border-radius: 12px; display: grid; place-items: center; background: rgba(232, 201, 106, .08); border: 1px solid rgba(232, 201, 106, .4); }
-      .feature .tile .ico { width: 30px; height: 30px; }
-      @media (min-width: 700px) { .feature { grid-template-columns: auto 1fr auto; align-items: center; } }
 
       /* Quick launch */
       .quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -177,7 +163,7 @@
           <div><strong>T.IM</strong><span>STUDIO</span></div>
         </a>
         <nav class="desk-nav" aria-label="Main">
-          <a href="#continue" data-nav="continue">Ideas</a>
+          <a href="idea-vault/">Ideas</a>
           <a href="#workspaces" data-nav="workspaces">Workspaces</a>
           <a href="#tools" data-nav="tools">All tools</a>
         </nav>
@@ -191,10 +177,6 @@
         <p>Plan a video, make its graphics, build running visuals, shape the audio and prepare the posts, all from one place.</p>
       </div>
 
-      <section id="continue" aria-labelledby="continue-h">
-        <div class="section-head"><h2 id="continue-h">Continue creating</h2><span>Plan your next video</span></div>
-        <a class="feature" id="feature" href="content-planner/"><span><span class="eyebrow">Plan &amp; Organize</span><h3>Content Planner</h3><p>Move videos from idea to published, with outlines, shoot plans and assets together.</p></span><span class="go">Open Content Planner →</span></a>
-      </section>
 
       <section aria-labelledby="quick-h">
         <div class="section-head"><h2 id="quick-h">Quick launch</h2></div>
@@ -231,14 +213,14 @@
 
     <nav class="bottom" aria-label="Mobile">
       <a href="#top" data-bottom="top"><span data-icon="home"></span>Home</a>
-      <a href="#continue" data-bottom="continue"><span data-icon="idea"></span>Ideas</a>
+      <a href="idea-vault/"><span data-icon="idea"></span>Ideas</a>
       <a href="#tools" data-bottom="tools"><span data-icon="grid"></span>Tools</a>
       <a href="#ws-library" data-bottom="library"><span data-icon="library"></span>Library</a>
     </nav>
 
     <script type="module">
       import {
-        WORKSPACES, TOOLS, featuredTool, quickLaunch, workspaceCounts, searchTools, getWorkspace,
+        WORKSPACES, TOOLS, quickLaunch, workspaceCounts, searchTools, getWorkspace,
       } from './shared/tool-registry.mjs?v=20261102-planners';
       import { iconSvg } from './shared/icons.mjs';
 
@@ -259,19 +241,6 @@
         slot.innerHTML = icon(slot.dataset.icon);
         slot.firstElementChild.setAttribute('aria-hidden', 'true');
       }
-
-      // Featured tool
-      const feature = featuredTool();
-      const featureEl = $('#feature');
-      featureEl.setAttribute('href', feature.href);
-      const tile = el('span', { class: 'tile', 'aria-hidden': 'true' }, icon(feature.icon));
-      const body = el('span');
-      body.append(
-        text(el('span', { class: 'eyebrow' }), 'Plan & Organize'),
-        text(el('h3'), feature.name),
-        text(el('p'), feature.description),
-      );
-      featureEl.replaceChildren(tile, body, text(el('span', { class: 'go' }), 'Open ' + feature.name + ' →'));
 
       // Quick launch
       const quick = $('#quick');
@@ -360,7 +329,7 @@
 
       // Bottom and desktop navigation: mark the section in view as current.
       renderTools();
-      const sections = ['top', 'continue', 'workspaces', 'tools'];
+      const sections = ['top', 'workspaces', 'tools'];
       const navLinks = [...document.querySelectorAll('[data-nav], [data-bottom]')];
       const setCurrent = (id) => {
         for (const a of navLinks) {
