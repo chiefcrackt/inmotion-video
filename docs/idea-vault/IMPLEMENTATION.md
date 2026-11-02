@@ -15,3 +15,11 @@ The app caches its working data in localStorage pending Google authorization. Cl
 
 ## Verification
 Run existing `npm run test:hub`, `npm run build`, and browser tests. Verify Google auth only after a real configured client ID exists. Avoid claiming cloud or Docs integration tested until authorized end-to-end.
+
+
+## Folder import / refresh (new)
+Open Idea Vault, paste the Google Drive folder URL into **Google Drive outlines folder URL or ID**, and click **Import / Refresh from Drive**. The first use requests a *separate* Google Drive metadata-only read scope (`drive.metadata.readonly`) to enumerate existing Google Docs. This is broader than `drive.appdata`, which can only read the app's own hidden data. The app does not read document bodies, alter the originals, or place document IDs in committed static files. Each imported card links to its original Google Doc and deduplicates using the Google file ID. Reference/segment-bank documents are categorized separately through title heuristics. After import, click **Sync now** to save imported cards into appData cloud storage. Imported notes are blank because we intentionally do not request content access.
+
+**OAuth considerations:** `drive.metadata.readonly` is a restricted Drive scope; Google's authorization warning, testing-user restrictions, and verification requirements may apply. This personal testing build must not be represented as publicly verified. If Google refuses this scope, revisit the design for Google Picker / `drive.file`, which supports user-selected files, or an import via a local JSON export. No permission to modify documents is requested.
+
+**Manual validation:** test on the actual published origin with the test Google account; import twice and confirm no duplicates; verify only Google Docs are included and PDF files ignored; create one new outline in the folder and refresh; save new cards with Sync now; confirm they load on a second device; test rejection of an inaccessible folder and denial of consent. Cloud sync's current remote-version preflight is not atomic and cannot safely merge simultaneous edits.
