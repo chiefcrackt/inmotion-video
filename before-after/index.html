@@ -60,7 +60,17 @@
         background: var(--navy) center / cover no-repeat;
       }
       .thumb.has { border-style: solid; border-color: var(--teal); }
-      .photo-head input[type="file"] { width: 100%; min-height: 44px; color: var(--muted); }
+      .pick { display: grid; gap: 6px; min-width: 0; }
+      .file-btn {
+        display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 10px 14px;
+        border-radius: 12px; border: 1px solid var(--gold); background: transparent; color: var(--gold);
+        font: 700 15px/1 var(--display); letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+      }
+      .file-btn:active { background: var(--gold); color: var(--navy); }
+      .file-btn:focus-within { outline: 2px solid var(--gold); outline-offset: 2px; }
+      .sr { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+      .photo-name { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+      .photo-name.err { color: var(--danger); }
       .adjust { display: grid; gap: 8px; }
       .adjust label { display: grid; gap: 4px; font-size: 15px; color: var(--muted); }
       .adjust label span.val { float: right; color: var(--paper); }
@@ -99,7 +109,11 @@
           <div class="photo-card" data-slot="before">
             <div class="photo-head">
               <div class="thumb" id="thumb-before"></div>
-              <label class="muted">Before photo <input id="file-before" type="file" accept="image/*" /></label>
+              <div class="pick">
+                <label class="file-btn" for="file-before">Choose before photo</label>
+                <input id="file-before" class="sr" type="file" accept="image/*" />
+                <span class="photo-name" id="name-before">No photo yet</span>
+              </div>
             </div>
             <div class="adjust">
               <div class="row">
@@ -119,7 +133,11 @@
           <div class="photo-card" data-slot="after">
             <div class="photo-head">
               <div class="thumb" id="thumb-after"></div>
-              <label class="muted">After photo <input id="file-after" type="file" accept="image/*" /></label>
+              <div class="pick">
+                <label class="file-btn" for="file-after">Choose after photo</label>
+                <input id="file-after" class="sr" type="file" accept="image/*" />
+                <span class="photo-name" id="name-after">No photo yet</span>
+              </div>
             </div>
             <div class="adjust">
               <div class="row">
@@ -193,6 +211,7 @@
 
           <div class="actions">
             <button id="png" class="primary" type="button">Save still (PNG)</button>
+            <button id="preview" type="button">Preview animation</button>
             <button id="clip" type="button">Record animation</button>
           </div>
           <p id="msg" role="status" aria-live="polite"></p>
@@ -212,7 +231,7 @@
 
     <script type="module">
       import {
-        ASPECTS, PHOTO_DEFAULTS, clamp, placeImage, panRange, timelineTimes, splitAt, fadeAt, labelSize, SPLIT_DEFAULT, END_BOTH_SPLIT,
+        ASPECTS, PHOTO_DEFAULTS, clamp, placeImage, panRange, timelineTimes, splitAt, fadeAt, panelAt, labelSize, SPLIT_DEFAULT,
       } from './model.mjs';
 
       const $ = (id) => document.getElementById(id);
@@ -255,16 +274,20 @@
         if (canvas.height !== height) canvas.height = height;
       }
 
-      function drawPhoto(slot, W, H) {
+      // Draws a photo into the rectangle at (x, y) with size W x H, clipped to that rectangle.
+      function drawPhoto(slot, W, H, x = 0, y = 0) {
         const img = photos[slot];
-        if (!img) return;
+        if (!img || W <= 0 || H <= 0) return;
         const a = adj[slot];
         const p = placeImage(img.naturalWidth, img.naturalHeight, W, H, a);
         const odd = p.rotation % 180 !== 0;
         const uw = odd ? p.h : p.w; // size before the quarter turn
         const uh = odd ? p.w : p.h;
         ctx.save();
-        ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+        ctx.beginPath();
+        ctx.rect(x, y, W, H);
+        ctx.clip();
+        ctx.translate(x + p.x + p.w / 2, y + p.y + p.h / 2);
         ctx.rotate((p.rotation * Math.PI) / 180);
         ctx.drawImage(img, -uw / 2, -uh / 2, uw, uh);
         ctx.restore();
@@ -284,7 +307,8 @@
       }
 
       // Draws the frame. wipeSplit: 1 = all Before, 0 = all After. fadeAmount: 0 = all Before, 1 = all After.
-      function drawFrame({ wipeSplit = null, fadeAmount = null, fadeFrom = 0, showDivider = opt.showDivider } = {}) {
+      // panelSplit: both photos side by side, each in its own half (0.5 = the middle).
+      function drawFrame({ wipeSplit = null, fadeAmount = null, panelSplit = null, showDivider = opt.showDivider } = {}) {
         ensureCanvasSize();
         const { width: W, height: H } = frame();
         const horizontal = opt.orientation === 'horizontal';
@@ -292,17 +316,20 @@
         ctx.fillRect(0, 0, W, H);
         const boundary = horizontal ? W * clamp(wipeSplit ?? opt.split, 0, 1) : H * clamp(wipeSplit ?? opt.split, 0, 1);
 
-        if (fadeAmount !== null) {
-          // Fade: After fades in over Before. With fadeFrom set, only the part after that split fades in.
+        if (panelSplit !== null) {
+          const b = clamp(panelSplit, 0, 1);
+          if (horizontal) {
+            drawPhoto('before', W * b, H, 0, 0);
+            drawPhoto('after', W * (1 - b), H, W * b, 0);
+          } else {
+            drawPhoto('before', W, H * b, 0, 0);
+            drawPhoto('after', W, H * (1 - b), 0, H * b);
+          }
+        } else if (fadeAmount !== null) {
+          // Fade: After fades in over Before.
           drawPhoto('before', W, H);
           if (photos.after && fadeAmount > 0) {
             ctx.save();
-            if (fadeFrom > 0) {
-              ctx.beginPath();
-              if (horizontal) ctx.rect(W * fadeFrom, 0, W * (1 - fadeFrom), H);
-              else ctx.rect(0, H * fadeFrom, W, H * (1 - fadeFrom));
-              ctx.clip();
-            }
             ctx.globalAlpha = clamp(fadeAmount, 0, 1);
             drawPhoto('after', W, H);
             ctx.restore();
@@ -325,9 +352,11 @@
           ctx.restore();
         }
 
-        const fadeLine = fadeAmount !== null && fadeFrom > 0 && fadeAmount >= 0.999;
-        const lineAt = fadeLine ? (horizontal ? W * fadeFrom : H * fadeFrom) : boundary;
-        const showLine = showDivider && photos.before && photos.after && (fadeAmount === null || fadeLine) && lineAt > 0 && (horizontal ? lineAt < W : lineAt < H);
+        const lineAt = panelSplit !== null
+          ? (horizontal ? W * clamp(panelSplit, 0, 1) : H * clamp(panelSplit, 0, 1))
+          : boundary;
+        const lineAllowed = panelSplit !== null || fadeAmount === null;
+        const showLine = showDivider && photos.before && photos.after && lineAllowed && lineAt > 0 && (horizontal ? lineAt < W : lineAt < H);
         if (showLine) {
           ctx.fillStyle = '#e8c96a';
           const t = W * 0.008;
@@ -411,6 +440,7 @@
         }
         const ready = !!(photos.before && photos.after);
         $('png').disabled = !ready || recording;
+        $('preview').disabled = !ready || recording;
         $('clip').disabled = !ready || recording;
         $('swap').disabled = recording;
         $('reset').disabled = recording;
@@ -427,27 +457,57 @@
         syncControls();
       }
 
+      // Phone photos are often 12 megapixels or more. Shrinking them once keeps the preview and recording smooth on iPhone.
+      const MAX_SIDE = 2048;
+      function loadImage(url) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = url;
+        });
+      }
+
+      async function shrink(img, url) {
+        const scale = Math.min(1, MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+        if (scale >= 1) return { img, url, original: true };
+        try {
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.naturalWidth * scale);
+          c.height = Math.round(img.naturalHeight * scale);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const blob = await new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error('no blob'))), 'image/jpeg', 0.92));
+          const smallUrl = URL.createObjectURL(blob);
+          return { img: await loadImage(smallUrl), url: smallUrl, original: false };
+        } catch {
+          return { img, url, original: true };
+        }
+      }
+
       async function loadPhoto(file, slot) {
         if (!file) return;
-        const url = URL.createObjectURL(file);
-        const img = new Image();
+        const nameEl = $('name-' + slot);
+        const src = URL.createObjectURL(file);
+        let result;
         try {
-          // Wait for the load event first. decode() can reject on some phones even when the photo displays fine.
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = url;
-          });
+          // decode() can reject on some phones even when the photo displays, so the load event is what counts.
+          const img = await loadImage(src);
           await img.decode().catch(() => {});
+          result = await shrink(img, src);
         } catch {
-          URL.revokeObjectURL(url);
-          say('That photo could not be opened. Try a JPEG or PNG.', true);
+          URL.revokeObjectURL(src);
+          nameEl.textContent = 'Could not open this photo. Try a JPEG or PNG.';
+          nameEl.classList.add('err');
+          say('Could not open the ' + slot + ' photo. Try a JPEG or PNG.', true);
           return;
         }
+        if (!result.original) URL.revokeObjectURL(src);
         if (urls[slot]) URL.revokeObjectURL(urls[slot]);
-        photos[slot] = img;
-        urls[slot] = url;
+        photos[slot] = result.img;
+        urls[slot] = result.url;
         adj[slot] = { ...PHOTO_DEFAULTS };
+        nameEl.textContent = file.name;
+        nameEl.classList.remove('err');
         say('');
         refresh();
       }
@@ -487,6 +547,8 @@
           photos[slot] = null;
           urls[slot] = null;
           adj[slot] = { ...PHOTO_DEFAULTS };
+          $('name-' + slot).textContent = 'No photo yet';
+          $('name-' + slot).classList.remove('err');
         }
         say('');
         refresh();
@@ -598,17 +660,37 @@
         return '';
       }
 
-      // The animation ends on After alone, or with both photos side by side at the middle.
+      // The animation ends on After alone, or with both photos side by side, each in its own half.
       function animationFrame(t) {
-        const both = opt.end === 'both';
-        if (opt.style === 'fade') drawFrame({ fadeAmount: fadeAt(t, opt.length), fadeFrom: both ? END_BOTH_SPLIT : 0 });
-        else drawFrame({ wipeSplit: splitAt(t, opt.length, both ? END_BOTH_SPLIT : 0) });
+        const panel = opt.end === 'both' ? panelAt(t, opt.length) : null;
+        if (panel !== null) return drawFrame({ panelSplit: panel });
+        if (opt.style === 'fade') drawFrame({ fadeAmount: fadeAt(t, opt.length) });
+        else drawFrame({ wipeSplit: splitAt(t, opt.length) });
       }
+
+      // Plays the animation on the preview only. Nothing is saved.
+      $('preview').onclick = () => {
+        if (!(photos.before && photos.after) || recording) return;
+        const total = timelineTimes(opt.length).total;
+        recording = true;
+        syncControls();
+        const start = performance.now();
+        const step = () => {
+          const t = (performance.now() - start) / 1000;
+          animationFrame(t);
+          if (t < total) return requestAnimationFrame(step);
+          recording = false;
+          refresh();
+          say('Preview finished. Record animation to save it.');
+        };
+        say('Previewing ' + total.toFixed(1) + ' s…');
+        step();
+      };
 
       $('clip').onclick = () => {
         if (!(photos.before && photos.after)) return;
         const type = pickType();
-        if (type === null || !canvas.captureStream) return say('This browser cannot record video. Try Safari on iPad or Chrome on a computer.', true);
+        if (type === null || !canvas.captureStream) return say('This browser cannot record video. Save the PNG instead, or open this page in a newer Safari or in Chrome on a computer.', true);
         let mr;
         const chunks = [];
         try {
@@ -617,6 +699,8 @@
           return say('Recording could not start (' + e.name + ').', true);
         }
         recording = true;
+        activeRecorder = mr;
+        interrupted = false;
         syncControls();
         const total = timelineTimes(opt.length).total;
         const start = performance.now();
@@ -629,16 +713,30 @@
         mr.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
         mr.onstop = async () => {
           recording = false;
+          activeRecorder = null;
+          refresh();
+          if (interrupted) return say('Recording stopped because Safari went to the background. Keep this page open while recording.', true);
+          const size = chunks.reduce((n, c) => n + c.size, 0);
+          if (!size) return say('The recording came out empty. Try again.', true);
           const mt = (mr.mimeType || type || 'video/webm').split(';')[0];
           const ext = mt.includes('mp4') ? 'mp4' : 'webm';
-          refresh();
           say('Saving the animation…');
           say(await deliver(new Blob(chunks, { type: mt }), stem() + '.' + ext));
         };
         mr.start(500);
-        say('Recording ' + total.toFixed(1) + ' s. Keep this page open.');
+        say('Recording ' + total.toFixed(1) + ' s. Keep this page open with the screen on.');
         step();
       };
+
+      // On iPhone, switching apps can break a recording, so stop it cleanly and say why.
+      let activeRecorder = null;
+      let interrupted = false;
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && activeRecorder && activeRecorder.state !== 'inactive') {
+          interrupted = true;
+          activeRecorder.stop();
+        }
+      });
 
       refresh();
     </script>
