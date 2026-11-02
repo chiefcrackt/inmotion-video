@@ -211,6 +211,7 @@
 
           <div class="actions">
             <button id="png" class="primary" type="button">Save still (PNG)</button>
+            <button id="preview" type="button">Preview animation</button>
             <button id="clip" type="button">Record animation</button>
           </div>
           <p id="msg" role="status" aria-live="polite"></p>
@@ -439,6 +440,7 @@
         }
         const ready = !!(photos.before && photos.after);
         $('png').disabled = !ready || recording;
+        $('preview').disabled = !ready || recording;
         $('clip').disabled = !ready || recording;
         $('swap').disabled = recording;
         $('reset').disabled = recording;
@@ -665,6 +667,25 @@
         if (opt.style === 'fade') drawFrame({ fadeAmount: fadeAt(t, opt.length) });
         else drawFrame({ wipeSplit: splitAt(t, opt.length) });
       }
+
+      // Plays the animation on the preview only. Nothing is saved.
+      $('preview').onclick = () => {
+        if (!(photos.before && photos.after) || recording) return;
+        const total = timelineTimes(opt.length).total;
+        recording = true;
+        syncControls();
+        const start = performance.now();
+        const step = () => {
+          const t = (performance.now() - start) / 1000;
+          animationFrame(t);
+          if (t < total) return requestAnimationFrame(step);
+          recording = false;
+          refresh();
+          say('Preview finished. Record animation to save it.');
+        };
+        say('Previewing ' + total.toFixed(1) + ' s…');
+        step();
+      };
 
       $('clip').onclick = () => {
         if (!(photos.before && photos.after)) return;
