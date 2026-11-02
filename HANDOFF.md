@@ -19,6 +19,8 @@ Feature 4 was dropped and is intentionally not listed.
 | 7 | [#8 Tier List Maker](#8-tier-list-maker) | New tool `/tier-list/` | done |
 | 8 | [#9 Beat Bed](#9-beat-bed) | New tool `/beat-bed/` + `shared/sound/beat.mjs` | done |
 | 9 | [#10 Data-kit hit presets](#10-data-kit-hit-presets) | Sound Forge (`shared/sound/presets.mjs`) | done |
+| 10 | [#11 Idea Vault ↔ Content Planner sync](#11-idea-vault--content-planner-sync) | Idea Vault, Content Planner | done (local branch `feature/idea-content-sync`, not pushed; browser tests not run) |
+| 11 | Content Planner Edit checklist and final-film tracking | Content Planner | todo |
 
 #1 is dropped (not planned). The Race Recap download pack (`tools/race-recap/`)
 is unchanged.
@@ -795,3 +797,23 @@ Tristan sends Claude the preview before merging.
 move), recopy to links-inMotion `scene/hooper/`, update `DOGPARTS` from the
 printed values, run `tests/hooper-gait.cjs`, compare frames at phone size.
 
+## #11 Idea Vault ↔ Content Planner sync
+
+Where: `shared/pipeline-link.mjs`, `content-planner/app.mjs`, `idea-vault/app.js`.
+
+A promoted idea is a project with id `idea:<ideaId>`. Stage/status and publish/due
+date are reconciled both ways. The side changed most recently wins, using
+`project.updated` against `idea.updatedAt`. A planner stage keeps an existing
+idea status when they already match, so Filmed and Editing are not flattened to
+Edit. Deleted projects, archived ideas and conflict copies are not touched.
+Reconciliation runs on planner save, on planner load, on Idea Vault load, and
+when either app's storage changes in another tab.
+
+Known limit: last-write-wins is per record, not per field. If the two sides edit
+different fields close together, the later edit's record wins for both.
+
+Tests: `node --test tests/pipeline-link.test.mjs`.
+Still to do: the browser checks for both tools (`test:planner`, `test:idea-vault:browser`)
+need `npm ci`, which the sandbox could not reach.
+
+---
