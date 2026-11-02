@@ -44,7 +44,7 @@
     <meta name="claude:viewport-fit-sides" content="cover" />
     <link rel="stylesheet" href="../shared/fonts.css" /><link
       rel="stylesheet"
-      href="../shared/projects.css" /><script src="../shared/projects.js"></script><link rel="stylesheet" href="../shared/responsive.css" /></head><body
+      href="../shared/projects.css" /><script src="../shared/projects.js"></script><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script></head><body
     ><style>
       /* Layout: two-column studio. Live preview on the left, the text and options on the right; one column on phones.
    Single dark look on purpose: T.im navy is the brand ground. */
@@ -1945,6 +1945,7 @@
           anchor();
         }
         function saveFile(name, data, note) {
+          if(window.TimDriveExport?.route(data,name)) return;
           if (!downloads) {
             fallbackSave(name, data, note);
             return;

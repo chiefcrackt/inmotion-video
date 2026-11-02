@@ -42,7 +42,7 @@
       }</style
     ><title>Tier List Maker</title>
     <meta name="claude:viewport-fit-sides" content="cover" />
-    <link rel="stylesheet" href="../shared/fonts.css" /><link rel="stylesheet" href="../shared/responsive.css" /></head><body
+    <link rel="stylesheet" href="../shared/fonts.css" /><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script></head><body
     ><style>
       /* Layout: a two-column studio. Live carousel or video preview on the left, grouped controls on the right; stacks to one column on phones.
    Single dark look on purpose: the T.im navy is the brand ground. */
@@ -2204,6 +2204,7 @@
           anchor();
         }
         function saveFile(name, data, note) {
+          if(window.TimDriveExport?.route(data,name)) return;
           if (!downloads) {
             fallbackSave(name, data, note);
             return;

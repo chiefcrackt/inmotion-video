@@ -33,6 +33,7 @@ export function encodeWav(buffer) {
 }
 export function download(data, name, type = 'application/octet-stream') {
   const b = data instanceof Blob ? data : new Blob([data], { type });
+  if(globalThis.window?.TimDriveExport?.route(b,name)) return;
   const url = URL.createObjectURL(b),
     a = document.createElement('a');
   a.href = url;

@@ -1,6 +1,14 @@
 import { readFile, access } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const files = [
+  'shared/project-sync.mjs',
+  'shared/project-store.mjs',
+  'shared/project-drive.mjs',
+  'shared/drive-controls.mjs',
+  'shared/drive-export.mjs',
+  'content-planner/index.html',
+  'content-planner/app.mjs',
+  'shoot-planner/index.html',
   'text-motion/index.html',
   'text-motion/app.js',
   'text-motion/alpha-video.js',
@@ -32,7 +40,7 @@ for (const file of files) {
   )) {
     const url = m[1] || m[2];
     if (/^(https?:|data:)/.test(url)) continue;
-    await access(resolve(dirname(file), url));
+    await access(resolve(dirname(file), url.split(/[?#]/)[0]));
   }
 }
 console.log(

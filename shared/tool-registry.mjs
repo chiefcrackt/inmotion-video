@@ -17,6 +17,24 @@ export const WORKSPACES = Object.freeze([
 // quick: true places the tool in Quick Launch. quickLabel overrides its short label.
 export const TOOLS = Object.freeze([
   {
+    id: 'content-planner',
+    name: 'Content Planner',
+    href: 'content-planner/',
+    description: 'Move videos from idea to published, with outlines, footage and thumbnails together.',
+    workspaces: ['plan', 'publishing'],
+    keywords: ['board', 'schedule', 'projects', 'production', 'outline'],
+    icon: 'idea',
+  },
+  {
+    id: 'shoot-planner',
+    name: 'Shoot Planner',
+    href: 'shoot-planner/',
+    description: 'Talking points, B-roll, gear and locations, with a phone-friendly filming mode.',
+    workspaces: ['plan'],
+    keywords: ['filming', 'shoot', 'checklist', 'gear', 'locations', 'b-roll'],
+    icon: 'idea',
+  },
+  {
     id: 'idea-vault',
     name: 'Idea Vault',
     href: 'idea-vault/',

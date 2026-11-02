@@ -202,12 +202,30 @@
       name: $('name').value.trim() || 'Untitled',
       payload: clone(get()),
     });
+    window.TimProjectSnapshot = documentData;
+    window.dispatchEvent(new Event('tim-project-snapshot-ready'));
     $('save').onclick = run(async () => {
       const doc = documentData();
       validate(doc, tool);
+      const snapshotId = crypto.randomUUID();
       await query('readwrite', (s) =>
-        s.put({ ...doc, id: crypto.randomUUID(), updated: Date.now() }),
+        s.put({ ...doc, id: snapshotId, updated: Date.now() }),
       );
+      const videoId = new URLSearchParams(location.search).get('videoProject');
+      if (videoId) {
+        try {
+          const { updateProject } = await import('./project-store.mjs');
+          updateProject(videoId, (video) =>
+            video.attachments.push({ id: snapshotId, tool, name: doc.name }),
+          );
+        } catch {
+          status(
+            'Snapshot saved, but attachment failed. Attach it from Content Planner.',
+          );
+          await refresh();
+          return;
+        }
+      }
       await refresh();
       status('Saved a new snapshot.');
     });
@@ -296,6 +314,54 @@
         status('Output style updated.');
       });
       syncLook();
+    }
+    const videoId = new URLSearchParams(location.search).get('videoProject');
+    if (videoId) {
+      const back = document.createElement('a');
+      back.href = '../content-planner/#' + encodeURIComponent(videoId);
+      back.textContent = '← Back to video project';
+      section.before(back);
+    }
+    const cloudSnapshotId = new URLSearchParams(location.search).get(
+      'driveSnapshot',
+    );
+    if (cloudSnapshotId) {
+      section.open = true;
+      const load = document.createElement('button');
+      load.type = 'button';
+      load.textContent = 'Load Drive setup';
+      load.onclick = run(async () => {
+        const drive = await import('./project-drive.mjs');
+        await drive.connect();
+        const doc = validate(await drive.downloadSetup(cloudSnapshotId), tool);
+        if (!confirm('Replace the current setup with ' + doc.name + '?'))
+          return;
+        await set(clone(doc.payload));
+        $('name').value = doc.name;
+        syncLook();
+        status('Loaded ' + doc.name + ' from Drive.');
+      });
+      section.querySelector('.tim-project-body').prepend(load);
+    }
+    const snapshotId = new URLSearchParams(location.search).get('snapshot');
+    if (snapshotId) {
+      section.open = true;
+      const load = document.createElement('button');
+      load.type = 'button';
+      load.textContent = 'Load attached snapshot';
+      load.onclick = run(async () => {
+        const doc = validate(
+          await query('readonly', (s) => s.get(snapshotId)),
+          tool,
+        );
+        if (!confirm('Replace the current setup with ' + doc.name + '?'))
+          return;
+        await set(clone(doc.payload));
+        $('name').value = doc.name;
+        syncLook();
+        status('Loaded ' + doc.name + '.');
+      });
+      section.querySelector('.tim-project-body').prepend(load);
     }
     refresh().catch(() =>
       status('Browser storage is unavailable. JSON export/import still works.'),

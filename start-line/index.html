@@ -44,7 +44,7 @@
     <meta name="claude:viewport-fit-sides" content="cover" />
     <link rel="stylesheet" href="../shared/fonts.css" /><link
       rel="stylesheet"
-      href="../shared/projects.css" /><script src="../shared/projects.js"></script><link rel="stylesheet" href="../shared/responsive.css" /></head><body
+      href="../shared/projects.css" /><script src="../shared/projects.js"></script><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script></head><body
     ><style>
       /* Layout: two-column studio. Live preview of the runner on the left, grouped controls on the right; one column on phones.
    Single dark look on purpose: T.im navy is the brand ground. */
@@ -1679,6 +1679,7 @@
         }
         $('save').onclick = function () {
           if (!lastBlob) return;
+          if(window.TimDriveExport?.route(lastBlob,lastName)) return;
           var note = $('savenote');
           if (!downloads) {
             fallbackSave(lastName, lastBlob, note);

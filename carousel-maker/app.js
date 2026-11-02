@@ -482,6 +482,7 @@ $('overviewTab').onclick = () => setTab(true);
 $('export').onclick = () => $('exportDialog').showModal();
 $('closeDialog').onclick = () => $('exportDialog').close();
 function download(blob, name) {
+  if(window.TimDriveExport?.route(blob,name)) return;
   const a = document.createElement('a'),
     url = URL.createObjectURL(blob);
   a.href = url;

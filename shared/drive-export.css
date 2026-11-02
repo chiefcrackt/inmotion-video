@@ -1,0 +1,69 @@
+.tim-drive-export {
+  box-sizing: border-box;
+  background: #13233d;
+  color: #f6f4ef;
+  border: 1px solid #2e9bad;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 12px 0;
+  font:
+    17px/1.4 'Barlow Condensed',
+    Arial,
+    sans-serif;
+  max-width: 100%;
+  min-width: 0;
+}
+.tim-drive-export select,
+.tim-drive-export button,
+.tim-drive-controls button {
+  font: inherit;
+  border: 1px solid #426080;
+  background: #0e1a2e;
+  color: #f6f4ef;
+  border-radius: 7px;
+  padding: 10px;
+  min-height: 44px;
+  margin: 4px;
+  max-width: 100%;
+  cursor: pointer;
+}
+.tim-drive-export select {
+  display: block;
+  width: calc(100% - 8px);
+}
+.tim-drive-export a,
+.tim-drive-controls a {
+  color: #5fd0df;
+  margin: 6px;
+}
+.tim-drive-export p,
+.tim-drive-controls p {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.tim-drive-export strong {
+  color: #e8c96a;
+}
+.tim-drive-export [hidden],
+.tim-drive-controls [hidden] {
+  display: none !important;
+}
+.tim-drive-job {
+  border-top: 1px solid #426080;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+.tim-drive-export :focus-visible {
+  outline: 3px solid #e8c96a;
+  outline-offset: 2px;
+}
+.tim-drive-controls {
+  margin: 12px 0;
+}
+.tim-drive-controls button {
+  width: auto;
+  display: inline-block;
+}
+.tim-drive-export button:disabled {
+  opacity: 0.5;
+}
