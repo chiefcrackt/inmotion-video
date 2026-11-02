@@ -22,5 +22,95 @@ async function findRemote(){const r=await api('files?spaces=appDataFolder&fields
 async function downloadRemote(id){const r=await fetch('https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(id)+'?alt=media',{headers:{Authorization:'Bearer '+token}});if(!r.ok)throw Error('Cannot download cloud file: '+r.status);const d=await r.json();if(!valid(d))throw Error('Cloud file has unsupported format');return d}
 async function connect(){const clientId=window.TIM_IDEA_VAULT_CONFIG?.googleClientId;if(!clientId){notify('Google Cloud setup needed: configure public OAuth client ID in idea-vault/config.js. See IMPLEMENTATION.md.');return}if(!window.google?.accounts?.oauth2){notify('Google sign-in has not loaded. Try again.');return}tokenClient=google.accounts.oauth2.initTokenClient({client_id:clientId,scope:'https://www.googleapis.com/auth/drive.appdata',callback:async response=>{if(response.error){notify(response.error);return}token=response.access_token;try{remote=await findRemote();if(remote){const cloud=await downloadRemote(remote.id);if(dirty){notify('Cloud data exists and local changes are pending. Export a backup, then reconcile before syncing. Cloud was not overwritten.');return}const byKey=new Map(items.map((i,index)=>[i.sourceId||i.id,index]));for(const entry of cloud.ideas){const key=entry.sourceId||entry.id;if(byKey.has(key))items[byKey.get(key)]=entry;else items.push(entry)}localStorage.setItem(KEY,JSON.stringify({version:1,ideas:items}));}dirty=false;$('cloudstatus').textContent='Connected to Google Drive · use Sync now after changes';render();notify('Connected. Existing documents remain unchanged.')}catch(e){notify(e.message)}}});tokenClient.requestAccessToken({prompt:'consent'})}
 async function sync(){if(!token)return connect();try{let latest=await findRemote();if(latest&&remote&&String(latest.version)!==String(remote.version)){notify('Remote changed on another device. Export backup and reload to reconcile; no overwrite performed.');return}if(latest&&!remote){notify('Remote workspace exists. Reconnect to load and reconcile before upload.');return}const payload=JSON.stringify({version:1,ideas:items});if(!latest){const boundary='tim_boundary_'+Date.now();const body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify({name:FILE,parents:['appDataFolder'],mimeType:'application/json'})+'\r\n--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+payload+'\r\n--'+boundary+'--';const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,version',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'multipart/related; boundary='+boundary},body});if(!r.ok)throw Error('Cloud creation failed: '+r.status);remote=await r.json()}else{const r=await fetch('https://www.googleapis.com/upload/drive/v3/files/'+encodeURIComponent(latest.id)+'?uploadType=media&fields=id,name,version',{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:payload});if(!r.ok)throw Error('Cloud save failed: '+r.status);remote=await r.json()}dirty=false;$('cloudstatus').textContent='Synced to Google Drive at '+new Date().toLocaleTimeString();notify('Cloud sync complete')}catch(e){notify(e.message);$('cloudstatus').textContent='Cloud sync failed · local draft preserved'}}
+
+/**
+ * Imported originals are never modified. Metadata-only access is requested
+ * separately from the appData scope that stores the user's own idea database.
+ */
+const FOLDER_KEY='tim-idea-vault-import-folder';
+$('folder-input').value=localStorage.getItem(FOLDER_KEY)||'';
+let importing=false;
+function folderId(input){
+  const value=String(input||'').trim();
+  const match=value.match(/(?:https:\/\/drive\.google\.com\/drive\/folders\/)([a-zA-Z0-9_-]{15,})/);
+  if(match)return match[1];
+  if(/^[a-zA-Z0-9_-]{15,}$/.test(value))return value;
+  throw Error('Paste a Google Drive folder URL (drive.google.com/drive/folders/…) or folder ID.');
+}
+function inferCategory(name){
+  if(/gear|flask|shoe|review|product/i.test(name))return 'Gear';
+  if(/race|ultra|run|2026|2027|DNF|oil creek/i.test(name))return 'Running';
+  if(/vlog|week|personal|life/i.test(name))return 'Lifestyle';
+  return 'General';
+}
+function inferPlatform(name){return /tiktok/i.test(name)?'TikTok':'YouTube'}
+function isReference(name){return /segment idea bank|intro and outro questions/i.test(name)}
+async function fetchImportFolder(id,accessToken){
+  const headers={Authorization:'Bearer '+accessToken};
+  const base='https://www.googleapis.com/drive/v3/files';
+  const fields='nextPageToken,files(id,name,mimeType,webViewLink,createdTime,modifiedTime,trashed)';
+  let page='',files=[];
+  do{
+    const params=new URLSearchParams({q:"'"+id+"' in parents and trashed = false",fields,pageSize:'100',orderBy:'name'});
+    if(page)params.set('pageToken',page);
+    const response=await fetch(base+'?'+params,{headers});
+    if(!response.ok)throw Error('Google Drive folder lookup failed ('+response.status+'). Check permissions and folder ID.');
+    const data=await response.json();
+    files.push(...(data.files||[]));
+    page=data.nextPageToken||'';
+    if(files.length>1000)throw Error('Folder has more than 1,000 files. Import a smaller folder.');
+  }while(page);
+  return files.filter(x=>x.mimeType==='application/vnd.google-apps.document');
+}
+function importDocs(docs){
+  let added=0,existing=0;
+  for(const doc of docs){
+    if(!/^[a-zA-Z0-9_-]+$/.test(doc.id))continue;
+    if(items.some(i=>i.sourceId===doc.id||i.docUrl?.includes('/d/'+doc.id+'/'))){existing++;continue}
+    const reference=isReference(doc.name);
+    items.push({
+      id:crypto.randomUUID(),sourceId:doc.id,title:doc.name,
+      notes:'',platform:reference?'Reference':inferPlatform(doc.name),
+      category:reference?'Reference':inferCategory(doc.name),
+      kind:reference?'reference':'project',
+      status:reference?'Inbox':'Developing',priority:'Normal',
+      docUrl:doc.webViewLink||'https://docs.google.com/document/d/'+doc.id+'/edit',
+      createdAt:doc.createdTime||now(),updatedAt:now(),archived:false
+    });
+    added++;
+  }
+  if(added)persist();
+  return {added,existing};
+}
+async function importFromDrive(){
+  if(importing)return;
+  let id;
+  try{id=folderId($('folder-input').value)}catch(error){notify(error.message);return}
+  if(!window.google?.accounts?.oauth2){notify('Google authentication has not loaded. Try again.');return}
+  if(!window.TIM_IDEA_VAULT_CONFIG?.googleClientId){notify('Google OAuth client ID is not configured.');return}
+  importing=true;
+  $('import-drive').disabled=true;
+  $('import-drive').textContent='Connecting…';
+  localStorage.setItem(FOLDER_KEY,id);
+  try{
+    // Request only read-only Drive metadata, not document contents or edits.
+    const accessToken=await new Promise((resolve,reject)=>{
+      const client=google.accounts.oauth2.initTokenClient({
+        client_id:window.TIM_IDEA_VAULT_CONFIG.googleClientId,
+        scope:'https://www.googleapis.com/auth/drive.metadata.readonly',
+        callback:response=>response.error?reject(Error(response.error)):resolve(response.access_token),
+        error_callback:e=>reject(Error(e?.type||'Google authorization cancelled'))
+      });
+      client.requestAccessToken({prompt:'consent'});
+    });
+    $('import-drive').textContent='Reading folder…';
+    const docs=await fetchImportFolder(id,accessToken);
+    const result=importDocs(docs);
+    notify('Found '+docs.length+' Google Docs: '+result.added+' imported, '+result.existing+' already linked. Originals unchanged. '+(result.added?'Tap Sync now to back up the new cards.':''));
+  }catch(error){notify('Import failed: '+error.message)}
+  finally{importing=false;$('import-drive').disabled=false;$('import-drive').textContent='Import / Refresh from Drive'}
+}
+$('import-drive').onclick=importFromDrive;
+
 $('connect').onclick=connect;$('sync').onclick=sync;
 load();render();
