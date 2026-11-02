@@ -7,6 +7,7 @@
 const assert = require('node:assert/strict');
 const { launchBrowser, server } = require('./browser-utils.cjs');
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const IDEAS_KEY = 'tim-idea-vault-v1';
 const DOC_ID = 'doc-race-plan_1';
 const VIEWPORT = { width: 390, height: 844 };
@@ -640,6 +641,75 @@ test("the section for one idea does not show another idea's content", async ({
   assert.equal(await page.locator('#doc-section').isHidden(), true);
   assert.equal(await page.locator('#doc-viewer .doc-heading').count(), 0);
   await context.close().catch(() => {});
+});
+
+test('repeated refreshes and reopening the idea never stack requests or duplicate content', async ({
+  browser,
+  base,
+  docs,
+}) => {
+  const { context, page } = await openDevice(browser, base, docs);
+  await openWorkspace(page);
+  await pressDocButton(page);
+  const afterFirst = docs.requests.length;
+
+  // Rapid presses while a load is running must not stack requests.
+  for (let k = 0; k < 5; k++)
+    await page.click('#doc-refresh', { force: true }).catch(() => {});
+  await page.waitForFunction(
+    () =>
+      document.getElementById('doc-viewer').getAttribute('aria-busy') ===
+        'false' &&
+      !/^(Loading|Refreshing)/.test(
+        document.getElementById('doc-status').textContent,
+      ),
+  );
+  await sleep(300);
+  assert.ok(
+    docs.requests.length - afterFirst <= 5,
+    'at most one request per press',
+  );
+  assert.equal(
+    await page.locator('#doc-viewer .doc-heading').count(),
+    1,
+    'no duplicated headings',
+  );
+  assert.equal(
+    await page.locator('#doc-viewer .doc-p').count(),
+    2,
+    'no duplicated paragraphs',
+  );
+
+  // Closing and reopening the idea refreshes once, silently, without a popup.
+  for (let k = 0; k < 3; k++) {
+    await page.click('#close');
+    const before = docs.requests.length;
+    await page
+      .locator('#results article button', { hasText: 'Open workspace' })
+      .first()
+      .click();
+    await page.waitForFunction(() =>
+      document.getElementById('editor').classList.contains('open'),
+    );
+    await page.waitForFunction(
+      () =>
+        document.getElementById('doc-viewer').getAttribute('aria-busy') ===
+        'false',
+    );
+    await sleep(300);
+    assert.ok(docs.requests.length - before <= 1, 'one refresh per open');
+    assert.equal(
+      await page.locator('#doc-viewer .doc-heading').count(),
+      1,
+      'still one copy after reopen',
+    );
+  }
+  assert.equal(
+    await page.evaluate(() => window.__pickerOpens || 0),
+    1,
+    'no Picker popup on reopen',
+  );
+  await context.close();
 });
 
 // ---- Runner ---------------------------------------------------------------
