@@ -60,7 +60,17 @@
         background: var(--navy) center / cover no-repeat;
       }
       .thumb.has { border-style: solid; border-color: var(--teal); }
-      .photo-head input[type="file"] { width: 100%; min-height: 44px; color: var(--muted); }
+      .pick { display: grid; gap: 6px; min-width: 0; }
+      .file-btn {
+        display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 10px 14px;
+        border-radius: 12px; border: 1px solid var(--gold); background: transparent; color: var(--gold);
+        font: 700 15px/1 var(--display); letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+      }
+      .file-btn:active { background: var(--gold); color: var(--navy); }
+      .file-btn:focus-within { outline: 2px solid var(--gold); outline-offset: 2px; }
+      .sr { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+      .photo-name { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+      .photo-name.err { color: var(--danger); }
       .adjust { display: grid; gap: 8px; }
       .adjust label { display: grid; gap: 4px; font-size: 15px; color: var(--muted); }
       .adjust label span.val { float: right; color: var(--paper); }
@@ -99,7 +109,11 @@
           <div class="photo-card" data-slot="before">
             <div class="photo-head">
               <div class="thumb" id="thumb-before"></div>
-              <label class="muted">Before photo <input id="file-before" type="file" accept="image/*" /></label>
+              <div class="pick">
+                <label class="file-btn" for="file-before">Choose before photo</label>
+                <input id="file-before" class="sr" type="file" accept="image/*" />
+                <span class="photo-name" id="name-before">No photo yet</span>
+              </div>
             </div>
             <div class="adjust">
               <div class="row">
@@ -119,7 +133,11 @@
           <div class="photo-card" data-slot="after">
             <div class="photo-head">
               <div class="thumb" id="thumb-after"></div>
-              <label class="muted">After photo <input id="file-after" type="file" accept="image/*" /></label>
+              <div class="pick">
+                <label class="file-btn" for="file-after">Choose after photo</label>
+                <input id="file-after" class="sr" type="file" accept="image/*" />
+                <span class="photo-name" id="name-after">No photo yet</span>
+              </div>
             </div>
             <div class="adjust">
               <div class="row">
@@ -427,27 +445,57 @@
         syncControls();
       }
 
+      // Phone photos are often 12 megapixels or more. Shrinking them once keeps the preview and recording smooth on iPhone.
+      const MAX_SIDE = 2048;
+      function loadImage(url) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = url;
+        });
+      }
+
+      async function shrink(img, url) {
+        const scale = Math.min(1, MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+        if (scale >= 1) return { img, url, original: true };
+        try {
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.naturalWidth * scale);
+          c.height = Math.round(img.naturalHeight * scale);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const blob = await new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error('no blob'))), 'image/jpeg', 0.92));
+          const smallUrl = URL.createObjectURL(blob);
+          return { img: await loadImage(smallUrl), url: smallUrl, original: false };
+        } catch {
+          return { img, url, original: true };
+        }
+      }
+
       async function loadPhoto(file, slot) {
         if (!file) return;
-        const url = URL.createObjectURL(file);
-        const img = new Image();
+        const nameEl = $('name-' + slot);
+        const src = URL.createObjectURL(file);
+        let result;
         try {
-          // Wait for the load event first. decode() can reject on some phones even when the photo displays fine.
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = url;
-          });
+          // decode() can reject on some phones even when the photo displays, so the load event is what counts.
+          const img = await loadImage(src);
           await img.decode().catch(() => {});
+          result = await shrink(img, src);
         } catch {
-          URL.revokeObjectURL(url);
-          say('That photo could not be opened. Try a JPEG or PNG.', true);
+          URL.revokeObjectURL(src);
+          nameEl.textContent = 'Could not open this photo. Try a JPEG or PNG.';
+          nameEl.classList.add('err');
+          say('Could not open the ' + slot + ' photo. Try a JPEG or PNG.', true);
           return;
         }
+        if (!result.original) URL.revokeObjectURL(src);
         if (urls[slot]) URL.revokeObjectURL(urls[slot]);
-        photos[slot] = img;
-        urls[slot] = url;
+        photos[slot] = result.img;
+        urls[slot] = result.url;
         adj[slot] = { ...PHOTO_DEFAULTS };
+        nameEl.textContent = file.name;
+        nameEl.classList.remove('err');
         say('');
         refresh();
       }
@@ -487,6 +535,8 @@
           photos[slot] = null;
           urls[slot] = null;
           adj[slot] = { ...PHOTO_DEFAULTS };
+          $('name-' + slot).textContent = 'No photo yet';
+          $('name-' + slot).classList.remove('err');
         }
         say('');
         refresh();
@@ -608,7 +658,7 @@
       $('clip').onclick = () => {
         if (!(photos.before && photos.after)) return;
         const type = pickType();
-        if (type === null || !canvas.captureStream) return say('This browser cannot record video. Try Safari on iPad or Chrome on a computer.', true);
+        if (type === null || !canvas.captureStream) return say('This browser cannot record video. Save the PNG instead, or open this page in a newer Safari or in Chrome on a computer.', true);
         let mr;
         const chunks = [];
         try {
@@ -617,6 +667,8 @@
           return say('Recording could not start (' + e.name + ').', true);
         }
         recording = true;
+        activeRecorder = mr;
+        interrupted = false;
         syncControls();
         const total = timelineTimes(opt.length).total;
         const start = performance.now();
@@ -629,16 +681,30 @@
         mr.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
         mr.onstop = async () => {
           recording = false;
+          activeRecorder = null;
+          refresh();
+          if (interrupted) return say('Recording stopped because Safari went to the background. Keep this page open while recording.', true);
+          const size = chunks.reduce((n, c) => n + c.size, 0);
+          if (!size) return say('The recording came out empty. Try again.', true);
           const mt = (mr.mimeType || type || 'video/webm').split(';')[0];
           const ext = mt.includes('mp4') ? 'mp4' : 'webm';
-          refresh();
           say('Saving the animation…');
           say(await deliver(new Blob(chunks, { type: mt }), stem() + '.' + ext));
         };
         mr.start(500);
-        say('Recording ' + total.toFixed(1) + ' s. Keep this page open.');
+        say('Recording ' + total.toFixed(1) + ' s. Keep this page open with the screen on.');
         step();
       };
+
+      // On iPhone, switching apps can break a recording, so stop it cleanly and say why.
+      let activeRecorder = null;
+      let interrupted = false;
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && activeRecorder && activeRecorder.state !== 'inactive') {
+          interrupted = true;
+          activeRecorder.stop();
+        }
+      });
 
       refresh();
     </script>
