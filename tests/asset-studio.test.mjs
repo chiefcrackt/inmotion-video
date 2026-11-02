@@ -6,6 +6,7 @@ import {
   transform,
   motions,
   splitLayer,
+  entranceMotions,
 } from '../asset-studio/model.mjs';
 import { catalog } from '../asset-studio/catalog.mjs';
 const layer = () => ({
@@ -77,8 +78,8 @@ test('saved scenes round trip without accepting URLs or unsafe settings', () => 
     validate({ ...state, layers: [{ ...state.layers[1], color: 'red' }] }),
   );
 });
-test('all motion presets close their loop and still PNGs ignore motion', () => {
-  for (const motion of motions) {
+test('looping transforms close their loop and still PNGs ignore motion', () => {
+  for (const motion of motions.filter((m) => !entranceMotions.includes(m))) {
     const l = { ...layer(), motion };
     assert.deepEqual(transform(l, 0, 4), transform(l, 4, 4));
     assert.deepEqual(transform(l, 1, 4, true), transform(layer(), 0, 4));
