@@ -72,3 +72,36 @@ The tests use fakes. These behaviors are unverified against real Google services
 - Picker opens with the document preselected and reports `PICKED`/`CANCEL` as the code expects.
 - Checklist state: the Docs API exposes checkbox symbols but checked state may be limited; the viewer shows open boxes unless a checked symbol is present.
 - Real-device check on iPhone Safari (scroll inside the document panel, touch targets).
+
+## Auto-sync (single-user workflow)
+Edits save to this device immediately. Once Idea Vault is connected to Google Drive, each change also queues an upload.
+
+**Behaviour**
+- **Saved locally** on every edit (localStorage, unchanged format).
+- **Auto-upload** after a quiet period of `autoSyncDelayMs` (default 4000 ms). A burst of edits makes one upload.
+- **One sync at a time.** Edits made during a sync cause exactly one follow-up run. Uploads never overlap.
+- **Skip no-op uploads.** If nothing is pending and the cloud copy is unchanged, the sync only reads Drive and never bumps the version.
+- **Cloud checks.** Opening Idea Vault checks Drive. Returning to the tab checks Drive again, but not more than once per `autoCheckMs` (default 30000 ms) unless edits are waiting.
+- **Offline.** Edits stay local and status shows "offline". Nothing retries until the browser fires `online`.
+- **Failures.** Transient errors (network, 429, 5xx) retry with backoff of 5 s, 15 s, 60 s, 5 min, then show **Needs attention**. Pending edits are never dropped.
+- **Expired sign-in.** Background code never opens a Google popup. If a silent token request fails, status shows **Needs attention: press Sync now to reconnect**. A tap on Sync now opens the sign-in.
+- **Sync now** is kept as a fallback. It waits for the in-flight run, then reports the result.
+
+**Status labels** (single line in the header): *Saved locally* (with the reason, such as "uploads automatically", "offline", "retrying upload", "not connected to Google Drive"), *Syncing*, *Synced* (with the time of the last cloud check), *Needs attention* (with the reason).
+
+**Google Docs.** Opening a linked idea refreshes its document only if a Docs access token is already held. The refresh never opens a Picker or sign-in popup. Otherwise the section shows the last loaded copy, or **Show document**. Refresh is still available by hand. Document content stays in memory and is never written to Drive or to the ideas.
+
+**Implementation.** `idea-vault/sync-controller.mjs` holds the scheduling (debounce, serialization, backoff, offline, auth stops). It is pure logic with injected timers and is unit-tested. `idea-vault/app.js` supplies the sync operation and classifies errors (`offline`, `auth`, `transient`, `fatal`).
+
+**Limits (single user, not collaborative)**
+- Uploads are whole-file. Drive offers no compare-and-swap here, so two devices uploading at the same moment can still race. The merge on the next sync keeps both versions as conflict copies, and nothing is silently discarded.
+- Tokens are in memory only, so a reload needs a silent sign-in. Whether Google grants that without a tap depends on the browser and Google session. This must be checked on the live site, including iPhone Safari.
+- A retry happens only while the page is open. A closed tab resumes on its next open.
+
+**Config (optional, `idea-vault/config.js`)**: `autoSyncDelayMs`, `autoCheckMs`. The tests shorten both.
+
+**Tests.**
+- `npm run test:idea-vault:sync`: 10 scheduler tests (debounce, serialization, follow-up run, offline, transient backoff, auth stop, manual retry, failure resolution, dispose).
+- `npm run test:idea-vault:auto-sync:browser`: 9 browser tests (local-only before connect, auto-upload, burst to one upload, no-op focus, device switching, offline, retry after 503, expired sign-in, reload with pending edits).
+- `tests/idea-vault-docs-browser.cjs`: includes repeated refreshes and reopen without duplication or popups.
+- `tests/idea-vault-browser.cjs` (existing sync suite): still passes, with status wording updated to the new labels.

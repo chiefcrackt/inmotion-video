@@ -304,10 +304,18 @@ test('an unsynced local edit survives a reload and is not overwritten by the clo
     ['Saved from phone', 'Unsynced on desktop'].sort(),
     'both the cloud idea and the unsynced local idea must be present',
   );
-  assert.match(
+  // Reconnecting uploads the unsynced idea automatically; poll the fake Drive until it arrives.
+  const reached = () =>
+    (drive.workspace()?.ideas || []).some(
+      (i) => i.title === 'Unsynced on desktop',
+    );
+  for (let k = 0; k < 100 && !reached(); k++) {
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  assert.ok(reached(), 'the unsynced idea reached Drive');
+  assert.doesNotMatch(
     await a.page.locator('#cloudstatus').textContent(),
-    /upload|Sync now/,
-    'unsynced state must be reported',
+    /Needs attention/,
   );
 
   const backups = await a.page.evaluate(() =>
@@ -404,7 +412,7 @@ test('the cloud status never claims a stale sync time after a failed sync', asyn
   await sync(a.page);
   assert.match(
     await a.page.locator('#cloudstatus').textContent(),
-    /Synced to Google Drive/,
+    /Synced · checked/,
   );
 
   // Make the next upload fail.
@@ -416,11 +424,11 @@ test('the cloud status never claims a stale sync time after a failed sync', asyn
   const status = await a.page.locator('#cloudstatus').textContent();
   assert.doesNotMatch(
     status,
-    /Synced to Google Drive/,
-    'status must not show the old success time',
+    /Synced/,
+    'status must not claim success after a failure',
   );
-  assert.match(status, /failed/);
-  assert.match(status, /local changes kept/);
+  assert.match(status, /Saved locally/, 'local changes are reported as kept');
+  assert.match(status, /retrying|Needs attention/, 'the failure is reported');
   assert.deepEqual(
     await localTitles(a.page),
     ['Second, will fail', 'Will fail'].sort(),
@@ -779,7 +787,7 @@ test('a failed upload keeps local edits pending and the next sync recovers witho
   await sync(a.page);
   assert.match(
     await a.page.locator('#cloudstatus').textContent(),
-    /failed.*local changes kept/,
+    /Saved locally.*(retrying|uploading)|Needs attention/,
   );
   assert.equal(
     drive.workspaceFiles()[0].version,
@@ -813,7 +821,10 @@ test('a lost create response does not create a second workspace file on retry', 
   await addIdea(a.page, 'Created then reply lost');
   drive.faults.lostCreateReplies = 1;
   await sync(a.page);
-  assert.match(await a.page.locator('#cloudstatus').textContent(), /failed/);
+  assert.match(
+    await a.page.locator('#cloudstatus').textContent(),
+    /retrying|Needs attention/,
+  );
   assert.equal(
     drive.workspaceFiles().length,
     1,
