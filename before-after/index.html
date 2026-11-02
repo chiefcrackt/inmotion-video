@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="../favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+    <meta name="theme-color" content="#0E1A2E" />
+    <title>Before &amp; After Maker</title>
+    <link rel="stylesheet" href="../shared/fonts.css" />
+    <link rel="stylesheet" href="../shared/responsive.css" />
+    <style>
+      :root {
+        --navy: #0e1a2e;
+        --panel: #13233d;
+        --line: #25395c;
+        --gold: #e8c96a;
+        --teal: #2e9bad;
+        --muted: #9fb0c8;
+        --paper: #f6f4ef;
+        --danger: #f08a7a;
+        --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+        --body: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--navy); color: var(--paper); font-family: var(--body); }
+      [hidden] { display: none !important; }
+      a.home { color: var(--muted); text-decoration: none; font: 700 13px var(--display); letter-spacing: 2px; text-transform: uppercase; }
+      a.home:hover { color: var(--gold); }
+      button, input, select { font: inherit; }
+      button {
+        min-height: 44px; min-width: 44px; padding: 0 16px; border-radius: 10px;
+        border: 1px solid var(--line); background: var(--panel); color: var(--paper);
+        font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+      }
+      button.primary { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+      button:disabled { opacity: 0.45; cursor: default; }
+      input[type="text"], select {
+        width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 10px;
+        border: 1px solid var(--line); background: var(--navy); color: var(--paper);
+      }
+      input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--gold); }
+      h1 { margin: 0; font: 700 34px/1 var(--display); letter-spacing: 1px; text-transform: uppercase; }
+      .muted { color: var(--muted); font-size: 15px; }
+      .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+      header { margin-bottom: 16px; }
+      .layout { display: grid; gap: 18px; grid-template-columns: 1fr; }
+      @media (min-width: 900px) { .layout { grid-template-columns: 360px 1fr; align-items: start; } }
+      .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 12px; }
+      .panel h2 { margin: 0; font: 700 18px/1 var(--display); letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); }
+      .photo { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center; }
+      .thumb {
+        width: 72px; height: 72px; border-radius: 10px; border: 1px dashed var(--line);
+        background: var(--navy) center / cover no-repeat; display: grid; place-items: center; color: var(--muted); font-size: 12px;
+      }
+      .thumb.has { border-style: solid; border-color: var(--teal); color: transparent; }
+      .photo input[type="file"] { width: 100%; min-height: 44px; color: var(--muted); }
+      .photo label { display: grid; gap: 6px; }
+      .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .seg button[aria-pressed="true"] { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+      .actions { display: grid; gap: 10px; }
+      #msg { min-height: 1.4em; margin: 0; font-size: 16px; color: var(--muted); }
+      #msg.err { color: var(--danger); }
+      .preview { display: grid; gap: 12px; justify-items: center; }
+      #canvas {
+        display: block; width: auto; height: auto; max-width: 100%; max-height: 72vh;
+        border-radius: 12px; border: 1px solid var(--line); background: #000; touch-action: none; cursor: ew-resize;
+      }
+      #canvas.busy { cursor: progress; }
+      .hint { font-size: 15px; color: var(--muted); text-align: center; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <a class="home" href="../">← All T.im video tools</a>
+        <h1>Before &amp; After</h1>
+        <p class="muted">Add two photos. Export a still image, or an animated wipe from before to after.</p>
+      </header>
+
+      <div class="layout">
+        <aside class="panel" aria-label="Settings">
+          <h2>Photos</h2>
+          <div class="photo">
+            <div id="thumb-before" class="thumb">Before</div>
+            <label>
+              <span class="muted">Before photo</span>
+              <input id="file-before" type="file" accept="image/*" />
+            </label>
+          </div>
+          <div class="photo">
+            <div id="thumb-after" class="thumb">After</div>
+            <label>
+              <span class="muted">After photo</span>
+              <input id="file-after" type="file" accept="image/*" />
+            </label>
+          </div>
+          <button id="swap" type="button">Swap before and after</button>
+
+          <h2>Labels</h2>
+          <label class="muted">Before label <input id="label-before" type="text" maxlength="20" value="Before" /></label>
+          <label class="muted">After label <input id="label-after" type="text" maxlength="20" value="After" /></label>
+          <label class="muted">Caption (optional) <input id="caption" type="text" maxlength="60" placeholder="e.g. 12 weeks in" /></label>
+
+          <h2>Format</h2>
+          <label class="muted">Frame
+            <select id="aspect"></select>
+          </label>
+          <label class="muted">Still divider position <span id="split-value"></span>
+            <input id="split" type="range" min="0" max="100" step="1" />
+          </label>
+          <label class="muted">Animation length <span id="length-value"></span>
+            <input id="length" type="range" min="3" max="10" step="0.5" />
+          </label>
+
+          <div class="actions">
+            <button id="png" class="primary" type="button">Save still (PNG)</button>
+            <button id="clip" type="button">Record animation</button>
+            <button id="reset" type="button">Clear photos</button>
+          </div>
+          <p id="msg" role="status" aria-live="polite"></p>
+        </aside>
+
+        <section class="preview" aria-label="Preview">
+          <canvas id="canvas" width="1080" height="1920" aria-label="Before and after preview"></canvas>
+          <p class="hint">Drag across the preview to move the divider. The animation starts with Before and wipes to After.</p>
+        </section>
+      </div>
+    </div>
+
+    <script type="module">
+      import { ASPECTS, DEFAULT_ASPECT, DEFAULT_LENGTH, clamp, coverRects, timelineTimes, splitAt, labelSize, SPLIT_DEFAULT } from './model.mjs';
+
+      const $ = (id) => document.getElementById(id);
+      const canvas = $('canvas');
+      const ctx = canvas.getContext('2d');
+      const photos = { before: null, after: null };
+      const urls = { before: null, after: null };
+      let aspect = DEFAULT_ASPECT;
+      let split = SPLIT_DEFAULT;
+      let length = DEFAULT_LENGTH;
+      let recording = false;
+
+      for (const [key, info] of Object.entries(ASPECTS)) {
+        $('aspect').add(new Option(info.label + ' (' + key + ')', key));
+      }
+      $('aspect').value = aspect;
+
+      function say(text, isError) {
+        $('msg').textContent = text;
+        $('msg').classList.toggle('err', !!isError);
+      }
+
+      function frameSize() {
+        return ASPECTS[aspect];
+      }
+
+      function setCanvasSize() {
+        const { width, height } = frameSize();
+        if (canvas.width !== width) canvas.width = width;
+        if (canvas.height !== height) canvas.height = height;
+      }
+
+      function drawCover(img, W, H) {
+        const r = coverRects(img.naturalWidth, img.naturalHeight, W, H);
+        ctx.drawImage(img, r.src.x, r.src.y, r.src.w, r.src.h, r.dst.x, r.dst.y, r.dst.w, r.dst.h);
+      }
+
+      function chip(text, x, y, font, pad, alignRight) {
+        ctx.font = `700 ${font}px ${getComputedStyle(document.body).fontFamily}`;
+        ctx.textBaseline = 'top';
+        const label = text.toUpperCase();
+        const w = ctx.measureText(label).width + pad * 2;
+        const h = font * 1.5;
+        const left = alignRight ? x - w : x;
+        ctx.fillStyle = 'rgba(14, 26, 46, 0.88)';
+        ctx.fillRect(left, y, w, h);
+        ctx.fillStyle = '#e8c96a';
+        ctx.fillText(label, left + pad, y + font * 0.22);
+      }
+
+      // Draws the whole frame with the divider at `at` (0 = all After, 1 = all Before).
+      function drawFrame(at) {
+        const { width: W, height: H } = frameSize();
+        setCanvasSize();
+        ctx.fillStyle = '#0e1a2e';
+        ctx.fillRect(0, 0, W, H);
+        const x = Math.round(W * clamp(at, 0, 1));
+        if (photos.after) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(x, 0, W - x, H);
+          ctx.clip();
+          drawCover(photos.after, W, H);
+          ctx.restore();
+        }
+        if (photos.before) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(0, 0, x, H);
+          ctx.clip();
+          drawCover(photos.before, W, H);
+          ctx.restore();
+        }
+        if (photos.before && photos.after && x > 0 && x < W) {
+          ctx.fillStyle = '#e8c96a';
+          ctx.fillRect(x - W * 0.004, 0, W * 0.008, H);
+          const r = W * 0.035;
+          ctx.beginPath();
+          ctx.arc(x, H / 2, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#0e1a2e';
+          ctx.beginPath();
+          ctx.moveTo(x - r * 0.45, H / 2); ctx.lineTo(x - r * 0.9, H / 2 - r * 0.45); ctx.lineTo(x - r * 0.9, H / 2 + r * 0.45);
+          ctx.moveTo(x + r * 0.45, H / 2); ctx.lineTo(x + r * 0.9, H / 2 - r * 0.45); ctx.lineTo(x + r * 0.9, H / 2 + r * 0.45);
+          ctx.fill();
+        }
+        const size = labelSize(W);
+        if (photos.before) chip($('label-before').value || 'Before', size.pad, size.pad, size.font, size.pad, false);
+        if (photos.after) chip($('label-after').value || 'After', W - size.pad, size.pad, size.font, size.pad, true);
+        const caption = $('caption').value.trim();
+        if (caption && photos.before && photos.after) {
+          ctx.font = `700 ${size.font * 1.1}px ${getComputedStyle(document.body).fontFamily}`;
+          ctx.textBaseline = 'middle';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(14, 26, 46, 0.88)';
+          const bar = size.font * 2.6;
+          ctx.fillRect(0, H - bar, W, bar);
+          ctx.fillStyle = '#f6f4ef';
+          ctx.fillText(caption, W / 2, H - bar / 2, W * 0.94);
+          ctx.textAlign = 'start';
+        }
+      }
+
+      function drawStill() {
+        drawFrame(split);
+        if (!photos.before && !photos.after) {
+          const { width: W, height: H } = frameSize();
+          ctx.fillStyle = '#9fb0c8';
+          ctx.font = `700 ${Math.round(W * 0.04)}px ${getComputedStyle(document.body).fontFamily}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('Add a before and an after photo', W / 2, H / 2);
+          ctx.textAlign = 'start';
+        }
+      }
+
+      function syncControls() {
+        $('split-value').textContent = Math.round(split * 100) + '% before';
+        $('split').value = Math.round(split * 100);
+        $('length-value').textContent = length.toFixed(1) + ' s';
+        $('length').value = length;
+        const ready = !!(photos.before && photos.after);
+        $('png').disabled = !ready || recording;
+        $('clip').disabled = !ready || recording;
+        $('swap').disabled = recording;
+        $('reset').disabled = recording;
+        $('aspect').disabled = recording;
+        canvas.classList.toggle('busy', recording);
+        for (const key of ['before', 'after']) {
+          const t = $('thumb-' + key);
+          t.classList.toggle('has', !!photos[key]);
+          t.style.backgroundImage = urls[key] ? `url("${urls[key]}")` : '';
+        }
+      }
+
+      function refresh() {
+        if (!recording) drawStill();
+        syncControls();
+      }
+
+      async function loadPhoto(file, key) {
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.src = url;
+        try {
+          await img.decode();
+        } catch {
+          URL.revokeObjectURL(url);
+          say('That photo could not be opened. Try a JPEG or PNG.', true);
+          return;
+        }
+        if (urls[key]) URL.revokeObjectURL(urls[key]);
+        photos[key] = img;
+        urls[key] = url;
+        say('');
+        refresh();
+      }
+
+      $('file-before').onchange = (e) => loadPhoto(e.target.files[0], 'before');
+      $('file-after').onchange = (e) => loadPhoto(e.target.files[0], 'after');
+      $('swap').onclick = () => {
+        [photos.before, photos.after] = [photos.after, photos.before];
+        [urls.before, urls.after] = [urls.after, urls.before];
+        refresh();
+      };
+      $('reset').onclick = () => {
+        if (!confirm('Clear both photos?')) return;
+        for (const key of ['before', 'after']) {
+          if (urls[key]) URL.revokeObjectURL(urls[key]);
+          photos[key] = null;
+          urls[key] = null;
+        }
+        say('');
+        refresh();
+      };
+      ['label-before', 'label-after', 'caption'].forEach((id) => $(id).addEventListener('input', refresh));
+      $('aspect').onchange = () => { aspect = $('aspect').value; refresh(); };
+      $('split').oninput = () => { split = clamp(Number($('split').value) / 100, 0, 1); refresh(); };
+      $('length').oninput = () => { length = Number($('length').value); syncControls(); };
+
+      // Drag across the preview to move the divider.
+      let dragging = false;
+      function splitFromEvent(e) {
+        const rect = canvas.getBoundingClientRect();
+        return clamp((e.clientX - rect.left) / rect.width, 0, 1);
+      }
+      canvas.addEventListener('pointerdown', (e) => {
+        if (recording || !(photos.before && photos.after)) return;
+        dragging = true;
+        canvas.setPointerCapture(e.pointerId);
+        split = splitFromEvent(e);
+        refresh();
+      });
+      canvas.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        split = splitFromEvent(e);
+        refresh();
+      });
+      canvas.addEventListener('pointerup', () => { dragging = false; });
+      canvas.addEventListener('pointercancel', () => { dragging = false; });
+
+      // Delivery: the iPad share sheet when it can take a file, otherwise a normal download.
+      async function deliver(blob, name) {
+        const file = new File([blob], name, { type: blob.type });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], title: name });
+            return 'Shared ' + name + '.';
+          } catch (e) {
+            if (e.name === 'AbortError') return 'Not saved.';
+          }
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        return 'Downloaded ' + name + '.';
+      }
+
+      function stem() {
+        const base = ($('caption').value || 'before-after').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        return (base || 'before-after') + '-' + aspect.replace(':', 'x');
+      }
+
+      $('png').onclick = () => {
+        drawStill();
+        canvas.toBlob(async (blob) => {
+          if (!blob) return say('Could not make the PNG in this browser.', true);
+          say(await deliver(blob, stem() + '.png'));
+        }, 'image/png');
+      };
+
+      function pickType() {
+        if (!window.MediaRecorder) return null;
+        const list = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+        for (const type of list) {
+          try {
+            if (MediaRecorder.isTypeSupported(type)) return type;
+          } catch {
+            /* keep looking */
+          }
+        }
+        return '';
+      }
+
+      $('clip').onclick = () => {
+        if (!(photos.before && photos.after)) return;
+        const type = pickType();
+        if (type === null || !canvas.captureStream) return say('This browser cannot record video. Try Safari on iPad or Chrome on a computer.', true);
+        let mr;
+        const chunks = [];
+        try {
+          mr = new MediaRecorder(canvas.captureStream(30), type ? { mimeType: type, videoBitsPerSecond: 8e6 } : { videoBitsPerSecond: 8e6 });
+        } catch (e) {
+          return say('Recording could not start (' + e.name + ').', true);
+        }
+        recording = true;
+        syncControls();
+        const total = timelineTimes(length).total;
+        const start = performance.now();
+        const frame = () => {
+          const t = (performance.now() - start) / 1000;
+          drawFrame(splitAt(t, length));
+          if (t < total) requestAnimationFrame(frame);
+          else if (mr.state !== 'inactive') mr.stop();
+        };
+        mr.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+        mr.onstop = async () => {
+          recording = false;
+          const mt = (mr.mimeType || type || 'video/webm').split(';')[0];
+          const ext = mt.includes('mp4') ? 'mp4' : 'webm';
+          refresh();
+          say('Saving the animation…');
+          say(await deliver(new Blob(chunks, { type: mt }), stem() + '.' + ext));
+        };
+        mr.start(500);
+        say('Recording ' + total.toFixed(1) + ' s. Keep this page open.');
+        frame();
+      };
+
+      refresh();
+    </script>
+  </body>
+</html>

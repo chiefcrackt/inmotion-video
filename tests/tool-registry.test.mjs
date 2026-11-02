@@ -23,10 +23,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 // The 17 tool pages that the homepage linked before this redesign.
 // Keeping them here stops a tool from being dropped by accident.
 const EXPECTED_HREFS = [
-  'idea-vault/', 'title-maker/', 'text-motion/', 'video-framer/', 'carousel-maker/',
-  'tier-list/', 'start-line/', 'river-run/', 'mile-marker/', 'activity-studio/',
-  'special-post/', 'celebrate/', 'sound-forge/', 'beat-bed/', 'cover-maker/',
-  'promo-maker/', 'downloads/',
+  'activity-studio/', 'asset-studio/', 'beat-bed/', 'before-after/', 'carousel-maker/',
+  'celebrate/', 'content-planner/', 'cover-maker/', 'downloads/', 'icon-pack/',
+  'idea-vault/', 'mile-marker/', 'motion-stats/', 'product-spotlight/', 'promo-maker/',
+  'river-run/', 'shoot-planner/', 'sound-forge/', 'special-post/', 'start-line/',
+  'teleprompter/', 'text-motion/', 'tier-list/', 'title-maker/', 'video-framer/',
 ];
 
 test('the registry contains exactly the existing tools, each with one canonical href', () => {
@@ -64,9 +65,9 @@ test('the spec placements hold: Running Studio and Publishing Studio contents', 
   const ids = (ws) => toolsInWorkspace(ws).map((t) => t.id).sort();
   assert.deepEqual(ids('running'), ['activity-studio', 'mile-marker', 'river-run', 'start-line']);
   assert.deepEqual(ids('audio'), ['beat-bed', 'sound-forge']);
-  assert.deepEqual(ids('publishing'), ['carousel-maker', 'cover-maker', 'promo-maker', 'tier-list']);
-  assert.deepEqual(ids('library'), ['downloads']);
-  assert.deepEqual(ids('plan'), ['idea-vault']);
+  assert.deepEqual(ids('publishing'), ['before-after', 'carousel-maker', 'content-planner', 'cover-maker', 'promo-maker', 'tier-list']);
+  assert.deepEqual(ids('library'), ['asset-studio', 'downloads', 'icon-pack', 'motion-stats', 'product-spotlight']);
+  assert.deepEqual(ids('plan'), ['content-planner', 'idea-vault', 'shoot-planner', 'teleprompter']);
 });
 
 test('counts are derived from the registry, and every tool appears in some workspace', () => {
@@ -76,10 +77,10 @@ test('counts are derived from the registry, and every tool appears in some works
   assert.equal(reachable.size, TOOLS.length, 'no orphan tools');
 });
 
-test('Idea Vault is the featured tool, and Quick Launch covers the spec shortcuts', () => {
-  assert.equal(featuredTool().id, 'idea-vault');
+test('Content Planner is the flagged tool, and Quick Launch covers the spec shortcuts', () => {
+  assert.equal(featuredTool().id, 'content-planner');
   const labels = quickLaunch().map((q) => q.label);
-  assert.deepEqual(labels, ['New Idea', 'Title Maker', 'Activity', 'Sound', 'Cover', 'Promo']);
+  assert.deepEqual(labels, ['Plan videos', 'New Idea', 'Title Maker', 'Activity', 'Sound', 'Cover', 'Promo']);
 });
 
 test('search matches names, keywords and workspace names, case-insensitively', () => {
