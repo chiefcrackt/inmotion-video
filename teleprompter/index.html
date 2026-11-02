@@ -31,16 +31,15 @@
       a.home:hover { color: var(--gold); }
       button, input, textarea { font: inherit; }
       button {
-        min-height: 44px; min-width: 44px; padding: 0 16px; border-radius: 10px;
+        min-height: 44px; min-width: 44px; padding: 0 14px; border-radius: 10px;
         border: 1px solid var(--line); background: var(--panel); color: var(--paper);
         font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
       }
-      button.primary { background: var(--gold); color: var(--navy); border-color: var(--gold); }
-      button[aria-pressed="true"] { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+      button.primary, button[aria-pressed="true"] { background: var(--gold); color: var(--navy); border-color: var(--gold); }
 
       /* Edit view */
       #edit { max-width: 880px; margin: 0 auto; padding: 16px; }
-      header.bar { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 20px; justify-content: space-between; margin-bottom: 14px; }
+      header.bar { margin-bottom: 14px; }
       h1 { margin: 0; font: 700 34px/1 var(--display); letter-spacing: 1px; text-transform: uppercase; }
       .muted { color: var(--muted); font-size: 15px; }
       textarea#script {
@@ -55,6 +54,11 @@
       input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--gold); }
       .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
       #stats { font-size: 17px; }
+      details.keys { margin-top: 18px; color: var(--muted); font-size: 15px; }
+      details.keys summary { cursor: pointer; color: var(--paper); font-weight: 700; }
+      details.keys dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 10px 0 0; }
+      details.keys dt { color: var(--gold); font-weight: 700; }
+      details.keys dd { margin: 0; }
 
       /* Prompt view */
       #prompt { position: fixed; inset: 0; background: #000; color: #fff; overflow: hidden; touch-action: manipulation; }
@@ -72,23 +76,31 @@
         opacity: 0.7;
       }
       #bar {
-        position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
-        padding: 10px; background: rgba(14, 26, 46, 0.92); border-top: 1px solid var(--line);
-        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 8px;
+        padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+        background: rgba(14, 26, 46, 0.94); border-top: 1px solid var(--line);
+        transition: opacity 0.4s;
       }
-      #bar button { background: #182b49; }
-      #bar button.primary { background: var(--gold); }
-      #hint { position: absolute; top: 12px; left: 0; right: 0; text-align: center; color: var(--muted); font-size: 14px; pointer-events: none; }
+      #progress { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+      #fill { height: 100%; width: 0; background: var(--gold); }
+      #readout { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 15px; color: var(--muted); }
+      #readout strong { color: var(--paper); }
+      #buttons { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+      #buttons button { background: #182b49; }
+      #buttons button.primary { background: var(--gold); }
+      #hint {
+        position: absolute; top: 12px; left: 0; right: 0; text-align: center; color: var(--muted);
+        font-size: 14px; pointer-events: none; transition: opacity 0.4s;
+      }
+      #prompt.idle #bar, #prompt.idle #hint { opacity: 0; pointer-events: none; }
     </style>
   </head>
   <body>
     <main id="edit">
       <header class="bar">
-        <div>
-          <a class="home" href="../">← T.IM Studio</a>
-          <h1>Teleprompter</h1>
-          <p class="muted">Paste your script, set the pace, then open the prompter. Saved on this device.</p>
-        </div>
+        <a class="home" href="../">← All T.im video tools</a>
+        <h1>Teleprompter</h1>
+        <p class="muted">Paste your script, set the pace, then open the prompter. Saved on this device.</p>
       </header>
 
       <label for="script" class="muted">Script</label>
@@ -114,6 +126,19 @@
         <button id="open" class="primary" type="button">Open prompter</button>
         <button id="clear" type="button">Clear script</button>
       </div>
+
+      <details class="keys">
+        <summary>Keyboard shortcuts in the prompter</summary>
+        <dl>
+          <dt>Space</dt><dd>Start or pause</dd>
+          <dt>↑ / ↓</dt><dd>Faster or slower</dd>
+          <dt>← / →</dt><dd>Nudge back or forward</dd>
+          <dt>+ / −</dt><dd>Text larger or smaller</dd>
+          <dt>M</dt><dd>Mirror on or off</dd>
+          <dt>R</dt><dd>Back to the top</dd>
+          <dt>Esc</dt><dd>Exit the prompter</dd>
+        </dl>
+      </details>
     </main>
 
     <section id="prompt" hidden aria-label="Prompter">
@@ -123,12 +148,21 @@
       <div id="guide" aria-hidden="true"></div>
       <div id="hint">Tap the text to start or pause. Drag to scroll by hand.</div>
       <nav id="bar" aria-label="Prompter controls">
-        <button id="play" class="primary" type="button">Start</button>
-        <button id="restart" type="button">Top</button>
-        <button id="smaller" type="button" aria-label="Smaller text">A−</button>
-        <button id="bigger" type="button" aria-label="Larger text">A+</button>
-        <button id="mirror" type="button" aria-pressed="false">Mirror</button>
-        <button id="exit" type="button">Exit</button>
+        <div id="progress" aria-hidden="true"><div id="fill"></div></div>
+        <div id="readout">
+          <span><strong id="left">0:00</strong> left</span>
+          <span id="pace"></span>
+        </div>
+        <div id="buttons">
+          <button id="play" class="primary" type="button">Start</button>
+          <button id="restart" type="button">Top</button>
+          <button id="pslower" type="button" aria-label="Slower">−5</button>
+          <button id="pfaster" type="button" aria-label="Faster">+5</button>
+          <button id="smaller" type="button" aria-label="Smaller text">A−</button>
+          <button id="bigger" type="button" aria-label="Larger text">A+</button>
+          <button id="mirror" type="button" aria-pressed="false">Mirror</button>
+          <button id="exit" type="button">Exit</button>
+        </div>
       </nav>
     </section>
 
@@ -140,9 +174,14 @@
         estimateSeconds,
         formatDuration,
         scrollPxPerSecond,
+        progressFraction,
+        remainingSeconds,
+        rescaleScroll,
       } from './model.mjs';
 
       const KEY = 'tim-teleprompter-v1';
+      const IDLE_MS = 3000;     // controls fade after this long without a touch or key while playing
+      const NUDGE_PX = 80;      // one arrow-key nudge
       const $ = (id) => document.getElementById(id);
       const els = {
         script: $('script'), stats: $('stats'), wpm: $('wpm'), wpmValue: $('wpm-value'),
@@ -150,7 +189,8 @@
         slower: $('slower'), faster: $('faster'),
         edit: $('edit'), prompt: $('prompt'), stage: $('stage'), text: $('text'),
         play: $('play'), restart: $('restart'), smaller: $('smaller'), bigger: $('bigger'),
-        mirror: $('mirror'), exit: $('exit'),
+        mirror: $('mirror'), exit: $('exit'), pslower: $('pslower'), pfaster: $('pfaster'),
+        fill: $('fill'), left: $('left'), pace: $('pace'),
       };
 
       // Settings and script are saved on this device. Bad saved data falls back to defaults.
@@ -188,23 +228,32 @@
         els.open.disabled = !words;
       }
 
+      function setSpeed(value) {
+        state.wpm = clamp(value, 60, 260);
+        persist();
+        renderEdit();
+        updateProgress();
+      }
+
+      function setSize(value) {
+        const oldMax = maxScroll();
+        state.size = clamp(value, 28, 120);
+        persist();
+        renderEdit();
+        renderPrompt();
+        // Keep the same place in the script when the text gets bigger or smaller.
+        setPos(rescaleScroll(pos, oldMax, maxScroll()));
+      }
+
       els.script.addEventListener('input', () => {
         state.script = els.script.value;
         persist();
         renderEdit();
       });
-      els.wpm.addEventListener('input', () => {
-        state.wpm = clamp(Number(els.wpm.value), 60, 260);
-        persist();
-        renderEdit();
-      });
-      els.size.addEventListener('input', () => {
-        state.size = clamp(Number(els.size.value), 28, 120);
-        persist();
-        renderEdit();
-      });
-      els.slower.onclick = () => { state.wpm = clamp(state.wpm - 5, 60, 260); persist(); renderEdit(); };
-      els.faster.onclick = () => { state.wpm = clamp(state.wpm + 5, 60, 260); persist(); renderEdit(); };
+      els.wpm.addEventListener('input', () => setSpeed(Number(els.wpm.value)));
+      els.size.addEventListener('input', () => { state.size = clamp(Number(els.size.value), 28, 120); persist(); renderEdit(); });
+      els.slower.onclick = () => setSpeed(state.wpm - 5);
+      els.faster.onclick = () => setSpeed(state.wpm + 5);
       els.clear.onclick = () => {
         if (!state.script || !confirm('Clear the script on this device?')) return;
         state.script = '';
@@ -220,6 +269,7 @@
       let last = 0;
       let lock = null;
       let words = 0;
+      let idleTimer = 0;
 
       function renderPrompt() {
         els.text.replaceChildren();
@@ -236,6 +286,7 @@
         document.documentElement.style.setProperty('--size', state.size + 'px');
         document.documentElement.style.setProperty('--mirror', state.mirror ? '-1' : '1');
         els.mirror.setAttribute('aria-pressed', String(state.mirror));
+        updateProgress();
       }
 
       const maxScroll = () => Math.max(0, els.stage.scrollHeight - els.stage.clientHeight);
@@ -244,9 +295,14 @@
         pos = clamp(value, 0, maxScroll());
         lastSet = pos;
         els.stage.scrollTop = pos;
+        updateProgress();
       }
 
-      function updatePlayButton() {
+      function updateProgress() {
+        const fraction = progressFraction(pos, maxScroll());
+        els.fill.style.width = (fraction * 100).toFixed(2) + '%';
+        els.left.textContent = formatDuration(remainingSeconds(words, state.wpm, fraction));
+        els.pace.textContent = state.wpm + ' wpm';
         els.play.textContent = playing ? 'Pause' : 'Start';
       }
 
@@ -268,13 +324,27 @@
         playing = true;
         last = performance.now();
         frame = requestAnimationFrame(tick);
-        updatePlayButton();
+        showControls();
+        updateProgress();
       }
 
       function pause() {
         playing = false;
         cancelAnimationFrame(frame);
-        updatePlayButton();
+        clearTimeout(idleTimer);
+        els.prompt.classList.remove('idle');
+        updateProgress();
+      }
+
+      function toggle() {
+        playing ? pause() : play();
+      }
+
+      // While playing, the controls fade after a few seconds so they stay off the text.
+      function showControls() {
+        els.prompt.classList.remove('idle');
+        clearTimeout(idleTimer);
+        if (playing) idleTimer = setTimeout(() => els.prompt.classList.add('idle'), IDLE_MS);
       }
 
       // A finger drag or wheel scroll moves the text away from where we put it: stop and follow the reader.
@@ -283,18 +353,54 @@
           pos = els.stage.scrollTop;
           lastSet = pos;
           if (playing) pause();
+          updateProgress();
         }
       });
 
       // Tapping the text toggles playback, but not when the reader was dragging.
       let tapStart = null;
-      els.stage.addEventListener('pointerdown', (e) => { tapStart = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+      els.stage.addEventListener('pointerdown', (e) => {
+        tapStart = { x: e.clientX, y: e.clientY, t: performance.now() };
+        showControls();
+      });
       els.stage.addEventListener('pointerup', (e) => {
         if (!tapStart) return;
         const moved = Math.hypot(e.clientX - tapStart.x, e.clientY - tapStart.y);
         const quick = performance.now() - tapStart.t < 400;
         tapStart = null;
-        if (moved < 10 && quick) playing ? pause() : play();
+        if (moved < 10 && quick) toggle();
+      });
+      $('bar').addEventListener('pointerdown', showControls);
+
+      function nudge(px) {
+        setPos(pos + px);
+        showControls();
+      }
+
+      // Keyboard shortcuts work while the prompter is open, for an iPad with a keyboard or a laptop.
+      document.addEventListener('keydown', (e) => {
+        if (els.prompt.hidden || e.metaKey || e.ctrlKey || e.altKey) return;
+        if (e.target.closest?.('input, textarea')) return;
+        showControls();
+        const keys = {
+          ' ': () => toggle(),
+          ArrowUp: () => setSpeed(state.wpm + 5),
+          ArrowDown: () => setSpeed(state.wpm - 5),
+          ArrowLeft: () => nudge(-NUDGE_PX),
+          ArrowRight: () => nudge(NUDGE_PX),
+          '+': () => setSize(state.size + 4),
+          '=': () => setSize(state.size + 4),
+          '-': () => setSize(state.size - 4),
+          m: () => toggleMirror(),
+          M: () => toggleMirror(),
+          r: () => { pause(); setPos(0); },
+          R: () => { pause(); setPos(0); },
+          Escape: () => closePrompt(),
+        };
+        const action = keys[e.key];
+        if (!action) return;
+        e.preventDefault();
+        action();
       });
 
       async function keepAwake() {
@@ -316,10 +422,17 @@
         else if (!els.prompt.hidden) keepAwake();
       });
 
+      function toggleMirror() {
+        state.mirror = !state.mirror;
+        persist();
+        renderPrompt();
+      }
+
       function openPrompt() {
         renderPrompt();
         els.edit.hidden = true;
         els.prompt.hidden = false;
+        document.activeElement?.blur();
         setPos(pos);
         keepAwake();
         requestAnimationFrame(() => setPos(pos)); // layout settles after showing
@@ -335,11 +448,14 @@
 
       els.open.onclick = openPrompt;
       els.exit.onclick = closePrompt;
-      els.play.onclick = (e) => { e.stopPropagation(); playing ? pause() : play(); };
+      els.play.onclick = (e) => { e.stopPropagation(); toggle(); };
       els.restart.onclick = () => { pause(); setPos(0); };
-      els.smaller.onclick = () => { state.size = clamp(state.size - 4, 28, 120); persist(); renderPrompt(); setPos(pos); };
-      els.bigger.onclick = () => { state.size = clamp(state.size + 4, 28, 120); persist(); renderPrompt(); setPos(pos); };
-      els.mirror.onclick = () => { state.mirror = !state.mirror; persist(); renderPrompt(); };
+      els.pslower.onclick = () => setSpeed(state.wpm - 5);
+      els.pfaster.onclick = () => setSpeed(state.wpm + 5);
+      els.smaller.onclick = () => setSize(state.size - 4);
+      els.bigger.onclick = () => setSize(state.size + 4);
+      els.mirror.onclick = () => toggleMirror();
+
       renderEdit();
     </script>
   </body>
