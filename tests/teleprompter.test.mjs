@@ -39,3 +39,29 @@ test('clamp keeps values inside a range', () => {
   assert.equal(clamp(25, 10, 20), 20);
   assert.equal(clamp(15, 10, 20), 15);
 });
+
+import {
+  progressFraction,
+  remainingSeconds,
+  rescaleScroll,
+} from '../teleprompter/model.mjs';
+
+test('progress is the share of the script already passed', () => {
+  assert.equal(progressFraction(0, 1000), 0);
+  assert.equal(progressFraction(250, 1000), 0.25);
+  assert.equal(progressFraction(5000, 1000), 1);
+  assert.equal(progressFraction(10, 0), 0);
+});
+
+test('time left shrinks as the reader moves through the script', () => {
+  // 280 words at 140 wpm is two minutes; halfway through leaves one minute.
+  assert.equal(remainingSeconds(280, 140, 0), 120);
+  assert.equal(remainingSeconds(280, 140, 0.5), 60);
+  assert.equal(remainingSeconds(280, 140, 1), 0);
+});
+
+test('resizing keeps the same place in the script', () => {
+  assert.equal(rescaleScroll(500, 1000, 2000), 1000);
+  assert.equal(rescaleScroll(0, 1000, 2000), 0);
+  assert.equal(rescaleScroll(500, 0, 2000), 0);
+});
