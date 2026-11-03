@@ -244,3 +244,94 @@ canvas.transparent {
 [hidden] {
   display: none !important;
 }
+
+/* UI consistency pilot (HANDOFF "General UI consistency"): interface labels use a
+   regular sans; Barlow Condensed stays on headings and the exported artwork.
+   Canvas fonts are untouched. */
+:root {
+  --ui: 'Helvetica Neue', Arial, 'Segoe UI', system-ui, sans-serif;
+}
+.transport button,
+label,
+.hint,
+#status,
+.transport output,
+.preview-label,
+button,
+select,
+textarea,
+input:not([type='range']):not([type='color']) {
+  font-family: var(--ui);
+}
+label {
+  font-size: 13px;
+  line-height: 1.35;
+}
+.hint {
+  font-size: 13px;
+}
+/* Interface controls stay at least 44px tall for touch. */
+@media (max-width: 650px), (pointer: coarse) {
+  button,
+  select,
+  textarea,
+  input:not([type='range']):not([type='checkbox']):not([type='color']) {
+    min-height: 44px;
+  }
+  input[type='range'] {
+    min-height: 36px;
+  }
+}
+/* Phone: keep the preview compact so the first text field sits on the first screen. */
+@media (max-width: 850px) {
+  body {
+    padding: 16px 12px 40px;
+  }
+  header {
+    margin-bottom: 14px;
+  }
+  .eyebrow {
+    margin: 14px 0 6px;
+  }
+  .preview-label {
+    padding: 10px 12px;
+  }
+  main .studio .preview .stage {
+    height: clamp(180px, 36svh, 300px);
+    padding: 10px;
+  }
+  .transport {
+    padding: 10px 12px;
+  }
+  .hint {
+    padding: 0 12px 10px;
+  }
+  .studio {
+    display: flex;
+    flex-direction: column;
+  }
+  /* Content first, then the rest; the saved-projects panel moves to the end. */
+}
+/* Editing fields lead at every width; export and the saved-project panels follow. */
+#controls {
+  display: flex;
+  flex-direction: column;
+}
+#controls > fieldset {
+  order: 1;
+}
+#controls > .exports {
+  order: 2;
+}
+#controls > #status {
+  order: 3;
+}
+#controls > .tim-projects,
+#controls > .tim-drive-export {
+  order: 4;
+}
+
+.transport button {
+  font-size: 14px;
+  min-width: 84px;
+}
