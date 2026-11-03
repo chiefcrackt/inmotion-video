@@ -206,3 +206,34 @@ test('constructor, startup and runtime recorder failures release resources and u
     assert.equal(h.stoppedTracks(), 1);
   }
 });
+
+test('Content Studio cloud sync tells the open planner to reload merged plans', () => {
+  const events = [];
+  const frame = (editor) => ({
+    editor,
+    contentWindow: { dispatchEvent: (e) => events.push(editor + ':' + e.type) },
+  });
+  const frames = [frame('ideas'), frame('planner')];
+  const document = {
+    querySelectorAll: (selector) =>
+      frames.filter((f) => selector.includes(`data-editor="${f.editor}"`)),
+  };
+  const context = { document, Event: class { constructor(type) { this.type = type; } } };
+  vm.createContext(context);
+  vm.runInContext(
+    between(source('content-studio/supabase-sync.mjs'), 'function notifyPlanner(', '\nfunction validate(') +
+      '\nnotifyPlanner();',
+    context,
+  );
+  assert.deepEqual(events, ['planner:tim-projects-merged']);
+  assert.match(
+    source('content-studio/supabase-sync.mjs'),
+    /localStorage\.setItem\(key, JSON\.stringify\(merged\)\);\s*if \(dataset === 'projects'\) notifyPlanner\(\);/,
+    'The notice follows the merged planner write',
+  );
+  assert.match(
+    source('content-planner/app.mjs'),
+    /e\.key === KEY && e\.newValue !== lastSaved/,
+    'A merge the planner already reloaded is not reported as another tab',
+  );
+});

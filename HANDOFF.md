@@ -19,9 +19,10 @@ Feature 4 was dropped and is intentionally not listed.
 | 7 | [#8 Tier List Maker](#8-tier-list-maker) | New tool `/tier-list/` | done |
 | 8 | [#9 Beat Bed](#9-beat-bed) | New tool `/beat-bed/` + `shared/sound/beat.mjs` | done |
 | 9 | [#10 Data-kit hit presets](#10-data-kit-hit-presets) | Sound Forge (`shared/sound/presets.mjs`) | done |
-| 10 | [#11 Idea Vault ↔ Content Planner sync](#11-idea-vault--content-planner-sync) | Idea Vault, Content Planner | done (local branch `feature/idea-content-sync`, not pushed; browser tests not run) |
+| 10 | [#11 Idea Vault ↔ Content Planner sync](#11-idea-vault--content-planner-sync) | Idea Vault, Content Planner | done (on `main`; browser tests not run) |
 | 11 | Content Planner Edit checklist and final-film tracking | Content Planner | todo |
 | 12 | [General UI consistency and mobile editing](#general-ui-consistency-and-mobile-editing-claude) | Shared UI, dashboard, Cover Maker, Text Motion | in progress (pilot) |
+| 13 | [Content Studio review follow-ups](#content-studio-review-follow-ups-claude) | Content Studio, Content Planner | in progress |
 
 #1 is dropped (not planned). The Race Recap download pack (`tools/race-recap/`)
 is unchanged.
@@ -906,5 +907,29 @@ Tests: `node --test tests/pipeline-link.test.mjs`.
 Still to do: the browser checks for both tools (`test:planner`, `test:idea-vault:browser`)
 need `npm ci`, which the sandbox could not reach.
 
----
+## Content Studio review follow-ups (Claude)
 
+Review of Content Studio on 2026-11-03 (`eb350bf`). Requested by Tristan.
+
+- **Fixed (PR #68):** the planner crashed on load because `app.mjs` wired up
+  `#share-brief`, which `index.html` did not have. `tests/page-elements.test.mjs`
+  now fails when the planner wires up an id its page does not declare.
+- **Fixed (PR #69):** after Supabase workspace sync wrote merged plans, the open
+  planner treated the write as another tab's edit and refused every later save.
+  `supabase-sync.mjs` now sends the planner frame `tim-projects-merged`, the same
+  reload signal Drive sync uses. A standalone planner tab still warns as before.
+- **Tristan to check:** Supabase row-level security on `content_studio_state`
+  and `entitlements` (each row readable and writable only by its own user). The
+  publishable key in `supabase-config.mjs` is safe only with those rules on.
+- **todo:** Next up lists a video twice when it has both a publish date and shoot
+  work, and does not flag past-due publish dates.
+- **todo:** pipeline sync is last-write-wins per record (see #11). Typing in a
+  linked project's outline makes the planner "newer" and can undo an Idea Vault
+  status change made moments earlier in another tab. Consider per-field times.
+- **todo:** `tests/content-planner-browser.cjs` still looks for the old homepage
+  card `a.tool[href="content-planner/"]`; update it for the consolidated dashboard.
+- **To confirm with `npm ci`:** `test:content-studio:browser` stops at the
+  `#film` click with the sandbox's Playwright, including on the commit before
+  `f5330cb`; filming mode opens normally when driven by hand.
+
+---
