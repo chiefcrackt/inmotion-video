@@ -6,7 +6,7 @@
       title: 'Idea Vault',
       hint: 'Capture an idea. Save or close idea edits before changing views.',
     },
-    videos: {
+    projects: {
       editor: 'planner',
       path: '../content-planner/',
       title: 'Video projects',
@@ -24,12 +24,13 @@
   const status = document.getElementById('status');
   const links = [...document.querySelectorAll('[data-mode]')];
   let active;
+  const projectId = () => new URLSearchParams(location.search).get('project');
 
   function editorUrl(mode) {
     const url = new URL(views[mode].path, location.href);
     url.search = location.search;
     if (mode === 'shoot') url.searchParams.set('view', 'shoot');
-    const project = new URLSearchParams(location.search).get('project');
+    const project = projectId();
     if (views[mode].editor === 'planner' && project)
       url.hash = encodeURIComponent(project);
     return url;
@@ -75,6 +76,24 @@
           if (link.origin !== location.origin || link.target === '_blank')
             return;
           const url = new URL(link.href);
+          if (
+            link.hasAttribute('data-linked-project') &&
+            !event.ctrlKey &&
+            !event.metaKey &&
+            !event.shiftKey &&
+            !event.altKey
+          ) {
+            if (frame.contentWindow.TimPlanningEditor?.isBusy()) {
+              event.preventDefault();
+              status.textContent =
+                'Save or close the idea editor before changing views.';
+              return;
+            }
+            event.preventDefault();
+            history.replaceState(null, '', url.href);
+            show('projects', false);
+            return;
+          }
           const ideaPath = new URL('../idea-vault/', location.href).pathname;
           if (
             url.pathname === ideaPath &&
@@ -90,6 +109,7 @@
         if (views[active]?.editor === view.editor) {
           frame.contentWindow.TimPlanningEditor?.showView?.(
             active === 'shoot' ? 'shoot' : 'details',
+            projectId(),
           );
         }
       });
@@ -102,11 +122,13 @@
       .get(view.editor)
       .contentWindow.TimPlanningEditor?.showView?.(
         mode === 'shoot' ? 'shoot' : 'details',
+        projectId(),
       );
     document.getElementById('hint').textContent = view.hint;
     document.getElementById('standalone').href = editorUrl(mode).href;
     for (const link of links) {
-      if (link.dataset.mode === mode) link.setAttribute('aria-current', 'page');
+      if (link.dataset.mode === (mode === 'shoot' ? 'projects' : mode))
+        link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
     }
     if (updateUrl) history.replaceState(null, '', '#' + mode);
@@ -121,9 +143,11 @@
       show(link.dataset.mode);
     });
   const requested = () =>
-    Object.hasOwn(views, location.hash.slice(1))
-      ? location.hash.slice(1)
-      : 'videos';
+    location.hash === '#videos'
+      ? 'projects'
+      : Object.hasOwn(views, location.hash.slice(1))
+        ? location.hash.slice(1)
+        : 'projects';
   window.addEventListener('hashchange', () => {
     if (!show(requested(), false)) history.replaceState(null, '', '#' + active);
   });

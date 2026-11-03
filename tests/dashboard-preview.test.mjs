@@ -53,6 +53,7 @@ test('studio shortcuts resolve only to supported modes, keeping canonical origin
     const script = read(group.href + 'studio.js');
     const markup = read(group.href + 'index.html');
     for (const [index, mode] of group.modes.entries()) {
+      if (!mode) continue;
       assert.match(script, new RegExp('\\b' + mode + ':'));
       assert.ok(
         (script + markup).includes('../' + getTool(group.members[index]).href),

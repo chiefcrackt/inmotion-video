@@ -55,14 +55,14 @@ const PLAN_KEY = 'tim-content-planner-v1';
     await ideas
       .locator('#e-notes')
       .fill('Opening hook updated\nB-roll: Shoes\nGear: Microphone');
-    await select('videos');
+    await select('projects');
     assert.match(await page.locator('#status').textContent(), /Save or close/);
     assert.equal(
       await ideas.locator('#e-notes').inputValue(),
       'Opening hook updated\nB-roll: Shoes\nGear: Microphone',
     );
     await ideas.locator('#save').click();
-    await select('videos');
+    await select('projects');
     await planner.locator('#ideas').selectOption(ideaId);
     await planner.locator('#from-idea').click();
     assert.equal(
@@ -80,7 +80,7 @@ const PLAN_KEY = 'tim-content-planner-v1';
       'Repeated promotion opens the same project',
     );
 
-    await select('shoot');
+    await planner.locator('[data-tab=shoot]').click();
     assert.equal(
       await page.locator('iframe').count(),
       2,
@@ -96,25 +96,25 @@ const PLAN_KEY = 'tim-content-planner-v1';
     await select('ideas');
     assert.match(await page.locator('#status').textContent(), /Exit filming/);
     await planner.locator('#exit-film').click();
-    await select('videos');
+    await select('projects');
     await planner.locator('#stage').selectOption('Scheduled');
     await planner.locator('#publishDate').fill('2099-12-31');
     await select('ideas');
     await ideas.locator('#results article button').first().click();
     assert.equal(await ideas.locator('#e-status').inputValue(), 'Scheduled');
     assert.equal(await ideas.locator('#e-due').inputValue(), '2099-12-31');
-    await ideas.locator('#e-status').selectOption('Editing');
+    assert.equal(await ideas.locator('#e-status').isDisabled(), true);
     await ideas.locator('#e-due').fill('2099-11-30');
     await ideas.locator('#save').click();
-    await select('videos');
+    await select('projects');
     await planner.locator('#stage').evaluate(async (el) => {
-      while (el.value !== 'Edit') await new Promise((r) => setTimeout(r, 20));
+      while (el.value !== 'Scheduled') await new Promise((r) => setTimeout(r, 20));
     });
     assert.equal(
       await planner.locator('#publishDate').inputValue(),
       '2099-11-30',
     );
-    await select('shoot');
+    await planner.locator('[data-tab=shoot]').click();
     assert.equal(
       await planner.locator('.item').first().locator('textarea').inputValue(),
       'Use take 2',
@@ -146,7 +146,7 @@ const PLAN_KEY = 'tim-content-planner-v1';
     assert.equal(JSON.parse(ideaBackup).ideas[0].id, ideaId);
     // Quick-capture drafts remain in memory while switching views.
     await ideas.locator('#capture input[name="title"]').fill('Not saved yet');
-    await select('videos');
+    await select('projects');
     await select('ideas');
     assert.equal(
       await ideas.locator('#capture input[name="title"]').inputValue(),
@@ -154,7 +154,7 @@ const PLAN_KEY = 'tim-content-planner-v1';
     );
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const mode of ['ideas', 'videos', 'shoot']) {
+      for (const mode of ['ideas', 'projects']) {
         await select(mode);
         assert.ok(
           (await page.locator('body > header').boundingBox()).y >= 0,
@@ -256,12 +256,12 @@ const PLAN_KEY = 'tim-content-planner-v1';
     const noJs = await browser.newContext({ javaScriptEnabled: false });
     const fallback = await noJs.newPage();
     await fallback.goto(base + '/content-studio/');
-    await fallback.locator('a[data-mode="shoot"]').click();
-    assert.match(fallback.url(), /\/shoot-planner\/$/);
+    await fallback.locator('a[data-mode="projects"]').click();
+    assert.match(fallback.url(), /\/content-planner\/$/);
     await noJs.close();
     assert.deepEqual(errors, []);
     console.log(
-      'Content Studio passed: capture/promote without duplicates, two-way stage/date updates, filming notes/guards, original backups, corrupt-data protection, mobile and fallback.',
+      'Content Studio passed: capture/promote without duplicates, project-owned stage and linked dates, filming notes/guards, original backups, corrupt-data protection, mobile and fallback.',
     );
   } finally {
     await browser?.close();

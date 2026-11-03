@@ -1,5 +1,9 @@
 import * as studioDrive from '../shared/project-drive.mjs';
-import { PLANNER_KEY, reconcileLinked } from '../shared/pipeline-link.mjs';
+import {
+  PLANNER_KEY,
+  reconcileLinked,
+  statusForStage,
+} from '../shared/pipeline-link.mjs';
 import {
   WORKSPACE_FILE,
   isWorkspace,
@@ -232,11 +236,18 @@ function render() {
     items.filter((x) => x.sourceId).length +
     ' linked Drive outlines';
   $('results').replaceChildren();
+  const projects = plannerProjects();
   for (const i of visible.sort((a, b) =>
     String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')),
   )) {
     const card = txt($('results'), 'article', '', 'card');
-    txt(card, 'span', i.conflictOf ? 'Conflict copy' : i.status, 'pill');
+    const project = linkedProject(i, projects);
+    txt(
+      card,
+      'span',
+      i.conflictOf ? 'Conflict copy' : project?.stage || i.status,
+      'pill',
+    );
     txt(card, 'h3', i.title);
     txt(card, 'small', i.platform + ' · ' + (i.category || 'General'));
     if (i.sourceId) txt(card, 'small', 'Linked Google Doc');
@@ -256,9 +267,22 @@ function render() {
       txt(card, 'small', progress.done + '/' + progress.total + ' done');
     const button = txt(card, 'button', 'Open workspace');
     button.onclick = () => open(i.id);
+    if (project) {
+      const link = txt(card, 'a', 'Open project');
+      link.href =
+        '../content-studio/?project=' +
+        encodeURIComponent(project.id) +
+        '#projects';
+      link.dataset.linkedProject = '';
+    }
   }
   if (!visible.length)
     txt($('results'), 'p', 'No ideas match these filters.', 'muted');
+}
+
+function linkedProject(idea, projects = plannerProjects()) {
+  if (idea.archived || idea.conflictOf) return;
+  return projects.find((p) => p && !p.deleted && p.id === 'idea:' + idea.id);
 }
 
 function open(id) {
@@ -269,7 +293,14 @@ function open(id) {
   $('e-notes').value = i.notes || '';
   $('e-platform').value = i.platform || 'YouTube';
   $('e-category').value = i.category || '';
-  $('e-status').value = i.status || 'Inbox';
+  const project = linkedProject(i);
+  $('e-status').disabled = !!project;
+  $('e-status').title = project
+    ? 'Update production status in the linked project.'
+    : '';
+  $('e-status').value = project
+    ? statusForStage(project.stage, i.status)
+    : i.status || 'Inbox';
   $('e-priority').value = i.priority || 'Normal';
   $('e-due').value = validDueDate(i.dueDate);
   draftChecklist = normalizeChecklist(i.checklist);
@@ -384,12 +415,15 @@ $('save').onclick = () => {
   const i = items.find((x) => x.id === selected);
   if (!i) return;
   if (!$('e-title').value.trim()) return notify('Title is required');
+  const project = linkedProject(i);
   Object.assign(i, {
     title: $('e-title').value.trim(),
     notes: $('e-notes').value,
     platform: $('e-platform').value,
     category: $('e-category').value,
-    status: $('e-status').value,
+    status: project
+      ? statusForStage(project.stage, i.status)
+      : $('e-status').value,
     priority: $('e-priority').value,
     dueDate: validDueDate($('e-due').value),
     checklist: normalizeChecklist(draftChecklist),

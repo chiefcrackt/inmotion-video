@@ -2,8 +2,8 @@
 
 Open `/content-studio/` locally after `npm run preview`. The Ideas, Videos and
 Shoot views bring Idea Vault, Content Planner and its existing Shoot Planner
-together. Use `#ideas`, `#videos` or `#shoot` to link to a view. An explicit project
-link uses `?project=<encoded-project-id>#shoot` (or `#videos`).
+together. Use `#ideas` or `#projects` to link to a main view. Shoot lives inside each project. An explicit project
+link uses `?project=<encoded-project-id>#shoot` (or `#projects`). Older `#videos` and `#shoot` links still work.
 
 The host keeps one persistent Idea Vault frame and one persistent planner frame.
 Videos and Shoot share the same selected project and checklist; there is no

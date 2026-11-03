@@ -62,7 +62,7 @@ export function renderDashboard() {
       <p class="category">${escape(entry.workspaces.map((id) => getWorkspace(id).name).join(' · '))}</p>
       <h2><a class="primary" href="../${escape(entry.href)}">${escape(entry.name)} <span aria-hidden="true">↗</span></a></h2>
       <p>${escape(entry.description)}</p>
-      ${entry.modes ? `<div class="modes" aria-label="${escape(entry.name)} modes">${entry.originals.map((tool, i) => `<a href="../${escape(entry.href)}#${escape(entry.modes[i])}">${escape(tool.name)}</a>`).join('')}</div>` : ''}
+      ${entry.modes ? `<div class="modes" aria-label="${escape(entry.name)} modes">${entry.originals.map((tool, i) => entry.modes[i] ? `<a href="../${escape(entry.href)}#${escape(entry.modes[i])}">${escape(tool.name)}</a>` : '').join('')}</div>` : ''}
     </article>`,
     )
     .join('')}

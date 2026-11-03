@@ -278,7 +278,7 @@ export const TOOLS = Object.freeze([
 // Preview-only dashboard grouping. Original tool IDs/hrefs remain canonical for
 // projects, exports, saved setups and the current homepage.
 export const DASHBOARD_GROUPS = Object.freeze([
-  { id: 'content-studio', name: 'Content Planner', href: 'content-studio/', description: 'Capture ideas, plan videos and take your checklist filming.', members: ['content-planner', 'idea-vault', 'shoot-planner'], modes: ['videos', 'ideas', 'shoot'] },
+  { id: 'content-studio', name: 'Content Studio', href: 'content-studio/', description: 'Capture ideas, plan videos and take your checklist filming.', members: ['content-planner', 'idea-vault', 'shoot-planner'], modes: ['projects', 'ideas', null] },
   { id: 'text-and-titles', name: 'Text & Titles', href: 'text-and-titles/', description: 'Animate words or create title cards, lower thirds and chapters with sound.', members: ['text-motion', 'title-maker'], modes: ['text', 'titles'] },
   { id: 'celebration-studio', name: 'Celebration Studio', href: 'celebration-studio/', description: 'Celebrate with runners, name cards, cakes, race bibs and medals.', members: ['special-post', 'celebrate'], modes: ['runners', 'cards'] },
   { id: 'publishing-studio', name: 'Publishing Studio', href: 'publishing-studio/', description: 'Make covers, announce a video or customize a brand template.', members: ['cover-maker', 'promo-maker', 'brand-assets'], modes: ['covers', 'promos', 'brand'] },
@@ -355,7 +355,7 @@ export function pageName(dir) {
   const tool = TOOLS.find((t) => t.href === dir);
   if (tool) return tool.name;
   const group = DASHBOARD_GROUPS.find((g) => g.href === dir);
-  if (group) return group.name + ' preview';
+  if (group) return group.id === 'content-studio' ? group.name : group.name + ' preview';
   return OTHER_PAGES[dir] || null;
 }
 

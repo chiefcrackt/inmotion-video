@@ -711,9 +711,16 @@ $('drive-folder').onclick = async () => {
 // Switching views reads existing data; it never creates or migrates a project.
 window.TimPlanningEditor = Object.freeze({
   isBusy: () => $('filming').open,
-  showView: (view) => {
+  showView: (view, projectId) => {
     refreshIdeaOptions();
     if (view !== 'details' && view !== 'shoot') return;
+    if (projectId && current?.id !== projectId) {
+      if (!projects.some((p) => p.id === projectId && !p.deleted)) {
+        say('This project is not available on this device.');
+        return;
+      }
+      open(projectId);
+    }
     if (view === 'shoot' && !current) {
       const first = projects.find((project) => !project.deleted);
       if (first) open(first.id);
