@@ -1,7 +1,9 @@
 # Asset Animator
 
 A standalone composition and export tool. It does not modify Video Framer.
-Uses 66 graphics from Running + Creator, Motion + Stats and Product Spotlight.
+The shared catalog includes Weird Motion, Running + Creator Icons, Motion + Stats
+and Product Spotlight, plus the signature callout. Pack counts in the editor are
+derived from the catalog so new graphics appear without stale totals.
 
 - Up to 12 layers, including editable text. Reorder, duplicate, hide, resize,
   rotate, fade, drag and precisely position each layer.
@@ -37,9 +39,11 @@ demos in the downloadable kit are separate from this tool's motion presets.
 
 Run `npm run test:asset-studio` to check validation, motion, composition, dragging,
 layer order, draft/project round trips, PNG alpha and actual video output.
-Run `npm run test:asset-motion` for all 66 path reveals, deterministic frames,
+Run `npm run test:asset-motion` for path reveals, deterministic frames,
 specialized choreography, entrance sequencing, timing and real video exports.
 
-Product Spotlight provides 18 editable starting scenes. Text is separate from
-the graphic; known template links and the template selector validate and decode
-the next scene before replacement. Existing drafts require confirmation.
+Editable starting scenes include Product Spotlight, Weird Motion and the
+signature callout. Text is separate from the graphic; known template links and
+the template selector validate and decode the next scene before replacement.
+Existing drafts require confirmation. Original pack pages remain available for
+browsing, previews and downloads; Asset Animator is already their shared editor.

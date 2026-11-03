@@ -30,7 +30,30 @@ const path = require('node:path');
     await page.locator('#q').fill('standalone');
     await page.locator('a[href="asset-studio/"]').click();
     await ready();
-    assert.equal(await page.locator('#catalog button').count(), 99);
+    const counts = await page.evaluate(async () => {
+      const { catalog } = await import('/asset-studio/catalog.mjs');
+      return Object.fromEntries(
+        ['all', ...new Set(catalog.map((a) => a.pack))].map((pack) => [
+          pack,
+          pack === 'all'
+            ? catalog.length
+            : catalog.filter((a) => a.pack === pack).length,
+        ]),
+      );
+    });
+    assert.equal(await page.locator('#catalog button').count(), counts.all);
+    for (const [pack, count] of Object.entries(counts)) {
+      await page.locator('#pack').selectOption(pack);
+      assert.equal(
+        await page.locator('#catalog button:visible').count(),
+        count,
+      );
+      assert.match(
+        await page.locator(`#pack option[value="${pack}"]`).textContent(),
+        new RegExp(` · ${count} graphics$`),
+      );
+    }
+    await page.locator('#pack').selectOption('all');
     await page.locator('#search').fill('stat card');
     assert.equal(await page.locator('#catalog button:visible').count(), 1);
     await page
@@ -57,9 +80,11 @@ const path = require('node:path');
       before,
     );
     await page.locator('#visible').check();
+    await page.locator('#pack').selectOption('icons');
     await page.locator('#search').fill('running shoe');
     await page
-      .getByRole('button', { name: 'Add Running shoe', exact: true })
+      .locator('#catalog button[data-pack="icons"]')
+      .filter({ hasText: 'Running shoe' })
       .click();
     await ready();
     await input('x', 25);

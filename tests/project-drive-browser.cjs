@@ -103,6 +103,10 @@ async function fakes(context) {
           setAppId() {
             return this;
           }
+            setOrigin(origin) {
+              if (origin !== window.location.origin) throw Error('Incorrect Picker origin');
+              return this;
+            }
           setTitle() {
             return this;
           }

@@ -177,6 +177,13 @@ async function addAsset(asset) {
     sync();
   }
 }
+for (const option of $('pack').options) {
+  const count =
+    option.value === 'all'
+      ? catalog.length
+      : catalog.filter((asset) => asset.pack === option.value).length;
+  option.textContent += ` · ${count} graphics`;
+}
 for (const item of catalog) {
   const button = document.createElement('button');
   button.type = 'button';
@@ -212,14 +219,12 @@ for (const [id, item] of templates)
 async function applyTemplate(id) {
   if (busy) return false;
   if (!templates.has(id)) {
-    say('That Product Spotlight template was not found.');
+    say('That library template was not found.');
     return false;
   }
   if (
     state.layers.length &&
-    !confirm(
-      'Replace the current graphic with this Product Spotlight template?',
-    )
+    !confirm('Replace the current graphic with this template?')
   )
     return false;
   busy = true;

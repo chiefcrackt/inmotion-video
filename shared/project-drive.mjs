@@ -281,6 +281,7 @@ export async function chooseRoot() {
       .setOAuthToken(token)
       .setDeveloperKey(config.pickerApiKey)
       .setAppId(config.cloudProjectNumber)
+      .setOrigin(window.location.origin)
       .setTitle('Choose the parent folder for new video projects')
       .setCallback((data) => {
         if (data.action === google.picker.Action.PICKED) resolve(data.docs[0]);

@@ -918,6 +918,7 @@ async function grantDocumentAccess(docId, accessToken) {
       .setOAuthToken(accessToken)
       .setDeveloperKey(pickerApiKey)
       .setAppId(cloudProjectNumber)
+      .setOrigin(window.location.origin)
       .setTitle('Choose the linked Google Doc to allow reading')
       .setCallback((data) => {
         const action = data[google.picker.Response.ACTION];

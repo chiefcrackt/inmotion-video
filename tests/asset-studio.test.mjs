@@ -9,6 +9,10 @@ import {
   entranceMotions,
 } from '../asset-studio/model.mjs';
 import { catalog } from '../asset-studio/catalog.mjs';
+import { icons } from '../icon-pack/icons.mjs';
+import { assets as motion } from '../motion-stats/assets.mjs';
+import { assets as spotlight } from '../product-spotlight/assets.mjs';
+import { toys } from '../weird-motion/artwork.mjs';
 const layer = () => ({
   id: 'test',
   kind: 'asset',
@@ -21,9 +25,19 @@ const layer = () => ({
   motion: 'none',
   visible: true,
 });
-test('three packs expose 99 unique trusted assets', () => {
-  assert.equal(catalog.length, 99);
-  assert.equal(new Set(catalog.map((a) => a.id)).size, 99);
+test('all four packs expose every graphic exactly once with trusted asset URLs', () => {
+  const expected = new Set([
+    ...icons.map((asset) => 'icon:' + asset.id),
+    ...motion.map((asset) => 'motion:' + asset.id),
+    ...spotlight.map((asset) => 'spotlight:' + asset.id),
+    ...toys.flatMap((asset) => [
+      'toy:' + asset.id,
+      'toy:' + asset.id + '-solo',
+    ]),
+    'signature:spot-it',
+  ]);
+  assert.equal(catalog.length, expected.size);
+  assert.deepEqual(new Set(catalog.map((a) => a.id)), expected);
   assert(catalog.every((a) => a.src.startsWith('file:')));
 });
 test('saved scenes round trip without accepting URLs or unsafe settings', () => {
