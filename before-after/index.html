@@ -691,11 +691,17 @@
         if (!(photos.before && photos.after)) return;
         const type = pickType();
         if (type === null || !canvas.captureStream) return say('This browser cannot record video. Save the PNG instead, or open this page in a newer Safari or in Chrome on a computer.', true);
-        let mr;
+        let mr, stream, raf = 0;
+        const cleanup = () => {
+          cancelAnimationFrame(raf);
+          stream?.getTracks().forEach((track) => track.stop());
+        };
         const chunks = [];
         try {
-          mr = new MediaRecorder(canvas.captureStream(30), type ? { mimeType: type, videoBitsPerSecond: 8e6 } : { videoBitsPerSecond: 8e6 });
+          stream = canvas.captureStream(30);
+          mr = new MediaRecorder(stream, type ? { mimeType: type, videoBitsPerSecond: 8e6 } : { videoBitsPerSecond: 8e6 });
         } catch (e) {
+          cleanup();
           return say('Recording could not start (' + e.name + ').', true);
         }
         recording = true;
@@ -705,16 +711,22 @@
         const total = timelineTimes(opt.length).total;
         const start = performance.now();
         const step = () => {
+          if (mr.state === 'inactive') return;
           const t = (performance.now() - start) / 1000;
           animationFrame(t);
-          if (t < total) requestAnimationFrame(step);
+          if (t < total) raf = requestAnimationFrame(step);
           else if (mr.state !== 'inactive') mr.stop();
         };
         mr.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
-        mr.onstop = async () => {
+        let failure = '', finished = false;
+        const finish = async () => {
+          if (finished) return;
+          finished = true;
+          cleanup();
           recording = false;
           activeRecorder = null;
           refresh();
+          if (failure) return say(failure, true);
           if (interrupted) return say('Recording stopped because Safari went to the background. Keep this page open while recording.', true);
           const size = chunks.reduce((n, c) => n + c.size, 0);
           if (!size) return say('The recording came out empty. Try again.', true);
@@ -723,9 +735,21 @@
           say('Saving the animation…');
           say(await deliver(new Blob(chunks, { type: mt }), stem() + '.' + ext));
         };
-        mr.start(500);
-        say('Recording ' + total.toFixed(1) + ' s. Keep this page open with the screen on.');
-        step();
+        mr.onstop = finish;
+        mr.onerror = () => {
+          failure = 'Recording was interrupted. Try again with this page open.';
+          if (mr.state !== 'inactive') mr.stop();
+          else finish();
+        };
+        try {
+          mr.start(500);
+          say('Recording ' + total.toFixed(1) + ' s. Keep this page open with the screen on.');
+          step();
+        } catch (e) {
+          failure = 'Recording could not start (' + e.name + ').';
+          if (mr.state !== 'inactive') mr.stop();
+          else finish();
+        }
       };
 
       // On iPhone, switching apps can break a recording, so stop it cleanly and say why.
@@ -742,3 +766,4 @@
     </script>
   </body>
 </html>
+
