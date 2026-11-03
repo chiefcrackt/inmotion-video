@@ -27,6 +27,9 @@ export const PRESETS = Object.freeze({
     subline: '',
   },
 });
+// Kinetic entrances from shared/kinetic.js, for the newest headline line.
+// tests/kinetic.test.mjs checks this list matches the engine.
+export const KINETIC = ['cascade', 'bounce', 'wave', 'flip', 'decode', 'words', 'punch', 'slice', 'mask', 'split'];
 export const LAYERS = [
   'eyebrow',
   'headline',
@@ -71,7 +74,7 @@ export function validate(raw) {
   for (const [key, options] of Object.entries({
     theme: ['navy', 'paper'],
     style: ['classic', 'cyber'],
-    motion: ['none', 'flow', 'reveal', 'glitch'],
+    motion: ['none', 'flow', 'reveal', 'glitch', ...KINETIC],
     sound: ['none', 'whoosh', 'pulse'],
   })) {
     if (!options.includes(raw[key])) throw Error('Invalid ' + key + '.');

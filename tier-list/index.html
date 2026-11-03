@@ -678,6 +678,7 @@
             <div class="row" id="fmtRow"><span class="lab">Format</span></div>
             <div class="row" id="readRow"><span class="lab">Read time</span></div>
             <div class="row" id="orderRow"><span class="lab">Order</span></div>
+            <div class="row" id="kinRow"><span class="lab">Words in</span></div>
             <div class="row" id="bgRow"><span class="lab">Background</span></div>
             <div class="sounds" id="sounds"></div>
             <div class="row">
@@ -696,6 +697,7 @@
       </div>
     </div>
 
+    <script src="../shared/kinetic.js"></script>
     <script type="module">
       import { bedEvents, makeKit, playEvents } from '../shared/sound/beat.mjs';
       import { zipStore } from '../carousel-maker/model.mjs';
@@ -751,6 +753,7 @@
         order: 'worst',
         sound: 'cyber',
         vol: 80,
+        kin: 'original',
       });
       let S = DEF();
       const KEY = 'tim_tier_list';
@@ -926,6 +929,16 @@
         return lines;
       }
       // largest size (≤ size) where the text fits in maxLines lines of maxW
+      // Draws lines with the chosen kinetic entrance; returns false for Original.
+      // alpha is the element's fade-out only: the engine supplies the entrance.
+      function kineticText(c, lines, t, len, green, seed, alpha) {
+        if (!window.TimKinetic || !TimKinetic.isKinetic(S.kin)) return false;
+        c.save();
+        c.globalAlpha = alpha;
+        TimKinetic.draw(c, { lines, align: 'left', t, len, style: S.kin, seed, opaque: green });
+        c.restore();
+        return true;
+      }
       function fitWrap(c, text, maxW, size, maxLines, weight = 900, min = 24) {
         let s = size,
           lines;
@@ -1304,7 +1317,9 @@
           tracked(c, up(S.eyebrow), cx, cy - 170, 8);
           const ti = fitWrap(c, up(S.title), cw, S.fmt === 'h' ? 230 : 250, 2);
           c.fillStyle = C.paper;
-          ti.lines.forEach((l, k) => c.fillText(l, cx, cy + 40 + k * ti.s * 0.9 + (G ? 0 : (1 - ease(clamp(t / 0.6, 0, 1))) * 40)));
+          if (!kineticText(c, ti.lines.map((l, k) => ({ text: l, x: cx, y: cy + 40 + k * ti.s * 0.9 })), t - 0.1, 0.8, G, 91,
+            A(1 - ease(clamp((t - (T.INTRO - 0.4)) / 0.4, 0, 1)))))
+            ti.lines.forEach((l, k) => c.fillText(l, cx, cy + 40 + k * ti.s * 0.9 + (G ? 0 : (1 - ease(clamp(t / 0.6, 0, 1))) * 40)));
           c.fillStyle = C.teal;
           c.font = '700 36px ' + F;
           tracked(c, `${S.items.length} ${S.items.length === 1 ? 'ITEM' : 'ITEMS'} · ${up(S.tiers[0])} TO ${up(S.tiers[4])}`, cx, cy + 40 + (ti.lines.length - 1) * ti.s * 0.9 + 90, 7);
@@ -1412,7 +1427,8 @@
           lh = nm.s * 0.92;
         const top = L.tbY + L.tb / 2 - (nm.lines.length * lh) / 2 + nm.s * 0.78;
         c.fillStyle = C.paper;
-        nm.lines.forEach((l, k) => c.fillText(l, nx, top + k * lh + (1 - inA(1)) * 30));
+        if (!kineticText(c, nm.lines.map((l, k) => ({ text: l, x: nx, y: top + k * lh })), lt - 0.08, 0.5, S.bg === 'green', 101 + i, out))
+          nm.lines.forEach((l, k) => c.fillText(l, nx, top + k * lh + (1 - inA(1)) * 30));
         if (it.sub) {
           c.globalAlpha = out * inA(2);
           c.fillStyle = C.teal;
@@ -1821,6 +1837,10 @@
         fillRow('fmtRow', [['v', '9:16'], ['h', '16:9']], (v) => S.fmt === v, (v) => (S.fmt = v));
         fillRow('readRow', [[3, '3 sec'], [5, '5 sec'], [7, '7 sec']], (v) => +S.read === v, (v) => (S.read = v));
         fillRow('orderRow', [['worst', 'Worst → best'], ['best', 'Best → worst'], ['list', 'As listed']], (v) => S.order === v, (v) => (S.order = v));
+        // Kinetic entrances for the title and each item's name (shared/kinetic.js)
+        $('kinRow').hidden = !window.TimKinetic;
+        if (window.TimKinetic)
+          fillRow('kinRow', TimKinetic.styles.map((s) => [s[0], s[1].replace(/^Letter (\w)/, (m, ch) => ch.toUpperCase())]), (v) => S.kin === v, (v) => (S.kin = v));
         fillRow('bgRow', [['navy', 'Navy'], ['green', 'Green screen']], (v) => S.bg === v, (v) => (S.bg = v));
         const box = $('sounds');
         box.innerHTML = '';

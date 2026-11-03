@@ -118,14 +118,21 @@ page folder isn't registered, is missing the bar, or has an off-pattern title.
 `shared/kinetic.js` animates words for any tool: per-letter (cascade, bounce,
 wave, flip, decode), per-word (word by word, word punch) and split/mask
 reveals (slice, mask rise, split), plus morphs from one phrase to another
-(word to word, scramble, liquid). Text Motion and Title Maker use it now.
+(word to word, scramble, liquid). Used by Text Motion, Title Maker, Promo
+Maker (video title), Special Post and Celebrate (the name), Mile Marker (the
+big number), Tier List (title and item names; no morph) and Brand Assets
+(the newest headline line, in its Animation picker; no morph).
 
 A tool sets its canvas font and fill, then calls
 `TimKinetic.draw(ctx, { lines, align, t, len, style, seed, opaque, to, morph, morphAt, morphLen })`
 with the lines it would have drawn. It returns `false` for Original, so the
 tool keeps its own entrance. Frames are a pure function of time, so preview,
 scrubbing and recordings match. Pass `opaque: true` on green screen so nothing
-is part-transparent. Exits stay with `shared/exits.js`.
+is part-transparent. Exits stay with `shared/exits.js`. Optional:
+`passes` for layered text (outline, offset shadow, fill), `perChar` for
+tools that space letters one at a time, `maxWidth` to keep a word punch in
+frame, and `TimKinetic.morphWindow(enterEnd, endBy, len)` to place a morph
+between a tool's entrance and its ending.
 `tests/kinetic.test.mjs` covers timing, layout, morph pairing and that every
 style ends on the plain text.
 

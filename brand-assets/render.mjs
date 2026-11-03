@@ -281,8 +281,21 @@ export function render(c, s, { time = 0, video = false, guides = false } = {}) {
             c.shadowColor = fg;
             c.shadowBlur = 30;
           }
+          const K = globalThis.TimKinetic,
+            kinetic = video && i === newest && !!K && K.isKinetic(s.motion);
           leaning(c, baselines[i], () => {
-            if (glitch) {
+            if (kinetic) {
+              // Same size as text() picks, spaced letter by letter like text(),
+              // so the line doesn't shift when the next one arrives.
+              c.save();
+              c.font = `900 ${size}px "${FONT}"`;
+              const w = [...line].reduce((sum, ch) => sum + c.measureText(ch).width, 0),
+                fit = w > 960 ? (size * 960) / w : size;
+              c.font = `900 ${fit}px "${FONT}"`;
+              c.fillStyle = fg;
+              K.draw(c, { lines: [{ text: line, x: 58, y: 0 }], align: 'left', t: beat.elapsed, len: 0.5 / s.speed, style: s.motion, seed: 121 + i, perChar: true, maxWidth: 1000 });
+              c.restore();
+            } else if (glitch) {
               text(c, line, 54, 0, size, C.teal, 900, 0, 960);
               text(c, line, 66, 3, size, C.gold, 900, 0, 960);
             } else text(c, line, 58, 0, size, fg, 900, 0, 960);
