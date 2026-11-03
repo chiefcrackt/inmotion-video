@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../shared/fonts.css" />
     <link rel="stylesheet" href="studio.css" />
     <script src="studio.js" defer></script>
+    <script type="module" src="supabase-sync.mjs"></script>
   <link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
   <body><tim-studio-bar></tim-studio-bar>
     <header>
@@ -30,6 +31,16 @@
         >Open this view in a new tab ↗</a
       >
     </header>
+    <details id="studio-sync">
+      <summary>Workspace cloud sync</summary>
+      <form>
+        <label>Loadout email <input type="email" name="email" autocomplete="email" required /></label>
+        <button>Send sign-in link</button>
+      </form>
+      <button type="button" data-sync hidden>Sync now</button>
+      <button type="button" data-disconnect hidden>Disconnect this browser</button>
+      <p role="status">Checking cloud connection…</p>
+    </details>
     <main id="editors" aria-label="Planning workspace"></main>
     <noscript><p>Choose a view above to open its planner.</p></noscript>
   </body>

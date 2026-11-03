@@ -117,3 +117,31 @@ iframe[hidden] {
     flex: none;
   }
 }
+#studio-sync {
+  margin: 0 auto 10px;
+  width: 100%;
+  max-width: 1280px;
+  padding: 0 18px;
+}
+#studio-sync summary {
+  cursor: pointer;
+  color: #e8c96a;
+}
+#studio-sync form:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+#studio-sync :is(button, input) {
+  font: inherit;
+  min-height: 44px;
+  padding: 6px 10px;
+}
+#studio-sync input {
+  max-width: 100%;
+}
+#studio-sync [role='status'] {
+  color: #b8c9dd;
+}
