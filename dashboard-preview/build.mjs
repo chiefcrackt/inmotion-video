@@ -1,4 +1,5 @@
 import { writeFile } from 'node:fs/promises';
-import { renderDashboard } from './render.mjs';
+import { renderDashboard, renderHomepage } from './render.mjs';
 await writeFile(new URL('index.html', import.meta.url), renderDashboard());
-console.log('Dashboard preview generated from the tool registry.');
+await writeFile(new URL('../index.html', import.meta.url), renderHomepage());
+console.log('Homepage and dashboard preview generated from the tool registry.');

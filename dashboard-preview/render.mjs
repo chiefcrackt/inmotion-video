@@ -13,6 +13,21 @@ const escape = (value) =>
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;');
 
+// The live homepage shares the preview's registry-driven navigation, with paths
+// resolved from the repository root rather than the preview directory.
+export function renderHomepage() {
+  return renderDashboard()
+    .replaceAll('href="../', 'href="')
+    .replaceAll('src="../', 'src="')
+    .replace('href="style.css"', 'href="dashboard-preview/style.css"')
+    .replace('src="app.mjs"', 'src="dashboard-preview/app.mjs"')
+    .replace(/<title>[^<]*<\/title>/, '<title>T.IM Studio</title>')
+    .replace('<tim-studio-bar></tim-studio-bar>', '<nav aria-label="T.IM Studio" style="padding:16px 24px"><strong>T.IM Studio</strong></nav>')
+    .replace('<span class="preview-label">Dashboard preview</span>', '')
+    .replace('This preview does not replace the current dashboard.', 'Choose a studio above, or open an original tool directly.')
+    .replace(/ +$/gm, '');
+}
+
 export function renderDashboard() {
   const entries = dashboardEntries();
   return `<!doctype html>

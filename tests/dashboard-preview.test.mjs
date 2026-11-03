@@ -10,9 +10,20 @@ import {
   searchDashboard,
   getTool,
 } from '../shared/tool-registry.mjs';
-import { renderDashboard } from '../dashboard-preview/render.mjs';
+import { renderDashboard, renderHomepage } from '../dashboard-preview/render.mjs';
 const read = (path) =>
   readFileSync(new URL('../' + path, import.meta.url), 'utf8');
+
+test('live homepage uses consolidated studios and root-relative assets and original links', () => {
+  const html = renderHomepage();
+  assert.equal(read('index.html').replaceAll('\r\n', '\n'), html);
+  assert.ok(!html.includes('href="../'));
+  assert.ok(!html.includes('Dashboard preview'));
+  assert.ok(html.includes('src="dashboard-preview/app.mjs"'));
+  assert.ok(html.includes('href="dashboard-preview/style.css"'));
+  for (const tool of TOOLS) assert.ok(html.includes(`href="${tool.href}"`));
+  for (const entry of dashboardEntries()) assert.ok(html.includes(`href="${entry.href}"`));
+});
 
 test('every original tool remains reachable exactly once through the preview grouping', () => {
   const entries = dashboardEntries();

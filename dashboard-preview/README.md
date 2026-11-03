@@ -6,12 +6,13 @@ existing Asset Animator/library are followed by the focused standalone tools.
 Each studio offers mode shortcuts. All 27 original destinations remain available
 under Original tools & asset packs, including without JavaScript.
 
-This page is an isolated preview. The current homepage, tool URLs, project IDs,
-storage, saved setups and export behavior are unchanged. No editor has been
+The consolidated dashboard is now the live homepage. This directory retains
+the preview route and supplies shared rendering, styling and search.
+Tool URLs, project IDs, storage, saved setups and export behavior are unchanged. No editor has been
 retired. Group definitions live beside the original tool registry in
 `shared/tool-registry.mjs`; preview names, descriptions, workspace assignments,
 search terms, links and counts are derived from that data. Original `TOOLS`,
-`getTool` and the existing homepage continue to use their canonical routes.
+`getTool` continue to use their canonical routes.
 
 Search accepts old tool names, descriptions and keywords. An exact old tool name
 selects its containing studio; broader queries search the members' metadata.
@@ -19,7 +20,7 @@ Workspace filters preserve multi-workspace placement. All links are present in
 the generated HTML, so navigation does not depend on JavaScript. Search/filter
 controls appear only when the module initializes.
 
-Run `node dashboard-preview/build.mjs` to regenerate the committed HTML.
+Run `node dashboard-preview/build.mjs` to regenerate the preview and homepage HTML.
 `npm run build` includes that step. The HTML is intentionally excluded from
 Prettier because its generator owns formatting. Run `npm run test:dashboard` to
 verify complete original-tool coverage, supported mode shortcuts, search,

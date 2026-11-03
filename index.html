@@ -1,358 +1,116 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-    <title>T.IM Studio</title>
-    <meta name="description" content="T.IM Studio: from the first idea to the final upload. Plan, create graphics, build running visuals, make audio and prepare publishing assets." />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="favicon.png" type="image/png" />
-    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <link rel="stylesheet" href="shared/fonts.css" />
-    <meta name="theme-color" content="#0e1a2e" />
-    <style>
-      :root {
-        --navy: #0e1a2e;
-        --panel: #13233d;
-        --panel-2: #172c4a;
-        --line: #25395c;
-        --teal: #2e9bad;
-        --teal-bright: #5fd0df;
-        --gold: #e8c96a;
-        --ivory: #f6f4ef;
-        --muted: #9fb0c8;
-        --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
-        --body: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif;
-        color-scheme: dark;
-      }
-      * { box-sizing: border-box; }
-      /* :root outranks shared/responsive.css (loaded later), so section jumps clear the sticky header. */
-      :root { scroll-behavior: smooth; scroll-padding-top: 76px; }
-      body {
-        margin: 0;
-        background: var(--navy);
-        color: var(--ivory);
-        font: 17px/1.5 var(--body);
-        padding: env(safe-area-inset-top, 0) 0 calc(84px + env(safe-area-inset-bottom, 0));
-      }
-      @media (min-width: 900px) { body { padding-bottom: 40px; } }
-      a { color: inherit; }
-      :focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
-      h1, h2, h3, p { margin: 0; }
-      .ico { width: 24px; height: 24px; flex: none; }
-      .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0e1a2e">
+  <title>T.IM Studio</title>
+  <link rel="icon" href="favicon.svg">
+  <link rel="stylesheet" href="shared/fonts.css">
+  <link rel="stylesheet" href="dashboard-preview/style.css">
+  <script type="module" src="dashboard-preview/app.mjs"></script>
+  <link rel="stylesheet" href="shared/studio-bar.css">
+  <script type="module" src="shared/studio-bar.mjs"></script>
+</head>
+<body>
+<nav aria-label="T.IM Studio" style="padding:16px 24px"><strong>T.IM Studio</strong></nav>
+<main>
+  <header><p class="eyebrow">T.IM / YOUR CREATIVE WORKSPACE</p><h1>What are we making?</h1><p>Open a studio, or jump straight into a familiar tool.</p></header>
+  <section class="finder" aria-label="Find a studio" hidden>
+    <label for="query">Find a studio or tool<input id="query" type="search" placeholder="Titles, race, thumbnails…"></label>
+    <div class="filters" role="group" aria-label="Workspace filters"><button type="button" data-workspace="all" aria-pressed="true">All</button><button type="button" data-workspace="plan" aria-pressed="false">Plan &amp; Organize</button><button type="button" data-workspace="graphics" aria-pressed="false">Graphics &amp; Video</button><button type="button" data-workspace="running" aria-pressed="false">Running Studio</button><button type="button" data-workspace="audio" aria-pressed="false">Audio Studio</button><button type="button" data-workspace="publishing" aria-pressed="false">Publishing Studio</button><button type="button" data-workspace="library" aria-pressed="false">Asset Library</button></div>
+    <button type="button" id="reset">Clear filters</button>
+  </section>
+  <p id="count" role="status" aria-live="polite">14 studios and tools</p>
+  <p id="empty" hidden>No matches. Try another word or clear the filters.</p>
+  <section class="cards" aria-label="Studios and tools">
+    <article data-entry="content-studio">
+      <p class="category">Plan &amp; Organize · Publishing Studio</p>
+      <h2><a class="primary" href="content-studio/">Content Planner <span aria-hidden="true">↗</span></a></h2>
+      <p>Capture ideas, plan videos and take your checklist filming.</p>
+      <div class="modes" aria-label="Content Planner modes"><a href="content-studio/#videos">Content Planner</a><a href="content-studio/#ideas">Idea Vault</a><a href="content-studio/#shoot">Shoot Planner</a></div>
+    </article>
+    <article data-entry="text-and-titles">
+      <p class="category">Graphics &amp; Video</p>
+      <h2><a class="primary" href="text-and-titles/">Text &amp; Titles <span aria-hidden="true">↗</span></a></h2>
+      <p>Animate words or create title cards, lower thirds and chapters with sound.</p>
+      <div class="modes" aria-label="Text &amp; Titles modes"><a href="text-and-titles/#text">Text Motion</a><a href="text-and-titles/#titles">Title Maker</a></div>
+    </article>
+    <article data-entry="celebration-studio">
+      <p class="category">Graphics &amp; Video</p>
+      <h2><a class="primary" href="celebration-studio/">Celebration Studio <span aria-hidden="true">↗</span></a></h2>
+      <p>Celebrate with runners, name cards, cakes, race bibs and medals.</p>
+      <div class="modes" aria-label="Celebration Studio modes"><a href="celebration-studio/#runners">Special Post Maker</a><a href="celebration-studio/#cards">Celebration Maker</a></div>
+    </article>
+    <article data-entry="publishing-studio">
+      <p class="category">Publishing Studio · Graphics &amp; Video · Asset Library</p>
+      <h2><a class="primary" href="publishing-studio/">Publishing Studio <span aria-hidden="true">↗</span></a></h2>
+      <p>Make covers, announce a video or customize a brand template.</p>
+      <div class="modes" aria-label="Publishing Studio modes"><a href="publishing-studio/#covers">Cover Maker</a><a href="publishing-studio/#promos">Promo Maker</a><a href="publishing-studio/#brand">Brand Assets</a></div>
+    </article>
+    <article data-entry="runner-animator">
+      <p class="category">Running Studio · Graphics &amp; Video</p>
+      <h2><a class="primary" href="runner-animator/">Runner Animator <span aria-hidden="true">↗</span></a></h2>
+      <p>Count down to a race start or build a running scene.</p>
+      <div class="modes" aria-label="Runner Animator modes"><a href="runner-animator/#start">Start Line Recorder</a><a href="runner-animator/#run">River Run Recorder</a></div>
+    </article>
+    <article data-entry="social-post-studio">
+      <p class="category">Graphics &amp; Video · Publishing Studio</p>
+      <h2><a class="primary" href="social-post-studio/">Social Post Studio <span aria-hidden="true">↗</span></a></h2>
+      <p>Create a carousel, rank your favorites or show a before-and-after.</p>
+      <div class="modes" aria-label="Social Post Studio modes"><a href="social-post-studio/#carousel">Carousel Post Maker</a><a href="social-post-studio/#rankings">Tier List Maker</a><a href="social-post-studio/#compare">Before &amp; After</a></div>
+    </article>
+    <article data-entry="asset-library">
+      <p class="category">Graphics &amp; Video · Asset Library</p>
+      <h2><a class="primary" href="asset-studio/">Asset Animator &amp; Library <span aria-hidden="true">↗</span></a></h2>
+      <p>Browse the shared graphic packs and compose transparent overlays.</p>
 
-      /* Header */
-      .top {
-        position: sticky; top: 0; z-index: 5;
-        background: rgba(14, 26, 46, 0.94);
-        backdrop-filter: blur(8px);
-        border-bottom: 1px solid var(--line);
-      }
-      .top .wrap { display: flex; align-items: center; gap: 12px; min-height: 60px; }
-      .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; }
-      .brand img { width: 30px; height: 30px; }
-      .brand strong { font: 700 22px/1 var(--display); letter-spacing: .06em; }
-      .brand span { color: var(--teal-bright); font: 600 12px/1 var(--display); letter-spacing: .24em; display: block; }
-      .desk-nav { display: none; gap: 18px; }
-      .desk-nav a { text-decoration: none; color: var(--muted); font-weight: 600; }
-      .desk-nav a:hover, .desk-nav a[aria-current="true"] { color: var(--ivory); }
-      @media (min-width: 900px) { .desk-nav { display: flex; } }
+    </article>
+    <article data-entry="teleprompter">
+      <p class="category">Plan &amp; Organize</p>
+      <h2><a class="primary" href="teleprompter/">Teleprompter <span aria-hidden="true">↗</span></a></h2>
+      <p>Paste a script and scroll it at a steady pace on an iPad, with mirror mode and a reading line.</p>
 
-      /* Hero */
-      .hero { padding: 28px 0 8px; }
-      .eyebrow { color: var(--gold); letter-spacing: .18em; font: 600 13px/1 var(--display); text-transform: uppercase; }
-      .hero h1 { font: 700 clamp(40px, 8vw, 68px)/0.95 var(--display); letter-spacing: .01em; margin-top: 10px; }
-      .hero p { color: var(--muted); margin-top: 10px; max-width: 60ch; }
+    </article>
+    <article data-entry="video-framer">
+      <p class="category">Graphics &amp; Video</p>
+      <h2><a class="primary" href="video-framer/">Video Framer <span aria-hidden="true">↗</span></a></h2>
+      <p>Branded frames both ways: vertical clips in 16:9, or 16:9 clips in 9:16.</p>
 
-      section { padding: 22px 0 6px; }
-      .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
-      .section-head h2 { font: 700 24px/1.1 var(--display); letter-spacing: .04em; text-transform: uppercase; }
-      .section-head span { color: var(--muted); font-size: 15px; }
+    </article>
+    <article data-entry="mile-marker">
+      <p class="category">Running Studio · Graphics &amp; Video</p>
+      <h2><a class="primary" href="mile-marker/">Mile Marker Maker <span aria-hidden="true">↗</span></a></h2>
+      <p>A trail sign for any distance, with a ding that climbs as the miles go up.</p>
 
+    </article>
+    <article data-entry="activity-studio">
+      <p class="category">Running Studio</p>
+      <h2><a class="primary" href="activity-studio/">Activity Studio <span aria-hidden="true">↗</span></a></h2>
+      <p>Turn FIT, GPX and TCX exports into running graphics, performance cards and GPS routes.</p>
 
-      /* Quick launch */
-      .quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-      @media (min-width: 700px) { .quick { grid-template-columns: repeat(7, 1fr); } }
-      .quick a {
-        display: grid; justify-items: center; gap: 8px; text-align: center; text-decoration: none;
-        background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-        padding: 14px 6px; min-height: 92px; font-weight: 600; font-size: 15px; line-height: 1.15;
-      }
-      .quick a .ico { color: var(--teal-bright); }
-      .quick a:hover { border-color: var(--teal); }
+    </article>
+    <article data-entry="sound-forge">
+      <p class="category">Audio Studio</p>
+      <h2><a class="primary" href="sound-forge/">Sound Forge <span aria-hidden="true">↗</span></a></h2>
+      <p>Layered sound effects from 35 original presets. Synthesize, import samples, export WAV.</p>
 
-      /* Workspaces */
-      .workspaces { display: grid; gap: 10px; grid-template-columns: 1fr; }
-      @media (min-width: 640px) { .workspaces { grid-template-columns: repeat(2, 1fr); } }
-      @media (min-width: 1000px) { .workspaces { grid-template-columns: repeat(3, 1fr); } }
-      .ws {
-        display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start;
-        background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px;
-        text-decoration: none; min-height: 100px;
-      }
-      .ws:hover { border-color: var(--teal); }
-      .ws .tile { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; color: var(--teal-bright); background: rgba(46, 155, 173, .1); border: 1px solid rgba(46, 155, 173, .45); }
-      .ws .num { color: var(--gold); font: 600 13px/1 var(--display); letter-spacing: .16em; }
-      .ws h3 { font: 700 21px/1.1 var(--display); letter-spacing: .03em; text-transform: uppercase; margin-top: 4px; }
-      .ws p { color: var(--muted); font-size: 15px; margin-top: 4px; }
-      .ws .count { color: var(--teal-bright); font-size: 14px; font-weight: 600; margin-top: 6px; display: block; }
+    </article>
+    <article data-entry="beat-bed">
+      <p class="category">Audio Studio</p>
+      <h2><a class="primary" href="beat-bed/">Beat Bed <span aria-hidden="true">↗</span></a></h2>
+      <p>A music bed in 14 styles. Lay it out in sections, mix the parts, save a WAV.</p>
 
-      /* All tools */
-      .controls { display: grid; gap: 10px; }
-      .search { position: relative; }
-      .search .ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
-      input[type="search"] {
-        width: 100%; font: inherit; font-size: 17px; color: var(--ivory);
-        background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-        padding: 12px 12px 12px 44px; min-height: 48px;
-      }
-      input[type="search"]::placeholder { color: #7f92ad; }
-      .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-      .chips::-webkit-scrollbar { display: none; }
-      .chip {
-        flex: none; font: 600 15px/1 var(--body); color: var(--muted); background: var(--panel);
-        border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; min-height: 44px; cursor: pointer;
-      }
-      .chip[aria-pressed="true"] { color: var(--navy); background: var(--gold); border-color: var(--gold); font-weight: 700; }
-      .result-count { color: var(--muted); font-size: 15px; min-height: 22px; }
-      .tools { display: grid; gap: 10px; grid-template-columns: 1fr; margin-top: 6px; }
-      @media (min-width: 640px) { .tools { grid-template-columns: repeat(2, 1fr); } }
-      @media (min-width: 1000px) { .tools { grid-template-columns: repeat(3, 1fr); } }
-      .tool {
-        display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; text-decoration: none;
-        background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px;
-      }
-      .tool:hover { border-color: var(--teal); }
-      .tool .tile { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; color: var(--teal-bright); background: rgba(46, 155, 173, .1); border: 1px solid rgba(46, 155, 173, .35); }
-      .tool h3 { font: 700 20px/1.1 var(--display); letter-spacing: .02em; }
-      .tool p { color: var(--muted); font-size: 15px; margin-top: 4px; }
-      .tool .meta { color: var(--gold); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin-top: 6px; display: block; }
-      .empty { color: var(--muted); padding: 22px 0; }
-      .empty button { margin-top: 10px; }
-      button.ghost {
-        font: 600 16px/1 var(--body); color: var(--ivory); background: var(--panel-2);
-        border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; min-height: 44px; cursor: pointer;
-      }
+    </article>
+    <article data-entry="downloads">
+      <p class="category">Asset Library</p>
+      <h2><a class="primary" href="downloads/">Animation Downloads <span aria-hidden="true">↗</span></a></h2>
+      <p>Finished trailer pack: River Run, Portal, The Loop and The Drop, with sound, ready for CapCut.</p>
 
-      /* Mobile bottom navigation */
-      .bottom {
-        position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
-        display: grid; grid-template-columns: repeat(4, 1fr);
-        background: rgba(14, 26, 46, 0.97); border-top: 1px solid var(--line);
-        padding-bottom: env(safe-area-inset-bottom, 0);
-      }
-      .bottom a {
-        display: grid; justify-items: center; gap: 4px; text-decoration: none; color: var(--muted);
-        font: 600 13px/1 var(--body); padding: 10px 4px; min-height: 60px;
-      }
-      .bottom a[aria-current="true"] { color: var(--gold); }
-      .bottom a[aria-current="true"] .ico { color: var(--gold); }
-      @media (min-width: 900px) { .bottom { display: none; } }
-
-      footer { margin-top: 34px; padding: 18px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 15px; text-align: center; }
-      footer a { color: var(--teal-bright); }
-      .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
-    </style>
-  <link rel="stylesheet" href="shared/responsive.css" /></head>
-  <body id="top">
-    <header class="top">
-      <div class="wrap">
-        <a class="brand" href="#top" aria-label="T.IM Studio home">
-          <img src="favicon.svg" alt="" />
-          <div><strong>T.IM</strong><span>STUDIO</span></div>
-        </a>
-        <nav class="desk-nav" aria-label="Main">
-          <a href="#top" data-nav="top">Home</a>
-          <a href="idea-vault/">Ideas</a>
-          <a href="#workspaces" data-nav="workspaces">Workspaces</a>
-          <a href="#tools" data-nav="tools">Tools</a>
-        </nav>
-      </div>
-    </header>
-
-    <main class="wrap">
-      <div class="hero">
-        <div class="eyebrow">T.IM Creator Workspace</div>
-        <h1>From the first idea to the final upload.</h1>
-        <p>Plan a video, make its graphics, build running visuals, shape the audio and prepare the posts, all from one place. Every tool exports both 16:9 and 9:16.</p>
-      </div>
-
-
-      <section aria-labelledby="quick-h">
-        <div class="section-head"><h2 id="quick-h">Quick launch</h2></div>
-        <nav class="quick" id="quick" aria-label="Quick launch"></nav>
-      </section>
-
-      <section id="workspaces" aria-labelledby="ws-h">
-        <div class="section-head"><h2 id="ws-h">Explore workspaces</h2><span id="ws-count"></span></div>
-        <div class="workspaces" id="ws-list"></div>
-      </section>
-
-      <section id="tools" aria-labelledby="tools-h">
-        <div class="section-head"><h2 id="tools-h">All tools</h2><span id="total-count"></span></div>
-        <div class="controls">
-          <label class="search">
-            <span class="sr-only">Search tools</span>
-            <span id="search-icon"></span>
-            <input type="search" id="q" placeholder="Search tools, keywords or workspaces" autocomplete="off" />
-          </label>
-          <div class="chips" id="chips" role="group" aria-label="Filter by workspace"></div>
-          <p class="result-count" id="result-count" role="status" aria-live="polite"></p>
-        </div>
-        <div class="tools" id="tool-list"></div>
-        <div class="empty" id="empty" hidden>
-          <p>No tools match this search.</p>
-          <button class="ghost" id="reset" type="button">Clear search and filters</button>
-        </div>
-      </section>
-
-      <footer>
-        <a href="https://chiefcrackt.github.io/links-inMotion/">tristan.inmotion</a>
-      </footer>
-    </main>
-
-    <nav class="bottom" aria-label="Mobile">
-      <a href="#top" data-bottom="top"><span data-icon="home"></span>Home</a>
-      <a href="idea-vault/"><span data-icon="idea"></span>Ideas</a>
-      <a href="#workspaces" data-bottom="workspaces"><span data-icon="library"></span>Workspaces</a>
-      <a href="#tools" data-bottom="tools"><span data-icon="grid"></span>Tools</a>
-    </nav>
-
-    <script type="module">
-      import {
-        WORKSPACES, TOOLS, quickLaunch, workspaceCounts, searchTools, getWorkspace,
-      } from './shared/tool-registry.mjs?v=20261102-weird-motion';
-      import { iconSvg } from './shared/icons.mjs';
-
-      const $ = (sel) => document.querySelector(sel);
-      const plural = (n) => n + (n === 1 ? ' tool' : ' tools');
-      // Icons come from our own static SVG set, so setting innerHTML with them is safe.
-      const icon = (name, label) => iconSvg(name, label ? { label } : {});
-      const el = (tag, attrs = {}, html) => {
-        const node = document.createElement(tag);
-        for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
-        if (html !== undefined) node.innerHTML = html;
-        return node;
-      };
-      const text = (node, value) => { node.textContent = value; return node; };
-
-      // Icons in static slots (bottom navigation)
-      for (const slot of document.querySelectorAll('[data-icon]')) {
-        slot.innerHTML = icon(slot.dataset.icon);
-        slot.firstElementChild.setAttribute('aria-hidden', 'true');
-      }
-
-      // Quick launch
-      const quick = $('#quick');
-      for (const { tool, label } of quickLaunch()) {
-        const a = el('a', { href: tool.href });
-        a.innerHTML = icon(tool.icon);
-        a.append(text(el('span'), label));
-        quick.append(a);
-      }
-
-      // Workspaces
-      const counts = workspaceCounts();
-      $('#ws-count').textContent = WORKSPACES.length + ' collections';
-      const wsList = $('#ws-list');
-      for (const w of WORKSPACES) {
-        const a = el('a', { class: 'ws', href: '#tools', id: 'ws-' + w.id, 'data-ws': w.id });
-        const tile = el('span', { class: 'tile' }, icon(w.icon));
-        tile.setAttribute('aria-hidden', 'true');
-        const body = el('span');
-        body.append(
-          text(el('span', { class: 'num' }), w.number),
-          text(el('h3'), w.name),
-          text(el('p'), w.blurb),
-          text(el('span', { class: 'count' }), plural(counts[w.id])),
-        );
-        a.append(tile, body);
-        wsList.append(a);
-      }
-
-      // All tools: chips, search, and cards derived from the registry
-      let workspace = 'all';
-      const q = $('#q');
-      $('#search-icon').innerHTML = icon('search');
-      $('#search-icon').firstElementChild?.setAttribute('aria-hidden', 'true');
-      const chips = $('#chips');
-      const chipDefs = [{ id: 'all', name: 'All' }, ...WORKSPACES.map((w) => ({ id: w.id, name: w.name }))];
-      for (const c of chipDefs) {
-        const b = text(el('button', { class: 'chip', type: 'button', 'data-chip': c.id, 'aria-pressed': 'false' }), c.name);
-        chips.append(b);
-      }
-      function renderTools() {
-        const list = $('#tool-list');
-        const hits = searchTools(q.value, { workspace });
-        list.replaceChildren();
-        for (const tool of hits) {
-          const a = el('a', { class: 'tool', href: tool.href });
-          const tile = el('span', { class: 'tile' }, icon(tool.icon));
-          tile.setAttribute('aria-hidden', 'true');
-          const body = el('span');
-          body.append(
-            text(el('h3'), tool.name),
-            text(el('p'), tool.description),
-            text(el('span', { class: 'meta' }), tool.workspaces.map((id) => getWorkspace(id).name).join(' · ')),
-          );
-          a.append(tile, body);
-          list.append(a);
-        }
-        $('#total-count').textContent = plural(TOOLS.length) + ' in ' + WORKSPACES.length + ' workspaces';
-        $('#result-count').textContent =
-          hits.length === TOOLS.length ? 'Showing all ' + TOOLS.length + ' tools' : 'Showing ' + hits.length + ' of ' + TOOLS.length + ' tools';
-        $('#empty').hidden = hits.length !== 0;
-        for (const b of chips.querySelectorAll('.chip')) {
-          b.setAttribute('aria-pressed', String(b.dataset.chip === workspace));
-        }
-      }
-      q.addEventListener('input', renderTools);
-      chips.addEventListener('click', (e) => {
-        const b = e.target.closest('.chip');
-        if (!b) return;
-        workspace = b.dataset.chip;
-        renderTools();
-      });
-      $('#reset').addEventListener('click', () => {
-        q.value = '';
-        workspace = 'all';
-        renderTools();
-        q.focus();
-      });
-      // Tapping a workspace card filters the tool list to it.
-      wsList.addEventListener('click', (e) => {
-        const a = e.target.closest('[data-ws]');
-        if (!a) return;
-        workspace = a.dataset.ws;
-        q.value = '';
-        renderTools();
-      });
-
-      // Bottom and desktop navigation: mark the section in view as current.
-      renderTools();
-      const sections = ['top', 'workspaces', 'tools'];
-      const navLinks = [...document.querySelectorAll('[data-nav], [data-bottom]')];
-      const setCurrent = (id) => {
-        for (const a of navLinks) {
-          const key = a.dataset.nav || a.dataset.bottom;
-          a.setAttribute('aria-current', String(key === id));
-        }
-      };
-      if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver(
-          (entries) => {
-            const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-            if (visible) setCurrent(visible.target.id === 'top' ? 'top' : visible.target.id);
-          },
-          { rootMargin: '-40% 0px -50% 0px' },
-        );
-        for (const id of sections) {
-          const node = document.getElementById(id);
-          if (node) observer.observe(node);
-        }
-      }
-    </script>
-  </body>
+    </article>
+  </section>
+  <details id="originals"><summary>Original tools &amp; asset packs · 27</summary><p>Every original editor and collection is still available.</p><ul><li><a href="brand-assets/">Brand Assets</a></li><li><a href="content-planner/">Content Planner</a></li><li><a href="teleprompter/">Teleprompter</a></li><li><a href="before-after/">Before &amp; After</a></li><li><a href="shoot-planner/">Shoot Planner</a></li><li><a href="idea-vault/">Idea Vault</a></li><li><a href="title-maker/">Title Maker</a></li><li><a href="text-motion/">Text Motion</a></li><li><a href="video-framer/">Video Framer</a></li><li><a href="carousel-maker/">Carousel Post Maker</a></li><li><a href="tier-list/">Tier List Maker</a></li><li><a href="start-line/">Start Line Recorder</a></li><li><a href="river-run/">River Run Recorder</a></li><li><a href="mile-marker/">Mile Marker Maker</a></li><li><a href="activity-studio/">Activity Studio</a></li><li><a href="special-post/">Special Post Maker</a></li><li><a href="celebrate/">Celebration Maker</a></li><li><a href="sound-forge/">Sound Forge</a></li><li><a href="beat-bed/">Beat Bed</a></li><li><a href="cover-maker/">Cover Maker</a></li><li><a href="promo-maker/">Promo Maker</a></li><li><a href="downloads/">Animation Downloads</a></li><li><a href="motion-stats/">Motion + Stats Kit</a></li><li><a href="asset-studio/">Asset Animator</a></li><li><a href="weird-motion/">Weird Motion Toys</a></li><li><a href="product-spotlight/">Product Spotlight Kit</a></li><li><a href="icon-pack/">Running + Creator Icons</a></li></ul></details>
+  <footer><a href="docs/hosted-validation.md">Sharing &amp; Drive validation status</a><p>Original projects and links remain available. Choose a studio above, or open an original tool directly.</p></footer>
+</main>
+</body>
 </html>
