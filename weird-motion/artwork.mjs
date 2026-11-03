@@ -1,6 +1,24 @@
 // Original T.im motion toys. One deterministic vector scene for SVG and canvas.
 export const toys = [
   {
+    id: 'water-flask',
+    name: 'Water flask',
+    actions: ['Bounce + splash', 'Sip + refill'],
+    label: 'HYDRATION STOP',
+  },
+  {
+    id: 'running-gel',
+    name: 'Running gel',
+    actions: ['Sprint + tear open', 'Squeeze + cheer'],
+    label: 'POCKET FUEL',
+  },
+  {
+    id: 'aid-station',
+    name: 'Aid station tent',
+    actions: ['Pitch + welcome', 'Checkpoint celebration'],
+    label: 'NEXT AID STATION',
+  },
+  {
     id: 'pancake-pal',
     name: 'Pancake pal',
     actions: ['Flip + catch', 'Stack + butter bounce'],
@@ -586,6 +604,119 @@ export function commands(id, progress, remix = false) {
     }
     panel(470, 270, Math.max(0.001, back((p - 0.58) / 0.42)));
     burst(310, 240, clamp((p - 0.78) / 0.22));
+  } else if (id === 'water-flask') {
+    const arrive = ease(p / 0.6),
+      settle = ease((p - 0.65) / 0.35),
+      bounce = remix
+        ? 18 * Math.sin(p * 15) * (1 - settle)
+        : 65 * Math.abs(Math.sin(arrive * Math.PI * 2)) * (1 - settle);
+    group(
+      310,
+      280 - bounce,
+      Math.max(0.001, ease(p / 0.18)),
+      Math.sin(p * (remix ? 13 : 9)) * (1 - settle) * 0.16,
+      () => {
+        path(
+          'M-20-64v-20h40v20M-30-64h60l12 32 8 78q0 20-50 20t-50-20l8-78Z',
+          N,
+          G,
+          5,
+        );
+        path('M-39 8q39-15 78 0l6 34q0 15-45 15T-45 42Z', T);
+        path('M-17-92h34v10h-34Z', T, N, 3);
+        path('M-22-40q-12 20-10 37', 'none', P, 3);
+        ellipse(-12, 23, 4, 5, N);
+        ellipse(12, 23, 4, 5, N);
+        path('M-6 36q6 7 12 0', 'none', N, 3);
+        path('M-48 15l-20 10M48 15l18-15', 'none', T, 7);
+      },
+    );
+    const splash = clamp((p - 0.45) / 0.5);
+    for (let i = 0; i < 4; i++) {
+      const a = -Math.PI + (i * Math.PI) / 3;
+      const r = 35 + 60 * splash;
+      group(
+        310 + Math.cos(a) * r,
+        200 - Math.sin(i + 1) * 40 * splash,
+        Math.max(0.001, (1 - splash) * ease(p / 0.2)),
+        a,
+        () => path('M0-12Q-16 7 0 12Q16 7 0-12Z', T),
+      );
+    }
+    panel(470, 270, Math.max(0.001, back((p - 0.57) / 0.43)));
+    burst(310, 270, clamp((p - 0.78) / 0.22));
+  } else if (id === 'running-gel') {
+    const arrive = ease(p / 0.62),
+      settle = ease((p - 0.65) / 0.35),
+      tear = ease((p - 0.45) / 0.4);
+    const x = remix ? 310 : 90 + 220 * arrive,
+      hop = remix
+        ? 14 * Math.sin(p * 18) * (1 - settle)
+        : 25 * Math.abs(Math.sin(p * 22)) * (1 - settle);
+    group(
+      x,
+      270 - hop,
+      Math.max(0.001, ease(p / 0.14)),
+      (1 - settle) * Math.sin(p * 12) * 0.12,
+      () => {
+        path('M-39-61l9-9h60l9 9-8 116h-62Z', G, N, 5);
+        path('M-31-36h62v62h-62Z', N, T, 3);
+        path('M-12-22h22L-2-1H12L-12 21-4 3H-16Z', T);
+        ellipse(-12, 42, 3, 4, N);
+        ellipse(12, 42, 3, 4, N);
+        path('M-6 52q6 5 12 0', 'none', N, 3);
+        group(20 + tear * 35, -72 - tear * 30, 1, tear * 0.9, () =>
+          path('M-38-10h61l15 10H-38Z', T, N, 3),
+        );
+        path(
+          `M-25 56l${-12 - 12 * Math.sin(p * 22) * (1 - settle)} 25h20M25 56l${12 + 12 * Math.sin(p * 22) * (1 - settle)} 25h-20`,
+          'none',
+          T,
+          7,
+        );
+        path('M-34 6l-20 20M34 6l22-25', 'none', T, 7);
+      },
+    );
+    if (!remix)
+      for (let i = 0; i < 3; i++)
+        path(
+          `M${55 + i * 9} ${245 + i * 18}h${55 * (1 - arrive)}`,
+          'none',
+          T,
+          4,
+        );
+    panel(470, 270, Math.max(0.001, back((p - 0.58) / 0.42)));
+    burst(330, 200, clamp((p - 0.6) / 0.4));
+  } else if (id === 'aid-station') {
+    const pitch = back(p / 0.65),
+      settle = ease((p - 0.65) / 0.35),
+      cheer = Math.sin(p * (remix ? 22 : 10)) * (1 - settle);
+    group(
+      300,
+      320,
+      Math.max(0.001, pitch),
+      cheer * (remix ? 0.035 : 0.015),
+      () => {
+        path('M-102-58V45M102-58V45', 'none', T, 8);
+        path('M-120-58 0-142 120-58Z', N, G, 5);
+        path('M-120-58H120V-36H-120Z', T, N, 4);
+        path('M-50-104 0-138 50-104', 'none', T, 6);
+        path('M-85 9H85v24H-85Z', N, G, 4);
+        path('M-65 33v14M65 33v14', 'none', T, 5);
+        for (let i = 0; i < 3; i++) {
+          const x = -45 + i * 45;
+          path(`M${x - 8} -11h16l-3 18h-10Z`, G, N, 2);
+        }
+        path('M-16-83h32M0-99v32', 'none', G, 7);
+        path('M102-58v-66l39 12-39 13', 'none', T, 4);
+        if (remix) {
+          for (let i = 0; i < 5; i++)
+            spark(-90 + i * 45, -165 - 14 * Math.sin(p * 9 + i), 0.5, i + p);
+        }
+      },
+    );
+    panel(470, 270, Math.max(0.001, back((p - 0.6) / 0.4)));
+    burst(300, 245, clamp((p - 0.75) / 0.25));
   } else throw Error('Unknown motion toy');
   return out;
 }

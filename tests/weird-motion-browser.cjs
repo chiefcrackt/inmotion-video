@@ -85,7 +85,7 @@ const { server, launchBrowser } = require('./browser-utils.cjs');
       const data = await page.evaluate((t) => {
         const out = document.createElement('canvas');
         out.width = 1200;
-        out.height = 2410;
+        out.height = 2740;
         const x = out.getContext('2d');
         x.fillStyle = '#0e1a2e';
         x.fillRect(0, 0, 1200, 760);
@@ -114,7 +114,7 @@ const { server, launchBrowser } = require('./browser-utils.cjs');
       );
     }
     await page.goto(base + '/weird-motion/');
-    assert.equal(await page.locator('article').count(), 13);
+    assert.equal(await page.locator('article').count(), 16);
     for (const width of [390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       assert(
@@ -125,7 +125,7 @@ const { server, launchBrowser } = require('./browser-utils.cjs');
     }
     assert.deepEqual(errors, []);
     console.log(
-      'Thirteen toys passed: twenty-six distinct deterministic actions, timing/hold, transparent start/end, optional glitch, stills, gallery and mobile.',
+      'Sixteen toys passed: thirty-two distinct deterministic actions, timing/hold, transparent start/end, optional glitch, stills, gallery and mobile.',
     );
   } finally {
     await browser.close();
