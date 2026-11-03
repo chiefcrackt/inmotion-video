@@ -61,6 +61,13 @@ function readIdeas() {
   }
 }
 function writeIdeas(ideas) {
+  // Mark pending before writing: the open vault receives the ideas storage event.
+  const syncKey = 'tim-idea-vault-sync-v1';
+  let sync = {};
+  try {
+    sync = JSON.parse(localStorage.getItem(syncKey) || '{}') || {};
+  } catch {}
+  localStorage.setItem(syncKey, JSON.stringify({ ...sync, pending: true }));
   localStorage.setItem(IDEA_KEY, JSON.stringify({ version: 1, ideas }));
 }
 function save() {
@@ -117,6 +124,7 @@ function renderBoard() {
       );
       if (p) {
         p.stage = stage;
+        p.updated = Date.now();
         save();
         renderBoard();
         if (current?.id === p.id) $('stage').value = stage;
@@ -688,3 +696,4 @@ $('drive-folder').onclick = async () => {
     $('drive-folder').disabled = false;
   }
 };
+

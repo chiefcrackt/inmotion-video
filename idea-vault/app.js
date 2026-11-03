@@ -732,7 +732,13 @@ async function syncOnce() {
   remote = latest
     ? await updateWorkspace(latest.id, payload)
     : await createWorkspace(payload);
-  writeSync({ pending: false, lastSyncedAt: now(), base: baseOf(items) });
+  // Another tab may have written a planner edit while the upload was in flight.
+  // Only the uploaded snapshot is synced; leave newer local data pending.
+  writeSync({
+    pending: localStorage.getItem(KEY) !== payload,
+    lastSyncedAt: now(),
+    base: baseOf(JSON.parse(payload).ideas),
+  });
   render();
   return {
     uploaded: true,
@@ -1147,9 +1153,16 @@ window.addEventListener('storage', (e) => {
   if (e.key !== KEY && e.key !== PLANNER_KEY) return;
   if (e.key === KEY) load();
   if (reconcileLinked(plannerProjects(), items, now())) persist();
-  else render();
+  else {
+    render();
+    // Content Planner already reconciled this edit; it still needs an upload.
+    if (e.key === KEY && hasPendingChanges() && isConnected())
+      syncer.requestSync();
+    renderSyncState();
+  }
 });
 render();
 renderSyncState();
 // Opening Idea Vault checks the cloud and uploads anything left unsynced.
 if (isConnected()) syncer.requestSync({ immediate: true });
+

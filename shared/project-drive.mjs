@@ -524,7 +524,8 @@ export async function uploadAsset(
     const chunkSize = 8 * 1024 * 1024;
     let offset = 0,
       result,
-      failures = 0;
+      failures = 0,
+      stalls = 0;
     while (!result) {
       const end = Math.min(offset + chunkSize, blob.size);
       let response;
@@ -561,7 +562,8 @@ export async function uploadAsset(
         const accepted = range ? Number(range.split('-')[1]) + 1 : 0;
         if (accepted < offset || accepted > blob.size)
           throw Error('Invalid upload progress from Drive.');
-        if (accepted === offset && ++failures > 3)
+        if (accepted > offset) stalls = 0;
+        else if (++stalls > 3)
           throw Error('Upload stalled. Retry or download the asset.');
         offset = accepted;
         if (offset === blob.size)
@@ -624,3 +626,4 @@ export async function downloadSetup(id) {
     throw Error('Editable setup is too large.');
   return json('files/' + encodeURIComponent(id) + '?alt=media');
 }
+
