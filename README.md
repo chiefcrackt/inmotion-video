@@ -4,6 +4,10 @@ Celebration Studio is available for review at `/celebration-studio/`, combining
 Special Post and Celebration as two modes while retaining both original editors
 and dashboard links. See [preview behavior and validation](celebration-studio/README.md).
 
+Text & Titles has a local preview at `/text-and-titles/` with Animated text and
+Titles & lower thirds modes. Original projects and export paths are preserved.
+See [compatibility and validation](text-and-titles/README.md).
+
 Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at
 **https://chiefcrackt.github.io/inmotion-video/**
 

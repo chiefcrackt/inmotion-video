@@ -580,6 +580,16 @@ $('sequence').onclick = async () => {
 };
 
 const projectFields = fields.map((el) => el.id);
+// Read-only busy status and an explicit pause for the combined studio host.
+// Standalone playback, storage and export behavior remain unchanged.
+window.TimStudioEditor = Object.freeze({
+  isBusy: () => recording,
+  pausePreview: () => {
+    if (recording) return;
+    playing = false;
+    playLabel();
+  },
+});
 window.TimProjects.mount({
   tool: 'text-motion',
   busy: () => recording,

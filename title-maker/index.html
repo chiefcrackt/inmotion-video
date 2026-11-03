@@ -2654,6 +2654,12 @@
             return S;
           },
         };
+        // The combined studio can check activity without changing this renderer.
+        window.TimStudioEditor = Object.freeze({
+          isBusy: function () {
+            return !!playing || $('rec').disabled;
+          },
+        });
         window.TimProjects.mount({
           tool: 'title-maker',
           busy: function () {
