@@ -1,6 +1,18 @@
 // Original T.im motion toys. One deterministic vector scene for SVG and canvas.
 export const toys = [
   {
+    id: 'magnetic-assembly',
+    name: 'Magnetic assembly',
+    actions: ['Snap frame together', 'Polarity flip'],
+    label: 'IT CLICKS',
+  },
+  {
+    id: 'inspection-drone',
+    name: 'Inspection drone',
+    actions: ['Fly in + scan', 'Orbit + project'],
+    label: 'DETAIL DETECTED',
+  },
+  {
     id: 'pocket-portal',
     name: 'Pocket portal',
     actions: ['Open + summon', 'Vortex spin'],
@@ -197,6 +209,105 @@ export function commands(id, progress, remix = false) {
       path('M-48 0l-24 15-9-13', 'none', T, 10);
     });
     burst(310, 190, clamp((p - 0.7) / 0.3));
+  } else if (id === 'magnetic-assembly') {
+    const k = ease((p - 0.12) / 0.76),
+      settle = back((p - 0.7) / 0.3);
+    const corners = [
+      [-64, -64, 0],
+      [64, -64, Math.PI / 2],
+      [64, 64, Math.PI],
+      [-64, 64, -Math.PI / 2],
+    ];
+    corners.forEach(([x, y, r], i) => {
+      const q = ease((p - i * 0.07) / 0.65),
+        scatter = 1 - q,
+        angle = r + scatter * (remix ? Math.PI * 3 : (i % 2 ? 1 : -1) * 2);
+      group(
+        290 + x + scatter * (i % 2 ? 170 : -170),
+        270 + y + scatter * (i < 2 ? -120 : 120),
+        Math.max(0.001, Math.min(1, p * 8)),
+        angle,
+        () => path('M22 0H0V22', 'none', i % 2 ? T : G, 10),
+      );
+    });
+    group(
+      290,
+      270,
+      Math.max(0.001, settle),
+      remix ? (1 - k) * Math.PI : 0,
+      () => {
+        path('M-25-23V8Q-25 33 0 33T25 8V-23', 'none', T, 13);
+        path('M-25-23v16M25-23v16', 'none', G, 14);
+        path('M-8 8H8M0 0V16', 'none', G, 3);
+      },
+    );
+    for (let i = 0; i < 4; i++) {
+      const a = (i * Math.PI) / 2 + p * 3;
+      const radius = 100 * (1 - k) + 26;
+      spark(
+        290 + Math.cos(a) * radius,
+        270 + Math.sin(a) * radius,
+        (1 - k) * 0.8,
+      );
+    }
+    if (!solo)
+      path(`M365 270H${365 + 105 * ease((p - 0.68) / 0.25)}`, 'none', G, 5);
+    panel(470, 270, Math.max(0.001, back((p - 0.65) / 0.35)));
+    burst(290, 270, clamp((p - 0.75) / 0.25));
+  } else if (id === 'inspection-drone') {
+    const arrive = ease(p / 0.42),
+      orbit = remix
+        ? Math.sin(p * Math.PI * 1.5) * (1 - ease((p - 0.65) / 0.35))
+        : 0;
+    const x = 80 + 210 * arrive + 65 * orbit,
+      y = 130 + 15 * arrive - 35 * Math.sin(p * Math.PI) * (1 - p);
+    const scan = clamp((p - 0.32) / 0.5),
+      target = back((p - 0.38) / 0.35);
+    if (scan > 0) {
+      // Open scan cone keeps the underlying footage visible.
+      path(
+        `M${x - 16} ${y + 24}L${230 + 100 * scan} 312M${x + 16} ${y + 24}L${270 + 100 * scan} 312`,
+        'none',
+        T,
+        3,
+      );
+      path(`M${230 + 100 * scan} 312h40`, 'none', G, 5);
+    }
+    group(290, 280, Math.max(0.001, target), 0, () => {
+      path(
+        'M-40-20v-20h20M20-40h20v20M40 20v20H20M-20 40h-20V20',
+        'none',
+        T,
+        5,
+      );
+      ellipse(0, 0, 5, 5, G);
+    });
+    group(
+      x,
+      y,
+      Math.max(0.001, Math.min(1, p * 8)),
+      (1 - arrive) * -0.25 + orbit * 0.12,
+      () => {
+        path('M-29-4-65-18M29-4 65-18', 'none', T, 9);
+        for (const rotor of [-65, 65]) {
+          ellipse(rotor, -23, 34, 7, 'none', G, 4);
+          path(`M${rotor - 25} -23h${50 * Math.cos(p * 65)}`, 'none', T, 4);
+        }
+        path('M-35-15H24L39 0 24 26H-25L-39 4Z', N, G, 5);
+        ellipse(4, 6, 13, 13, T, N, 3);
+        ellipse(4, 6, 5, 5, P);
+        path('M-22 27v12h15M21 27v12h-15', 'none', T, 4);
+      },
+    );
+    if (!solo)
+      path(
+        `M335 280L400 270H${400 + 70 * ease((p - 0.6) / 0.3)}`,
+        'none',
+        G,
+        5,
+      );
+    panel(470, 270, Math.max(0.001, back((p - 0.62) / 0.38)));
+    burst(290, 280, clamp((p - 0.8) / 0.2));
   } else throw Error('Unknown motion toy');
   return out;
 }

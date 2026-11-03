@@ -30,7 +30,7 @@ const path = require('node:path');
     await page.locator('#q').fill('standalone');
     await page.locator('a[href="asset-studio/"]').click();
     await ready();
-    assert.equal(await page.locator('#catalog button').count(), 75);
+    assert.equal(await page.locator('#catalog button').count(), 79);
     await page.locator('#search').fill('stat card');
     assert.equal(await page.locator('#catalog button:visible').count(), 1);
     await page
