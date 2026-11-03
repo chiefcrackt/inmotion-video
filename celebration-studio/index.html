@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#0e1a2e" />
+    <title>Celebration Studio · T.IM</title>
+    <link rel="icon" href="../favicon.svg" />
+    <link rel="stylesheet" href="../shared/fonts.css" />
+    <link rel="stylesheet" href="studio.css" />
+    <script src="studio.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <a href="../">← T.IM Studio</a>
+      <h1>Celebration Studio</h1>
+      <p
+        >Make a celebration with runners, or choose a name card, cake, bib or
+        medal.</p
+      >
+      <nav aria-label="Celebration mode">
+        <a href="../special-post/" data-mode="runners">Runner celebrations</a>
+        <a href="../celebrate/" data-mode="cards">Cards, cakes & medals</a>
+      </nav>
+      <p id="status" role="status" aria-live="polite"></p>
+      <p class="hint"
+        >Each mode keeps its own drafts and saved projects.
+        <a
+          id="standalone"
+          href="../special-post/"
+          target="_blank"
+          rel="noopener"
+          >Open this editor in a new tab ↗</a
+        ></p
+      >
+    </header>
+    <main id="editors" aria-label="Celebration editor"></main>
+    <noscript><p>Choose a mode above to open its editor.</p></noscript>
+  </body>
+</html>
