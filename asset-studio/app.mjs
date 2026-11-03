@@ -94,7 +94,9 @@ function sync() {
     $('motionHint').textContent =
       l.kind === 'text'
         ? 'Type-on keeps each letter in its final position. Entrances finish and hold.'
-        : 'Draw-in follows the actual vector paths. Build-in moves separate parts. Entrances finish and hold.';
+        : l.asset?.startsWith('toy:')
+          ? 'Two original actions for this motion toy. Adjust the entrance duration to change its speed; the final pose holds.'
+          : 'Draw-in follows the actual vector paths. Build-in moves separate parts. Entrances finish and hold.';
     $('textControls').hidden = l.kind !== 'text';
     for (const field of [
       'x',
@@ -113,8 +115,8 @@ function sync() {
     for (const field of ['x', 'y', 'size', 'rotation', 'opacity'])
       $(field + 'Value').value = l[field] + (field === 'rotation' ? '°' : '%');
   }
-  for (const field of ['format', 'duration', 'mode'])
-    $(field).value = state[field];
+  for (const field of ['format', 'duration', 'mode', 'exit'])
+    $(field).value = state[field] ?? 'original';
   for (const el of document.querySelectorAll(
     '.controls button,.controls input,.controls select,.controls textarea,#play,#scrub',
   ))
@@ -154,6 +156,10 @@ async function addAsset(asset) {
   try {
     await image(asset.id);
     const l = newLayer('asset', asset.id);
+    if (asset.id.startsWith('toy:')) {
+      l.motion = 'perform';
+      l.entrance = Math.min(2.8, state.duration);
+    }
     const next = { ...state, layers: [...state.layers, l] };
     await prepare(next);
     state = next;
@@ -339,7 +345,7 @@ $('split').onclick = async () => {
     sync();
   }
 };
-for (const field of ['format', 'duration', 'mode'])
+for (const field of ['format', 'duration', 'mode', 'exit'])
   $(field).onchange = () =>
     change(() => {
       state[field] =

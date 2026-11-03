@@ -7,6 +7,8 @@ import {
   svg as spotlightSVG,
 } from '../product-spotlight/assets.mjs';
 const sources = new Map(icons.map((a) => ['icon:' + a.id, () => iconSVG(a)]));
+import { frame as spotFrame, svg as spotSVG } from '../spot-it/artwork.mjs';
+sources.set('signature:spot-it', () => spotSVG(spotFrame(3)));
 for (const [prefix, items, svg, partPrefix] of [
   ['motion', motion, motionSVG, 'part'],
   ['spotlight', spotlight, spotlightSVG, 'spotlight-part'],

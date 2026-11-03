@@ -6,6 +6,23 @@ import {
   entranceProgress,
 } from './model.mjs';
 import { prepareNative, drawNative } from './native-motion.mjs';
+import '../shared/exits.js';
+import { frame as spotFrame, svg as spotSVG } from '../spot-it/artwork.mjs';
+import { draw as drawToy } from '../weird-motion/artwork.mjs';
+const spotFrames = [];
+let spotReady;
+function prepareSpot() {
+  return (spotReady ||= Promise.all(
+    Array.from({ length: 79 }, async (_, i) => {
+      const im = new Image();
+      im.src =
+        'data:image/svg+xml;charset=utf-8,' +
+        encodeURIComponent(spotSVG(spotFrame(i / 30)));
+      await im.decode();
+      spotFrames[i] = im;
+    }),
+  ));
+}
 const images = new Map();
 export async function image(id) {
   if (images.has(id)) return images.get(id);
@@ -37,7 +54,8 @@ export async function prepare(state) {
       .filter((l) => l.kind === 'asset')
       .map(async (l) => {
         readyImages.set(l.asset, await image(l.asset));
-        await prepareNative(l.asset);
+        if (!l.asset.startsWith('toy:')) await prepareNative(l.asset);
+        if (l.asset === 'signature:spot-it') await prepareSpot();
       }),
   );
 }
@@ -85,61 +103,98 @@ export function render(
     c.fillStyle = '#00ff00';
     c.fillRect(0, 0, w, h);
   }
-  for (const l of state.layers) {
-    if (!l.visible) continue;
-    const b = box(l, w, h),
-      t = transform(l, seconds, state.duration, still),
-      unit = Math.min(w, h);
-    const entrance = !still && entranceMotions.includes(l.motion),
-      progress = entrance ? entranceProgress(l, seconds, state.duration) : 1;
-    c.save();
-    c.translate(b.x + t.x * unit, b.y + t.y * unit);
-    c.rotate(t.rotation);
-    c.scale(t.scale, t.scale);
-    c.globalAlpha = t.alpha;
-    if (entrance && l.motion === 'wipe') {
-      c.beginPath();
-      c.rect(-b.w / 2 - 2, -b.h / 2 - 3, (b.w + 4) * progress, b.h + 6);
-      c.clip();
-    }
-    if (l.kind === 'asset') {
-      const im = readyImages.get(l.asset);
-      const native =
-        entrance &&
-        l.motion !== 'wipe' &&
-        (progress < 1 || l.motion === 'break');
-      if (native) drawNative(c, l.asset, l.motion, progress, b.w, b.h);
-      else if (im) c.drawImage(im, -b.w / 2, -b.h / 2, b.w, b.h);
-    } else {
-      const size = (l.fontSize * unit) / 1080;
-      c.font = `800 ${size}px "Barlow Condensed",Arial,sans-serif`;
-      c.textAlign = 'center';
-      c.textBaseline = 'middle';
-      c.fillStyle = l.color;
-      const lines = wrap(c, l.text, b.w);
-      let remaining = Math.floor(
-        lines.reduce((n, line) => n + [...line].length, 0) * progress,
-      );
-      lines.forEach((line, i) => {
-        const chars = [...line],
-          shown =
-            entrance && l.motion === 'type'
-              ? chars.slice(0, Math.max(0, remaining)).join('')
-              : line;
-        remaining -= chars.length;
-        // Position partial text at the complete line's left edge, so it types in place.
-        if (entrance && l.motion === 'type') {
-          c.textAlign = 'left';
-          c.fillText(
-            shown,
-            -c.measureText(line).width / 2,
-            (i - (lines.length - 1) / 2) * size * 1.15,
+  // Apply the suite's shared exit to the complete transparent composition.
+  // The background is drawn separately, so green screen never gets sliced.
+  const exitOptions = {
+    exStyle: state.exit ?? 'original',
+    exLen: 0.6,
+    exEase: 'linear',
+    exHold: 0.1,
+    exOrder: 'together',
+  };
+  const exitProgress = still
+    ? 0
+    : window.TimExits.progress(seconds, state.duration, exitOptions, 0, 1);
+  window.TimExits.draw(
+    c,
+    exitProgress,
+    exitOptions,
+    { x: 0, y: 0, w, h },
+    { W: w, H: h },
+    () => {
+      for (const l of state.layers) {
+        if (!l.visible) continue;
+        const b = box(l, w, h),
+          t = transform(l, seconds, state.duration, still),
+          unit = Math.min(w, h);
+        const entrance = !still && entranceMotions.includes(l.motion),
+          progress = entrance
+            ? entranceProgress(l, seconds, state.duration)
+            : 1;
+        c.save();
+        c.translate(b.x + t.x * unit, b.y + t.y * unit);
+        c.rotate(t.rotation);
+        c.scale(t.scale, t.scale);
+        c.globalAlpha = t.alpha;
+        if (entrance && l.motion === 'wipe') {
+          c.beginPath();
+          c.rect(-b.w / 2 - 2, -b.h / 2 - 3, (b.w + 4) * progress, b.h + 6);
+          c.clip();
+        }
+        if (l.kind === 'asset') {
+          const im = readyImages.get(l.asset);
+          const native =
+            entrance &&
+            l.motion !== 'wipe' &&
+            (progress < 1 || l.motion === 'break');
+          if (entrance && ['perform', 'remix'].includes(l.motion))
+            drawToy(
+              c,
+              l.asset.slice(4),
+              progress,
+              b.w,
+              b.h,
+              l.motion === 'remix',
+            );
+          else if (entrance && l.motion === 'spot') {
+            const spot = spotFrames[Math.min(78, Math.floor(progress * 78))];
+            if (spot) c.drawImage(spot, -b.w / 2, -b.h / 2, b.w, b.h);
+          } else if (native)
+            drawNative(c, l.asset, l.motion, progress, b.w, b.h);
+          else if (im) c.drawImage(im, -b.w / 2, -b.h / 2, b.w, b.h);
+        } else {
+          const size = (l.fontSize * unit) / 1080;
+          c.font = `800 ${size}px "Barlow Condensed",Arial,sans-serif`;
+          c.textAlign = 'center';
+          c.textBaseline = 'middle';
+          c.fillStyle = l.color;
+          const lines = wrap(c, l.text, b.w);
+          let remaining = Math.floor(
+            lines.reduce((n, line) => n + [...line].length, 0) * progress,
           );
-        } else c.fillText(shown, 0, (i - (lines.length - 1) / 2) * size * 1.15);
-      });
-    }
-    c.restore();
-  }
+          lines.forEach((line, i) => {
+            const chars = [...line],
+              shown =
+                entrance && l.motion === 'type'
+                  ? chars.slice(0, Math.max(0, remaining)).join('')
+                  : line;
+            remaining -= chars.length;
+            // Position partial text at the complete line's left edge, so it types in place.
+            if (entrance && l.motion === 'type') {
+              c.textAlign = 'left';
+              c.fillText(
+                shown,
+                -c.measureText(line).width / 2,
+                (i - (lines.length - 1) / 2) * size * 1.15,
+              );
+            } else
+              c.fillText(shown, 0, (i - (lines.length - 1) / 2) * size * 1.15);
+          });
+        }
+        c.restore();
+      }
+    },
+  );
 }
 export function selection(canvas, state, id) {
   const [w, h] = formats[state.format];

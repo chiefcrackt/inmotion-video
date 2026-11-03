@@ -39,7 +39,7 @@ const {
         return { hash, count };
       };
       const results = [];
-      for (const a of catalog) {
+      for (const a of catalog.filter(a=>!a.id.startsWith('toy:'))) {
         const state = {
           ...initial(),
           layers: [

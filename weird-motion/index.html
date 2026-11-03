@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en"
+  ><meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>T.im · Weird Motion</title
+  ><style>
+    :root {
+      color-scheme: dark;
+      font:
+        16px/1.5 Arial,
+        sans-serif;
+      background: #0e1a2e;
+      color: #f6f4ef;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+    }
+    main {
+      max-width: 1240px;
+      margin: auto;
+      padding: 28px;
+    }
+    h1 {
+      font-size: clamp(36px, 6vw, 70px);
+      color: #e8c96a;
+      margin: 10px 0;
+    }
+    p {
+      color: #becedb;
+    }
+    a {
+      color: #e8c96a;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    article {
+      border: 1px solid #2e9bad;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #142a40;
+    }
+    h2,
+    .tools {
+      margin: 16px;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      background: repeating-conic-gradient(#19334b 0% 25%, #162c42 0% 50%)
+        0/28px 28px;
+    }
+    .tools {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    button,
+    select,
+    input {
+      font: inherit;
+      padding: 9px;
+      border: 1px solid #2e9bad;
+      background: #0e1a2e;
+      color: #f6f4ef;
+      border-radius: 7px;
+    }
+    button {
+      cursor: pointer;
+    }
+    input[type='range'] {
+      width: 100%;
+    }
+    @media (max-width: 700px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      main {
+        padding: 18px;
+      }
+    }</style
+  ><main
+    ><a href="../asset-studio/">← Asset Animator</a><h1>Weird. In motion.</h1
+    ><p
+      >Sixteen original motion toys. Two actions each. Transparent artwork,
+      editable text, and an optional glitch exit.</p
+    ><div class="tools"
+      ><button id="play">Pause</button><button id="restart">Replay all</button
+      ><label><input id="glitch" type="checkbox" /> Glitch exit</label
+      ><input
+        id="scrub"
+        type="range"
+        min="0"
+        max="6"
+        value="0"
+        step=".01"
+        aria-label="Preview time" /></div
+    ><div class="grid" id="grid"></div></main
+  ><script type="module">
+    import { toys, draw } from './artwork.mjs';
+    import '../shared/exits.js';
+    const scenes = toys.map((toy) => {
+      const article = document.createElement('article');
+      const title = document.createElement('h2');
+      title.textContent = toy.name;
+      const canvas = document.createElement('canvas');
+      canvas.width = 960;
+      canvas.height = 540;
+      const tools = document.createElement('div');
+      tools.className = 'tools';
+      const action = document.createElement('select');
+      action.setAttribute('aria-label', toy.name + ' action');
+      toy.actions.forEach((v, i) => action.add(new Option(v, i)));
+      const label = document.createElement('input');
+      label.value = toy.label;
+      label.maxLength = 18;
+      label.setAttribute('aria-label', toy.name + ' label');
+      const link = document.createElement('a');
+      link.textContent = 'Use in builder →';
+      link.href = '../asset-studio/?template=toy:' + toy.id;
+      tools.append(action, label, link);
+      for (const [suffix, title] of [
+        ['', 'Blank callout SVG'],
+        ['-solo', 'Standalone SVG'],
+      ]) {
+        const a = document.createElement('a');
+        a.href = './files/' + toy.id + suffix + '.svg';
+        a.download = toy.id + suffix + '.svg';
+        a.textContent = title;
+        tools.append(a);
+      }
+      article.append(title, canvas, tools);
+      document.getElementById('grid').append(article);
+      action.onchange = () => {
+        t = 0;
+        playing = true;
+      };
+      return { toy, canvas, action, label };
+    });
+    let t = 0,
+      playing = !matchMedia('(prefers-reduced-motion: reduce)').matches,
+      last = performance.now();
+    if (!playing) t = 3.5;
+    const $ = (id) => document.getElementById(id);
+    $('play').onclick = () => {
+      if (t >= 6) t = 0;
+      playing = !playing;
+    };
+    $('restart').onclick = () => {
+      t = 0;
+      playing = true;
+    };
+    $('scrub').oninput = () => {
+      t = +$('scrub').value;
+      playing = false;
+    };
+    function paint() {
+      for (const { toy, canvas, action, label } of scenes) {
+        const c = canvas.getContext('2d');
+        c.clearRect(0, 0, 960, 540);
+        const options = {
+          exStyle: $('glitch').checked ? 'glitch' : 'fade',
+          exLen: 0.6,
+          exHold: 0.1,
+          exEase: 'linear',
+        };
+        TimExits.draw(
+          c,
+          TimExits.progress(t, 6, options, 0, 1),
+          options,
+          { x: 0, y: 0, w: 960, h: 540 },
+          { W: 960, H: 540 },
+          () => {
+            c.save();
+            c.translate(480, 270);
+            draw(
+              c,
+              toy.id,
+              Math.min(1, t / 2.8),
+              960,
+              540,
+              action.value === '1',
+            );
+            c.restore();
+            c.globalAlpha = Math.max(0, Math.min(1, (t - 2.8) / 0.4));
+            c.font = 'bold 30px Arial';
+            c.fillStyle = '#f6f4ef';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.fillText(label.value, 628, 270, 260);
+            c.globalAlpha = 1;
+          },
+        );
+      }
+      $('scrub').value = t;
+      $('play').textContent = playing ? 'Pause' : 'Play';
+    }
+    function tick(now) {
+      if (playing) {
+        t = Math.min(6, t + (now - last) / 1000);
+        if (t >= 6) playing = false;
+      }
+      last = now;
+      paint();
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  </script></html
+>
