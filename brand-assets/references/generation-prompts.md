@@ -1,0 +1,16 @@
+# T.im asset prompts
+
+Generated using the built-in image generation tool. Raster concepts; font fidelity, exact color values, output dimensions and YouTube safe-area fit need production verification.
+
+## Keep moving story
+
+Use case: ads-marketing. Create a finished flat T.im brand graphic, no mockup, no photographed objects. Brand palette strictly navy #0E1A2E, gold #E8C96A, teal #2E9BAD, paper #F6F4EF. Never use #FAB627. Type Barlow Condensed: headlines weight 900 uppercase, eyebrows and footer weight 700 tracked wide. Energetic refined endurance/water/motion identity. Two-wave motif always exactly TWO parallel flowing waves, never one. Gold flowing wave border along top edge, subtle faint diagonal stripe background texture, upper right paired diagonal slash teal over gold. Footer bottom left teal dot followed by exact lowercase 'tristan.inmotion'. Crisp editorial typography, generous breathing room. Asset: portrait story card 1080 x 1920, exact 9:16. Navy ground. Text verbatim: small eyebrow 'T.im / IN MOTION'; huge stacked gold headline 'KEEP\nMOVING'; paper subline 'One more wave. One more mile.' Footer 'tristan.inmotion'. Express speed through a striking abstract two-wave teal ribbon sweeping through lower middle with subtle gold contour lines and small HUD corner brackets. Text all between y=280 and y=1450 except footer. Luxurious athletic poster composition, playful kinetic movement.
+
+## Find your flow story
+
+Use case: ads-marketing. Create a finished flat T.im brand graphic, no mockup, no photographed objects. Brand palette strictly navy #0E1A2E, gold #E8C96A, teal #2E9BAD, paper #F6F4EF. Never use #FAB627. Type Barlow Condensed: headlines weight 900 uppercase, eyebrows and footer weight 700 tracked wide. Energetic refined endurance/water/motion identity. Two-wave motif always exactly TWO parallel flowing waves, never one. Gold flowing wave border along top edge, subtle faint diagonal stripe background texture, upper right paired diagonal slash teal over gold. Footer bottom left teal dot followed by exact lowercase 'tristan.inmotion'. Crisp editorial typography, generous breathing room. Asset: portrait story card 1080 x 1920, exact 9:16. Paper ground, navy headline, teal and gold graphics. Text verbatim: small eyebrow 'T.im / OUT THERE'; huge stacked headline 'FIND\nYOUR\nFLOW'; short subline 'Go where the good energy goes.' Footer 'tristan.inmotion'. Exactly two bold fluid teal waves winding along the lower third, with thin gold motion trails. Text all between y=280 and y=1450 except footer. Fun optimistic editorial sports graphic, strong asymmetry, clean negative space.
+
+## YouTube banner
+
+Use case: ads-marketing. Finished flat YouTube channel banner 2560 x 1440, 16:9, no mockup. T.im brand. Navy #0E1A2E ground, huge exactly TWO parallel teal #2E9BAD flowing waves in background spanning width, faint diagonal stripes and subtle scanline texture. Gold #E8C96A typography. Never #FAB627. Only text is 'tristan.inmotion', lowercase, Barlow Condensed 700 widely tracked, perfectly centered, entirely within the central 1546 x 423 safe area. No other words, badge, footer, caption, icons or labels. Small tasteful teal-over-gold slash at upper right outside safe zone. Clean dramatic kinetic wave composition, restrained technical HUD brackets near far edges. Wordmark is prominent and very legible.
+

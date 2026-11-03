@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en"
+  ><head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1" /><title
+      >Brand Assets · T.im</title
+    ><link rel="icon" href="../favicon.svg" /><link
+      rel="stylesheet"
+      href="../shared/fonts.css" /><link
+      rel="stylesheet"
+      href="../shared/projects.css" /><link
+      rel="stylesheet"
+      href="style.css" /><script src="../shared/projects.js"></script
+  ></head>
+  <body
+    ><main
+      ><header
+        ><a href="../">← All T.im video tools</a
+        ><p class="eyebrow">T.im / BRAND ASSETS</p><h1>Make waves.</h1
+        ><p
+          >Customize your story cards and channel banner. Keep the look. Make it
+          yours.</p
+        ><nav
+          ><a href="../cover-maker/">Cover Maker</a> ·
+          <a href="../title-maker/">Title Maker</a> ·
+          <a href="../sound-forge/">Sound Forge</a> ·
+          <a href="../asset-studio/">Asset Animator</a></nav
+        ></header
+      >
+      <div class="studio"
+        ><section class="stage"
+          ><canvas
+            id="preview"
+            width="1080"
+            height="1920"
+            aria-label="Editable brand asset preview"
+          ></canvas>
+          <div class="bar"
+            ><button id="still">Still layout</button
+            ><button id="play">Play motion</button
+            ><button id="png">Save PNG</button
+            ><button id="record">Export video</button
+            ><button id="cancel" hidden>Cancel recording</button></div
+          >
+          <label
+            >Timeline
+            <input
+              id="time"
+              type="range"
+              min="0"
+              max="6"
+              step="0.01"
+              value="0" /></label
+          ><p id="status" role="status" aria-live="polite"></p
+          ><video id="result" controls hidden></video
+        ></section>
+        <form id="controls" onsubmit="return false;"
+          ><fieldset
+            ><legend>Start with a design</legend
+            ><label
+              >Template<select id="preset"
+                ><option value="moving">Keep Moving · story</option
+                ><option value="flow">Find Your Flow · story</option
+                ><option value="banner">YouTube banner</option></select
+              ></label
+            ><button id="apply" type="button">Apply template</button
+            ><p>Applying replaces this design. Undo brings it back.</p
+            ><div class="bar"
+              ><button id="undo" type="button">Undo</button
+              ><button id="redo" type="button">Redo</button></div
+            ><p id="size"></p
+          ></fieldset>
+          <fieldset
+            ><legend>Words &amp; layout</legend
+            ><label
+              >Ground<select id="theme" data-setting
+                ><option value="navy">Navy</option
+                ><option value="paper">Paper</option></select
+              ></label
+            ><div id="storyText"
+              ><label
+                >Eyebrow<input
+                  id="eyebrow"
+                  maxlength="240"
+                  data-setting /></label
+              ><label
+                >Headline · one line per beat<textarea
+                  id="headline"
+                  maxlength="240"
+                  rows="3"
+                  data-setting
+                ></textarea></label
+              ><label
+                >Short subline<input
+                  id="subline"
+                  maxlength="240"
+                  data-setting /></label
+              ><label
+                >Text position<input
+                  id="textY"
+                  type="range"
+                  min="-5"
+                  max="5"
+                  step="0.5"
+                  data-setting /></label></div
+            ><label
+              >Handle<input id="handle" maxlength="240" data-setting /></label
+            ><label
+              >Text size<input
+                id="textSize"
+                type="range"
+                min="50"
+                max="125"
+                data-setting /></label
+            ><label
+              ><input id="guides" type="checkbox" checked /> Show safe-area
+              guides (preview only)</label
+            ><p id="safeNote"></p
+          ></fieldset>
+          <fieldset
+            ><legend>Graphics</legend><div id="layers"></div
+            ><label
+              >Wave size<input
+                id="waveSize"
+                type="range"
+                min="50"
+                max="150"
+                data-setting /></label
+            ><label
+              >Wave position<input
+                id="waveY"
+                type="range"
+                min="-20"
+                max="15"
+                data-setting /></label
+            ><label
+              >Stripe opacity<input
+                id="stripeOpacity"
+                type="range"
+                min="0"
+                max="15"
+                data-setting /></label
+          ></fieldset>
+          <fieldset
+            ><legend>Motion &amp; sound</legend
+            ><label
+              >Animation<select id="motion" data-setting
+                ><option value="none">Still</option
+                ><option value="flow">Flowing waves</option
+                ><option value="reveal">Word reveal + waves</option
+                ><option value="glitch"
+                  >Teal / gold glitch + waves</option
+                ></select
+              ></label
+            ><label
+              >Duration in seconds<input
+                id="duration"
+                type="number"
+                min="2"
+                max="15"
+                step="0.5"
+                data-setting /></label
+            ><label
+              >Motion speed<input
+                id="speed"
+                type="range"
+                min="0.25"
+                max="3"
+                step="0.25"
+                data-setting /></label
+            ><label
+              >Sound<select id="sound" data-setting
+                ><option value="none">Silent</option
+                ><option value="whoosh">Wave whoosh</option
+                ><option value="pulse">Digital pulse</option></select
+              ></label
+            ><label
+              >Volume<input
+                id="volume"
+                type="range"
+                min="0"
+                max="100"
+                data-setting /></label
+            ><div class="bar"
+              ><button id="audition" type="button">Preview sound</button
+              ><button id="wav" type="button">Save WAV</button></div
+            ><p
+              >Video shows one headline line per beat; the subline replaces the
+              headline on the final beat. Banner PNGs are silent. Video exports
+              include selected sound.</p
+            ></fieldset
+          >
+        </form></div
+      ></main
+    ><script type="module" src="app.mjs"></script
+    ><link rel="stylesheet" href="../shared/responsive.css" /><script
+      type="module"
+      src="../shared/drive-export.mjs"
+    ></script></body
+></html>

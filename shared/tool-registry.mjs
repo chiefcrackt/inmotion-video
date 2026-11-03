@@ -17,6 +17,15 @@ export const WORKSPACES = Object.freeze([
 // quick: true places the tool in Quick Launch. quickLabel overrides its short label.
 export const TOOLS = Object.freeze([
   {
+    id: 'brand-assets',
+    name: 'Brand Assets',
+    href: 'brand-assets/',
+    description: 'Editable Keep Moving and Find Your Flow stories, plus a YouTube banner. Animate waves and words, add sound, export PNG or video.',
+    workspaces: ['graphics', 'publishing', 'library'],
+    keywords: ['brand', 'waves', 'story', 'banner', 'keep moving', 'find your flow', 'templates', 'sound'],
+    icon: 'title',
+  },
+  {
     id: 'content-planner',
     featured: true,
     quick: true,
