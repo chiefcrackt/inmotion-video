@@ -46,6 +46,7 @@ export function create(id = 'moving') {
     ...p,
     handle: 'tristan.inmotion',
     motion: 'flow',
+    style: 'classic',
     duration: 6,
     speed: 1,
     sound: 'none',
@@ -69,6 +70,7 @@ export function validate(raw) {
   }
   for (const [key, options] of Object.entries({
     theme: ['navy', 'paper'],
+    style: ['classic', 'cyber'],
     motion: ['none', 'flow', 'reveal', 'glitch'],
     sound: ['none', 'whoosh', 'pulse'],
   })) {
