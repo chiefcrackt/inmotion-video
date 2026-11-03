@@ -29,29 +29,34 @@ export function mountDriveControls(host) {
     error = '';
   const refresh = () => {
     const s = drive.state();
+    const supabase = drive.usesSupabaseWorkspace();
     label.textContent =
       error ||
-      (!s.connected
-        ? 'Connect Google Drive to sync plans and save project assets.'
-        : (s.email || 'Google Drive') +
-          ' · ' +
-          (s.sync?.reason ||
-            (s.sync?.state === 'syncing'
-              ? 'Syncing projects…'
-              : s.sync?.state === 'queued'
-                ? 'Changes saved; syncing shortly.'
-                : s.authorized
-                  ? 'Connected' +
-                    (s.lastSynced
-                      ? ' · Last synced ' +
-                        new Date(s.lastSynced).toLocaleTimeString()
-                      : '')
-                  : 'Account remembered. Reconnect to continue.')));
+      (supabase
+        ? s.authorized
+          ? 'Google Drive connected for project files.'
+          : 'Connect Google Drive for project files.'
+        : !s.connected
+          ? 'Connect Google Drive to sync plans and save project assets.'
+          : (s.email || 'Google Drive') +
+            ' · ' +
+            (s.sync?.reason ||
+              (s.sync?.state === 'syncing'
+                ? 'Syncing projects…'
+                : s.sync?.state === 'queued'
+                  ? 'Changes saved; syncing shortly.'
+                  : s.authorized
+                    ? 'Connected' +
+                      (s.lastSynced
+                        ? ' · Last synced ' +
+                          new Date(s.lastSynced).toLocaleTimeString()
+                        : '')
+                    : 'Account remembered. Reconnect to continue.')));
     connect.textContent = s.connected
       ? 'Reconnect Drive'
       : 'Connect Google Drive';
     connect.hidden = s.authorized;
-    sync.hidden = !s.connected;
+    sync.hidden = supabase || !s.connected;
     disconnect.hidden = !s.connected;
     choose.hidden = !s.connected;
     root.hidden = !s.root?.id;

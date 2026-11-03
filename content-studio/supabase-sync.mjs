@@ -47,6 +47,19 @@ function editing() {
   );
 }
 
+// The open planner treats a write it did not make as another tab's edit and
+// stops saving. Tell it the plans were merged so it reloads them instead.
+// Idea Vault already reloads on storage events, so it needs no signal.
+function notifyPlanner() {
+  for (const frame of document.querySelectorAll(
+    '#editors iframe[data-editor="planner"]',
+  )) {
+    try {
+      frame.contentWindow?.dispatchEvent(new Event('tim-projects-merged'));
+    } catch {}
+  }
+}
+
 function validate(dataset, payload) {
   if (dataset === 'projects')
     return { version: 1, projects: validateBackup(payload) };
@@ -114,6 +127,7 @@ async function syncDataset(sb, dataset, key) {
       if (raw !== null)
         localStorage.setItem(key + ':before-supabase-sync', raw);
       localStorage.setItem(key, JSON.stringify(merged));
+      if (dataset === 'projects') notifyPlanner();
     }
     if (dataset === 'ideas')
       localStorage.setItem(baseKey, JSON.stringify(baseOf(merged.ideas)));
@@ -146,8 +160,23 @@ async function sync() {
     const ideas = await syncDataset(sb, 'ideas', IDEA_KEY);
     const projects = ideas && (await syncDataset(sb, 'projects', PLANNER_KEY));
     connected = true;
+    const ideaCount =
+      JSON.parse(localStorage.getItem(IDEA_KEY) || '{}').ideas?.filter(
+        (i) => i && !i.archived,
+      ).length || 0;
+    const projectCount =
+      JSON.parse(localStorage.getItem(PLANNER_KEY) || '{}').projects?.filter(
+        (p) => !p.deleted,
+      ).length || 0;
     message = projects
-      ? 'Workspace synced · ' + new Date().toLocaleTimeString()
+      ? ideaCount || projectCount
+        ? 'Synced ' +
+          ideaCount +
+          ' ideas and ' +
+          projectCount +
+          ' projects · ' +
+          new Date().toLocaleTimeString()
+        : 'No ideas or projects to sync. Sync first from the browser that has your workspace.'
       : 'Local changes saved. Sync will retry shortly.';
   } catch (error) {
     message = 'Cloud sync: ' + error.message;

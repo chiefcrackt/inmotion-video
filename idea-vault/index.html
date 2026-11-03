@@ -411,7 +411,7 @@
                 ><option>Reference</option></select
               ></label
             ><button class="primary" type="submit">+ Save Idea</button></form
-          ><p class="hint" style="margin-top: 12px"
+          ><p id="idea-save-hint" class="hint" style="margin-top: 12px"
             >Your ideas save on this device instantly. Connect Google for cloud
             sync.</p
           ></section
@@ -428,6 +428,7 @@
                   type="file"
                   accept="application/json,.json" /></label></div
             ><div
+              id="drive-import-controls"
               style="
                 display: grid;
                 grid-template-columns: 1fr auto;
@@ -444,7 +445,7 @@
               <button id="import-drive" type="button" style="align-self: end"
                 >Import / Refresh from Drive</button
               > </div
-            ><p class="hint"
+            ><p id="drive-import-hint" class="hint"
               >Imports Google Docs as linked idea cards without changing the
               originals. Google will request read-only metadata permission.</p
             ><p class="stats" id="stats"></p
@@ -469,7 +470,7 @@
               ></div
             ><div id="results"></div></section></div
       ></div>
-      <footer
+      <footer id="idea-footer"
         >Ideas remain private in your Google Drive app data once connected.
         Existing documents are never modified.</footer
       >
@@ -573,13 +574,11 @@
         ><div class="actions"
           ><button id="save" class="primary">Save changes</button
           ><a id="doclink" target="_blank" rel="noopener" hidden
-            >Open original Google Doc</a
+            >Open original outline</a
           ><button id="archive">Archive</button></div
         ></div
       ></div
     >
-    <script src="https://accounts.google.com/gsi/client" async defer></script
-    ><script src="https://apis.google.com/js/api.js" async defer></script
-    ><script src="./config.js"></script
+    <script src="./config.js"></script
     ><script type="module" src="./app.js"></script></body
 ></html>

@@ -612,7 +612,8 @@ $('import').onchange = async () => {
   }
 };
 window.addEventListener('storage', (e) => {
-  if (e.key === KEY)
+  // A merge this page already reloaded (Content Studio cloud sync) is not a conflict.
+  if (e.key === KEY && e.newValue !== lastSaved)
     say(
       'Plans changed in another tab. Export your work and reload before editing.',
     );
@@ -696,7 +697,13 @@ window.addEventListener('storage', (e) => {
   if (current) open(current.id);
 });
 
-mountDriveControls($('drive-panel'));
+if (drive.usesSupabaseWorkspace()) {
+  $('drive-folder').hidden = true;
+  $('planner-save-hint').textContent =
+    'Plans save on this device. Use Workspace cloud sync to sync across devices.';
+} else {
+  mountDriveControls($('drive-panel'));
+}
 function refreshFromStorage() {
   const prior = current;
   const selected = current?.id;
@@ -764,7 +771,11 @@ function renderDriveAssets() {
       row.append(a);
     } else row.append(node('span', asset.name));
     const tool = getTool(asset.tool);
-    if (tool && asset.name.endsWith('.project.json'))
+    if (
+      !drive.usesSupabaseWorkspace() &&
+      tool &&
+      asset.name.endsWith('.project.json')
+    )
       row.append(
         link(
           'Edit saved setup',

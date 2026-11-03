@@ -89,6 +89,7 @@ function setCloudStatus(kind, detail = '') {
   el.textContent = SYNC_LABEL[kind] + (detail ? ' · ' + detail : '');
 }
 function isConnected() {
+  if (studioDrive.usesSupabaseWorkspace()) return false;
   return studioDrive.sharesStudioDrive
     ? studioDrive.state().connected === true
     : readSync().connected === true;
@@ -97,6 +98,12 @@ function timeNow() {
   return new Date().toLocaleTimeString();
 }
 function renderSyncState(s = syncer.getStatus()) {
+  if (studioDrive.usesSupabaseWorkspace()) {
+    $('connect').hidden = true;
+    $('sync').hidden = true;
+    setCloudStatus('local', 'Use Content Studio cloud sync for ideas');
+    return;
+  }
   if (studioDrive.sharesStudioDrive) {
     const access = studioDrive.studioAccess();
     $('connect').hidden = !!access;
@@ -250,7 +257,7 @@ function render() {
     );
     txt(card, 'h3', i.title);
     txt(card, 'small', i.platform + ' · ' + (i.category || 'General'));
-    if (i.sourceId) txt(card, 'small', 'Linked Google Doc');
+    if (i.sourceId) txt(card, 'small', 'Linked outline');
     const due = validDueDate(i.dueDate);
     if (due) {
       const overdue = isOverdue(i, today);
@@ -745,6 +752,7 @@ async function ensureDriveToken() {
 }
 
 async function connect() {
+  if (studioDrive.usesSupabaseWorkspace()) return;
   if (studioDrive.sharesStudioDrive) return sync();
   const clientId = window.TIM_IDEA_VAULT_CONFIG?.googleClientId;
   if (!clientId) {
@@ -848,6 +856,7 @@ function classifySyncError(e) {
 }
 
 async function runSync() {
+  if (studioDrive.usesSupabaseWorkspace()) return;
   if (!navigator.onLine) throw new SyncError('offline', 'Offline.');
   try {
     await ensureDriveToken();
@@ -866,6 +875,7 @@ const syncer = createSyncController({
 
 // "Sync now" is a user tap, so it may open the Google sign-in popup.
 async function sync() {
+  if (studioDrive.usesSupabaseWorkspace()) return;
   if (!studioDrive.sharesStudioDrive && !token && !isConnected())
     return connect();
   try {
@@ -909,6 +919,10 @@ function showDocPlaceholder(s) {
 }
 
 function showDocSection(i) {
+  if (studioDrive.usesSupabaseWorkspace()) {
+    $('doc-section').hidden = true;
+    return;
+  }
   docRequest++; // cancel any load still running for another idea
   setDocBusy(false);
   $('doc-section').hidden = !i.sourceId;
@@ -1213,6 +1227,22 @@ async function importFromDrive() {
   }
 }
 
+if (studioDrive.usesSupabaseWorkspace()) {
+  $('drive-import-controls').style.display = 'none';
+  $('drive-import-hint').hidden = true;
+  $('idea-save-hint').textContent =
+    'Ideas save on this device. Use Workspace cloud sync to sync across devices.';
+  $('idea-footer').hidden = true;
+} else {
+  for (const src of [
+    'https://accounts.google.com/gsi/client',
+    'https://apis.google.com/js/api.js',
+  ]) {
+    const script = document.createElement('script');
+    script.src = src;
+    document.head.append(script);
+  }
+}
 $('folder-input').value = localStorage.getItem(FOLDER_KEY) || '';
 $('import-drive').onclick = importFromDrive;
 $('connect').onclick = connect;

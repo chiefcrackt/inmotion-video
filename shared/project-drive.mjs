@@ -35,6 +35,12 @@ window.addEventListener('pagehide', (event) => {
 const emit = () =>
   studio ? studio.dispatchEvent(new Event('change')) : emitLocal();
 export const sharesStudioDrive = !!studio;
+export function usesSupabaseWorkspace() {
+  return (
+    sharesStudioDrive ||
+    !!localStorage.getItem('tim-content-studio-supabase-owner')
+  );
+}
 export function studioAccess() {
   return studio && studio.token && Date.now() < studio.expires
     ? { token: studio.token, account: studio.connectedAccount }
@@ -485,6 +491,8 @@ export function startSync() {
   if (controller) return controller;
   controller = createSyncController({
     run: async () => {
+      if (usesSupabaseWorkspace())
+        return { message: 'Workspace sync uses Supabase.' };
       return navigator.locks
         ? await navigator.locks.request('tim-content-drive-sync', syncRun)
         : await syncRun();
@@ -512,7 +520,7 @@ document.addEventListener('visibilitychange', () => {
     startSync().requestSync({ immediate: true });
 });
 export async function resume() {
-  if (!preferences().connected) return;
+  if (usesSupabaseWorkspace() || !preferences().connected) return;
   await connect({ interactive: false });
   if (!state().authorized) return;
   startSync().requestSync({ immediate: true });
