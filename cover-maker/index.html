@@ -577,12 +577,78 @@
         min-width: 100px;
       }
     </style>
+    <style>
+      /* UI consistency pilot (HANDOFF "General UI consistency"). Interface labels and
+         help use a regular sans; Barlow Condensed stays on headings and exported art.
+         Canvas fonts are untouched. */
+      :root {
+        --ui: 'Helvetica Neue', Arial, 'Segoe UI', system-ui, sans-serif;
+      }
+      label,
+      .note,
+      .msg,
+      .readout,
+      button,
+      select,
+      input {
+        font-family: var(--ui);
+      }
+      .field label,
+      .lab,
+      .control label {
+        font-family: var(--ui);
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+      }
+      /* Single-column phone layout: compact header, template links on one quiet line,
+         saved-project panel after the editing controls. */
+      @media (max-width: 860px) {
+        .wrap {
+          gap: 12px;
+        }
+        header {
+          gap: 6px 10px;
+        }
+        header h1 {
+          font-size: clamp(28px, 9vw, 36px);
+        }
+        header p.links {
+          font-size: 12px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px 8px;
+          align-items: center;
+        }
+        header p.links .home {
+          flex-basis: auto;
+          letter-spacing: 1.2px;
+        }
+        .tabs {
+          gap: 6px;
+        }
+        .tab {
+          font-size: 15px;
+          padding: 8px 12px;
+          min-height: 44px;
+        }
+        .controls {
+          order: 2;
+        }
+        .controls > .tim-projects {
+          order: 99;
+        }
+      }
+      .tim-projects {
+        order: 99;
+      }
+    </style>
 
     <div class="wrap">
       <header>
         <span class="eyebrow">T.im · Covers</span>
         <h1>Cover Maker</h1>
-        <p><a class="home" href="../brand-assets/?template=banner">Customize the T.im YouTube banner</a> · <a class="home" href="../brand-assets/?template=flow">Find Your Flow story template</a></p>
+        <p class="links"><a class="home" href="../brand-assets/?template=banner">Customize the T.im YouTube banner</a> · <a class="home" href="../brand-assets/?template=flow">Find Your Flow story template</a></p>
         <p
           >YouTube thumbnails, Reel covers and Instagram highlight covers in the
           T.im look. Add a photo, drag it into place, type the words, and save a

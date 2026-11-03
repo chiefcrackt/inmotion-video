@@ -21,14 +21,16 @@ Feature 4 was dropped and is intentionally not listed.
 | 9 | [#10 Data-kit hit presets](#10-data-kit-hit-presets) | Sound Forge (`shared/sound/presets.mjs`) | done |
 | 10 | [#11 Idea Vault ↔ Content Planner sync](#11-idea-vault--content-planner-sync) | Idea Vault, Content Planner | done (local branch `feature/idea-content-sync`, not pushed; browser tests not run) |
 | 11 | Content Planner Edit checklist and final-film tracking | Content Planner | todo |
-| 12 | [General UI consistency and mobile editing](#general-ui-consistency-and-mobile-editing-claude) | Shared UI, dashboard, Cover Maker, Text Motion | todo |
+| 12 | [General UI consistency and mobile editing](#general-ui-consistency-and-mobile-editing-claude) | Shared UI, dashboard, Cover Maker, Text Motion | in progress (pilot) |
 
 #1 is dropped (not planned). The Race Recap download pack (`tools/race-recap/`)
 is unchanged.
 
 ## General UI consistency and mobile editing (Claude)
 
-**Status:** todo. Requested by Tristan, 2026-11-03. Claude owns implementation.
+**Status:** in progress: pilot committed on branch `feature/ui-consistency-pilot` (a621d7c); not yet pushed or a PR. Remaining: full phone editing path (step 3), common editor hierarchy (step 4) and dashboard polish (step 5). Requested by Tristan, 2026-11-03. Claude owns implementation.
+
+**Pilot notes (2026-11-03):** CSS-only changes in `cover-maker/index.html` (interface sans for labels and inputs, compact phone header with template links inline, saved-projects panel moved below the editing controls) and `text-motion/style.css` (interface sans, compact phone preview so the first text field is on screen, larger transport buttons, saved-projects and Drive panels moved after the editing fields). Exports are pixel-identical to `HEAD` for both tools. Verified in Chrome at 1440, 768 and 390 px: no horizontal overflow, no page errors, all phone controls at least 44px, undo/redo, draft persistence, PNG export and saved-project save/reload/load. The Playwright suites (`test:cover:browser` and others) were **not** run: `npm ci` could not reach the npm registry from the build environment. Live Drive and real-device checks remain in `docs/hosted-validation.md`.
 
 **Review basis:** source at `23a1cf5`, followed by local Chrome rendering of the
 current homepage, Cover Maker, Text Motion and consolidated dashboard preview.
