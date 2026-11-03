@@ -1,10 +1,13 @@
 import { byId } from './catalog.mjs';
+import { toys } from '../weird-motion/artwork.mjs';
 export const formats = {
   square: [1080, 1080],
   landscape: [1920, 1080],
   portrait: [1080, 1920],
 };
 export const entranceMotions = [
+  'perform',
+  'remix',
   'spot',
   'draw',
   'build',
@@ -42,6 +45,17 @@ const labels = {
   type: 'Type on',
 };
 export function motionOptions(layer) {
+  const toy = toys.find(
+    (a) => 'toy:' + a.id === layer.asset?.replace(/-solo$/, ''),
+  );
+  if (toy)
+    return [
+      { value: 'perform', label: toy.actions[0] },
+      { value: 'remix', label: toy.actions[1] },
+      ...['none', 'wipe', 'pop', 'pulse', 'float', 'nudge', 'spin'].map(
+        (value) => ({ value, label: labels[value] }),
+      ),
+    ];
   const list = ['none'];
   if (layer.kind === 'text') list.push('type', 'wipe');
   else {
@@ -62,6 +76,7 @@ export function motionOptions(layer) {
   return list.map((value) => ({ value, label: labels[value] }));
 }
 export function suggestedMotion(layer) {
+  if (layer.asset?.startsWith('toy:')) return 'perform';
   if (layer.asset === 'signature:spot-it') return 'spot';
   if (layer.kind === 'text') return 'type';
   const available = new Set(motionOptions(layer).map((m) => m.value));

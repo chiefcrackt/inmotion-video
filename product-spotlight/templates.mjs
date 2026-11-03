@@ -1,7 +1,51 @@
 import { assets } from './assets.mjs';
+import { toys } from '../weird-motion/artwork.mjs';
 export const templates = new Map(assets.map((a) => ['spotlight:' + a.id, a]));
 templates.set('signature:spot-it', { name: 'Spot it · signature callout' });
+for (const toy of toys) templates.set('toy:' + toy.id, toy);
 export function templateScene(id) {
+  if (id.startsWith('toy:') && templates.has(id)) {
+    const toy = templates.get(id),
+      base = {
+        x: 50,
+        y: 50,
+        size: 150,
+        rotation: 0,
+        opacity: 100,
+        visible: true,
+      };
+    return {
+      format: 'landscape',
+      duration: 6,
+      mode: 'transparent',
+      exit: 'fade',
+      layers: [
+        {
+          ...base,
+          id: toy.id + '-graphic',
+          kind: 'asset',
+          asset: id,
+          motion: 'perform',
+          delay: 0,
+          entrance: 2.8,
+        },
+        {
+          ...base,
+          id: toy.id + '-label',
+          kind: 'text',
+          text: toy.label,
+          color: '#f6f4ef',
+          fontSize: 57,
+          x: 65,
+          y: 50,
+          size: 38,
+          motion: 'type',
+          delay: 2.8,
+          entrance: 0.4,
+        },
+      ],
+    };
+  }
   if (id === 'signature:spot-it')
     return {
       format: 'landscape',

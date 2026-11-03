@@ -94,7 +94,9 @@ function sync() {
     $('motionHint').textContent =
       l.kind === 'text'
         ? 'Type-on keeps each letter in its final position. Entrances finish and hold.'
-        : 'Draw-in follows the actual vector paths. Build-in moves separate parts. Entrances finish and hold.';
+        : l.asset?.startsWith('toy:')
+          ? 'Two original actions for this motion toy. Adjust the entrance duration to change its speed; the final pose holds.'
+          : 'Draw-in follows the actual vector paths. Build-in moves separate parts. Entrances finish and hold.';
     $('textControls').hidden = l.kind !== 'text';
     for (const field of [
       'x',
@@ -154,6 +156,10 @@ async function addAsset(asset) {
   try {
     await image(asset.id);
     const l = newLayer('asset', asset.id);
+    if (asset.id.startsWith('toy:')) {
+      l.motion = 'perform';
+      l.entrance = Math.min(2.8, state.duration);
+    }
     const next = { ...state, layers: [...state.layers, l] };
     await prepare(next);
     state = next;

@@ -238,6 +238,15 @@ export const TOOLS = Object.freeze([
     icon: 'star',
   },
   {
+    id: 'weird-motion',
+    name: 'Weird Motion Toys',
+    href: 'weird-motion/',
+    description: 'Portals, elastic grabbers, orbit swarms and a geometric critter. Two original actions each, with standalone overlays and editable callouts.',
+    workspaces: ['library', 'graphics'],
+    keywords: ['assets', 'weird', 'portal', 'critter', 'animation', 'transparent', 'overlays'],
+    icon: 'star',
+  },
+  {
     id: 'product-spotlight',
     name: 'Product Spotlight Kit',
     href: 'product-spotlight/',

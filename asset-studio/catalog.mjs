@@ -1,7 +1,23 @@
 import { icons } from '../icon-pack/icons.mjs';
 import { assets } from '../motion-stats/assets.mjs';
 import { assets as spotlight } from '../product-spotlight/assets.mjs';
+import { toys } from '../weird-motion/artwork.mjs';
 export const catalog = Object.freeze([
+  ...toys
+    .flatMap((a) => [
+      a,
+      { ...a, id: a.id + '-solo', name: a.name + ' · standalone' },
+    ])
+    .map((a) => ({
+      id: 'toy:' + a.id,
+      name: a.name,
+      pack: 'weird',
+      category: 'motion toys',
+      width: 960,
+      height: 540,
+      src: new URL('../weird-motion/files/' + a.id + '.svg', import.meta.url)
+        .href,
+    })),
   {
     id: 'signature:spot-it',
     name: 'Spot it · signature callout',

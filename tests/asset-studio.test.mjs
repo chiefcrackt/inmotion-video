@@ -21,9 +21,9 @@ const layer = () => ({
   motion: 'none',
   visible: true,
 });
-test('three packs expose 67 unique trusted assets', () => {
-  assert.equal(catalog.length, 67);
-  assert.equal(new Set(catalog.map((a) => a.id)).size, 67);
+test('three packs expose 75 unique trusted assets', () => {
+  assert.equal(catalog.length, 75);
+  assert.equal(new Set(catalog.map((a) => a.id)).size, 75);
   assert(catalog.every((a) => a.src.startsWith('file:')));
 });
 test('saved scenes round trip without accepting URLs or unsafe settings', () => {

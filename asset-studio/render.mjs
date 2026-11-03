@@ -8,6 +8,7 @@ import {
 import { prepareNative, drawNative } from './native-motion.mjs';
 import '../shared/exits.js';
 import { frame as spotFrame, svg as spotSVG } from '../spot-it/artwork.mjs';
+import { draw as drawToy } from '../weird-motion/artwork.mjs';
 const spotFrames = [];
 let spotReady;
 function prepareSpot() {
@@ -53,7 +54,7 @@ export async function prepare(state) {
       .filter((l) => l.kind === 'asset')
       .map(async (l) => {
         readyImages.set(l.asset, await image(l.asset));
-        await prepareNative(l.asset);
+        if (!l.asset.startsWith('toy:')) await prepareNative(l.asset);
         if (l.asset === 'signature:spot-it') await prepareSpot();
       }),
   );
@@ -146,7 +147,16 @@ export function render(
             entrance &&
             l.motion !== 'wipe' &&
             (progress < 1 || l.motion === 'break');
-          if (entrance && l.motion === 'spot') {
+          if (entrance && ['perform', 'remix'].includes(l.motion))
+            drawToy(
+              c,
+              l.asset.slice(4),
+              progress,
+              b.w,
+              b.h,
+              l.motion === 'remix',
+            );
+          else if (entrance && l.motion === 'spot') {
             const spot = spotFrames[Math.min(78, Math.floor(progress * 78))];
             if (spot) c.drawImage(spot, -b.w / 2, -b.h / 2, b.w, b.h);
           } else if (native)
