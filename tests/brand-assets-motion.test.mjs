@@ -13,6 +13,7 @@ function recorder() {
     strokeStyle: '',
     lineWidth: 1,
     globalAlpha: 1,
+    shadowBlur: 0,
     ty: 0,
     save() {
       stack.push({ a: this.globalAlpha, f: this.fillStyle, ty: this.ty });
@@ -42,7 +43,13 @@ function recorder() {
     setLineDash() {},
     measureText: (str) => ({ width: String(str).length * 10 }),
     fillText(ch, x, y) {
-      drawn.push({ ch, y: y + this.ty, alpha: this.globalAlpha, color: this.fillStyle });
+      drawn.push({
+        ch,
+        y: y + this.ty,
+        alpha: this.globalAlpha,
+        color: this.fillStyle,
+        blur: this.shadowBlur,
+      });
     },
   };
   return { ctx, drawn };
@@ -131,4 +138,13 @@ test('subline appears only in the last 20% of the loop and fades in', () => {
   const fading = at(frame(s, 5.0), SUB_Y());
   assert.ok(fading.length > 0 && fading.every((d) => d.alpha > 0 && d.alpha < 1));
   assert.ok(at(frame(s, 5.8), SUB_Y()).every((d) => d.alpha === 1));
+});
+
+test('cyber style adds a teal grid floor and a glow on the headline', () => {
+  const classic = create('moving');
+  const cyber = { ...create('moving'), style: 'cyber' };
+  const glowAt = (drawn) => drawn.filter((d) => d.blur > 0).length;
+  assert.equal(glowAt(frame(classic, 1)), 0);
+  assert.ok(glowAt(frame(cyber, 1)) > 0);
+  assert.ok(frame(cyber, 1).some((d) => d.color === '#E8C96A' && d.blur > 0));
 });

@@ -138,6 +138,34 @@ function ribbons(c, W, yc, th, gap, amp, phase) {
   }
 }
 
+// Perspective grid floor from the Cyber kit (Title Maker). Scrolls with `off`.
+function grid(c, w, h, hz, off, a) {
+  c.save();
+  c.lineWidth = 1.5;
+  const cx = w / 2,
+    sp = w / 9,
+    o = ((off % sp) + sp) % sp,
+    gh = h - hz;
+  for (let k = -14; k <= 14; k++) {
+    const xb = cx + k * sp - o;
+    c.strokeStyle = `rgba(46,155,173,${(0.4 * a).toFixed(3)})`;
+    c.beginPath();
+    c.moveTo(cx + (xb - cx) * 0.12, hz);
+    c.lineTo(cx + (xb - cx) * 1.8, h);
+    c.stroke();
+  }
+  for (let n = 0; n < 30; n++) {
+    const y = hz + gh / (n * 0.7 + 1);
+    if (y < hz + 2) break;
+    c.strokeStyle = `rgba(46,155,173,${(a * Math.min(0.7, 0.1 + ((y - hz) / gh) * 0.6)).toFixed(3)})`;
+    c.beginPath();
+    c.moveTo(0, y);
+    c.lineTo(w, y);
+    c.stroke();
+  }
+  c.restore();
+}
+
 export function render(c, s, { time = 0, video = false, guides = false } = {}) {
   const [W, H] = dimensions(s),
     banner = s.preset === 'banner',
@@ -152,6 +180,8 @@ export function render(c, s, { time = 0, video = false, guides = false } = {}) {
     fg = light ? C.navy : C.gold,
     body = light ? C.navy : C.paper;
   const phase = video && s.motion !== 'none' ? time * s.speed : 0;
+  if (s.style === 'cyber')
+    grid(c, w, h, h * 0.72, phase * 40, 0.9);
   if (s.layers.stripes) {
     c.save();
     c.globalAlpha = s.stripeOpacity / 100;
@@ -247,6 +277,10 @@ export function render(c, s, { time = 0, video = false, guides = false } = {}) {
           c.save();
           c.globalAlpha = alpha;
           c.translate(0, dy);
+          if (s.style === 'cyber') {
+            c.shadowColor = fg;
+            c.shadowBlur = 30;
+          }
           leaning(c, baselines[i], () => {
             if (glitch) {
               text(c, line, 54, 0, size, C.teal, 900, 0, 960);
