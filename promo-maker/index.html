@@ -2193,6 +2193,11 @@
           });
           refresh();
         }
+        window.TimPublishingEditor = Object.freeze({
+          isBusy: function () {
+            return !!playing || $('rec').disabled;
+          },
+        });
         window.TimProjects.mount({
           tool: 'promo-maker',
           busy: function () {

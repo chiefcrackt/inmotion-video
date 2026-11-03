@@ -389,6 +389,12 @@ document.addEventListener('visibilitychange', () => {
     if (recorder?.state === 'recording') $('cancel').click();
   }
 });
+window.TimPublishingEditor = Object.freeze({
+  isBusy: () => recording || working,
+  pausePreview: () => {
+    if (!recording && !working) stop();
+  },
+});
 window.TimProjects.mount({
   tool: 'brand-assets',
   busy: () => recording || working || playing,

@@ -12,6 +12,10 @@ Unified Content Planner has a local preview at `/content-studio/`, with Ideas,
 Videos and Shoot views retaining their existing data and sync systems. See
 [workflow, compatibility and validation](content-studio/README.md).
 
+Publishing Studio has a local preview at `/publishing-studio/`, grouping Covers,
+Promo clips and Brand templates with the original saved-project formats. See
+[preview behavior and validation](publishing-studio/README.md).
+
 Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at
 **https://chiefcrackt.github.io/inmotion-video/**
 
