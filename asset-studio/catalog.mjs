@@ -2,6 +2,15 @@ import { icons } from '../icon-pack/icons.mjs';
 import { assets } from '../motion-stats/assets.mjs';
 import { assets as spotlight } from '../product-spotlight/assets.mjs';
 export const catalog = Object.freeze([
+  {
+    id: 'signature:spot-it',
+    name: 'Spot it · signature callout',
+    pack: 'spotlight',
+    category: 'signature',
+    width: 960,
+    height: 540,
+    src: new URL('../spot-it/complete-blank.svg', import.meta.url).href,
+  },
   ...spotlight.map((a) => ({
     id: 'spotlight:' + a.id,
     name: a.name,

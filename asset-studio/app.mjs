@@ -113,8 +113,8 @@ function sync() {
     for (const field of ['x', 'y', 'size', 'rotation', 'opacity'])
       $(field + 'Value').value = l[field] + (field === 'rotation' ? '°' : '%');
   }
-  for (const field of ['format', 'duration', 'mode'])
-    $(field).value = state[field];
+  for (const field of ['format', 'duration', 'mode', 'exit'])
+    $(field).value = state[field] ?? 'original';
   for (const el of document.querySelectorAll(
     '.controls button,.controls input,.controls select,.controls textarea,#play,#scrub',
   ))
@@ -339,7 +339,7 @@ $('split').onclick = async () => {
     sync();
   }
 };
-for (const field of ['format', 'duration', 'mode'])
+for (const field of ['format', 'duration', 'mode', 'exit'])
   $(field).onchange = () =>
     change(() => {
       state[field] =

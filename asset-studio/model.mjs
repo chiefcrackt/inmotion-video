@@ -5,6 +5,7 @@ export const formats = {
   portrait: [1080, 1920],
 };
 export const entranceMotions = [
+  'spot',
   'draw',
   'build',
   'wipe',
@@ -24,6 +25,7 @@ export const motions = [
   ...entranceMotions,
 ];
 const labels = {
+  spot: 'Spot it · sprint, land + reveal',
   none: 'Still',
   pulse: 'Pulse',
   float: 'Float',
@@ -45,6 +47,7 @@ export function motionOptions(layer) {
   else {
     list.push('draw', 'build', 'wipe');
     const id = layer.asset || '';
+    if (id === 'signature:spot-it') list.push('spot');
     if (
       /route|trail|feature-(left|right|pin)|arrow-curve|ring|locator|halo/.test(
         id,
@@ -59,6 +62,7 @@ export function motionOptions(layer) {
   return list.map((value) => ({ value, label: labels[value] }));
 }
 export function suggestedMotion(layer) {
+  if (layer.asset === 'signature:spot-it') return 'spot';
   if (layer.kind === 'text') return 'type';
   const available = new Set(motionOptions(layer).map((m) => m.value));
   for (const m of ['break', 'burst', 'drop', 'trace'])
@@ -74,6 +78,7 @@ export const initial = () => ({
   format: 'square',
   duration: 4,
   mode: 'transparent',
+  exit: 'original',
   layers: [],
 });
 export const clone = (v) => JSON.parse(JSON.stringify(v));
@@ -149,7 +154,10 @@ export function validate(input) {
     );
     return out;
   });
-  return { format: input.format, duration, mode: input.mode, layers };
+  const exit = input.exit ?? 'original';
+  if (!['original', 'fade', 'glitch'].includes(exit))
+    throw Error('Invalid exit.');
+  return { format: input.format, duration, mode: input.mode, exit, layers };
 }
 export function newLayer(kind, asset) {
   const l = {

@@ -1,6 +1,46 @@
 import { assets } from './assets.mjs';
 export const templates = new Map(assets.map((a) => ['spotlight:' + a.id, a]));
+templates.set('signature:spot-it', { name: 'Spot it · signature callout' });
 export function templateScene(id) {
+  if (id === 'signature:spot-it')
+    return {
+      format: 'landscape',
+      duration: 6,
+      mode: 'transparent',
+      exit: 'fade',
+      layers: [
+        {
+          id: 'spot-it-graphic',
+          kind: 'asset',
+          asset: id,
+          x: 50,
+          y: 50,
+          size: 150,
+          rotation: 0,
+          opacity: 100,
+          motion: 'spot',
+          visible: true,
+          delay: 0,
+          entrance: 2.6,
+        },
+        {
+          id: 'spot-it-label',
+          kind: 'text',
+          text: 'LOOK CLOSER',
+          color: '#f6f4ef',
+          fontSize: 52,
+          x: 65.8,
+          y: 30,
+          size: 36,
+          rotation: 0,
+          opacity: 100,
+          motion: 'type',
+          visible: true,
+          delay: 2.2,
+          entrance: 0.4,
+        },
+      ],
+    };
   const a = templates.get(id);
   if (!a) throw Error('Unknown Product Spotlight template.');
   const size = 88,
