@@ -275,6 +275,46 @@ export const TOOLS = Object.freeze([
   },
 ]);
 
+// Preview-only dashboard grouping. Original tool IDs/hrefs remain canonical for
+// projects, exports, saved setups and the current homepage.
+export const DASHBOARD_GROUPS = Object.freeze([
+  { id: 'content-studio', name: 'Content Planner', href: 'content-studio/', description: 'Capture ideas, plan videos and take your checklist filming.', members: ['content-planner', 'idea-vault', 'shoot-planner'], modes: ['videos', 'ideas', 'shoot'] },
+  { id: 'text-and-titles', name: 'Text & Titles', href: 'text-and-titles/', description: 'Animate words or create title cards, lower thirds and chapters with sound.', members: ['text-motion', 'title-maker'], modes: ['text', 'titles'] },
+  { id: 'celebration-studio', name: 'Celebration Studio', href: 'celebration-studio/', description: 'Celebrate with runners, name cards, cakes, race bibs and medals.', members: ['special-post', 'celebrate'], modes: ['runners', 'cards'] },
+  { id: 'publishing-studio', name: 'Publishing Studio', href: 'publishing-studio/', description: 'Make covers, announce a video or customize a brand template.', members: ['cover-maker', 'promo-maker', 'brand-assets'], modes: ['covers', 'promos', 'brand'] },
+  { id: 'runner-animator', name: 'Runner Animator', href: 'runner-animator/', description: 'Count down to a race start or build a running scene.', members: ['start-line', 'river-run'], modes: ['start', 'run'] },
+  { id: 'social-post-studio', name: 'Social Post Studio', href: 'social-post-studio/', description: 'Create a carousel, rank your favorites or show a before-and-after.', members: ['carousel-maker', 'tier-list', 'before-after'], modes: ['carousel', 'rankings', 'compare'] },
+  { id: 'asset-library', name: 'Asset Animator & Library', href: 'asset-studio/', description: 'Browse the shared graphic packs and compose transparent overlays.', members: ['asset-studio', 'weird-motion', 'product-spotlight', 'icon-pack', 'motion-stats'] },
+]);
+
+export function dashboardEntries() {
+  const grouped = new Set(DASHBOARD_GROUPS.flatMap((group) => group.members));
+  return [
+    ...DASHBOARD_GROUPS.map((group) => {
+      const originals = group.members.map((id) => getTool(id));
+      return {
+        ...group,
+        originals,
+        workspaces: [...new Set(originals.flatMap((tool) => tool.workspaces))],
+      };
+    }),
+    ...TOOLS.filter((tool) => !grouped.has(tool.id)).map((tool) => ({ ...tool, originals: [tool] })),
+  ];
+}
+
+export function searchDashboard(query = '', { workspace = 'all' } = {}) {
+  const normalized = String(query).trim().toLowerCase().replace(/\s+/g, ' ');
+  const words = normalized.split(' ').filter(Boolean);
+  const candidates = dashboardEntries().filter((entry) => workspace === 'all' || entry.workspaces.includes(workspace));
+  const exact = normalized ? candidates.filter((entry) =>
+    entry.name.toLowerCase() === normalized || entry.originals.some((tool) => tool.name.toLowerCase() === normalized),
+  ) : [];
+  return (exact.length ? exact : candidates).filter((entry) => {
+    const text = [entry.name, entry.description, ...entry.originals.map(haystack)].join(' ').toLowerCase();
+    return words.every((word) => text.includes(word));
+  });
+}
+
 const workspaceById = new Map(WORKSPACES.map((w) => [w.id, w]));
 const toolById = new Map(TOOLS.map((t) => [t.id, t]));
 

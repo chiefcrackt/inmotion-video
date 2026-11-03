@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0e1a2e">
+  <title>T.IM Studio · Dashboard preview</title>
+  <link rel="icon" href="../favicon.svg">
+  <link rel="stylesheet" href="../shared/fonts.css">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+<main>
+  <header><a href="../">← Current dashboard</a><p class="eyebrow">T.IM / YOUR CREATIVE WORKSPACE</p><h1>What are we making?</h1><p>Open a studio, or jump straight into a familiar tool.</p><span class="preview-label">Dashboard preview</span></header>
+  <section class="finder" aria-label="Find a studio" hidden>
+    <label for="query">Find a studio or tool<input id="query" type="search" placeholder="Titles, race, thumbnails…"></label>
+    <div class="filters" role="group" aria-label="Workspace filters"><button type="button" data-workspace="all" aria-pressed="true">All</button><button type="button" data-workspace="plan" aria-pressed="false">Plan &amp; Organize</button><button type="button" data-workspace="graphics" aria-pressed="false">Graphics &amp; Video</button><button type="button" data-workspace="running" aria-pressed="false">Running Studio</button><button type="button" data-workspace="audio" aria-pressed="false">Audio Studio</button><button type="button" data-workspace="publishing" aria-pressed="false">Publishing Studio</button><button type="button" data-workspace="library" aria-pressed="false">Asset Library</button></div>
+    <button type="button" id="reset">Clear filters</button>
+  </section>
+  <p id="count" role="status" aria-live="polite">14 studios and tools</p>
+  <p id="empty" hidden>No matches. Try another word or clear the filters.</p>
+  <section class="cards" aria-label="Studios and tools">
+    <article data-entry="content-studio">
+      <p class="category">Plan &amp; Organize · Publishing Studio</p>
+      <h2><a class="primary" href="../content-studio/">Content Planner <span aria-hidden="true">↗</span></a></h2>
+      <p>Capture ideas, plan videos and take your checklist filming.</p>
+      <div class="modes" aria-label="Content Planner modes"><a href="../content-studio/#videos">Content Planner</a><a href="../content-studio/#ideas">Idea Vault</a><a href="../content-studio/#shoot">Shoot Planner</a></div>
+    </article>
+    <article data-entry="text-and-titles">
+      <p class="category">Graphics &amp; Video</p>
+      <h2><a class="primary" href="../text-and-titles/">Text &amp; Titles <span aria-hidden="true">↗</span></a></h2>
+      <p>Animate words or create title cards, lower thirds and chapters with sound.</p>
+      <div class="modes" aria-label="Text &amp; Titles modes"><a href="../text-and-titles/#text">Text Motion</a><a href="../text-and-titles/#titles">Title Maker</a></div>
+    </article>
+    <article data-entry="celebration-studio">
+      <p class="category">Graphics &amp; Video</p>
+      <h2><a class="primary" href="../celebration-studio/">Celebration Studio <span aria-hidden="true">↗</span></a></h2>
+      <p>Celebrate with runners, name cards, cakes, race bibs and medals.</p>
+      <div class="modes" aria-label="Celebration Studio modes"><a href="../celebration-studio/#runners">Special Post Maker</a><a href="../celebration-studio/#cards">Celebration Maker</a></div>
+    </article>
+    <article data-entry="publishing-studio">
+      <p class="category">Publishing Studio · Graphics &amp; Video · Asset Library</p>
+      <h2><a class="primary" href="../publishing-studio/">Publishing Studio <span aria-hidden="true">↗</span></a></h2>
+      <p>Make covers, announce a video or customize a brand template.</p>
+      <div class="modes" aria-label="Publishing Studio modes"><a href="../publishing-studio/#covers">Cover Maker</a><a href="../publishing-studio/#promos">Promo Maker</a><a href="../publishing-studio/#brand">Brand Assets</a></div>
+    </article>
+    <article data-entry="runner-animator">
+      <p class="category">Running Studio · Graphics &amp; Video</p>
+      <h2><a class="primary" href="../runner-animator/">Runner Animator <span aria-hidden="true">↗</span></a></h2>
+      <p>Count down to a race start or build a running scene.</p>
+      <div class="modes" aria-label="Runner Animator modes"><a href="../runner-animator/#start">Start Line Recorder</a><a href="../runner-animator/#run">River Run Recorder</a></div>
+    </article>
+    <article data-entry="social-post-studio">
+      <p class="category">Graphics &amp; Video · Publishing Studio</p>
+      <h2><a class="primary" href="../social-post-studio/">Social Post Studio <span aria-hidden="true">↗</span></a></h2>
+      <p>Create a carousel, rank your favorites or show a before-and-after.</p>
+      <div class="modes" aria-label="Social Post Studio modes"><a href="../social-post-studio/#carousel">Carousel Post Maker</a><a href="../social-post-studio/#rankings">Tier List Maker</a><a href="../social-post-studio/#compare">Before &amp; After</a></div>
+    </article>
+    <article data-entry="asset-library">
+      <p class="category">Graphics &amp; Video · Asset Library</p>
+      <h2><a class="primary" href="../asset-studio/">Asset Animator &amp; Library <span aria-hidden="true">↗</span></a></h2>
+      <p>Browse the shared graphic packs and compose transparent overlays.</p>
+      
+    </article>
+    <article data-entry="teleprompter">
+      <p class="category">Plan &amp; Organize</p>
+      <h2><a class="primary" href="../teleprompter/">Teleprompter <span aria-hidden="true">↗</span></a></h2>
+      <p>Paste a script and scroll it at a steady pace on an iPad, with mirror mode and a reading line.</p>
+      
+    </article>
+    <article data-entry="video-framer">
+      <p class="category">Graphics &amp; Video</p>
+      <h2><a class="primary" href="../video-framer/">Video Framer <span aria-hidden="true">↗</span></a></h2>
+      <p>Branded frames both ways: vertical clips in 16:9, or 16:9 clips in 9:16.</p>
+      
+    </article>
+    <article data-entry="mile-marker">
+      <p class="category">Running Studio · Graphics &amp; Video</p>
+      <h2><a class="primary" href="../mile-marker/">Mile Marker Maker <span aria-hidden="true">↗</span></a></h2>
+      <p>A trail sign for any distance, with a ding that climbs as the miles go up.</p>
+      
+    </article>
+    <article data-entry="activity-studio">
+      <p class="category">Running Studio</p>
+      <h2><a class="primary" href="../activity-studio/">Activity Studio <span aria-hidden="true">↗</span></a></h2>
+      <p>Turn FIT, GPX and TCX exports into running graphics, performance cards and GPS routes.</p>
+      
+    </article>
+    <article data-entry="sound-forge">
+      <p class="category">Audio Studio</p>
+      <h2><a class="primary" href="../sound-forge/">Sound Forge <span aria-hidden="true">↗</span></a></h2>
+      <p>Layered sound effects from 35 original presets. Synthesize, import samples, export WAV.</p>
+      
+    </article>
+    <article data-entry="beat-bed">
+      <p class="category">Audio Studio</p>
+      <h2><a class="primary" href="../beat-bed/">Beat Bed <span aria-hidden="true">↗</span></a></h2>
+      <p>A music bed in 14 styles. Lay it out in sections, mix the parts, save a WAV.</p>
+      
+    </article>
+    <article data-entry="downloads">
+      <p class="category">Asset Library</p>
+      <h2><a class="primary" href="../downloads/">Animation Downloads <span aria-hidden="true">↗</span></a></h2>
+      <p>Finished trailer pack: River Run, Portal, The Loop and The Drop, with sound, ready for CapCut.</p>
+      
+    </article>
+  </section>
+  <details id="originals"><summary>Original tools &amp; asset packs · 27</summary><p>Every original editor and collection is still available.</p><ul><li><a href="../brand-assets/">Brand Assets</a></li><li><a href="../content-planner/">Content Planner</a></li><li><a href="../teleprompter/">Teleprompter</a></li><li><a href="../before-after/">Before &amp; After</a></li><li><a href="../shoot-planner/">Shoot Planner</a></li><li><a href="../idea-vault/">Idea Vault</a></li><li><a href="../title-maker/">Title Maker</a></li><li><a href="../text-motion/">Text Motion</a></li><li><a href="../video-framer/">Video Framer</a></li><li><a href="../carousel-maker/">Carousel Post Maker</a></li><li><a href="../tier-list/">Tier List Maker</a></li><li><a href="../start-line/">Start Line Recorder</a></li><li><a href="../river-run/">River Run Recorder</a></li><li><a href="../mile-marker/">Mile Marker Maker</a></li><li><a href="../activity-studio/">Activity Studio</a></li><li><a href="../special-post/">Special Post Maker</a></li><li><a href="../celebrate/">Celebration Maker</a></li><li><a href="../sound-forge/">Sound Forge</a></li><li><a href="../beat-bed/">Beat Bed</a></li><li><a href="../cover-maker/">Cover Maker</a></li><li><a href="../promo-maker/">Promo Maker</a></li><li><a href="../downloads/">Animation Downloads</a></li><li><a href="../motion-stats/">Motion + Stats Kit</a></li><li><a href="../asset-studio/">Asset Animator</a></li><li><a href="../weird-motion/">Weird Motion Toys</a></li><li><a href="../product-spotlight/">Product Spotlight Kit</a></li><li><a href="../icon-pack/">Running + Creator Icons</a></li></ul></details>
+  <footer><a href="../docs/hosted-validation.md">Sharing &amp; Drive validation status</a><p>Original projects and links remain available. This preview does not replace the current dashboard.</p></footer>
+</main>
+</body>
+</html>

@@ -24,6 +24,11 @@ Social Post Studio has a local preview at `/social-post-studio/`, grouping
 Carousels, Rankings and Before & After with their original editors and formats.
 See [preview behavior and validation](social-post-studio/README.md).
 
+A consolidated dashboard preview is available locally at `/dashboard-preview/`.
+It groups the studios into 14 main choices while retaining all 27 original
+destinations. The current homepage remains unchanged. See
+[preview behavior and validation](dashboard-preview/README.md).
+
 Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at
 **https://chiefcrackt.github.io/inmotion-video/**
 

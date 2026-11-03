@@ -6,3 +6,4 @@ playwright-report/
 activity-studio/worker.js
 activity-studio/licenses/
 package-lock.json
+dashboard-preview/index.html
