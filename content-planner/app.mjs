@@ -105,7 +105,54 @@ function touch() {
   save();
   renderBoard();
 }
+function renderNextUp() {
+  const list = $('next-up-list');
+  list.replaceChildren();
+  const active = projects.filter((p) => !p.deleted && p.stage !== 'Published');
+  const scheduled = active
+    .filter((p) => p.publishDate)
+    .sort((a, b) => a.publishDate.localeCompare(b.publishDate))
+    .slice(0, 5);
+  function add(project, view, detail) {
+    const row = node('li');
+    row.append(
+      button(project.title, () => {
+        tab = view;
+        open(project.id);
+      }),
+      node('span', detail),
+    );
+    list.append(row);
+  }
+  for (const p of scheduled) add(p, 'details', 'Publish ' + p.publishDate);
+  for (const p of active) {
+    const next = p.items.find(
+      (item) => item.status === 'pending' || item.status === 'retake',
+    );
+    if (p.stage === 'Film' || next)
+      add(
+        p,
+        'shoot',
+        [
+          p.stage === 'Film' ? 'Ready to film' : 'Shoot checklist',
+          p.filmDate,
+          next &&
+            (next.status === 'retake' ? 'Retake · ' : 'Next · ') +
+              next.kind +
+              ': ' +
+              next.text,
+        ]
+          .filter(Boolean)
+          .join(' · '),
+      );
+  }
+  if (!list.children.length)
+    list.append(
+      node('li', 'Publish dates and upcoming shoot work will appear here.'),
+    );
+}
 function renderBoard() {
+  renderNextUp();
   $('board').replaceChildren();
   for (const stage of STAGES) {
     const col = node('div', undefined, 'column'),
@@ -226,6 +273,44 @@ function showTab(next) {
 document
   .querySelectorAll('[data-tab]')
   .forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
+$('share-brief').onclick = async () => {
+  if (!current) return;
+  const lines = [
+    current.title + ' — Shoot brief',
+    current.filmDate && 'Film date: ' + current.filmDate,
+    current.publishDate && 'Publish date: ' + current.publishDate,
+    current.outlineUrl && 'Outline: ' + current.outlineUrl,
+  ].filter(Boolean);
+  for (const [index, item] of current.items.entries()) {
+    lines.push(
+      '',
+      index + 1 + '. [' + item.status + '] ' + item.kind + ': ' + item.text,
+    );
+    if (item.notes) lines.push('   Notes: ' + item.notes);
+  }
+  if (!current.items.length) lines.push('', 'No checklist items yet.');
+  const file = new File([lines.join('\n') + '\n'], 'shoot-brief.txt', {
+    type: 'text/plain',
+  });
+  try {
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: current.title + ' — Shoot brief',
+      });
+      return;
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') return;
+  }
+  const href = URL.createObjectURL(file);
+  const link = node('a');
+  link.href = href;
+  link.download = file.name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(href), 30000);
+  say('Shoot brief downloaded.');
+};
 $('generate').onclick = () => {
   const count = addOutline(current);
   touch();
@@ -560,10 +645,10 @@ function refreshIdeaOptions() {
   $('from-idea').disabled = ideas === null;
 }
 // Idea Vault is the source for captured ideas. Promoting an idea links it to a project, and the two stay in step.
-$('from-idea').onclick = () => {
+function createFromIdea(ideaId) {
   if (loadFailed) return say('Import a valid backup first.');
   const ideas = readIdeas();
-  const idea = ideas?.find((i) => i.id === $('ideas').value);
+  const idea = ideas?.find((i) => i.id === ideaId);
   if (!idea || idea.archived || idea.conflictOf)
     return say('Choose an active Idea Vault entry first.');
   const existing = projects.find((p) => p.id === 'idea:' + idea.id);
@@ -572,7 +657,9 @@ $('from-idea').onclick = () => {
       existing.deleted = false;
       save();
     }
-    return open(existing.id);
+    tab = 'details';
+    open(existing.id);
+    return existing.id;
   }
   const p = newProject(idea.title);
   p.id = 'idea:' + idea.id;
@@ -584,7 +671,9 @@ $('from-idea').onclick = () => {
   save();
   tab = 'details';
   open(p.id);
-};
+  return p.id;
+}
+$('from-idea').onclick = () => createFromIdea($('ideas').value);
 refreshIdeaOptions();
 window.addEventListener('storage', (e) => {
   if (e.key === IDEA_KEY || e.key === null) refreshIdeaOptions();
@@ -711,6 +800,7 @@ $('drive-folder').onclick = async () => {
 // Switching views reads existing data; it never creates or migrates a project.
 window.TimPlanningEditor = Object.freeze({
   isBusy: () => $('filming').open,
+  createFromIdea,
   showView: (view, projectId) => {
     refreshIdeaOptions();
     if (view !== 'details' && view !== 'shoot') return;

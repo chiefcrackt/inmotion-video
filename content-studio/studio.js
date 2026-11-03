@@ -26,6 +26,21 @@
   let active;
   const projectId = () => new URLSearchParams(location.search).get('project');
 
+  function showPlanner(frame, mode) {
+    const editor = frame.contentWindow.TimPlanningEditor;
+    if (!editor?.showView) return;
+    const url = new URL(location.href);
+    const idea = url.searchParams.get('idea');
+    if (idea && mode === 'projects') {
+      url.searchParams.delete('idea');
+      const id = editor.createFromIdea(idea);
+      if (id) url.searchParams.set('project', id);
+      history.replaceState(null, '', url.href);
+      return;
+    }
+    editor.showView(mode === 'shoot' ? 'shoot' : 'details', projectId());
+  }
+
   function editorUrl(mode) {
     const url = new URL(views[mode].path, location.href);
     url.search = location.search;
@@ -52,6 +67,7 @@
     if (!frames.has(view.editor)) {
       const frame = document.createElement('iframe');
       frame.dataset.editor = view.editor;
+      if (view.editor === 'planner') frame.allow = 'web-share';
       frame.title = view.title;
       frame.src = editorUrl(mode).href;
       frame.addEventListener('load', () => {
@@ -107,10 +123,7 @@
           } else link.target = '_top';
         });
         if (views[active]?.editor === view.editor) {
-          frame.contentWindow.TimPlanningEditor?.showView?.(
-            active === 'shoot' ? 'shoot' : 'details',
-            projectId(),
-          );
+          showPlanner(frame, active);
         }
       });
       frames.set(view.editor, frame);
@@ -118,12 +131,7 @@
     }
     active = mode;
     for (const [id, frame] of frames) frame.hidden = id !== view.editor;
-    frames
-      .get(view.editor)
-      .contentWindow.TimPlanningEditor?.showView?.(
-        mode === 'shoot' ? 'shoot' : 'details',
-        projectId(),
-      );
+    showPlanner(frames.get(view.editor), mode);
     document.getElementById('hint').textContent = view.hint;
     document.getElementById('standalone').href = editorUrl(mode).href;
     for (const link of links) {

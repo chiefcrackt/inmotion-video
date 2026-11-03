@@ -239,3 +239,84 @@ dialog::backdrop {
     display: none;
   }
 }
+#next-up {
+  background: #13233d;
+  border-color: #466584;
+}
+#next-up h2 {
+  margin-top: 0;
+}
+#next-up-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+#next-up-list li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: #d7e4f3;
+  overflow-wrap: anywhere;
+}
+#next-up-list button {
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+#project {
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+#project-heading {
+  font-size: clamp(24px, 4vw, 36px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+#project > .toolbar:first-child {
+  justify-content: space-between;
+  margin-top: 0;
+}
+#project > nav {
+  gap: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #466584;
+}
+#project nav [aria-pressed='true'] {
+  background: #e8c96a;
+  color: #0e1a2e;
+  font-weight: 700;
+}
+#project :is(#details, #shoot, #assets) > h3 {
+  margin-top: 24px;
+}
+#project label {
+  color: #e0eaf5;
+}
+#project input,
+#project select,
+#project textarea {
+  border-color: #527295;
+}
+#project textarea {
+  line-height: 1.55;
+}
+#project #delete {
+  margin-top: 14px;
+}
+#project :focus-visible,
+#next-up :focus-visible {
+  outline: 2px solid #e8c96a;
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  #next-up-list li {
+    display: grid;
+    align-items: start;
+  }
+  #project > nav > button {
+    padding-inline: 10px;
+  }
+}

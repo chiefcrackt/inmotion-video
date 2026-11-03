@@ -267,12 +267,12 @@ function render() {
       txt(card, 'small', progress.done + '/' + progress.total + ' done');
     const button = txt(card, 'button', 'Open workspace');
     button.onclick = () => open(i.id);
-    if (project) {
-      const link = txt(card, 'a', 'Open project');
-      link.href =
-        '../content-studio/?project=' +
-        encodeURIComponent(project.id) +
-        '#projects';
+    if (!i.archived && !i.conflictOf) {
+      const link = txt(card, 'a', project ? 'Open project' : 'Create project');
+      const params = project
+        ? new URLSearchParams({ project: project.id })
+        : new URLSearchParams({ idea: i.id });
+      link.href = '../content-studio/?' + params + '#projects';
       link.dataset.linkedProject = '';
     }
   }
