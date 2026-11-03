@@ -51,7 +51,7 @@ const { server, launchBrowser } = require('../tests/browser-utils.cjs');
   await fs.writeFile(path.join(out, 'Weird-Motion-Preview.html'), html);
   await fs.writeFile(
     path.join(out, 'README.txt'),
-    'T.im Weird Motion\nNine motion toys with two actions each. Eighteen transparent SVG/PNG graphics: full callout and standalone toy versions.\nOpen Weird-Motion-Preview.html for the interactive offline preview. Labels, actions, scrubbing and optional glitch work offline. Builder links require the new pack to be deployed.\nImport the JSON projects into Asset Animator after this update is deployed. Text remains editable. Choose the Weird Motion pack for the standalone versions. Change Motion to switch actions; entrance duration sets speed.\nStatic PNG/SVG files are complete blank artwork, not animated videos. Make video in Asset Animator exports transparent WebM or green screen.\nOriginal vector artwork in navy #0e1a2e, gold #e8c96a and teal #2e9bad.\n',
+    'T.im Weird Motion\nThirteen motion toys with two actions each. Twenty-six transparent SVG/PNG graphics: full callout and standalone toy versions.\nOpen Weird-Motion-Preview.html for the interactive offline preview. Labels, actions, scrubbing and optional glitch work offline. Builder links require the new pack to be deployed.\nImport the JSON projects into Asset Animator after this update is deployed. Text remains editable. Choose the Weird Motion pack for the standalone versions. Change Motion to switch actions; entrance duration sets speed.\nStatic PNG/SVG files are complete blank artwork, not animated videos. Make video in Asset Animator exports transparent WebM or green screen.\nOriginal vector artwork in navy #0e1a2e, gold #e8c96a and teal #2e9bad.\n',
   );
   const srv = server();
   await new Promise((r) => (srv.listening ? r() : srv.once('listening', r)));
@@ -85,10 +85,10 @@ const { server, launchBrowser } = require('../tests/browser-utils.cjs');
         path.join(out, 'Weird-Motion-Preview.html').replaceAll('\\', '/'),
     );
     await page.waitForSelector('article');
-    if ((await page.locator('article').count()) !== 9)
+    if ((await page.locator('article').count()) !== 13)
       throw Error('Offline preview failed');
     console.log(
-      'Built eighteen SVG/PNG graphics, nine editable projects and verified offline gallery.',
+      'Built twenty-six SVG/PNG graphics, thirteen editable projects and verified offline gallery.',
     );
   } finally {
     await browser.close();

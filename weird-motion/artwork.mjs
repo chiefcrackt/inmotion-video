@@ -1,6 +1,30 @@
 // Original T.im motion toys. One deterministic vector scene for SVG and canvas.
 export const toys = [
   {
+    id: 'pancake-pal',
+    name: 'Pancake pal',
+    actions: ['Flip + catch', 'Stack + butter bounce'],
+    label: 'FLIPPIN GOOD',
+  },
+  {
+    id: 'sizzling-skillet',
+    name: 'Sizzling skillet',
+    actions: ['Sizzle + toss', 'Chef shake'],
+    label: 'HOT LITTLE FIND',
+  },
+  {
+    id: 'noodle-buddy',
+    name: 'Noodle buddy',
+    actions: ['Lift + slurp', 'Noodle twirl'],
+    label: 'BOWL OF JOY',
+  },
+  {
+    id: 'whisk-wizard',
+    name: 'Whisk wizard',
+    actions: ['Whip + reveal', 'Batter swirl'],
+    label: 'WHIP IT UP',
+  },
+  {
     id: 'delivery-bot',
     name: 'Tiny delivery bot',
     actions: ['Roll + deliver', 'Express delivery + salute'],
@@ -436,6 +460,132 @@ export function commands(id, progress, remix = false) {
     }
     panel(470, 270, Math.max(0.001, back((p - 0.6) / 0.4)));
     burst(310, 270, clamp((p - 0.75) / 0.25));
+  } else if (id === 'pancake-pal') {
+    const land = ease((p - 0.65) / 0.35),
+      flip = clamp((p - 0.12) / 0.65);
+    const py = remix
+      ? 280 - 32 * Math.sin(p * 9) * (1 - land)
+      : 280 - 145 * Math.sin(flip * Math.PI);
+    path('M210 325q100 35 200 0', 'none', T, 8);
+    for (let i = 0; i < (remix ? 3 : 2); i++) {
+      const stack = ease((p - i * 0.12) / 0.5);
+      group(
+        310,
+        py + 18 - i * 16,
+        Math.max(0.001, stack),
+        remix
+          ? Math.sin(p * 11 + i) * 0.05 * (1 - land)
+          : i === 1
+            ? (1 - flip) * Math.PI * 2
+            : 0,
+        () => {
+          ellipse(0, 0, 72, 22, G, N, 4);
+          path('M-55 1q55 18 110 0', 'none', N, 3);
+          if (i === (remix ? 2 : 1)) {
+            ellipse(-17, -4, 4, 5, N);
+            ellipse(17, -4, 4, 5, N);
+            path('M-7 6q7 7 14 0', 'none', N, 3);
+            rect(
+              -13,
+              -27 - 14 * Math.abs(Math.sin(p * 9)) * (1 - land),
+              26,
+              13,
+              P,
+              N,
+              3,
+            );
+          }
+        },
+      );
+    }
+    path('M219 283l-36 19 13 19M397 283l33 17-10 20', 'none', T, 7);
+    panel(470, 270, Math.max(0.001, back((p - 0.55) / 0.45)));
+    burst(310, 240, clamp((p - 0.75) / 0.25));
+  } else if (id === 'sizzling-skillet') {
+    const settle = ease((p - 0.65) / 0.35),
+      shake = Math.sin(p * (remix ? 30 : 12)) * (1 - settle),
+      toss = clamp((p - 0.18) / 0.6);
+    group(
+      300,
+      300 + shake * 8,
+      Math.max(0.001, ease(p / 0.18)),
+      shake * 0.1,
+      () => {
+        path('M-70 0h140q-8 39-70 39T-70 0Z', N, T, 6);
+        ellipse(0, 0, 70, 21, N, G, 5);
+        path('M65 8l72-18 9 16-75 17Z', T, N, 4);
+        const hop = (remix ? 35 : 110) * Math.sin(toss * Math.PI);
+        ellipse(-9, -8 - hop, 32, 18, P, N, 3);
+        ellipse(-7, -11 - hop, 12, 10, G, N, 2);
+        ellipse(-21, -9 - hop, 2, 3, N);
+        ellipse(4, -9 - hop, 2, 3, N);
+        for (let i = 0; i < 3; i++) {
+          const x = -37 + i * 37;
+          path(`M${x} -40q-9-10 0-20t0-20`, 'none', T, 3);
+        }
+        path('M-25 22q25 17 50 0', 'none', G, 3);
+      },
+    );
+    panel(470, 270, Math.max(0.001, back((p - 0.57) / 0.43)));
+    burst(300, 260, clamp((p - 0.76) / 0.24));
+  } else if (id === 'noodle-buddy') {
+    const lift = ease(p / 0.65),
+      settle = ease((p - 0.65) / 0.35),
+      twirl = remix ? Math.sin(p * 14) * (1 - settle) * 22 : 0;
+    const top = 265 - 95 * lift;
+    path('M225 285H395Q387 365 310 365T225 285Z', N, T, 6);
+    ellipse(310, 285, 85, 21, G, N, 4);
+    for (let i = 0; i < 5; i++) {
+      const x = 278 + i * 15;
+      path(
+        `M${x} 285C${x - 20 + twirl} 248 ${x + 20 + twirl} ${top + 30} ${x + twirl} ${top}`,
+        'none',
+        G,
+        5,
+      );
+    }
+    path(`M245 ${top - 9}l139-19M248 ${top - 1}l139-11`, 'none', T, 6);
+    ellipse(288, 320, 4, 6, G);
+    ellipse(332, 320, 4, 6, G);
+    path('M300 336q10 9 20 0', 'none', G, 3);
+    path('M237 325l-20 8M383 325l20-8', 'none', G, 7);
+    panel(470, 270, Math.max(0.001, back((p - 0.58) / 0.42)));
+    burst(310, 250, clamp((p - 0.78) / 0.22));
+  } else if (id === 'whisk-wizard') {
+    const settle = ease((p - 0.65) / 0.35),
+      mix = Math.sin(p * (remix ? 28 : 18)) * (1 - settle),
+      rise = ease((p - 0.45) / 0.55);
+    const x = 310 + mix * 28,
+      y = 210 - 30 * rise;
+    path('M220 300H400Q388 372 310 372T220 300Z', N, T, 6);
+    ellipse(310, 300, 90, 22, G, N, 4);
+    for (let i = 0; i < 3; i++)
+      ellipse(310, 300, 65 - i * 16, 12 - i * 3, 'none', T, 2);
+    group(x, y, Math.max(0.001, ease(p / 0.15)), mix * 0.25, () => {
+      path('M0-65v65', 'none', G, 15);
+      ellipse(0, -72, 9, 9, N, G, 4);
+      path(
+        'M0 0C-62 65-29 110 0 90C29 110 62 65 0 0M0 0C-25 70-12 105 0 90C12 105 25 70 0 0',
+        'none',
+        T,
+        5,
+      );
+      ellipse(-3, -42, 2, 3, N);
+      ellipse(3, -42, 2, 3, N);
+    });
+    for (let i = 0; i < 4; i++) {
+      const a = (i * Math.PI) / 2;
+      const k = clamp((p - 0.35) / 0.65);
+      ellipse(
+        310 + Math.cos(a) * (40 + 65 * k),
+        275 - Math.abs(Math.sin(a + p * 8)) * 45 * (1 - settle),
+        4,
+        6,
+        G,
+      );
+    }
+    panel(470, 270, Math.max(0.001, back((p - 0.58) / 0.42)));
+    burst(310, 240, clamp((p - 0.78) / 0.22));
   } else throw Error('Unknown motion toy');
   return out;
 }
