@@ -1,0 +1,11 @@
+{
+  "provider": "3DTexel",
+  "assetId": 25921,
+  "title": "Gravel Ground – PBR Material",
+  "url": "https://3dtexel.com/product/gravel-ground-pbr-material/",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "downloaded": "2026-11-03",
+  "chargedCredits": 0,
+  "processing": "Color map repeated in 256px squares on a 1536x320 canvas over #736e5d at 0.68 opacity, then rgba(20,47,50,.22) overlay. WebP quality 0.86."
+}

@@ -1,5 +1,14 @@
 # Mountain trail
 
+**Mountain trail · gravel** is an optional variation using 3DTexel's CC0 Gravel
+Ground material (asset 25921). It shares the original mountains, foreground,
+stride clock and theme handling. The original Mountain trail remains available.
+`gravel-ground.webp` is a 1536×320 color-only texture with small repeated stones
+and a muted teal blend, exported at WebP quality 0.86. Source and license details
+are recorded in `gravel-source.json`. Download cost was zero credits. No API
+connection is needed at runtime. Run `node tests/river-riverside.cjs mountain-gravel`
+for motion, repeat boundaries, themes, formats, persistence and recording checks.
+
 Optional moving scene in River Run. Generated layers: alpine peaks, pine/rock middle distance, and dirt/gravel trail. The foreground reuses the existing riverside grasses; native sky, sun and rolling valley slopes add depth without extra generated assets.
 
 The three original PNG layers were generated with the built-in imagegen tool and are preserved alongside compressed WebP runtime copies. Exact prompts are in `prompts.json`. Runtime assets load only when the scene is selected. Transparent layers preserve alpha.

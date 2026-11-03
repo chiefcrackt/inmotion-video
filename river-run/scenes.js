@@ -10,6 +10,10 @@
       name: 'Mountain trail',
       layers: ['distant', 'middle', 'ground', 'foreground'],
     },
+    'mountain-gravel': {
+      name: 'Mountain trail · gravel',
+      layers: ['distant', 'middle', 'ground', 'foreground'],
+    },
     night: {
       name: 'Night trail',
       layers: ['distant', 'middle', 'ground'],
@@ -59,7 +63,11 @@
               (window.RiverSceneBase || '') +
               (layer === 'foreground'
                 ? 'scenes/riverside/reeds.webp'
-                : 'scenes/' + id + '/' + layer + '.webp');
+                : id === 'mountain-gravel'
+                  ? 'scenes/mountain/' +
+                    (layer === 'ground' ? 'gravel-ground' : layer) +
+                    '.webp'
+                  : 'scenes/' + id + '/' + layer + '.webp');
           }),
       ),
     ).catch((error) => {
@@ -226,7 +234,10 @@
       m.groundTile,
       H - pathTop,
     );
-    ctx.fillStyle = alpha(navy, theme === 'minimal' ? 0.1 : night ? 0.12 : 0.22);
+    ctx.fillStyle = alpha(
+      navy,
+      theme === 'minimal' ? 0.1 : night ? 0.12 : 0.22,
+    );
     ctx.fillRect(0, pathTop, W, H - pathTop);
     // Soft contact shadow where the background meets the path (no hard seam line).
     const seam = ctx.createLinearGradient(0, pathTop, 0, pathTop + H * 0.035);
@@ -262,7 +273,7 @@
     if (!ready(id)) return;
     const m = motion(g, time, speed);
     ctx.save();
-    if (id === 'mountain') {
+    if (id === 'mountain' || id === 'mountain-gravel') {
       strip(
         ctx,
         artwork(cache.get(id), 'foreground', theme),

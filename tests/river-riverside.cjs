@@ -2,12 +2,17 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { launchBrowser, server } = require('./browser-utils.cjs');
 const scene = process.argv[2] || 'riverside';
-assert.ok(['riverside', 'cyberpunk', 'mountain', 'night'].includes(scene));
+assert.ok(
+  ['riverside', 'cyberpunk', 'mountain', 'mountain-gravel', 'night'].includes(
+    scene,
+  ),
+);
 const slug = scene === 'riverside' ? 'moving-riverside' : scene;
 const sceneName = {
   riverside: 'Moving riverside',
   cyberpunk: 'Cyberpunk city run',
   mountain: 'Mountain trail',
+  'mountain-gravel': 'Mountain trail · gravel',
   night: 'Night trail',
 }[scene];
 
@@ -48,6 +53,7 @@ const sceneName = {
       'riverside',
       'cyberpunk',
       'mountain',
+      'mountain-gravel',
       'night',
     ])
       assert.equal(
