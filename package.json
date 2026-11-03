@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at\r **https://chiefcrackt.github.io/inmotion-video/**",
   "scripts": {
+    "test:social-post:browser": "node tests/social-post-studio.cjs",
     "test:runner-animator:browser": "node tests/runner-animator.cjs",
     "test:publishing:browser": "node tests/publishing-studio.cjs",
     "test:content-studio:browser": "node tests/content-studio.cjs",

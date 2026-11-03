@@ -548,6 +548,9 @@ async function exporting(all) {
 }
 $('zip').onclick = () => exporting(true);
 $('png').onclick = () => exporting(false);
+window.TimSocialEditor = Object.freeze({
+  isBusy: () => $('exportDialog').open || $('png').disabled || $('zip').disabled,
+});
 select(state.selected);
 
 function syncPhoto() {

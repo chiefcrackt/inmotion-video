@@ -255,6 +255,7 @@
         mode: 'divider',
       };
       let recording = false;
+      window.TimSocialEditor = Object.freeze({ isBusy: () => recording });
       const fontFamily = getComputedStyle(document.body).fontFamily;
 
       for (const [key, info] of Object.entries(ASPECTS)) $('aspect').add(new Option(info.label + ' (' + key + ')', key));

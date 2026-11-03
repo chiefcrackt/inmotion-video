@@ -2228,6 +2228,9 @@
         }
 
 
+      window.TimSocialEditor = Object.freeze({
+        isBusy: () => !!playing || $('rec').disabled || $('zipAll').disabled,
+      });
       renderTierInputs();
       renderItems();
       renderVideoControls();

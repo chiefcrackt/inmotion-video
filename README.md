@@ -20,6 +20,10 @@ Runner Animator has a local preview at `/runner-animator/`, grouping Start Line
 and Running scenes while preserving their renderers, sound and project formats.
 See [compatibility and validation](runner-animator/README.md).
 
+Social Post Studio has a local preview at `/social-post-studio/`, grouping
+Carousels, Rankings and Before & After with their original editors and formats.
+See [preview behavior and validation](social-post-studio/README.md).
+
 Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at
 **https://chiefcrackt.github.io/inmotion-video/**
 
