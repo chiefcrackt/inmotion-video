@@ -19,6 +19,7 @@ const files = [
   'brand-assets/app.mjs',
   'brand-assets/audio.mjs',
   'brand-assets/render.mjs',
+  'shared/studio-bar.mjs',
   'shared/project-sync.mjs',
   'shared/project-store.mjs',
   'shared/project-drive.mjs',

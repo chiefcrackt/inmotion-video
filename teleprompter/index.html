@@ -8,7 +8,7 @@
     <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
     <meta name="theme-color" content="#0E1A2E" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>Teleprompter</title>
+    <title>Teleprompter · T.IM Studio</title>
     <link rel="stylesheet" href="../shared/fonts.css" />
     <link rel="stylesheet" href="../shared/responsive.css" />
     <style>
@@ -94,11 +94,10 @@
       }
       #prompt.idle #bar, #prompt.idle #hint { opacity: 0; pointer-events: none; }
     </style>
-  </head>
-  <body>
+  <link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
+  <body><tim-studio-bar></tim-studio-bar>
     <main id="edit">
       <header class="bar">
-        <a class="home" href="../">← All T.im video tools</a>
         <h1>Teleprompter</h1>
         <p class="muted">Paste your script, set the pace, then open the prompter. Saved on this device.</p>
       </header>

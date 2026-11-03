@@ -342,6 +342,38 @@ export function featuredTool() {
   return TOOLS.find((t) => t.featured) || null;
 }
 
+// Naming for every page except the homepage. The shared Studio bar
+// (shared/studio-bar.mjs) and each page's <title> both use these, and
+// tests/studio-bar.test.mjs checks that they agree.
+export const STUDIO_NAME = 'T.IM Studio';
+
+// Pages that are not tools or studio groups, keyed by directory.
+const OTHER_PAGES = Object.freeze({ 'dashboard-preview/': 'Dashboard preview' });
+
+/** Display name for a page directory such as 'title-maker/', or null. */
+export function pageName(dir) {
+  const tool = TOOLS.find((t) => t.href === dir);
+  if (tool) return tool.name;
+  const group = DASHBOARD_GROUPS.find((g) => g.href === dir);
+  if (group) return group.name + ' preview';
+  return OTHER_PAGES[dir] || null;
+}
+
+/** The <title> every page uses: "Tool name · T.IM Studio". */
+export function pageTitle(name) {
+  return `${name} · ${STUDIO_NAME}`;
+}
+
+/** Every directory that should carry the Studio bar. */
+export function studioPages() {
+  const dirs = new Set([
+    ...TOOLS.map((t) => t.href),
+    ...DASHBOARD_GROUPS.map((g) => g.href),
+    ...Object.keys(OTHER_PAGES),
+  ]);
+  return [...dirs].map((dir) => ({ dir, name: pageName(dir) }));
+}
+
 // Plain-text haystack used by search. Every word of the query must appear in it.
 function haystack(tool) {
   const workspaceNames = tool.workspaces.map((id) => workspaceById.get(id)?.name || '');

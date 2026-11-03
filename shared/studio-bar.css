@@ -1,0 +1,24 @@
+/* The Studio bar. See shared/studio-bar.mjs for how to add it to a page.
+   This reserves its space before the script runs, so the page doesn't jump;
+   the bar's contents are styled inside its shadow root. */
+tim-studio-bar {
+  display: block;
+  flex: none;
+  box-sizing: content-box;
+  min-height: 44px;
+  margin: 0;
+  /* Room for the iPhone status bar when a page runs from the home screen. */
+  padding: env(safe-area-inset-top, 0px) 0 0;
+  background: #0e1a2e;
+  border: 0;
+  border-bottom: 1px solid #25395c;
+  position: relative;
+  z-index: 50;
+  max-width: none;
+  width: auto;
+}
+@media print {
+  tim-studio-bar {
+    display: none;
+  }
+}
