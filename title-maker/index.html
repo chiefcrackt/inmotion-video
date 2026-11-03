@@ -45,7 +45,7 @@
     <link rel="stylesheet" href="../shared/fonts.css" /><link
       rel="stylesheet"
       href="../shared/projects.css" /><script src="../shared/projects.js"></script
-    ><script src="../shared/exits.js"></script><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head><body
+    ><script src="../shared/exits.js"></script><script src="../shared/kinetic.js"></script><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head><body
     ><tim-studio-bar></tim-studio-bar><style>
       /* Layout: two-column studio. Live preview on the left, the text and options on the right; one column on phones.
    Single dark look on purpose: T.im navy is the brand ground. */
@@ -706,6 +706,43 @@
             >
           </fieldset>
           <fieldset>
+            <legend>Text motion</legend>
+            <div class="row" id="kinStyles"
+              ><span class="lab">Words in</span>
+              <button class="chip" data-g="kin" data-v="original" type="button">Original</button>
+              <button class="chip" data-g="kin" data-v="cascade" type="button">Cascade</button>
+              <button class="chip" data-g="kin" data-v="bounce" type="button">Bounce</button>
+              <button class="chip" data-g="kin" data-v="wave" type="button">Wave</button>
+              <button class="chip" data-g="kin" data-v="flip" type="button">Flip</button>
+              <button class="chip" data-g="kin" data-v="decode" type="button">Decode</button>
+              <button class="chip" data-g="kin" data-v="words" type="button">Word by word</button>
+              <button class="chip" data-g="kin" data-v="punch" type="button">Word punch</button>
+              <button class="chip" data-g="kin" data-v="slice" type="button">Slice</button>
+              <button class="chip" data-g="kin" data-v="mask" type="button">Mask rise</button>
+              <button class="chip" data-g="kin" data-v="split" type="button">Split</button>
+            </div>
+            <div class="row" id="morphStyles"
+              ><span class="lab">Morph</span>
+              <button class="chip" data-g="morph" data-v="none" type="button">None</button>
+              <button class="chip" data-g="morph" data-v="glide" type="button">Word to word</button>
+              <button class="chip" data-g="morph" data-v="scramble" type="button">Scramble</button>
+              <button class="chip" data-g="morph" data-v="liquid" type="button">Liquid</button>
+            </div>
+            <div id="morphOpts">
+            <div class="field"
+              ><label for="morphTo" id="morphToLab">Morph into</label
+              ><input type="text" id="morphTo" maxlength="60"
+            /></div>
+            <div class="row"
+              ><span class="lab">Speed</span>
+              <button class="chip" data-g="morphLen" data-v="0.6" type="button">Quick</button>
+              <button class="chip" data-g="morphLen" data-v="1" type="button">Normal</button>
+              <button class="chip" data-g="morphLen" data-v="1.6" type="button">Slow</button>
+            </div>
+            </div>
+            <p class="note" id="kinNote"></p>
+          </fieldset>
+          <fieldset>
             <legend>Exit</legend>
             <div class="row" id="exStyles"
               ><span class="lab">Exit</span>
@@ -821,6 +858,13 @@
           exEase: 'in',
           exDir: 'left',
           exHold: '0.1',
+          kin: 'original',
+          morph: 'none',
+          morphLen: '1',
+          ti_to: 'WHERE I AM NOW',
+          lo_to: 'GOBLET SQUAT',
+          tg_to: 'ROADS',
+          ch_to: 'THE LONG DESCENT',
         };
         var S = JSON.parse(JSON.stringify(D));
         try {
@@ -1175,6 +1219,51 @@
           return { x: (x0 - 1) * k, y: (y0 - 1) * k, w: (x1 - x0 + 3) * k, h: (y1 - y0 + 3) * k };
         }
         // wrap a headline into at most maxLines lines at the largest size that fits
+        // ---------- kinetic text and morphs (shared/kinetic.js)
+        // MT is the forward clock: a Reverse exit replays t backwards, but a finished
+        // morph stays finished.
+        var MT = 0,
+          TO = { title: 'ti_to', lower: 'lo_to', tag: 'tg_to', chapter: 'ch_to' };
+        function morphText() {
+          return S.morph !== 'none' ? up(S[TO[S.mode]] || '').trim() : '';
+        }
+        function kinOn() {
+          return !!window.TimKinetic && (TimKinetic.isKinetic(S.kin) || !!morphText());
+        }
+        // The morph sits between the entrance and the card's ending.
+        function kspec(lines, toLines, t, t0, len, seed) {
+          var Dn = dur(),
+            endBy = Dn - (S.exStyle === 'original' ? 1.4 : +S.exLen + 0.4),
+            ml = +S.morphLen,
+            at = Math.max(t0 + len + 0.4, (t0 + len + endBy - ml) / 2);
+          return {
+            lines: lines,
+            align: 'left',
+            t: t - t0,
+            mt: MT - t0,
+            len: len,
+            style: S.kin,
+            seed: seed,
+            opaque: greenBg(),
+            to: toLines ? { lines: toLines } : null,
+            morph: toLines ? S.morph : 'none',
+            morphAt: at - t0,
+            morphLen: Math.max(0.3, Math.min(ml, endBy - at)),
+          };
+        }
+        // Fit two phrases at one size so letters can travel between them.
+        function fitPair(c, a, b, maxW, big, small, maxLines) {
+          var fa = fitLines(c, a, maxW, big, small, maxLines);
+          if (!b) return { a: fa, b: null };
+          var fb = fitLines(c, b, maxW, big, small, maxLines),
+            sz = Math.min(fa.size, fb.size);
+          if (fa.size > sz) fa = fitLines(c, a, maxW, sz, small, maxLines);
+          if (fb.size > sz) fb = fitLines(c, b, maxW, sz, small, maxLines);
+          return { a: fa, b: fb };
+        }
+        function morphK(sp) {
+          return window.TimKinetic ? TimKinetic.phase(sp).k : 0;
+        }
         function fitLines(c, text, maxW, big, small, maxLines) {
           var words = text.split(/\s+/).filter(Boolean);
           if (!words.length) return { size: big, lines: [''] };
@@ -1285,16 +1374,12 @@
             c.restore();
           }
           var maxW = W - 2 * x,
-            fit = fitLines(
-              c,
-              up(S.ti_head),
-              maxW,
-              V ? 150 : 170,
-              V ? 84 : 96,
-              3,
-            ),
+            pair = fitPair(c, up(S.ti_head), morphText(), maxW, V ? 150 : 170, V ? 84 : 96, 3),
+            fit = pair.a,
+            fitB = pair.b,
             lh = fit.size * 0.92,
-            n = fit.lines.length;
+            nA = fit.lines.length,
+            n = fitB ? Math.max(nA, fitB.lines.length) : nA;
           var eye = up(S.ti_eye),
             sub = (S.ti_sub || '').trim(),
             blockH = (eye ? 60 : 0) + n * lh + (sub ? 110 : 40);
@@ -1313,23 +1398,40 @@
             });
             c.restore();
           }
-          var by = top + (eye ? 18 : 0);
-          fit.lines.forEach(function (l, i) {
-            var k = lin(0.6 + i * 0.1, 0.95 + i * 0.1, t),
-              yy = by + lh * (i + 1) - lh * 0.12;
+          var by = top + (eye ? 18 : 0),
+            at = function (arr) {
+              return arr.map(function (l, i) {
+                return { text: l, x: x, y: by + lh * (i + 1) - lh * 0.12 };
+              });
+            },
+            sp = kspec(at(fit.lines), fitB && at(fitB.lines), t, 0.6, 0.75, 11),
+            drawn = false;
+          if (kinOn()) {
             c.save();
-            c.beginPath();
-            c.rect(
-              x - 10,
-              yy - fit.size,
-              (meas(c, l, { size: fit.size }) + 30) * eOut(k),
-              fit.size * 1.15,
-            );
-            c.clip();
-            txt(c, l, x, yy, { size: fit.size, color: C.paper });
+            font(c, 900, fit.size, 0);
+            c.fillStyle = C.paper;
+            drawn = TimKinetic.draw(c, sp);
             c.restore();
-          });
-          var ul = by + lh * n + 14;
+          }
+          if (!drawn)
+            fit.lines.forEach(function (l, i) {
+              var k = lin(0.6 + i * 0.1, 0.95 + i * 0.1, t),
+                yy = by + lh * (i + 1) - lh * 0.12;
+              c.save();
+              c.beginPath();
+              c.rect(
+                x - 10,
+                yy - fit.size,
+                (meas(c, l, { size: fit.size }) + 30) * eOut(k),
+                fit.size * 1.15,
+              );
+              c.clip();
+              txt(c, l, x, yy, { size: fit.size, color: C.paper });
+              c.restore();
+            });
+          // The underline follows the line count as one phrase becomes the other.
+          var nNow = fitB ? nA + (fitB.lines.length - nA) * morphK(sp) : nA,
+            ul = by + lh * nNow + 14;
           c.fillStyle = C.teal;
           c.fillRect(x, ul, (V ? 280 : 330) * eOut(lin(0.95, 1.3, t)), 6);
           c.fillStyle = C.gold;
@@ -1388,7 +1490,11 @@
           var eye =
               (n ? n + (of ? ' / ' + of : '') + (tag ? ' · ' : '') : '') + tag,
             ts = Math.round(78 * U),
-            tw = meas(c, title, { size: ts, track: 1 }),
+            titleB = morphText(),
+            tw = Math.max(
+              meas(c, title, { size: ts, track: 1 }),
+              titleB ? meas(c, titleB, { size: ts, track: 1 }) : 0,
+            ),
             dw = det
               ? meas(c, det, { size: 30 * U, w: 700, track: 3 }) + 40 * U
               : 0,
@@ -1397,7 +1503,10 @@
             ts2 = ts;
           if (tw + dw + 120 * U > maxW) {
             ts2 = Math.max(48, Math.floor((ts * (maxW - dw - 120 * U)) / tw));
-            tw = meas(c, title, { size: ts2, track: 1 });
+            tw = Math.max(
+              meas(c, title, { size: ts2, track: 1 }),
+              titleB ? meas(c, titleB, { size: ts2, track: 1 }) : 0,
+            );
           }
           var pw = Math.min(
               maxW,
@@ -1409,6 +1518,7 @@
           return {
             U: U,
             title: title,
+            titleB: titleB,
             det: det,
             eye: eye,
             ts: ts2,
@@ -1454,17 +1564,35 @@
             ts = Math.max(36, Math.floor((ts * avail) / tw0));
             tw0 = meas(c, g.title, { size: ts, track: 1 });
           }
-          var wr = lin(0.18, 0.4, t);
-          c.save();
-          c.beginPath();
-          c.rect(g.px + 36 * U, g.py, (tw0 + 20) * eOut(wr), g.ph);
-          c.clip();
-          txt(c, g.title, g.px + 38 * U, g.py + (g.eye ? 140 : 120) * U, {
-            size: ts,
-            track: 1,
-            color: C.paper,
-          });
-          c.restore();
+          var wr = lin(0.18, 0.4, t),
+            lx = g.px + 38 * U,
+            ly = g.py + (g.eye ? 140 : 120) * U,
+            drawn = false;
+          if (kinOn()) {
+            c.save();
+            c.beginPath();
+            c.rect(g.px + 12 * U, g.py - 40 * U, g.pw - 24 * U, g.ph + 80 * U);
+            c.clip();
+            font(c, 900, ts, 1);
+            c.fillStyle = C.paper;
+            drawn = TimKinetic.draw(
+              c,
+              kspec([{ text: g.title, x: lx, y: ly }], g.titleB && [{ text: g.titleB, x: lx, y: ly }], t, 0.18, 0.5, 21),
+            );
+            c.restore();
+          }
+          if (!drawn) {
+            c.save();
+            c.beginPath();
+            c.rect(g.px + 36 * U, g.py, (tw0 + 20) * eOut(wr), g.ph);
+            c.clip();
+            txt(c, g.title, lx, ly, {
+              size: ts,
+              track: 1,
+              color: C.paper,
+            });
+            c.restore();
+          }
           if (g.det)
             txt(
               c,
@@ -1522,7 +1650,11 @@
             eye = n ? n + (of ? ' / ' + of : '') : '';
           var ws = V ? 104 : 92,
             es = V ? 32 : 30,
-            wW = meas(c, word, { size: ws, track: 2 }),
+            wordB = morphText(),
+            wW = Math.max(
+              meas(c, word, { size: ws, track: 2 }),
+              wordB ? meas(c, wordB, { size: ws, track: 2 }) : 0,
+            ),
             pw = Math.max(V ? 380 : 340, wW + 150),
             ph = V ? 170 : 150,
             px = V ? 72 : 96,
@@ -1548,17 +1680,35 @@
               track: 6,
               color: C.gold,
             });
-          var wr = lin(0.18, 0.36, t);
-          c.save();
-          c.beginPath();
-          c.rect(px + 36, py, (wW + 20) * wr, ph);
-          c.clip();
-          txt(c, word, px + 38, py + (eye ? (V ? 146 : 128) : V ? 120 : 106), {
-            size: ws,
-            track: 2,
-            color: C.paper,
-          });
-          c.restore();
+          var wr = lin(0.18, 0.36, t),
+            wx = px + 38,
+            wy = py + (eye ? (V ? 146 : 128) : V ? 120 : 106),
+            drawn = false;
+          if (kinOn()) {
+            c.save();
+            c.beginPath();
+            c.rect(px + 12, py - 40, pw - 24, ph + 80);
+            c.clip();
+            font(c, 900, ws, 2);
+            c.fillStyle = C.paper;
+            drawn = TimKinetic.draw(
+              c,
+              kspec([{ text: word, x: wx, y: wy }], wordB && [{ text: wordB, x: wx, y: wy }], t, 0.18, 0.4, 31),
+            );
+            c.restore();
+          }
+          if (!drawn) {
+            c.save();
+            c.beginPath();
+            c.rect(px + 36, py, (wW + 20) * wr, ph);
+            c.clip();
+            txt(c, word, wx, wy, {
+              size: ws,
+              track: 2,
+              color: C.paper,
+            });
+            c.restore();
+          }
           slash(c, px + pw - 70, py + (V ? 62 : 56), 44, 7, lin(0.25, 0.45, t));
           brackets(c, px - 10, py - 14, pw + 20, ph + 24, 22, 3, C.teal);
           c.restore();
@@ -1606,12 +1756,18 @@
           var nw = num ? meas(c, num, { size: ns }) : 0,
             tx = V ? x : x + nw + (num ? 60 : 0),
             maxW = W - tx - (V ? 90 : 150),
-            fit = fitLines(c, title, maxW, V ? 110 : 118, V ? 64 : 70, 2);
+            pair = fitPair(c, title, morphText(), maxW, V ? 110 : 118, V ? 64 : 70, 2),
+            fit = pair.a,
+            fitB = pair.b;
           fit.lines = balance(c, fit.lines, fit.size);
+          if (fitB) fitB.lines = balance(c, fitB.lines, fitB.size);
           var lh = fit.size * 0.92,
             wordH = word ? (V ? 56 : 52) : 0,
             textH =
-              wordH + lh * fit.lines.length + 22 + (det ? (V ? 62 : 56) : 0),
+              wordH +
+              lh * Math.max(fit.lines.length, fitB ? fitB.lines.length : 0) +
+              22 +
+              (det ? (V ? 62 : 56) : 0),
             numH = num ? ns * 0.74 : 0;
           var blockH = V
             ? numH + (num ? 50 : 0) + textH
@@ -1625,6 +1781,7 @@
             ns: ns,
             tx: tx,
             fit: fit,
+            fitB: fitB,
             lh: lh,
             wordH: wordH,
             textH: textH,
@@ -1692,22 +1849,38 @@
             });
             y += g.wordH;
           }
-          g.fit.lines.forEach(function (l, i) {
-            var k = lin(0.34 + i * 0.08, 0.68 + i * 0.08, t),
-              yy = y + g.lh * (i + 1) - g.lh * 0.1;
+          var at = function (arr) {
+              return arr.map(function (l, i) {
+                return { text: l, x: g.tx, y: y + g.lh * (i + 1) - g.lh * 0.1 };
+              });
+            },
+            sp = kspec(at(g.fit.lines), g.fitB && at(g.fitB.lines), t, 0.34, 0.6, 41),
+            drawn = false;
+          if (kinOn()) {
             c.save();
-            c.beginPath();
-            c.rect(
-              g.tx - 6,
-              yy - g.fit.size,
-              (meas(c, l, { size: g.fit.size }) + 24) * eOut(k),
-              g.fit.size * 1.15,
-            );
-            c.clip();
-            txt(c, l, g.tx, yy, { size: g.fit.size, color: C.paper });
+            font(c, 900, g.fit.size, 0);
+            c.fillStyle = C.paper;
+            drawn = TimKinetic.draw(c, sp);
             c.restore();
-          });
-          y += g.lh * g.fit.lines.length + 10;
+          }
+          if (!drawn)
+            g.fit.lines.forEach(function (l, i) {
+              var k = lin(0.34 + i * 0.08, 0.68 + i * 0.08, t),
+                yy = y + g.lh * (i + 1) - g.lh * 0.1;
+              c.save();
+              c.beginPath();
+              c.rect(
+                g.tx - 6,
+                yy - g.fit.size,
+                (meas(c, l, { size: g.fit.size }) + 24) * eOut(k),
+                g.fit.size * 1.15,
+              );
+              c.clip();
+              txt(c, l, g.tx, yy, { size: g.fit.size, color: C.paper });
+              c.restore();
+            });
+          var nA = g.fit.lines.length;
+          y += g.lh * (g.fitB ? nA + (g.fitB.lines.length - nA) * morphK(sp) : nA) + 10;
           c.fillStyle = C.teal;
           c.fillRect(g.tx, y, (V ? 220 : 260) * eOut(lin(0.6, 0.9, t)), 6);
           c.fillStyle = C.gold;
@@ -1760,6 +1933,7 @@
             ex = exitOpts(),
             u = window.TimExits ? TimExits.progress(t, dur(), ex, 0, 1) : 0,
             tAll = t;
+          MT = tAll;
           // "Reverse of entrance" replays the card's entrance backwards over the exit
           if (ex.exStyle === 'reverse' && u > 0) t = Math.min(t, restT() * (1 - u));
           lx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2497,6 +2671,11 @@
             refresh();
           };
         });
+        $('morphTo').addEventListener('input', function () {
+          S[TO[S.mode]] = $('morphTo').value;
+          persist();
+          if (!playing) paint(restT());
+        });
         function renderSounds() {
           var box = $('sounds');
           box.innerHTML = '';
@@ -2578,6 +2757,23 @@
               String(S[b.dataset.g]) === b.dataset.v ? 'true' : 'false',
             );
           });
+          var mOn = S.morph !== 'none';
+          $('morphOpts').hidden = !mOn;
+          if (document.activeElement !== $('morphTo')) $('morphTo').value = S[TO[S.mode]] || '';
+          $('morphToLab').textContent =
+            'Morph ' +
+            { title: 'headline', lower: 'title', tag: 'word', chapter: 'chapter title' }[S.mode] +
+            ' into';
+          $('kinNote').textContent = mOn
+            ? 'Plays after the words land and before the card ends. ' +
+              (S.morph === 'liquid'
+                ? 'Liquid reads best with short words.'
+                : S.morph === 'scramble'
+                  ? 'Letters scramble, then settle on the new words.'
+                  : 'Shared letters glide to their new places.')
+            : S.kin === 'original'
+              ? 'Original: each card’s own wipe-in.'
+              : 'Applies to the main text of every card type.';
           var exO = S.exStyle === 'original';
           $('exOpts').hidden = exO;
           $('exDirRow').hidden = ['wipe', 'slide', 'drop'].indexOf(S.exStyle) < 0;

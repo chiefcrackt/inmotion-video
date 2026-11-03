@@ -113,6 +113,22 @@ Don't add a separate back link. The bar hides itself when a studio preview
 shows the page in a frame. `npm test` (`tests/studio-bar.test.mjs`) fails if a
 page folder isn't registered, is missing the bar, or has an off-pattern title.
 
+## Kinetic text and morphs
+
+`shared/kinetic.js` animates words for any tool: per-letter (cascade, bounce,
+wave, flip, decode), per-word (word by word, word punch) and split/mask
+reveals (slice, mask rise, split), plus morphs from one phrase to another
+(word to word, scramble, liquid). Text Motion and Title Maker use it now.
+
+A tool sets its canvas font and fill, then calls
+`TimKinetic.draw(ctx, { lines, align, t, len, style, seed, opaque, to, morph, morphAt, morphLen })`
+with the lines it would have drawn. It returns `false` for Original, so the
+tool keeps its own entrance. Frames are a pure function of time, so preview,
+scrubbing and recordings match. Pass `opaque: true` on green screen so nothing
+is part-transparent. Exits stay with `shared/exits.js`.
+`tests/kinetic.test.mjs` covers timing, layout, morph pairing and that every
+style ends on the plain text.
+
 ## Saved projects, themes and text
 
 Barlow Condensed is the default text family, served from the licensed font files in `shared/fonts/`; no Google Fonts request is required. Editable visual tools offer other font choices. Existing saved carousel typography is preserved, while new carousels default to Barlow Condensed. T.im remains the default output theme; Minimal and Race Broadcast are optional alternatives. Uploaded photos and runner cutouts retain their original colors, and chroma green remains green. Sound Forge and Animation Downloads have no editable visual output, so they use the bundled interface font without output-style controls.
