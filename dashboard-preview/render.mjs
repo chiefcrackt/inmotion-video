@@ -3,6 +3,8 @@ import {
   TOOLS,
   WORKSPACES,
   getWorkspace,
+  pageName,
+  pageTitle,
 } from '../shared/tool-registry.mjs';
 const escape = (value) =>
   String(value)
@@ -19,15 +21,18 @@ export function renderDashboard() {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0e1a2e">
-  <title>T.IM Studio · Dashboard preview</title>
+  <title>${escape(pageTitle(pageName('dashboard-preview/')))}</title>
   <link rel="icon" href="../favicon.svg">
   <link rel="stylesheet" href="../shared/fonts.css">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.mjs"></script>
+  <link rel="stylesheet" href="../shared/studio-bar.css">
+  <script type="module" src="../shared/studio-bar.mjs"></script>
 </head>
 <body>
+<tim-studio-bar></tim-studio-bar>
 <main>
-  <header><a href="../">← Current dashboard</a><p class="eyebrow">T.IM / YOUR CREATIVE WORKSPACE</p><h1>What are we making?</h1><p>Open a studio, or jump straight into a familiar tool.</p><span class="preview-label">Dashboard preview</span></header>
+  <header><p class="eyebrow">T.IM / YOUR CREATIVE WORKSPACE</p><h1>What are we making?</h1><p>Open a studio, or jump straight into a familiar tool.</p><span class="preview-label">Dashboard preview</span></header>
   <section class="finder" aria-label="Find a studio" hidden>
     <label for="query">Find a studio or tool<input id="query" type="search" placeholder="Titles, race, thumbnails…"></label>
     <div class="filters" role="group" aria-label="Workspace filters"><button type="button" data-workspace="all" aria-pressed="true">All</button>${WORKSPACES.map((w) => `<button type="button" data-workspace="${escape(w.id)}" aria-pressed="false">${escape(w.name)}</button>`).join('')}</div>

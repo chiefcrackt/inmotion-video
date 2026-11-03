@@ -94,6 +94,25 @@ Text Motion and Title Maker share an exit engine (`shared/exits.js`): reverse of
 
 Enable Transparent background in Text Motion for alpha-preserving PNG stills and a 30 fps PNG-sequence ZIP. Import the frames as an image sequence in a video editor. The preview checkerboard is not exported. Download video follows this toggle: transparent mode exports an alpha-channel WebM using WebCodecs VP9 encoding (Chrome or Edge). Import it into an editor that supports WebM alpha. Solid backgrounds retain the existing browser recorder.
 
+## Studio bar on every tool
+
+Every tool page starts with the shared Studio bar: `← Studio` plus the page
+name, linking back to the homepage. Page titles follow
+`Tool name · T.IM Studio`. Both names come from `shared/tool-registry.mjs`.
+To add the bar to a new tool, register the tool, then add to its page:
+
+```html
+<!-- in <head> -->
+<link rel="stylesheet" href="../shared/studio-bar.css" />
+<script type="module" src="../shared/studio-bar.mjs"></script>
+<!-- first thing in <body> -->
+<tim-studio-bar></tim-studio-bar>
+```
+
+Don't add a separate back link. The bar hides itself when a studio preview
+shows the page in a frame. `npm test` (`tests/studio-bar.test.mjs`) fails if a
+page folder isn't registered, is missing the bar, or has an off-pattern title.
+
 ## Saved projects, themes and text
 
 Barlow Condensed is the default text family, served from the licensed font files in `shared/fonts/`; no Google Fonts request is required. Editable visual tools offer other font choices. Existing saved carousel typography is preserved, while new carousels default to Barlow Condensed. T.im remains the default output theme; Minimal and Race Broadcast are optional alternatives. Uploaded photos and runner cutouts retain their original colors, and chroma green remains green. Sound Forge and Animation Downloads have no editable visual output, so they use the bundled interface font without output-style controls.

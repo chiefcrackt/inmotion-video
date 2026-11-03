@@ -7,7 +7,7 @@
     <link rel="icon" href="../favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
     <meta name="theme-color" content="#0E1A2E" />
-    <title>Before &amp; After Maker</title>
+    <title>Before &amp; After · T.IM Studio</title>
     <link rel="stylesheet" href="../shared/fonts.css" />
     <link rel="stylesheet" href="../shared/responsive.css" />
     <style>
@@ -93,11 +93,10 @@
       #canvas.busy { cursor: progress; }
       .hint { font-size: 15px; color: var(--muted); text-align: center; margin: 0; }
     </style>
-  </head>
-  <body>
+  <link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
+  <body><tim-studio-bar></tim-studio-bar>
     <div class="wrap">
       <header>
-        <a class="home" href="../">← All T.im video tools</a>
         <h1>Before &amp; After</h1>
         <p class="muted">Add two photos, frame each one, then export a still or an animation.</p>
       </header>
