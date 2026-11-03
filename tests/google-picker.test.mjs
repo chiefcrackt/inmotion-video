@@ -75,7 +75,7 @@ function harness(response) {
     connect: async () => {},
     script: async () => {},
     loadPicker: async () => {},
-    token: 'fake',
+    session: { token: 'fake' },
     folderValid: async (id) => {
       seen.validated.push(id);
       return { id, name: 'Test folder' };

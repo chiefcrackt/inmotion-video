@@ -1,3 +1,4 @@
+import * as studioDrive from '../shared/project-drive.mjs';
 import { PLANNER_KEY, reconcileLinked } from '../shared/pipeline-link.mjs';
 import {
   WORKSPACE_FILE,
@@ -84,12 +85,25 @@ function setCloudStatus(kind, detail = '') {
   el.textContent = SYNC_LABEL[kind] + (detail ? ' · ' + detail : '');
 }
 function isConnected() {
-  return readSync().connected === true;
+  return studioDrive.sharesStudioDrive
+    ? studioDrive.state().connected === true
+    : readSync().connected === true;
 }
 function timeNow() {
   return new Date().toLocaleTimeString();
 }
 function renderSyncState(s = syncer.getStatus()) {
+  if (studioDrive.sharesStudioDrive) {
+    const access = studioDrive.studioAccess();
+    $('connect').hidden = !!access;
+    $('connect').textContent = isConnected()
+      ? 'Reconnect Drive'
+      : 'Connect Google Drive';
+    if (isConnected() && !access) {
+      setCloudStatus('local', 'Reconnect Drive to sync ideas');
+      return;
+    }
+  }
   if (!isConnected()) {
     setCloudStatus('local', 'not connected to Google Drive');
     return;
@@ -525,7 +539,10 @@ function requestToken(scope) {
 async function driveJson(url, options = {}) {
   const r = await fetch(url, {
     ...options,
-    headers: { Authorization: 'Bearer ' + token, ...(options.headers || {}) },
+    headers: {
+      Authorization: 'Bearer ' + syncAccessToken(),
+      ...(options.headers || {}),
+    },
   });
   if (!r.ok) throw httpError('Google Drive', r.status, await r.text());
   return r.status === 204 ? null : r.json();
@@ -546,7 +563,7 @@ async function downloadWorkspace(id) {
   const r = await fetch(
     DRIVE + 'files/' + encodeURIComponent(id) + '?alt=media',
     {
-      headers: { Authorization: 'Bearer ' + token },
+      headers: { Authorization: 'Bearer ' + syncAccessToken() },
     },
   );
   if (!r.ok) throw httpError('Cannot download cloud file', r.status);
@@ -613,7 +630,7 @@ async function createWorkspace(payload) {
     {
       method: 'POST',
       headers: {
-        Authorization: 'Bearer ' + token,
+        Authorization: 'Bearer ' + syncAccessToken(),
         'Content-Type': 'multipart/related; boundary=' + boundary,
       },
       body,
@@ -632,7 +649,7 @@ async function updateWorkspace(id, payload) {
     {
       method: 'PATCH',
       headers: {
-        Authorization: 'Bearer ' + token,
+        Authorization: 'Bearer ' + syncAccessToken(),
         'Content-Type': 'application/json',
       },
       body: payload,
@@ -645,6 +662,18 @@ async function updateWorkspace(id, payload) {
 // Google Drive token. Held in memory only and refreshed silently when possible.
 // If Google needs a user action, this throws SyncError('auth'); the status then
 // asks for a tap on Sync now instead of opening a popup from background code.
+function syncAccessToken() {
+  if (
+    studioDrive.sharesStudioDrive &&
+    studioDrive.studioAccess()?.token !== token
+  )
+    throw new SyncError(
+      'auth',
+      'Drive connection changed. Sync again when connected.',
+    );
+  return token;
+}
+
 function tokenValid() {
   return !!token && Date.now() < tokenExpiresAt;
 }
@@ -666,10 +695,23 @@ async function acquireDriveToken(prompt) {
 }
 
 async function ensureDriveToken() {
-  return tokenValid() ? token : acquireDriveToken('');
+  if (!studioDrive.sharesStudioDrive)
+    return tokenValid() ? token : acquireDriveToken('');
+  const access = studioDrive.studioAccess();
+  if (!access) throw new SyncError('auth', 'Reconnect Drive to sync ideas.');
+  const prefs = readSync();
+  if (prefs.account && prefs.account !== access.account)
+    throw new SyncError(
+      'auth',
+      'Reconnect using the Google account linked to Idea Vault.',
+    );
+  if (!prefs.account) writeSync({ account: access.account, connected: true });
+  token = access.token;
+  return token;
 }
 
 async function connect() {
+  if (studioDrive.sharesStudioDrive) return sync();
   const clientId = window.TIM_IDEA_VAULT_CONFIG?.googleClientId;
   if (!clientId) {
     notify(
@@ -753,6 +795,7 @@ async function syncOnce() {
 function classifySyncError(e) {
   if (e instanceof SyncError) return e;
   if (e?.status === 401) {
+    studioDrive.invalidateStudioAccess(token);
     token = null; // the next attempt gets a fresh token
     return new SyncError(
       'auth',
@@ -789,8 +832,10 @@ const syncer = createSyncController({
 
 // "Sync now" is a user tap, so it may open the Google sign-in popup.
 async function sync() {
-  if (!token && !isConnected()) return connect();
+  if (!studioDrive.sharesStudioDrive && !token && !isConnected())
+    return connect();
   try {
+    if (studioDrive.sharesStudioDrive) await studioDrive.connect();
     await ensureDriveToken();
   } catch (e) {
     notify(e.message);
@@ -862,6 +907,7 @@ function showDocSection(i) {
 }
 
 function docsTokenValid() {
+  if (studioDrive.sharesStudioDrive) return !!studioDrive.studioAccess();
   return Boolean(docsToken) && Date.now() < docsTokenExpiresAt;
 }
 
@@ -869,6 +915,7 @@ function docsTokenValid() {
 // browser cannot do it silently (no Google session, blocked third-party cookies).
 async function silentDocsToken() {
   if (docsTokenValid()) return true;
+  if (studioDrive.sharesStudioDrive) return false;
   if (!window.google?.accounts?.oauth2) return false;
   try {
     const grant = await requestGrant(DRIVE_FILE_SCOPE, '');
@@ -945,6 +992,13 @@ async function grantDocumentAccess(docId, accessToken) {
 
 // Reuses the drive.file token in memory until shortly before it expires.
 async function docsAccessToken() {
+  if (studioDrive.sharesStudioDrive) {
+    await studioDrive.connect();
+    const access = studioDrive.studioAccess();
+    if (!access)
+      throw new SyncError('auth', 'Reconnect Drive to open the document.');
+    return access.token;
+  }
   if (docsToken && Date.now() < docsTokenExpiresAt) return docsToken;
   const grant = await requestGrant(DRIVE_FILE_SCOPE, '');
   docsToken = grant.access_token;
@@ -988,6 +1042,7 @@ async function loadDocument(i, { auto = false } = {}) {
     let outcome = classifyDocsResponse(response.status);
 
     if (outcome.kind === 'expired') {
+      studioDrive.invalidateStudioAccess(accessToken);
       docsToken = null; // force a fresh sign-in on the next attempt
       throw new DocsError(outcome.message);
     }
@@ -1167,8 +1222,18 @@ renderSyncState();
 // Opening Idea Vault checks the cloud and uploads anything left unsynced.
 if (isConnected()) syncer.requestSync({ immediate: true });
 
+if (studioDrive.sharesStudioDrive) {
+  let previous = studioDrive.studioAccess()?.token;
+  window.addEventListener('tim-drive-state', () => {
+    const access = studioDrive.studioAccess()?.token;
+    const started = access && access !== previous;
+    previous = access;
+    if (started) syncer.requestSync({ immediate: true });
+    renderSyncState();
+  });
+}
+
 // Leave draft edits in place until the user saves or closes the idea editor.
 window.TimPlanningEditor = Object.freeze({
   isBusy: () => $('editor').classList.contains('open'),
 });
-

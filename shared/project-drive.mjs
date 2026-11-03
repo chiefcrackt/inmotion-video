@@ -16,14 +16,44 @@ const API = 'https://www.googleapis.com/drive/v3/',
   PREF = 'tim-content-drive-v1';
 const SCOPE =
   'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
-let token = '',
-  expires = 0,
-  authorizing,
-  readyPromise,
+let studio;
+try {
+  if (window.parent && window.parent !== window)
+    studio = window.parent.TimContentDriveSession;
+} catch {
+  /* cross-origin host */
+}
+const session = studio || {};
+let readyPromise,
   controller,
-  lastCheck = 0,
-  connectedAccount = '';
-const emit = () => window.dispatchEvent(new Event('tim-drive-state'));
+  lastCheck = 0;
+const emitLocal = () => window.dispatchEvent(new Event('tim-drive-state'));
+studio?.addEventListener('change', emitLocal);
+window.addEventListener('pagehide', (event) => {
+  if (!event.persisted) studio?.removeEventListener('change', emitLocal);
+});
+const emit = () =>
+  studio ? studio.dispatchEvent(new Event('change')) : emitLocal();
+export const sharesStudioDrive = !!studio;
+export function studioAccess() {
+  return studio && studio.token && Date.now() < studio.expires
+    ? { token: studio.token, account: studio.connectedAccount }
+    : null;
+}
+export function invalidateStudioAccess(accessToken) {
+  if (studio && studio.token === accessToken) {
+    studio.token = '';
+    emit();
+  }
+}
+function ideaAccount() {
+  try {
+    return JSON.parse(localStorage.getItem('tim-idea-vault-sync-v1') || '{}')
+      ?.account;
+  } catch {
+    return null;
+  }
+}
 export function preferences() {
   try {
     return JSON.parse(localStorage.getItem(PREF) || '{}');
@@ -38,7 +68,7 @@ function setPrefs(value) {
 export function state() {
   return {
     ...preferences(),
-    authorized: !!token && Date.now() < expires,
+    authorized: !!session.token && Date.now() < session.expires,
     sync: controller?.getStatus(),
   };
 }
@@ -80,9 +110,10 @@ export function ready() {
   return readyPromise;
 }
 export async function connect({ interactive = true } = {}) {
-  if (token && Date.now() < expires) return;
-  if (authorizing) return authorizing;
-  authorizing = (async () => {
+  if (session.token && Date.now() < session.expires) return;
+  if (session.authorizing) return session.authorizing;
+  if (studio && !interactive) return;
+  const attempt = (async () => {
     await ready();
     const pref = preferences();
     const grant = await new Promise((resolve, reject) => {
@@ -111,12 +142,13 @@ export async function connect({ interactive = true } = {}) {
         'auth',
         'Allow project files and app data to enable Drive exports and sync.',
       );
-    token = grant.access_token;
-    expires = Date.now() + ((Number(grant.expires_in) || 3600) - 60) * 1000;
     try {
-      const { user } = await json(
-        'about?fields=user(emailAddress,permissionId,displayName)',
+      const response = await fetch(
+        API + 'about?fields=user(emailAddress,permissionId,displayName)',
+        { headers: { Authorization: 'Bearer ' + grant.access_token } },
       );
+      if (!response.ok) throw Error('Could not verify your Google account.');
+      const { user } = await response.json();
       if (!user?.permissionId)
         throw Error('Could not verify your Google account.');
       if (pref.account && pref.account !== user.permissionId)
@@ -125,7 +157,17 @@ export async function connect({ interactive = true } = {}) {
             pref.email +
             ' to keep using its project folders. Disconnect first to use another account.',
         );
-      connectedAccount = user.permissionId;
+      if (session.authorizing !== attempt)
+        throw new SyncError('auth', 'Drive connection was cancelled.');
+      if (studio && ideaAccount() && ideaAccount() !== user.permissionId)
+        throw new SyncError(
+          'auth',
+          'Choose the Google account already linked to Idea Vault.',
+        );
+      session.connectedAccount = user.permissionId;
+      session.expires =
+        Date.now() + ((Number(grant.expires_in) || 3600) - 60) * 1000;
+      session.token = grant.access_token;
       setPrefs({
         connected: true,
         account: user.permissionId,
@@ -133,28 +175,30 @@ export async function connect({ interactive = true } = {}) {
         name: user.displayName || '',
       });
     } catch (e) {
-      token = '';
+      if (session.authorizing === attempt) session.token = '';
       throw e;
     }
   })();
+  session.authorizing = attempt;
   try {
-    return await authorizing;
+    return await attempt;
   } finally {
-    authorizing = null;
+    if (session.authorizing === attempt) session.authorizing = null;
     emit();
   }
 }
 export function disconnect() {
-  token = '';
-  expires = 0;
-  connectedAccount = '';
+  session.authorizing = null;
+  session.token = '';
+  session.expires = 0;
+  session.connectedAccount = '';
   controller?.dispose();
   controller = null;
   localStorage.removeItem(PREF);
   emit();
 }
 function requireToken() {
-  if (!token || Date.now() >= expires)
+  if (!session.token || Date.now() >= session.expires)
     throw new SyncError(
       'auth',
       'Tap Reconnect Drive. Your account and folders are remembered.',
@@ -162,13 +206,19 @@ function requireToken() {
 }
 async function request(url, options = {}) {
   requireToken();
+  const accessToken = session.token;
   const r = await fetch(url.startsWith('https:') ? url : API + url, {
     ...options,
-    headers: { Authorization: 'Bearer ' + token, ...options.headers },
+    headers: { Authorization: 'Bearer ' + accessToken, ...options.headers },
   });
+  if (session.token !== accessToken)
+    throw new SyncError(
+      'auth',
+      'Drive connection changed. Try again when connected.',
+    );
   if (!r.ok && r.status !== 308) {
     if (r.status === 401) {
-      token = '';
+      if (session.token === accessToken) session.token = '';
       emit();
       throw new SyncError(
         'auth',
@@ -278,7 +328,7 @@ export async function chooseRoot() {
       .setSelectFolderEnabled(true);
     const picker = new google.picker.PickerBuilder()
       .addView(view)
-      .setOAuthToken(token)
+      .setOAuthToken(session.token)
       .setDeveloperKey(config.pickerApiKey)
       .setAppId(config.cloudProjectNumber)
       .setOrigin(window.location.origin)
@@ -314,7 +364,7 @@ export function ensureFolder(projectId) {
     requireToken();
     const p = readProjects().find((p) => p.id === projectId && !p.deleted);
     if (!p) throw Error('Video project not found.');
-    if (p.driveFolder?.id && p.driveFolder.account === connectedAccount)
+    if (p.driveFolder?.id && p.driveFolder.account === session.connectedAccount)
       return folderValid(p.driveFolder.id);
     const root = await rootFolder();
     const found = await list(
@@ -334,7 +384,11 @@ export function ensureFolder(projectId) {
         timVideoProject: projectId,
       }));
     updateProject(projectId, (p) => {
-      p.driveFolder = { id: f.id, name: f.name, account: connectedAccount };
+      p.driveFolder = {
+        id: f.id,
+        name: f.name,
+        account: session.connectedAccount,
+      };
     });
     return f;
   });
@@ -444,12 +498,14 @@ export async function syncNow() {
   return startSync().requestSync({ manual: true });
 }
 window.addEventListener('tim-projects-changed', () => {
-  if (preferences().connected) startSync().requestSync();
+  if ((!studio || controller) && preferences().connected)
+    startSync().requestSync();
 });
 window.addEventListener('online', () => controller?.notifyOnline());
 document.addEventListener('visibilitychange', () => {
   if (
     !document.hidden &&
+    (!studio || controller) &&
     preferences().connected &&
     Date.now() - lastCheck > 30000
   )
@@ -458,6 +514,7 @@ document.addEventListener('visibilitychange', () => {
 export async function resume() {
   if (!preferences().connected) return;
   await connect({ interactive: false });
+  if (!state().authorized) return;
   startSync().requestSync({ immediate: true });
 }
 async function uploadSmall(meta, blob) {
@@ -498,7 +555,9 @@ export async function uploadAsset(
       ? (p.driveAssets || [])
           .slice()
           .reverse()
-          .find((a) => a.name === name && a.account === connectedAccount)
+          .find(
+            (a) => a.name === name && a.account === session.connectedAccount,
+          )
       : null;
     const meta = {
       name,
@@ -590,7 +649,7 @@ export async function uploadAsset(
       name: verified.name,
       url: verified.webViewLink || '',
       mimeType: meta.mimeType,
-      account: connectedAccount,
+      account: session.connectedAccount,
       tool,
       updated: Date.now(),
     };
@@ -615,7 +674,11 @@ export const folderLink = (id) =>
   'https://drive.google.com/drive/folders/' + encodeURIComponent(id);
 
 window.addEventListener('storage', (e) => {
-  if (e.key === 'tim-content-planner-v1' && preferences().connected)
+  if (
+    e.key === 'tim-content-planner-v1' &&
+    (!studio || controller) &&
+    preferences().connected
+  )
     startSync().requestSync();
 });
 export async function downloadSetup(id) {
@@ -627,4 +690,3 @@ export async function downloadSetup(id) {
     throw Error('Editable setup is too large.');
   return json('files/' + encodeURIComponent(id) + '?alt=media');
 }
-

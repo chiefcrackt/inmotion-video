@@ -90,7 +90,18 @@ export function mountDriveControls(host) {
     error = '';
     refresh();
   };
-  window.addEventListener('tim-drive-state', refresh);
+  let wasAuthorized = drive.state().authorized;
+  window.addEventListener('tim-drive-state', () => {
+    const authorized = drive.state().authorized;
+    const started = authorized && !wasAuthorized;
+    wasAuthorized = authorized;
+    refresh();
+    if (drive.sharesStudioDrive && started && !busy)
+      drive.resume().catch((e) => {
+        error = e.message;
+        refresh();
+      });
+  });
   refresh();
   drive.ready().catch(() => {});
   if (drive.preferences().connected)

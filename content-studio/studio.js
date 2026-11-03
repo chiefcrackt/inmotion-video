@@ -19,6 +19,7 @@
       hint: 'Shoot plans belong to a video. Choose a video to prepare its checklist.',
     },
   };
+  window.TimContentDriveSession = new EventTarget();
   const frames = new Map();
   const status = document.getElementById('status');
   const links = [...document.querySelectorAll('[data-mode]')];
