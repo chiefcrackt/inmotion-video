@@ -613,17 +613,7 @@
         header h1 {
           font-size: clamp(28px, 9vw, 36px);
         }
-        header p.links {
-          font-size: 12px;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 4px 8px;
-          align-items: center;
-        }
-        header p.links .home {
-          flex-basis: auto;
-          letter-spacing: 1.2px;
-        }
+
         .tabs {
           gap: 6px;
         }
@@ -642,13 +632,56 @@
       .tim-projects {
         order: 99;
       }
+      /* Template links live in a collapsed Templates section, not the header. */
+      header details.templates {
+        border: 0;
+        background: none;
+        border-radius: 0;
+        flex-basis: 100%;
+      }
+      header details.templates summary {
+        padding: 2px 0;
+        font-family: var(--ui);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 1.2px;
+        color: var(--muted);
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+      }
+      header details.templates summary:hover {
+        color: var(--gold);
+      }
+      header details.templates .links {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 13px;
+        padding: 0 0 6px;
+        color: var(--muted);
+      }
+      header details.templates .home {
+        flex-basis: auto;
+        letter-spacing: 1.2px;
+      }
+      /* Keep a focused field clear of the software keyboard on phones. */
+      input:focus,
+      select:focus,
+      textarea:focus {
+        scroll-margin-bottom: 140px;
+      }
     </style>
 
     <div class="wrap">
       <header>
         <span class="eyebrow">T.im · Covers</span>
         <h1>Cover Maker</h1>
-        <p class="links"><a class="home" href="../brand-assets/?template=banner">Customize the T.im YouTube banner</a> · <a class="home" href="../brand-assets/?template=flow">Find Your Flow story template</a></p>
+        <details class="templates">
+          <summary>Templates</summary>
+          <p class="links"><a class="home" href="../brand-assets/?template=banner">Customize the T.im YouTube banner</a><a class="home" href="../brand-assets/?template=flow">Find Your Flow story template</a></p>
+        </details>
         <p
           >YouTube thumbnails, Reel covers and Instagram highlight covers in the
           T.im look. Add a photo, drag it into place, type the words, and save a
