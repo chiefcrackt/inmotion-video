@@ -21,9 +21,97 @@ Feature 4 was dropped and is intentionally not listed.
 | 9 | [#10 Data-kit hit presets](#10-data-kit-hit-presets) | Sound Forge (`shared/sound/presets.mjs`) | done |
 | 10 | [#11 Idea Vault ↔ Content Planner sync](#11-idea-vault--content-planner-sync) | Idea Vault, Content Planner | done (local branch `feature/idea-content-sync`, not pushed; browser tests not run) |
 | 11 | Content Planner Edit checklist and final-film tracking | Content Planner | todo |
+| 12 | [General UI consistency and mobile editing](#general-ui-consistency-and-mobile-editing-claude) | Shared UI, dashboard, Cover Maker, Text Motion | todo |
 
 #1 is dropped (not planned). The Race Recap download pack (`tools/race-recap/`)
 is unchanged.
+
+## General UI consistency and mobile editing (Claude)
+
+**Status:** todo. Requested by Tristan, 2026-11-03. Claude owns implementation.
+
+**Review basis:** source at `23a1cf5`, followed by local Chrome rendering of the
+current homepage, Cover Maker, Text Motion and consolidated dashboard preview.
+Cover Maker, Text Motion and dashboard preview were inspected at 1440 × 900
+and/or 390 × 844 CSS-pixel viewports. These are desktop browser responsive
+checks, not actual-phone, screen-reader, export or live Drive validation.
+The hosted homepage returned a connection reset; local rendering succeeded.
+
+### What the rendered UI shows
+
+- The navy/teal/gold palette and condensed display headings already give the
+  product a coherent identity. Preserve them; improve hierarchy and readability.
+- Cover Maker's phone header includes two widely spaced template links before
+  its description and mode picker. The preview starts far down the first screen.
+- Cover Maker presents Project & Google Drive and Saved projects & text / theme
+  before its editing controls. These large panels compete with the edit task.
+- Text Motion has a substantially narrower desktop inspector than Cover Maker.
+  Both use small condensed labels/help, but their save panels differ in order,
+  typography and border treatment.
+- Text Motion's phone preview includes considerable surrounding space and takes
+  much of the first screen, pushing text entry below it.
+- The consolidated dashboard does reflow to one column at phone width. Its
+  wrapped filter panel occupies substantial vertical space before the first
+  tool. Do not report horizontal overflow from a screenshot captured during
+  viewport transition; the settled layout was checked and fits.
+
+### Implementation order
+
+1. **Shared interface typography and controls.** Keep Barlow Condensed for
+   display headings and exported artwork. Use a regular-width sans serif for
+   interface labels, inputs and help. Establish shared spacing, type sizes,
+   button variants, field styling and panel tokens. Use a 16px interface base
+   and readable secondary text as starting points, then verify at normal zoom.
+   Scope typography changes to interface elements so canvas fonts and exported
+   designs retain their existing defaults. Reuse bundled/system fonts.
+2. **Pilot in Cover Maker and Text Motion.** Normalize inspector section
+   headings, save-panel order, padding and control heights. Reduce heavy boxes
+   around secondary settings; use spacing and subtle surface changes for groups.
+   Gold should identify the main action/selected state, teal supporting
+   interaction, and muted colors secondary information. Keep text state cues.
+3. **Shorten the path to editing on phones.** Compact Cover Maker's header and
+   move its template links into a secondary Templates area. Reduce Text Motion's
+   unused preview surround while preserving artwork aspect ratio. Let users
+   reach content controls quickly; consider an Edit / Preview switch that
+   preserves selection and scroll. Keep Export readily reachable with safe-area
+   spacing and no obstruction when the software keyboard is open.
+4. **Common editor hierarchy.** Use Content, Design, Motion (where applicable),
+   and Export. Place coordinates, detailed easing/timing and other secondary
+   adjustments under Advanced. Keep project identity/save state compact and
+   visible; move theme/typography out of the saved-project accordion. Preserve
+   all existing settings and render/export behavior. Separate Reset/Delete
+   visually from export actions. Use explicit labels and accessible names.
+5. **Dashboard polish after the pilot.** Compact the mobile filter area while
+   retaining discoverable categories and a clear selected state. Add small,
+   representative output previews for visual tools and outcome-based entry
+   labels such as Make a thumbnail / Animate text / Show run stats. Use existing
+   artwork or deterministic representative renders. Keep old-name search,
+   original destinations and no-JavaScript links. Improve the preview first;
+   do not silently replace the production homepage as part of this task.
+
+### Acceptance and verification
+
+- Before/after screenshots at 1440 × 900, 768 × 1024 and 390 × 844, after layout
+  settles, for the two pilot editors and dashboard preview. Include lower-page
+  controls and expanded panels, not just the initial screen.
+- Content editing is the primary inspector task; saving/cloud setup does not
+  dominate it. Desktop preview and controls have a clear hierarchy; phone
+  headers and preview surrounds do not unnecessarily delay text/media entry.
+- No horizontal page overflow at tested widths, clipped controls, overlapping
+  fixed actions or inaccessible content at 200% zoom. Touch actions have at
+  least 44px targets where practical. Check focus visibility and keyboard order.
+- Verify a representative edit, undo/redo where supported, save/reload and local
+  PNG/video export in each pilot. Preserve project IDs, formats, routes, stored
+  projects, canvas dimensions, output fonts, audio and transparency behavior.
+- Run relevant existing browser suites (`test:cover:browser`,
+  `test:projects:browser`, `test:responsive`, `test:hub`, `test:dashboard`) and
+  applicable build/static checks. Record actual commands/results and outstanding
+  checks; automated layout tests do not replace screenshot review.
+- Keep real-device sharing and live Drive validation tracked separately in
+  `docs/hosted-validation.md`; do not claim they pass from viewport emulation.
+- Deliver a focused pilot PR with screenshots and reusable UI tokens before
+  extending the pattern across every editor. This is a UI task; deeper save or
+  export architecture changes should be separately scoped if needed.
 
 ## Who does what
 
@@ -817,3 +905,4 @@ Still to do: the browser checks for both tools (`test:planner`, `test:idea-vault
 need `npm ci`, which the sandbox could not reach.
 
 ---
+
