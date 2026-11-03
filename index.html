@@ -26,7 +26,8 @@
         color-scheme: dark;
       }
       * { box-sizing: border-box; }
-      html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+      /* :root outranks shared/responsive.css (loaded later), so section jumps clear the sticky header. */
+      :root { scroll-behavior: smooth; scroll-padding-top: 76px; }
       body {
         margin: 0;
         background: var(--navy);
@@ -163,9 +164,10 @@
           <div><strong>T.IM</strong><span>STUDIO</span></div>
         </a>
         <nav class="desk-nav" aria-label="Main">
+          <a href="#top" data-nav="top">Home</a>
           <a href="idea-vault/">Ideas</a>
           <a href="#workspaces" data-nav="workspaces">Workspaces</a>
-          <a href="#tools" data-nav="tools">All tools</a>
+          <a href="#tools" data-nav="tools">Tools</a>
         </nav>
       </div>
     </header>
@@ -214,8 +216,8 @@
     <nav class="bottom" aria-label="Mobile">
       <a href="#top" data-bottom="top"><span data-icon="home"></span>Home</a>
       <a href="idea-vault/"><span data-icon="idea"></span>Ideas</a>
+      <a href="#workspaces" data-bottom="workspaces"><span data-icon="library"></span>Workspaces</a>
       <a href="#tools" data-bottom="tools"><span data-icon="grid"></span>Tools</a>
-      <a href="#workspaces" data-bottom="library"><span data-icon="library"></span>Library</a>
     </nav>
 
     <script type="module">
@@ -335,7 +337,7 @@
       const setCurrent = (id) => {
         for (const a of navLinks) {
           const key = a.dataset.nav || a.dataset.bottom;
-          a.setAttribute('aria-current', String(key === id || (id === 'workspaces' && key === 'library')));
+          a.setAttribute('aria-current', String(key === id));
         }
       };
       if ('IntersectionObserver' in window) {
