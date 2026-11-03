@@ -32,6 +32,15 @@ if (PRESETS[requested]) {
   url.searchParams.delete('template');
   history.replaceState(null, '', url);
 }
+// Canvas text needs its faces loaded up front; document.fonts.ready does not
+// fetch faces the page never uses directly.
+async function loadFonts() {
+  await Promise.all([
+    document.fonts.load('900 100px "Barlow Condensed"'),
+    document.fonts.load('700 100px "Barlow Condensed"'),
+    document.fonts.load('italic 700 100px "Barlow Condensed"'),
+  ]);
+}
 function status(message) {
   $('status').textContent = message;
 }
@@ -235,7 +244,7 @@ $('play').onclick = () => {
 };
 $('png').onclick = () =>
   guarded(async () => {
-    await document.fonts.ready;
+    await loadFonts();
     const out = document.createElement('canvas');
     [out.width, out.height] = dimensions(state);
     render(out.getContext('2d'), state);
@@ -291,7 +300,7 @@ $('record').onclick = () =>
       throw Error(
         'No supported recording format. Save PNG or try Chrome / Edge.',
       );
-    await document.fonts.ready;
+    await loadFonts();
     let stream,
       frame,
       wasCancelled = false;
@@ -401,5 +410,5 @@ window.__brandAssets = {
 };
 sync();
 save();
-await document.fonts.ready;
+await loadFonts();
 paint();

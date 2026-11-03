@@ -1,5 +1,44 @@
 import { COLORS as C, dimensions, beatAt } from './model.mjs';
+
+const FONT = 'Barlow Condensed';
 const easeOut = (x) => 1 - (1 - x) ** 3;
+// Matches the reference art: heavy headline, leaning right, set edge to edge.
+const SKEW = -0.16;
+const LAYOUT = {
+  eyebrowY: 370,
+  headTop: 440, // top of the first line's caps
+  headMaxW: 960,
+  headMaxBottom: 1010,
+  headSize: 330,
+  capRatio: 0.72,
+  leadRatio: 0.83,
+  subGap: 92, // baseline gap from the last headline line to the subline
+  subSize: 58,
+  waveY: 1340,
+  waveSize: 96, // ribbon thickness
+  waveGap: 24,
+  waveAmp: 120,
+};
+
+// Headline sizing shared by the renderer and the tests. `widthAt100` returns
+// a line's rendered width at font size 100, so the widest line can fill the
+// frame without the others changing size.
+export function textLayout(lines, widthAt100, factor = 1) {
+  const n = Math.max(1, lines.length),
+    widest = Math.max(1e-6, ...lines.map((l) => widthAt100(l) / 100));
+  const byWidth = LAYOUT.headMaxW / widest,
+    byHeight =
+      (LAYOUT.headMaxBottom - LAYOUT.headTop) /
+      (LAYOUT.capRatio + LAYOUT.leadRatio * (n - 1));
+  const size = Math.min(LAYOUT.headSize, byWidth, byHeight) * factor,
+    lead = size * LAYOUT.leadRatio,
+    baselines = lines.map(
+      (_, i) => LAYOUT.headTop + size * LAYOUT.capRatio + i * lead,
+    ),
+    subY = baselines[baselines.length - 1] + LAYOUT.subGap * factor;
+  return { size, baselines, subY };
+}
+
 function text(
   c,
   str,
@@ -11,17 +50,19 @@ function text(
   track = 0,
   max = 950,
   center = false,
+  style = 'normal',
 ) {
   c.save();
   c.fillStyle = color;
-  c.font = `${weight} ${size}px "Barlow Condensed"`;
+  const font = (sz) => `${style} ${weight} ${sz}px "${FONT}"`;
+  c.font = font(size);
   const width = () =>
     c.measureText(str).width + Math.max(0, str.length - 1) * track;
   if (width() > max) {
     const f = max / width();
     size *= f;
     track *= f;
-    c.font = `${weight} ${size}px "Barlow Condensed"`;
+    c.font = font(size);
   }
   if (center) x -= width() / 2;
   for (const ch of str) {
@@ -30,6 +71,16 @@ function text(
   }
   c.restore();
 }
+
+// Lean a line of text about its own baseline.
+function leaning(c, y, draw) {
+  c.save();
+  c.translate(0, y);
+  c.transform(1, 0, SKEW, 1, 0, 0);
+  draw();
+  c.restore();
+}
+
 function wave(c, W, y, amp, phase, color, thickness) {
   c.beginPath();
   for (let x = -20; x <= W + 20; x += 8) {
@@ -41,6 +92,52 @@ function wave(c, W, y, amp, phase, color, thickness) {
   c.lineWidth = thickness;
   c.stroke();
 }
+
+// Two parallel teal ribbons with gold hairlines outside each edge, matching
+// the reference art. Both ribbons share one phase so they stay parallel.
+function ribbons(c, W, yc, th, gap, amp, phase) {
+  const edge = (i, dy, x) =>
+    yc + i * (th + gap) + dy + amp * Math.sin((x / W) * Math.PI * 2 * 1.1 + phase);
+  for (let i = 0; i < 2; i++) {
+    c.beginPath();
+    for (let x = -20; x <= W + 20; x += 10) {
+      const v = edge(i, -th / 2, x);
+      if (x === -20) c.moveTo(x, v);
+      else c.lineTo(x, v);
+    }
+    for (let x = W + 20; x >= -20; x -= 10) c.lineTo(x, edge(i, th / 2, x));
+    c.closePath();
+    c.fillStyle = C.teal;
+    c.fill();
+    c.beginPath();
+    for (let x = -20; x <= W + 20; x += 10) {
+      const v = edge(i, 0, x);
+      if (x === -20) c.moveTo(x, v);
+      else c.lineTo(x, v);
+    }
+    c.save();
+    c.strokeStyle = C.paper;
+    c.globalAlpha = 0.22;
+    c.lineWidth = th * 0.14;
+    c.stroke();
+    c.restore();
+  }
+  for (const [i, sign] of [
+    [0, -1],
+    [1, 1],
+  ]) {
+    c.beginPath();
+    for (let x = -20; x <= W + 20; x += 10) {
+      const v = edge(i, sign * (th / 2 + 18), x);
+      if (x === -20) c.moveTo(x, v);
+      else c.lineTo(x, v);
+    }
+    c.strokeStyle = C.gold;
+    c.lineWidth = 4;
+    c.stroke();
+  }
+}
+
 export function render(c, s, { time = 0, video = false, guides = false } = {}) {
   const [W, H] = dimensions(s),
     banner = s.preset === 'banner',
@@ -80,20 +177,17 @@ export function render(c, s, { time = 0, video = false, guides = false } = {}) {
     c.restore();
   }
   if (s.layers.waves) {
-    c.save();
-    const y = (banner ? h / 2 : 1375) + (s.waveY * h) / 100,
-      amp = ((banner ? 40 : 82) * s.waveSize) / 100;
-    for (let i = 0; i < 2; i++)
-      wave(
-        c,
-        w,
-        y + i * (banner ? 160 : 132) - (banner ? 80 : 0),
-        amp,
-        phase,
-        C.teal,
-        ((banner ? 40 : 80) * s.waveSize) / 100,
-      );
-    c.restore();
+    const k = s.waveSize / 100;
+    const yc = (banner ? h / 2 : LAYOUT.waveY) + (s.waveY * h) / 100;
+    ribbons(
+      c,
+      w,
+      yc,
+      (banner ? 40 : LAYOUT.waveSize) * k,
+      (banner ? 14 : LAYOUT.waveGap) * k,
+      (banner ? 26 : LAYOUT.waveAmp) * k,
+      phase,
+    );
   }
   if (s.layers.hud) {
     c.strokeStyle = C.gold;
@@ -114,65 +208,65 @@ export function render(c, s, { time = 0, video = false, guides = false } = {}) {
   const factor = s.textSize / 100;
   if (banner) {
     if (s.layers.footer)
-      text(
-        c,
-        s.handle,
-        540,
-        h / 2 + 25,
-        64 * factor,
-        C.gold,
-        700,
-        6,
-        610,
-        true,
-      );
+      text(c, s.handle, 540, h / 2 + 25, 64 * factor, C.gold, 700, 6, 610, true);
   } else {
     c.save();
     c.translate(0, (s.textY * h) / 100);
     // The eyebrow never moves or fades.
     if (s.layers.eyebrow)
-      text(c, s.eyebrow, 60, 340, 37 * factor, body, 700, 5, 950);
+      text(c, s.eyebrow, 60, LAYOUT.eyebrowY, 37 * factor, body, 700, 5, 950);
     const beat = video ? beatAt(s, time) : null,
       holdingSubline = video && time >= s.duration * 0.8;
-    // The headline builds up: each line takes its still position when it
-    // arrives and stays on screen. Only the newest line reveals or glitches.
-    if (s.layers.headline) {
-      const lines = s.headline.toUpperCase().split('\n').filter(Boolean).slice(0, 6),
-        size = Math.min(265 * factor, 650 / Math.max(1, lines.length)),
-        newest = video ? beat.index : lines.length - 1;
-      lines.forEach((line, i) => {
-        if (i > newest) return;
-        const y = 450 + size * 0.86 + i * size;
-        let alpha = 1,
-          dy = 0,
-          glitch = false;
-        if (video && i === newest) {
-          const k = easeOut(Math.min(1, beat.elapsed / 0.3));
-          if (s.motion === 'reveal') {
-            alpha = k;
-            dy = (1 - k) * 40;
-          }
-          glitch = s.motion === 'glitch' && beat.elapsed < 0.18 / s.speed;
-        }
+    // The headline builds up: each line takes its place when it arrives and
+    // stays. Only the newest line reveals or glitches.
+    const lines = s.headline.toUpperCase().split('\n').filter(Boolean).slice(0, 6);
+    if (lines.length) {
+      const measure = (l) => {
         c.save();
-        c.globalAlpha = alpha;
-        c.translate(0, dy);
-        if (glitch) {
-          text(c, line, 54, y, size, C.teal, 900, 0, 950);
-          text(c, line, 66, y + 3, size, C.gold, 900, 0, 950);
-        } else text(c, line, 60, y, size, fg, 900, 0, 950);
+        c.font = `900 100px "${FONT}"`;
+        const m = c.measureText(l).width;
         c.restore();
-      });
-    }
-    // Subline takes over the last 20% of the loop and fades in over 0.4 s.
-    if (s.layers.subline && (!video || holdingSubline)) {
-      const k = video
-        ? easeOut(Math.min(1, (time - s.duration * 0.8) / 0.4))
-        : 1;
-      c.save();
-      c.globalAlpha = k;
-      text(c, s.subline, 60, 1130, 42 * factor, body, 700, 0, 950);
-      c.restore();
+        return m;
+      };
+      const { size, baselines, subY } = textLayout(lines, measure, factor),
+        newest = video ? beat.index : lines.length - 1;
+      if (s.layers.headline)
+        lines.forEach((line, i) => {
+          if (i > newest) return;
+          let alpha = 1,
+            dy = 0,
+            glitch = false;
+          if (video && i === newest) {
+            const k = easeOut(Math.min(1, beat.elapsed / 0.3));
+            if (s.motion === 'reveal') {
+              alpha = k;
+              dy = (1 - k) * 40;
+            }
+            glitch = s.motion === 'glitch' && beat.elapsed < 0.18 / s.speed;
+          }
+          c.save();
+          c.globalAlpha = alpha;
+          c.translate(0, dy);
+          leaning(c, baselines[i], () => {
+            if (glitch) {
+              text(c, line, 54, 0, size, C.teal, 900, 0, 960);
+              text(c, line, 66, 3, size, C.gold, 900, 0, 960);
+            } else text(c, line, 58, 0, size, fg, 900, 0, 960);
+          });
+          c.restore();
+        });
+      // The subline arrives under the finished stack in the last 20% of the loop.
+      if (s.layers.subline && (!video || holdingSubline)) {
+        const k = video
+          ? easeOut(Math.min(1, (time - s.duration * 0.8) / 0.4))
+          : 1;
+        c.save();
+        c.globalAlpha = k;
+        leaning(c, subY, () =>
+          text(c, s.subline, 58, 0, LAYOUT.subSize * factor, body, 700, 0, 960, false, 'italic'),
+        );
+        c.restore();
+      }
     }
     c.restore();
     if (s.layers.footer) {

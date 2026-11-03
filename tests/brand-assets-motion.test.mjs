@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { create, beatAt } from '../brand-assets/model.mjs';
-import { render } from '../brand-assets/render.mjs';
+import { render, textLayout } from '../brand-assets/render.mjs';
 
 // Stub 2D context that records every glyph drawn with its alpha and colour.
 function recorder() {
@@ -13,20 +13,25 @@ function recorder() {
     strokeStyle: '',
     lineWidth: 1,
     globalAlpha: 1,
+    ty: 0,
     save() {
-      stack.push({ a: this.globalAlpha, f: this.fillStyle });
+      stack.push({ a: this.globalAlpha, f: this.fillStyle, ty: this.ty });
     },
     restore() {
       const s = stack.pop();
       if (s) {
         this.globalAlpha = s.a;
         this.fillStyle = s.f;
+        this.ty = s.ty;
       }
     },
-    translate() {},
+    translate(x, y) {
+      this.ty += y;
+    },
     transform() {},
     scale() {},
     beginPath() {},
+    closePath() {},
     moveTo() {},
     lineTo() {},
     stroke() {},
@@ -37,7 +42,7 @@ function recorder() {
     setLineDash() {},
     measureText: (str) => ({ width: String(str).length * 10 }),
     fillText(ch, x, y) {
-      drawn.push({ ch, y, alpha: this.globalAlpha, color: this.fillStyle });
+      drawn.push({ ch, y: y + this.ty, alpha: this.globalAlpha, color: this.fillStyle });
     },
   };
   return { ctx, drawn };
@@ -62,21 +67,27 @@ test('beatAt splits the loop evenly and reports time since each word appeared', 
   assert.equal(beatAt(s, 6).index, 2);
 });
 
-// Still-layout baseline for line i of an n-line headline (matches render.mjs).
-const lineY = (i, n, factor = 1) => {
-  const size = Math.min(265 * factor, 650 / Math.max(1, n));
-  return 450 + size * 0.86 + i * size;
+// Same layout the renderer uses: the stub measures every line at 10px per char.
+const layoutFor = (s, factor = 1) =>
+  textLayout(
+    s.headline.toUpperCase().split('\n').filter(Boolean),
+    (l) => l.length * 10,
+    factor,
+  );
+const lineY = (i) => layoutFor(create('flow')).baselines[i];
+const SUB_Y = () => layoutFor(create('flow')).subY;
+const headlineYs = (drawn) => {
+  const ys = new Set(layoutFor(create('flow')).baselines);
+  return [...new Set(drawn.filter((d) => ys.has(d.y)).map((d) => d.y))].sort(
+    (a, b) => a - b,
+  );
 };
-const headlineYs = (drawn) =>
-  [...new Set(drawn.filter((d) => d.y < 1100 && d.y > 400).map((d) => d.y))]
-    .map((y) => Math.round(y))
-    .sort((a, b) => a - b);
 
 test('the eyebrow stays solid while headline words build up and reveal', () => {
   const s = create('flow');
   s.motion = 'reveal';
   for (const t of [0.05, 0.2, 2.1, 3.9]) {
-    const eyebrow = at(frame(s, t), 340);
+    const eyebrow = at(frame(s, t), 370);
     assert.ok(eyebrow.length > 0);
     assert.ok(eyebrow.every((d) => d.alpha === 1), `eyebrow faded at t=${t}`);
   }
@@ -84,25 +95,25 @@ test('the eyebrow stays solid while headline words build up and reveal', () => {
 
 test('headline builds up: each line stays on screen once it arrives', () => {
   const s = create('flow');
-  assert.deepEqual(headlineYs(frame(s, 0.5)), [Math.round(lineY(0, 3))]);
+  assert.deepEqual(headlineYs(frame(s, 0.5)), [lineY(0)]);
   assert.deepEqual(
     headlineYs(frame(s, 2.5)),
-    [Math.round(lineY(0, 3)), Math.round(lineY(1, 3))],
+    [lineY(0), lineY(1)],
   );
   assert.deepEqual(
     headlineYs(frame(s, 4.5)),
-    [0, 1, 2].map((i) => Math.round(lineY(i, 3))),
+    [0, 1, 2].map((i) => lineY(i)),
   );
 });
 
 test('reveal eases only the newest headline line in from invisible', () => {
   const s = create('flow');
   s.motion = 'reveal';
-  const newest = at(frame(s, 2.0), lineY(1, 3));
+  const newest = at(frame(s, 2.0), lineY(1) + 40); // reveal starts 40px low
   assert.ok(newest.length > 0 && newest.every((d) => d.alpha === 0));
-  const earlier = at(frame(s, 2.0), lineY(0, 3));
+  const earlier = at(frame(s, 2.0), lineY(0));
   assert.ok(earlier.every((d) => d.alpha === 1));
-  assert.ok(at(frame(s, 2.6), lineY(1, 3)).every((d) => d.alpha === 1));
+  assert.ok(at(frame(s, 2.6), lineY(1)).every((d) => d.alpha === 1));
 });
 
 test('glitch flashes the newest line once at the start of each word', () => {
@@ -116,8 +127,8 @@ test('glitch flashes the newest line once at the start of each word', () => {
 
 test('subline appears only in the last 20% of the loop and fades in', () => {
   const s = create('flow');
-  assert.equal(at(frame(s, 3.0), 1130).length, 0);
-  const fading = at(frame(s, 5.0), 1130);
+  assert.equal(at(frame(s, 3.0), SUB_Y()).length, 0);
+  const fading = at(frame(s, 5.0), SUB_Y());
   assert.ok(fading.length > 0 && fading.every((d) => d.alpha > 0 && d.alpha < 1));
-  assert.ok(at(frame(s, 5.8), 1130).every((d) => d.alpha === 1));
+  assert.ok(at(frame(s, 5.8), SUB_Y()).every((d) => d.alpha === 1));
 });
