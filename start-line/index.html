@@ -1828,6 +1828,11 @@
           sync();
           update();
         }
+        window.TimRunnerEditor = Object.freeze({
+          isBusy: function () {
+            return !RIG || !SIM || !!playing || $('rec').disabled;
+          },
+        });
         window.TimProjects.mount({
           tool: 'start-line',
           busy: function () {

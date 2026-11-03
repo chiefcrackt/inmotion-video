@@ -16,6 +16,10 @@ Publishing Studio has a local preview at `/publishing-studio/`, grouping Covers,
 Promo clips and Brand templates with the original saved-project formats. See
 [preview behavior and validation](publishing-studio/README.md).
 
+Runner Animator has a local preview at `/runner-animator/`, grouping Start Line
+and Running scenes while preserving their renderers, sound and project formats.
+See [compatibility and validation](runner-animator/README.md).
+
 Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at
 **https://chiefcrackt.github.io/inmotion-video/**
 

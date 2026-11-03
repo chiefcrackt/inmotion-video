@@ -1,0 +1,85 @@
+(() => {
+  const modes = {
+    start: {
+      path: '../start-line/',
+      title: 'Start Line Recorder',
+      hint: 'Choose a countdown, a takeoff and a finish.',
+    },
+    run: {
+      path: '../river-run/',
+      title: 'Running scenes',
+      hint: 'Choose a scene, outfit, pace and jumps.',
+    },
+  };
+  const frames = new Map();
+  const links = [...document.querySelectorAll('[data-mode]')];
+  const status = document.getElementById('status');
+  let active;
+  function editorUrl(mode) {
+    const url = new URL(modes[mode].path, location.href);
+    url.search = location.search;
+    return url;
+  }
+  function show(mode, updateUrl = true) {
+    if (active && active !== mode) {
+      const frame = frames.get(active);
+      if (frame?.contentWindow.TimRunnerEditor?.isBusy()) {
+        status.textContent =
+          'Wait for the preview, recording or scene loading to finish before changing modes.';
+        return false;
+      }
+      frame?.contentDocument
+        ?.querySelectorAll('video, audio')
+        .forEach((media) => media.pause());
+    }
+    status.textContent = '';
+    if (!frames.has(mode)) {
+      const frame = document.createElement('iframe');
+      frame.dataset.mode = mode;
+      frame.title = modes[mode].title;
+      frame.allow = 'autoplay; web-share';
+      frame.src = editorUrl(mode).href;
+      frame.addEventListener('load', () => {
+        frame.contentDocument?.addEventListener('click', (event) => {
+          const link = event.target.closest('a[href]');
+          if (
+            !link ||
+            link.hasAttribute('download') ||
+            link.protocol === 'blob:' ||
+            link.origin !== location.origin ||
+            link.target === '_blank'
+          )
+            return;
+          link.target = '_top';
+        });
+      });
+      frames.set(mode, frame);
+      document.getElementById('editors').append(frame);
+    }
+    active = mode;
+    for (const [id, frame] of frames) frame.hidden = id !== mode;
+    for (const link of links) {
+      if (link.dataset.mode === mode) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    }
+    document.getElementById('hint').textContent = modes[mode].hint;
+    document.getElementById('standalone').href = editorUrl(mode).href;
+    if (updateUrl) history.replaceState(null, '', '#' + mode);
+    return true;
+  }
+  for (const link of links)
+    link.addEventListener('click', (event) => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)
+        return;
+      event.preventDefault();
+      show(link.dataset.mode);
+    });
+  const requested = () =>
+    Object.hasOwn(modes, location.hash.slice(1))
+      ? location.hash.slice(1)
+      : 'start';
+  window.addEventListener('hashchange', () => {
+    if (!show(requested(), false)) history.replaceState(null, '', '#' + active);
+  });
+  show(requested(), false);
+})();

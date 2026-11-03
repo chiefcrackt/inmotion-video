@@ -2311,6 +2311,11 @@
           sync();
           update();
         }
+        window.TimRunnerEditor = Object.freeze({
+          isBusy: function () {
+            return !PP || !!playing || recording || backgroundLoading || outfitLoading;
+          },
+        });
         window.TimProjects.mount({
           tool: 'river-run',
           busy: function () {
