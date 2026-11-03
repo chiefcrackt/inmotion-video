@@ -96,6 +96,30 @@ export const toys = [
     actions: ['Run + deliver', 'Peek + celebrate'],
     label: 'MY LITTLE FIND',
   },
+  {
+    id: 'running-shoe',
+    name: 'Running shoe',
+    actions: ['Lace up + sprint', 'Bounce + bolt'],
+    label: 'LACE UP',
+  },
+  {
+    id: 'stopwatch',
+    name: 'Stopwatch',
+    actions: ['Tick + reset', 'Personal best'],
+    label: 'NEW PB',
+  },
+  {
+    id: 'route-pin',
+    name: 'Route pin',
+    actions: ['Trace route + drop pin', 'Summit flag'],
+    label: 'TRAIL MARKED',
+  },
+  {
+    id: 'finisher-medal',
+    name: 'Finisher medal',
+    actions: ['Spin + shine', 'Ribbon drop'],
+    label: 'YOU FINISHED',
+  },
 ];
 const N = '#0e1a2e',
   G = '#e8c96a',
@@ -107,6 +131,27 @@ const back = (x) => {
   x = clamp(x) - 1;
   return 1 + 2.70158 * x * x * x + 1.70158 * x * x;
 };
+// Route for the route pin: cubic Bezier from start to summit, drawn up to q.
+const ROUTE = [
+  [110, 420],
+  [160, 250],
+  [230, 430],
+  [250, 230],
+];
+function routeD(q) {
+  const pts = [];
+  for (let i = 0; i <= 48; i++) {
+    const t = (q * i) / 48,
+      u = 1 - t,
+      at = (k) =>
+        u * u * u * ROUTE[0][k] +
+        3 * u * u * t * ROUTE[1][k] +
+        3 * u * t * t * ROUTE[2][k] +
+        t * t * t * ROUTE[3][k];
+    pts.push(`${at(0).toFixed(1)} ${at(1).toFixed(1)}`);
+  }
+  return 'M' + pts.join('L');
+}
 export function commands(id, progress, remix = false) {
   const solo = id.endsWith('-solo');
   id = id.replace(/-solo$/, '');
@@ -717,6 +762,152 @@ export function commands(id, progress, remix = false) {
     );
     panel(470, 270, Math.max(0.001, back((p - 0.6) / 0.4)));
     burst(300, 245, clamp((p - 0.75) / 0.25));
+  } else if (id === 'running-shoe') {
+    const arrive = ease(p / 0.5),
+      sprint = clamp((p - 0.45) / 0.4),
+      settle = ease((p - 0.85) / 0.15),
+      drop = back(p / 0.55),
+      laces = ease(p / 0.35),
+      bolt = ease((p - 0.6) / 0.3),
+      x = remix ? 300 : 130 + 160 * arrive,
+      y = remix
+        ? 280 - 130 * (1 - drop)
+        : 280 + 6 * Math.sin(p * 28) * sprint * (1 - settle),
+      tilt = remix ? 0 : -0.08 * sprint * (1 - settle),
+      streak = 70 * sprint * (1 - settle);
+    group(x, y, 1, tilt, () => {
+      if (!remix)
+        path(
+          `M-110-24h${-streak}M-120 6h${-streak * 0.7}`,
+          'none',
+          T,
+          6,
+        );
+      path(
+        'M-78 10Q-82-34-44-44L-8-60Q16-66 26-30L44-12Q80-6 82 22V34Q82 46 68 46H-66Q-78 46-78 34Z',
+        N,
+        G,
+        5,
+      );
+      path('M-56 6Q-10-8 44 4', 'none', T, 6);
+      path('M-18-54Q-8-82 10-72L14-44', 'none', G, 5);
+      for (let i = 0; i < 3; i++) {
+        const x0 = -12 + i * 14,
+          y0 = -46 + i * 9;
+        path(`M${x0} ${y0}l${14 * laces} ${-8 * laces}`, 'none', G, 4);
+      }
+      path('M-84 36H84V46Q84 54 74 54H-74Q-84 54-84 46Z', T, N, 4);
+    });
+    if (remix)
+      group(420, 190, Math.max(0.001, bolt), 0, () =>
+        path('M0 0L-14 30H4L-8 60', 'none', G, 8),
+      );
+    panel(470, 270, Math.max(0.001, back((p - 0.6) / 0.4)));
+    burst(310, 215, clamp((p - 0.8) / 0.2));
+  } else if (id === 'stopwatch') {
+    const pop = back(p / 0.3),
+      sweep = remix ? ease(p / 0.7) : ease(p / 0.8),
+      angle = remix ? 270 * sweep : Math.round((720 * sweep) / 30) * 30,
+      ring = clamp((p - 0.6) / 0.25);
+    group(290, 270, Math.max(0.001, pop), 0, () => {
+      path('M-14-86h28v-14h-28Z', T, N, 4);
+      path('M72-20h14v20h-14Z', T, N, 4);
+      ellipse(0, 0, 84, 84, N, G, 9);
+      ellipse(0, 0, 62, 62, 'none', T, 4);
+      for (let i = 0; i < 12; i++) {
+        const a = (i * Math.PI) / 6;
+        ellipse(Math.cos(a) * 73, Math.sin(a) * 73, 3, 3, G);
+      }
+      group(0, 0, 1, (angle * Math.PI) / 180, () =>
+        path('M0 8V-54', 'none', G, 6),
+      );
+      ellipse(0, 0, 7, 7, T, N, 3);
+    });
+    if (remix)
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3 + 0.5;
+        spark(
+          290 + Math.cos(a) * (120 + 30 * ring),
+          270 + Math.sin(a) * (120 + 30 * ring),
+          ring * (1 - clamp((p - 0.9) / 0.1)) * 0.9,
+          a,
+        );
+      }
+    panel(470, 270, Math.max(0.001, back((p - 0.6) / 0.4)));
+  } else if (id === 'route-pin') {
+    const line = routeD(ease(p / 0.6));
+    path(line, 'none', N, 17);
+    path(line, 'none', T, 8);
+    if (!remix) {
+      const drop = back((p - 0.5) / 0.4),
+        appear = clamp((p - 0.5) / 0.1);
+      group(250, 230 - 150 * (1 - clamp(drop)), Math.max(0.001, appear), 0, () => {
+        path('M-26-40A26 26 0 1 1 26-40Q26-18 0 0Q-26-18-26-40Z', G, N, 5);
+        ellipse(0, -40, 9, 9, N);
+      });
+    } else {
+      const pole = ease((p - 0.4) / 0.4),
+        h = 110 * pole,
+        top = 230 - h,
+        flagOut = ease((p - 0.5) / 0.3),
+        flutter = 4 * Math.sin(p * 18) * (1 - ease((p - 0.85) / 0.15));
+      path(`M250 230V${top.toFixed(1)}`, 'none', N, 11);
+      path(`M250 230V${top.toFixed(1)}`, 'none', G, 5);
+      path(
+        `M250 ${top.toFixed(1)}L${(250 + 46 * flagOut).toFixed(1)} ${(top + 16 + flutter).toFixed(1)}L250 ${(top + 34).toFixed(1)}Z`,
+        G,
+        N,
+        3,
+      );
+      burst(250, top, clamp((p - 0.85) / 0.15));
+    }
+    panel(470, 270, Math.max(0.001, back((p - 0.6) / 0.4)));
+  } else if (id === 'finisher-medal') {
+    const ribbon = () => {
+      path('M-26-86L-46-170L-20-160L-6-88Z', T, N, 4);
+      path('M26-86L46-170L20-160L6-88Z', T, N, 4);
+    };
+    const medal = () => {
+      ellipse(0, 0, 92, 92, G, N, 6);
+      ellipse(0, 0, 70, 70, 'none', N, 4);
+      ellipse(0, 0, 52, 52, T, N, 4);
+      path('M0-30 8-10 29-9 13 5 18 26 0 14-18 26-13 5-29-9-8-10Z', G, N, 3);
+    };
+    if (!remix) {
+      const turn = Math.cos(ease(p / 0.8) * Math.PI * 4);
+      add('save');
+      add('translate', 260, 260);
+      add('rotate', 0);
+      add('scale', turn || 0.001, 1);
+      ribbon();
+      medal();
+      add('restore');
+    } else {
+      const drop = back(p / 0.55),
+        settle = ease((p - 0.7) / 0.3);
+      group(
+        260,
+        150 + 110 * drop,
+        Math.max(0.001, ease(p / 0.2)),
+        0.2 * Math.sin(p * 14) * (1 - settle),
+        () => {
+          ribbon();
+          medal();
+        },
+      );
+    }
+    const q = clamp((p - 0.75) / 0.25);
+    if (q > 0 && q < 1)
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3;
+        spark(
+          260 + Math.cos(a) * (130 + 30 * q),
+          260 + Math.sin(a) * (130 + 30 * q),
+          (1 - q) * 0.8,
+          a,
+        );
+      }
+    panel(470, 270, Math.max(0.001, back((p - 0.6) / 0.4)));
   } else throw Error('Unknown motion toy');
   return out;
 }

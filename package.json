@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at\r **https://chiefcrackt.github.io/inmotion-video/**",
   "scripts": {
-    "test:weird-motion": "node tests/weird-motion-browser.cjs",
+    "test:weird-motion": "node --test tests/weird-motion.test.mjs && node tests/weird-motion-browser.cjs",
     "build:weird-motion": "node tools/build-weird-motion.cjs",
     "test:brand-assets": "node --test tests/brand-assets.test.mjs tests/brand-assets-motion.test.mjs && node tests/brand-assets-browser.cjs",
     "test:asset-motion": "node --test tests/asset-motion.test.mjs && node tests/asset-motion-browser.cjs",
