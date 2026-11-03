@@ -62,7 +62,17 @@ test('beatAt splits the loop evenly and reports time since each word appeared', 
   assert.equal(beatAt(s, 6).index, 2);
 });
 
-test('the eyebrow stays solid while headline words change and reveal', () => {
+// Still-layout baseline for line i of an n-line headline (matches render.mjs).
+const lineY = (i, n, factor = 1) => {
+  const size = Math.min(265 * factor, 650 / Math.max(1, n));
+  return 450 + size * 0.86 + i * size;
+};
+const headlineYs = (drawn) =>
+  [...new Set(drawn.filter((d) => d.y < 1100 && d.y > 400).map((d) => d.y))]
+    .map((y) => Math.round(y))
+    .sort((a, b) => a - b);
+
+test('the eyebrow stays solid while headline words build up and reveal', () => {
   const s = create('flow');
   s.motion = 'reveal';
   for (const t of [0.05, 0.2, 2.1, 3.9]) {
@@ -72,22 +82,36 @@ test('the eyebrow stays solid while headline words change and reveal', () => {
   }
 });
 
-test('reveal eases each headline word in from invisible as it arrives', () => {
+test('headline builds up: each line stays on screen once it arrives', () => {
   const s = create('flow');
-  s.motion = 'reveal';
-  const arriving = at(frame(s, 2.0), 780); // 'YOUR' has just appeared
-  assert.ok(arriving.every((d) => d.alpha === 0));
-  const settled = at(frame(s, 2.6), 780);
-  assert.ok(settled.every((d) => d.alpha === 1));
+  assert.deepEqual(headlineYs(frame(s, 0.5)), [Math.round(lineY(0, 3))]);
+  assert.deepEqual(
+    headlineYs(frame(s, 2.5)),
+    [Math.round(lineY(0, 3)), Math.round(lineY(1, 3))],
+  );
+  assert.deepEqual(
+    headlineYs(frame(s, 4.5)),
+    [0, 1, 2].map((i) => Math.round(lineY(i, 3))),
+  );
 });
 
-test('glitch flashes once at the start of each word, not on a 1-second strobe', () => {
+test('reveal eases only the newest headline line in from invisible', () => {
+  const s = create('flow');
+  s.motion = 'reveal';
+  const newest = at(frame(s, 2.0), lineY(1, 3));
+  assert.ok(newest.length > 0 && newest.every((d) => d.alpha === 0));
+  const earlier = at(frame(s, 2.0), lineY(0, 3));
+  assert.ok(earlier.every((d) => d.alpha === 1));
+  assert.ok(at(frame(s, 2.6), lineY(1, 3)).every((d) => d.alpha === 1));
+});
+
+test('glitch flashes the newest line once at the start of each word', () => {
   const s = create('flow');
   s.motion = 'glitch';
-  const colours = (t) => new Set(at(frame(s, t), 780).map((d) => d.color));
-  assert.ok(colours(2.05).has('#2E9BAD')); // teal offset copy during the burst
-  assert.ok(!colours(2.5).has('#2E9BAD')); // settled word is plain
-  assert.ok(!colours(3.05).has('#2E9BAD') || beatAt(s, 3.05).elapsed < 0.18);
+  const teal = (t) =>
+    frame(s, t).some((d) => d.color === '#2E9BAD' && d.y > 400 && d.y < 1100);
+  assert.ok(teal(2.05));
+  assert.ok(!teal(2.5));
 });
 
 test('subline appears only in the last 20% of the loop and fades in', () => {

@@ -129,40 +129,40 @@ export function render(c, s, { time = 0, video = false, guides = false } = {}) {
   } else {
     c.save();
     c.translate(0, (s.textY * h) / 100);
-    // Eyebrow never moves or fades; only the current headline word animates.
+    // The eyebrow never moves or fades.
     if (s.layers.eyebrow)
       text(c, s.eyebrow, 60, 340, 37 * factor, body, 700, 5, 950);
     const beat = video ? beatAt(s, time) : null,
       holdingSubline = video && time >= s.duration * 0.8;
-    if (s.layers.headline && (!holdingSubline || !s.layers.subline || !s.subline)) {
-      let alpha = 1,
-        dy = 0,
-        glitch = false;
-      if (video) {
-        // Each word eases in over 0.3 s as it arrives (reveal), and the
-        // glitch hits for a short burst at the start of each word.
-        const k = easeOut(Math.min(1, beat.elapsed / 0.3));
-        if (s.motion === 'reveal') {
-          alpha = k;
-          dy = (1 - k) * 40;
-        }
-        glitch = s.motion === 'glitch' && beat.elapsed < 0.18 / s.speed;
-      }
-      c.save();
-      c.globalAlpha = alpha;
-      c.translate(0, dy);
-      const lines = video
-        ? [beat.line]
-        : s.headline.toUpperCase().split('\n').filter(Boolean).slice(0, 6);
-      const size = Math.min(265 * factor, 650 / Math.max(1, lines.length));
+    // The headline builds up: each line takes its still position when it
+    // arrives and stays on screen. Only the newest line reveals or glitches.
+    if (s.layers.headline) {
+      const lines = s.headline.toUpperCase().split('\n').filter(Boolean).slice(0, 6),
+        size = Math.min(265 * factor, 650 / Math.max(1, lines.length)),
+        newest = video ? beat.index : lines.length - 1;
       lines.forEach((line, i) => {
-        const y = video ? 780 : 450 + size * 0.86 + i * size;
+        if (i > newest) return;
+        const y = 450 + size * 0.86 + i * size;
+        let alpha = 1,
+          dy = 0,
+          glitch = false;
+        if (video && i === newest) {
+          const k = easeOut(Math.min(1, beat.elapsed / 0.3));
+          if (s.motion === 'reveal') {
+            alpha = k;
+            dy = (1 - k) * 40;
+          }
+          glitch = s.motion === 'glitch' && beat.elapsed < 0.18 / s.speed;
+        }
+        c.save();
+        c.globalAlpha = alpha;
+        c.translate(0, dy);
         if (glitch) {
           text(c, line, 54, y, size, C.teal, 900, 0, 950);
           text(c, line, 66, y + 3, size, C.gold, 900, 0, 950);
         } else text(c, line, 60, y, size, fg, 900, 0, 950);
+        c.restore();
       });
-      c.restore();
     }
     // Subline takes over the last 20% of the loop and fades in over 0.4 s.
     if (s.layers.subline && (!video || holdingSubline)) {
