@@ -109,14 +109,22 @@ export function cueTimes(s) {
             Math.max(1, s.headline.split('\n').filter(Boolean).length),
       );
 }
-export function headlineAt(s, t) {
+// The loop is split evenly between headline lines. `elapsed` is seconds since
+// the current line appeared; every word-level effect is keyed to it.
+export function beatAt(s, t) {
   const lines = s.headline.toUpperCase().split('\n').filter(Boolean);
-  return (
-    lines[
-      Math.min(
-        lines.length - 1,
-        Math.floor((Math.max(0, t) / s.duration) * lines.length),
-      )
-    ] || ''
-  );
+  const count = Math.max(1, lines.length);
+  const length = s.duration / count;
+  const clamped = Math.min(Math.max(0, t), s.duration - 1e-9);
+  const index = Math.min(count - 1, Math.floor(clamped / length));
+  return {
+    line: lines[index] || '',
+    index,
+    count,
+    length,
+    elapsed: clamped - index * length,
+  };
+}
+export function headlineAt(s, t) {
+  return beatAt(s, t).line;
 }
