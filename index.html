@@ -174,7 +174,7 @@
       <div class="hero">
         <div class="eyebrow">T.IM Creator Workspace</div>
         <h1>From the first idea to the final upload.</h1>
-        <p>Plan a video, make its graphics, build running visuals, shape the audio and prepare the posts, all from one place.</p>
+        <p>Plan a video, make its graphics, build running visuals, shape the audio and prepare the posts, all from one place. Every tool exports both 16:9 and 9:16.</p>
       </div>
 
 
@@ -184,7 +184,7 @@
       </section>
 
       <section id="workspaces" aria-labelledby="ws-h">
-        <div class="section-head"><h2 id="ws-h">Explore workspaces</h2><span>Six collections</span></div>
+        <div class="section-head"><h2 id="ws-h">Explore workspaces</h2><span id="ws-count"></span></div>
         <div class="workspaces" id="ws-list"></div>
       </section>
 
@@ -215,7 +215,7 @@
       <a href="#top" data-bottom="top"><span data-icon="home"></span>Home</a>
       <a href="idea-vault/"><span data-icon="idea"></span>Ideas</a>
       <a href="#tools" data-bottom="tools"><span data-icon="grid"></span>Tools</a>
-      <a href="#ws-library" data-bottom="library"><span data-icon="library"></span>Library</a>
+      <a href="#workspaces" data-bottom="library"><span data-icon="library"></span>Library</a>
     </nav>
 
     <script type="module">
@@ -253,6 +253,7 @@
 
       // Workspaces
       const counts = workspaceCounts();
+      $('#ws-count').textContent = WORKSPACES.length + ' collections';
       const wsList = $('#ws-list');
       for (const w of WORKSPACES) {
         const a = el('a', { class: 'ws', href: '#tools', id: 'ws-' + w.id, 'data-ws': w.id });
