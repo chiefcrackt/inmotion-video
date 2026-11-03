@@ -16,6 +16,12 @@
      morphAt: seconds (same clock as t) when the morph starts,
      morphLen: seconds the morph takes,
      mt: optional clock for the morph (defaults to t), for tools that replay t backwards,
+     maxWidth: optional widest a punched word may grow to, in the same units as x,
+     perChar: true to space letters by their single widths (for tools that draw one
+       letter at a time), so the hand-off to the tool's own drawing doesn't shift,
+     passes: optional layers, drawn in order, e.g. an outline then a fill:
+       [{ op: 'stroke', style: '#0E1A2E', width: 14, dx: 0, dy: 0 }, { op: 'fill', style: '#E8C96A' }]
+       Without passes, letters use the canvas's current fill.
    }
    Once a morph has finished, any replay of the entrance (a Reverse exit) uses the new text.
    draw(c, spec, line) returns false when the tool should draw its own Original
@@ -159,17 +165,23 @@
     var m = /(\d+(?:\.\d+)?)px/.exec(c.font);
     return m ? parseFloat(m[1]) : 16;
   }
-  function layout(c, lines, align) {
-    var key = c.font + '|' + (c.letterSpacing || '') + '|' + align + '|' + JSON.stringify(lines);
+  function layout(c, lines, align, perChar) {
+    var key = c.font + '|' + (c.letterSpacing || '') + '|' + align + '|' + (perChar ? 1 : 0) + '|' + JSON.stringify(lines);
     var hit = cache.get(key);
     if (hit) return hit;
     if (cache.size > 300) cache.clear();
     c.save();
     c.textAlign = 'left';
     var L = layoutWith(
-      function (s) {
-        return c.measureText(s).width;
-      },
+      perChar
+        ? function (s) {
+            var w = 0;
+            for (var ch of Array.from(s)) w += c.measureText(ch).width;
+            return w;
+          }
+        : function (s) {
+            return c.measureText(s).width;
+          },
       lines,
       align,
       fontSize(c),
@@ -201,15 +213,23 @@
       cy = g.y - size * 0.35;
     c.translate(cx + tx, cy + ty);
     if (sx !== 1 || sy !== 1) c.scale(sx, sy);
-    c.fillText(ch, -g.w / 2, size * 0.35);
+    put(c, ch, -g.w / 2, size * 0.35);
     c.restore();
   }
   function alphaFor(spec, a) {
     return spec.opaque ? (a > 0 ? 1 : 0) : clamp(a);
   }
+  // The pass being drawn: tools with outlines or shadows list layers (passes) and
+  // every letter is drawn once per layer, so outlines never cut into neighbours.
+  var PASS = null;
+  function put(c, text, x, y) {
+    if (PASS && PASS.op === 'stroke') c.strokeText(text, x + PASS.dx, y + PASS.dy);
+    else if (PASS) c.fillText(text, x + PASS.dx, y + PASS.dy);
+    else c.fillText(text, x, y);
+  }
   function drawStatic(c, L, only) {
     L.lines.forEach(function (l, i) {
-      if (only == null || only === i) c.fillText(l.text, l.x0, l.y);
+      if (only == null || only === i) put(c, l.text, l.x0, l.y);
     });
   }
   function clipped(c, x, y, w, h, fn) {
@@ -276,7 +296,7 @@
         c.scale(sc, sc);
         c.translate(-cx, -cy);
         w.glyphs.forEach(function (g) {
-          c.fillText(g.ch, g.x, g.y);
+          put(c, g.ch, g.x, g.y);
         });
         c.restore();
       });
@@ -294,7 +314,7 @@
           var pm = unitProgress(li, n, t, len, 0.7);
           if (pm <= 0) return;
           clipped(c, l.x0 - pad, top, l.w + pad * 2, h, function () {
-            c.fillText(l.text, l.x0, l.y + (1 - eOut(pm)) * h);
+            put(c, l.text, l.x0, l.y + (1 - eOut(pm)) * h);
           });
         } else if (s === 'slice') {
           for (var b = 0; b < bands; b++) {
@@ -304,7 +324,7 @@
             var dir = u % 2 ? 1 : -1,
               dx = dir * (1 - eOut(ps)) * (l.w * 0.22 + size * 0.6);
             clipped(c, l.x0 - l.w - size * 2, top + (h / bands) * b, l.w * 3 + size * 4, h / bands + 0.5, function () {
-              c.fillText(l.text, l.x0 + dx, l.y);
+              put(c, l.text, l.x0 + dx, l.y);
             });
           }
         } else {
@@ -313,10 +333,10 @@
           var off = (1 - eOut(pp)) * (l.w * 0.4 + size * 2),
             mid = l.y - size * 0.35;
           clipped(c, l.x0 - l.w - size * 3, top, l.w * 3 + size * 6, mid - top, function () {
-            c.fillText(l.text, l.x0 - off, l.y);
+            put(c, l.text, l.x0 - off, l.y);
           });
           clipped(c, l.x0 - l.w - size * 3, mid, l.w * 3 + size * 6, top + h - mid, function () {
-            c.fillText(l.text, l.x0 + off, l.y);
+            put(c, l.text, l.x0 + off, l.y);
           });
         }
       });
@@ -355,7 +375,10 @@
       lq = (t - k * slot) / slot,
       ww = w.x1 - w.x0,
       big = Math.min(1.7, Math.max(1.15, (L.box.w * 0.85) / Math.max(1, ww))),
-      sc = big * (1 + 0.25 * (1 - eOut(lq / 0.35))),
+      hit = 1 + 0.25 * (1 - eOut(lq / 0.35));
+    // Never wider than the tool allows, even at the peak of the hit.
+    if (spec.maxWidth) big = Math.max(0.5, Math.min(big, spec.maxWidth / Math.max(1, ww) / 1.25));
+    var sc = big * hit,
       cx = (w.x0 + w.x1) / 2,
       cy = w.y - size * 0.35;
     c.save();
@@ -363,7 +386,7 @@
     c.scale(sc, sc);
     c.translate(-cx, -cy);
     w.glyphs.forEach(function (g) {
-      c.fillText(g.ch, g.x, g.y);
+      put(c, g.ch, g.x, g.y);
     });
     c.restore();
     return true;
@@ -507,10 +530,13 @@
     g.textAlign = 'left';
     g.textBaseline = 'alphabetic';
     g.fillStyle = '#fff';
+    var keep = PASS;
+    PASS = null;
     g.globalAlpha = 1 - s;
     drawStatic(g, A);
     g.globalAlpha = s;
     drawStatic(g, B);
+    PASS = keep;
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.globalAlpha = 1;
     var img = g.getImageData(0, 0, w, h),
@@ -544,16 +570,50 @@
     var m = smooth(0, 0.22, k) * (1 - smooth(0.78, 1, k));
     if (spec.opaque) m = m > 0.5 ? 1 : 0;
     // The blob is drawn solid; crisp letters lie over it near the ends, so the
-    // text never looks washed out while the two hand over.
-    var base = c.globalAlpha;
-    c.drawImage(goo, 0, 0, w, h, bx, by, w / q, h / q);
+    // text never looks washed out while the two hand over. With layers, the blob
+    // is tinted per layer, and outlines are the blob drawn a little larger.
+    var base = c.globalAlpha,
+      passes = spec.passes || [{ op: 'fill', style: c.fillStyle }];
+    passes.forEach(function (ps) {
+      g.globalCompositeOperation = 'source-in';
+      g.fillStyle = ps.style || c.fillStyle;
+      g.fillRect(0, 0, w, h);
+      g.globalCompositeOperation = 'source-over';
+      var dx = ps.dx || 0,
+        dy = ps.dy || 0,
+        rr = ps.op === 'stroke' ? (ps.width || c.lineWidth || 0) / 2 : 0,
+        ring = rr ? [[-rr, 0], [rr, 0], [0, -rr], [0, rr], [-rr * 0.7, -rr * 0.7], [rr * 0.7, -rr * 0.7], [-rr * 0.7, rr * 0.7], [rr * 0.7, rr * 0.7], [0, 0]] : [[0, 0]];
+      ring.forEach(function (o) {
+        c.drawImage(goo, 0, 0, w, h, bx + dx + o[0], by + dy + o[1], w / q, h / q);
+      });
+    });
     if (m < 1) {
       c.globalAlpha = base * (1 - m);
-      drawStatic(c, k < 0.5 ? A : B);
+      eachPass(c, spec, function () {
+        drawStatic(c, k < 0.5 ? A : B);
+      });
     }
     c.globalAlpha = base;
   }
 
+  function eachPass(c, spec, fn) {
+    if (!spec.passes) return fn();
+    spec.passes.forEach(function (ps) {
+      c.save();
+      if (ps.op === 'stroke') {
+        c.strokeStyle = ps.style || c.strokeStyle;
+        if (ps.width) c.lineWidth = ps.width;
+        c.lineJoin = 'round';
+      } else if (ps.style) c.fillStyle = ps.style;
+      PASS = { op: ps.op === 'stroke' ? 'stroke' : 'fill', dx: ps.dx || 0, dy: ps.dy || 0 };
+      try {
+        fn();
+      } finally {
+        PASS = null;
+        c.restore();
+      }
+    });
+  }
   function draw(c, spec, only) {
     var align = spec.align || 'left';
     c.save();
@@ -562,20 +622,29 @@
     var ph = phase(spec),
       result = true;
     if (ph.state === 'to') {
-      var LB = layout(c, spec.to.lines, align);
-      if (IDS.indexOf(spec.style) > 0 && spec.t < spec.len) entrance(c, spec, LB, only);
-      else drawStatic(c, LB, only);
-    }
-    else if (ph.state === 'morph') {
+      var LB = layout(c, spec.to.lines, align, spec.perChar);
+      eachPass(c, spec, function () {
+        if (IDS.indexOf(spec.style) > 0 && spec.t < spec.len) entrance(c, spec, LB, only);
+        else drawStatic(c, LB, only);
+      });
+    } else if (ph.state === 'morph') {
       if (only == null || only === 0) {
-        var A = layout(c, spec.lines, align),
-          B = layout(c, spec.to.lines, align);
-        if (spec.morph === 'scramble') scramble(c, spec, A, B, ph.k);
-        else if (spec.morph === 'liquid') liquid(c, spec, A, B, ph.k);
-        else glide(c, spec, A, B, ph.k);
+        var A = layout(c, spec.lines, align, spec.perChar),
+          B = layout(c, spec.to.lines, align, spec.perChar);
+        if (spec.morph === 'liquid') liquid(c, spec, A, B, ph.k);
+        else
+          eachPass(c, spec, function () {
+            if (spec.morph === 'scramble') scramble(c, spec, A, B, ph.k);
+            else glide(c, spec, A, B, ph.k);
+          });
       }
     } else if (!spec.style || spec.style === 'original' || IDS.indexOf(spec.style) < 0) result = false;
-    else entrance(c, spec, layout(c, spec.lines, align), only);
+    else {
+      var LA = layout(c, spec.lines, align, spec.perChar);
+      eachPass(c, spec, function () {
+        entrance(c, spec, LA, only);
+      });
+    }
     c.restore();
     return result;
   }
@@ -593,6 +662,12 @@
     whole: function (spec) {
       var ph = phase(spec);
       return ph.state === 'morph' || (spec.style === 'punch' && spec.t >= 0 && spec.t < spec.len);
+    },
+    // When a morph should run: centred between the end of the entrance and the
+    // moment the tool's own ending begins, in that tool's clock.
+    morphWindow: function (enterEnd, endBy, len) {
+      var at = Math.max(enterEnd + 0.4, (enterEnd + endBy - len) / 2);
+      return { at: at, len: Math.max(0.3, Math.min(len, endBy - at)) };
     },
     // Seconds of hold after the entrance that a morph needs to read well.
     morphRoom: function (morphLen) {

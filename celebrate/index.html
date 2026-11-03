@@ -521,7 +521,7 @@
       }</style
     ><link rel="stylesheet" href="../shared/fonts.css" /><link
       rel="stylesheet"
-      href="../shared/projects.css" /><script src="../shared/projects.js"></script><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head><body><tim-studio-bar></tim-studio-bar>
+      href="../shared/projects.css" /><script src="../shared/projects.js"></script><script src="../shared/kinetic.js"></script><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head><body><tim-studio-bar></tim-studio-bar>
     <div class="wrap">
       <header>
         <span class="eyebrow">T.im · Celebrate</span>
@@ -642,6 +642,46 @@
               >The number is the age on the candles and balloons, the bib
               number, or the big number on the medal.</p
             >
+          </fieldset>
+
+          <fieldset>
+            <legend>Text motion</legend>
+            <div class="row" id="kinStyles"
+              ><span class="lab">Words in</span>
+              <button class="chip" data-g="kin" data-v="original" type="button">Original</button>
+              <button class="chip" data-g="kin" data-v="cascade" type="button">Cascade</button>
+              <button class="chip" data-g="kin" data-v="bounce" type="button">Bounce</button>
+              <button class="chip" data-g="kin" data-v="wave" type="button">Wave</button>
+              <button class="chip" data-g="kin" data-v="flip" type="button">Flip</button>
+              <button class="chip" data-g="kin" data-v="decode" type="button">Decode</button>
+              <button class="chip" data-g="kin" data-v="words" type="button">Word by word</button>
+              <button class="chip" data-g="kin" data-v="punch" type="button">Word punch</button>
+              <button class="chip" data-g="kin" data-v="slice" type="button">Slice</button>
+              <button class="chip" data-g="kin" data-v="mask" type="button">Mask rise</button>
+              <button class="chip" data-g="kin" data-v="split" type="button">Split</button>
+            </div>
+            <div class="row" id="morphStyles"
+              ><span class="lab">Morph</span>
+              <button class="chip" data-g="morph" data-v="none" type="button">None</button>
+              <button class="chip" data-g="morph" data-v="glide" type="button">Word to word</button>
+              <button class="chip" data-g="morph" data-v="scramble" type="button">Scramble</button>
+              <button class="chip" data-g="morph" data-v="liquid" type="button">Liquid</button>
+            </div>
+            <div id="morphOpts">
+            <div class="row">
+              <label class="field"
+                ><span>Morph name into</span
+                ><input type="text" id="nameTo" maxlength="18" autocomplete="off"
+              /></label>
+            </div>
+            <div class="row"
+              ><span class="lab">Speed</span>
+              <button class="chip" data-g="morphLen" data-v="0.6" type="button">Quick</button>
+              <button class="chip" data-g="morphLen" data-v="1" type="button">Normal</button>
+              <button class="chip" data-g="morphLen" data-v="1.6" type="button">Slow</button>
+            </div>
+            </div>
+            <p class="note" id="kinNote"></p>
           </fieldset>
 
           <fieldset>
@@ -845,6 +885,10 @@
           len: '8',
           sound: 'party',
           vol: 80,
+          kin: 'original',
+          morph: 'none',
+          morphLen: '1',
+          nameTo: 'LEGEND',
         };
         try {
           var sv = JSON.parse(localStorage.getItem('tim_celebrate') || 'null');
@@ -1707,7 +1751,47 @@
             }
             y += 44 * k;
           }
-          if (name) {
+          // Kinetic name and morph (shared/kinetic.js), drawn in the same layers.
+          var nameB = S.morph !== 'none' ? up(S.nameTo || '').trim() : '',
+            kinName = !!window.TimKinetic && !!name && (TimKinetic.isKinetic(S.kin) || !!nameB);
+          if (kinName && u - 0.28 <= -0.01) y += 210 * k * 0.95; // not on screen yet; keep the spacing
+          else if (kinName) {
+            var pxK = fitFont(ctx, 900, 210 * k, 2 * k, name, mw);
+            if (nameB && fitFont(ctx, 900, 210 * k, 2 * k, nameB, mw) > pxK) fitFont(ctx, 900, 210 * k, 2 * k, name, mw);
+            else if (nameB) pxK = fitFont(ctx, 900, 210 * k, 2 * k, nameB, mw);
+            var baseY = y + pxK * 0.78,
+              mw0 = TimKinetic.morphWindow(P.tTitle + 0.28 + 0.5, P.L - 0.9, +S.morphLen),
+              spec = {
+                lines: [{ text: name, x: x, y: baseY }],
+                align: 'center',
+                t: u - 0.28,
+                len: 0.5,
+                style: S.kin,
+                seed: 71,
+                opaque: S.bg === 'green',
+                to: nameB ? { lines: [{ text: nameB, x: x, y: baseY }] } : null,
+                morph: nameB ? S.morph : 'none',
+                morphAt: mw0.at - P.tTitle - 0.28,
+                morphLen: mw0.len,
+                passes: [
+                  { op: 'stroke', style: C.navy, width: 14 * k, dx: 7 * k, dy: 7 * k },
+                  { op: 'fill', style: C.teal, dx: 7 * k, dy: 7 * k },
+                  { op: 'stroke', style: C.navy, width: 14 * k },
+                  { op: 'fill', style: C.gold },
+                ],
+              };
+            ctx.save();
+            ctx.textAlign = 'left';
+            if (!TimKinetic.draw(ctx, spec)) kinName = false;
+            ctx.restore();
+            if (kinName) {
+              var shownName = TimKinetic.showing(spec) === 'to' ? nameB : name;
+              if (S.sparkles)
+                drawSparkles(x, y + pxK * 0.45, ctx.measureText(shownName).width / 2 + 20 * k, pxK * 0.5, u - 0.58, k, t);
+              y += 210 * k * 0.95;
+            }
+          }
+          if (name && !kinName) {
             var a = u - 0.28;
             if (a > 0) {
               var px = fitFont(ctx, 900, 210 * k, 2 * k, name, mw),
@@ -3197,7 +3281,7 @@
             box.appendChild(b);
           });
         }
-        var TEXTS = ['headline', 'name', 'sub', 'signNum'];
+        var TEXTS = ['headline', 'name', 'nameTo', 'sub', 'signNum'];
         function fillText() {
           TEXTS.forEach(function (id) {
             $(id).value = S[id];
@@ -3255,6 +3339,14 @@
             );
           });
           $('stylenote').textContent = STYLE_NOTE[S.style] || '';
+          $('morphOpts').hidden = S.morph === 'none';
+          $('kinNote').textContent =
+            S.morph !== 'none'
+              ? 'The name morphs after it lands. ' +
+                (S.morph === 'liquid' ? 'Liquid reads best with short words.' : '')
+              : S.kin === 'original'
+                ? 'Original: the name slams in.'
+                : 'Applies to the name.';
         }
         document.querySelectorAll('[data-g]').forEach(function (b) {
           b.onclick = function () {

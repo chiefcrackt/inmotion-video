@@ -44,7 +44,7 @@
     <meta name="claude:viewport-fit-sides" content="cover" />
     <link rel="stylesheet" href="../shared/fonts.css" /><link
       rel="stylesheet"
-      href="../shared/projects.css" /><script src="../shared/projects.js"></script><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head><body
+      href="../shared/projects.css" /><script src="../shared/projects.js"></script><script src="../shared/kinetic.js"></script><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head><body
     ><tim-studio-bar></tim-studio-bar><style>
       /* Layout: two-column studio. Live preview on the left, the text and options on the right; one column on phones.
    Single dark look on purpose: T.im navy is the brand ground. */
@@ -577,6 +577,44 @@
           </fieldset>
 
           <fieldset>
+            <legend>Text motion</legend>
+            <div class="row" id="kinStyles"
+              ><span class="lab">Words in</span>
+              <button class="chip" data-g="kin" data-v="original" type="button">Original</button>
+              <button class="chip" data-g="kin" data-v="cascade" type="button">Cascade</button>
+              <button class="chip" data-g="kin" data-v="bounce" type="button">Bounce</button>
+              <button class="chip" data-g="kin" data-v="wave" type="button">Wave</button>
+              <button class="chip" data-g="kin" data-v="flip" type="button">Flip</button>
+              <button class="chip" data-g="kin" data-v="decode" type="button">Decode</button>
+              <button class="chip" data-g="kin" data-v="words" type="button">Word by word</button>
+              <button class="chip" data-g="kin" data-v="punch" type="button">Word punch</button>
+              <button class="chip" data-g="kin" data-v="slice" type="button">Slice</button>
+              <button class="chip" data-g="kin" data-v="mask" type="button">Mask rise</button>
+              <button class="chip" data-g="kin" data-v="split" type="button">Split</button>
+            </div>
+            <div class="row" id="morphStyles"
+              ><span class="lab">Morph</span>
+              <button class="chip" data-g="morph" data-v="none" type="button">None</button>
+              <button class="chip" data-g="morph" data-v="glide" type="button">Word to word</button>
+              <button class="chip" data-g="morph" data-v="scramble" type="button">Scramble</button>
+              <button class="chip" data-g="morph" data-v="liquid" type="button">Liquid</button>
+            </div>
+            <div id="morphOpts">
+            <div class="field"
+              ><label for="pr_to">Morph title into</label
+              ><input type="text" id="pr_to" maxlength="60"
+            /></div>
+            <div class="row"
+              ><span class="lab">Speed</span>
+              <button class="chip" data-g="morphLen" data-v="0.6" type="button">Quick</button>
+              <button class="chip" data-g="morphLen" data-v="1" type="button">Normal</button>
+              <button class="chip" data-g="morphLen" data-v="1.6" type="button">Slow</button>
+            </div>
+            </div>
+            <p class="note" id="kinNote"></p>
+          </fieldset>
+
+          <fieldset>
             <legend>Sound</legend>
             <div class="sounds" id="sounds"></div>
             <div class="row" id="noterow"
@@ -675,6 +713,10 @@
           len_promo: '5',
           fmt: 'v',
           gl: '1',
+          kin: 'original',
+          morph: 'none',
+          morphLen: '1',
+          pr_to: 'WATCH IT NOW',
         };
         var S = JSON.parse(JSON.stringify(D));
         try {
@@ -990,6 +1032,31 @@
         function dur() {
           return parseFloat(S['len_' + S.mode]);
         }
+        // ---------- kinetic title and morph (shared/kinetic.js)
+        function morphText() {
+          return S.morph !== 'none' ? up(S.pr_to || '').trim() : '';
+        }
+        function kinOn() {
+          return !!window.TimKinetic && (TimKinetic.isKinetic(S.kin) || !!morphText());
+        }
+        // The morph sits between the title landing and the closing glitch.
+        function kspec(lines, toLines, t, t0, len, seed) {
+          var w = window.TimKinetic
+            ? TimKinetic.morphWindow(t0 + len, dur() - 1.4, +S.morphLen)
+            : { at: 0, len: 1 };
+          return {
+            lines: lines,
+            align: 'left',
+            t: t - t0,
+            len: len,
+            style: S.kin,
+            seed: seed,
+            to: toLines ? { lines: toLines } : null,
+            morph: toLines ? S.morph : 'none',
+            morphAt: w.at - t0,
+            morphLen: w.len,
+          };
+        }
         // wrap a headline into at most maxLines lines at the largest size that fits
         function fitLines(c, text, maxW, big, small, maxLines) {
           var words = text.split(/\s+/).filter(Boolean);
@@ -1037,18 +1104,20 @@
           var tx = V ? 90 : 1170,
             tw = V ? 900 : W - 1170 - 110,
             sy = V ? f.y + f.h + 120 : 310;
-          var fit = fitLines(
-            c,
-            up(S.pr_title),
-            tw,
-            V ? 104 : 92,
-            V ? 60 : 56,
-            3,
-          );
+          var fit = fitLines(c, up(S.pr_title), tw, V ? 104 : 92, V ? 60 : 56, 3),
+            toText = morphText(),
+            fitB = toText ? fitLines(c, toText, tw, V ? 104 : 92, V ? 60 : 56, 3) : null;
+          // A morph needs both titles at one size so letters can travel between them.
+          if (fitB && fitB.size !== fit.size) {
+            var sz = Math.min(fit.size, fitB.size);
+            if (fit.size > sz) fit = fitLines(c, up(S.pr_title), tw, sz, V ? 60 : 56, 3);
+            if (fitB.size > sz) fitB = fitLines(c, toText, tw, sz, V ? 60 : 56, 3);
+          }
           fit.lines =
             fit.lines.length === 2
               ? balanceL(c, fit.lines, fit.size)
               : fit.lines;
+          if (fitB && fitB.lines.length === 2) fitB.lines = balanceL(c, fitB.lines, fitB.size);
           return {
             V: V,
             f: f,
@@ -1056,6 +1125,7 @@
             tw: tw,
             sy: sy,
             fit: fit,
+            fitB: fitB,
             lh: fit.size * 0.92,
           };
         }
@@ -1215,23 +1285,41 @@
             c.restore();
           }
           // title
-          var ty = g.sy + (V ? 64 : 70);
-          g.fit.lines.forEach(function (l, i) {
-            var k = lin(1.0 + i * 0.1, 1.35 + i * 0.1, t),
-              yy = ty + g.lh * (i + 1) - g.lh * 0.12;
+          var ty = g.sy + (V ? 64 : 70),
+            at = function (arr) {
+              return arr.map(function (l, i) {
+                return { text: l, x: g.tx, y: ty + g.lh * (i + 1) - g.lh * 0.12 };
+              });
+            },
+            sp = kspec(at(g.fit.lines), g.fitB && at(g.fitB.lines), t, 1.0, 0.7, 51),
+            drawn = false;
+          if (kinOn()) {
             c.save();
-            c.beginPath();
-            c.rect(
-              g.tx - 6,
-              yy - g.fit.size,
-              (meas(c, l, { size: g.fit.size }) + 24) * eOut(k),
-              g.fit.size * 1.15,
-            );
-            c.clip();
-            txt(c, l, g.tx, yy, { size: g.fit.size, color: C.paper });
+            font(c, 900, g.fit.size, 0);
+            c.fillStyle = C.paper;
+            drawn = TimKinetic.draw(c, sp);
             c.restore();
-          });
-          var ul = ty + g.lh * g.fit.lines.length + 14;
+          }
+          if (!drawn)
+            g.fit.lines.forEach(function (l, i) {
+              var k = lin(1.0 + i * 0.1, 1.35 + i * 0.1, t),
+                yy = ty + g.lh * (i + 1) - g.lh * 0.12;
+              c.save();
+              c.beginPath();
+              c.rect(
+                g.tx - 6,
+                yy - g.fit.size,
+                (meas(c, l, { size: g.fit.size }) + 24) * eOut(k),
+                g.fit.size * 1.15,
+              );
+              c.clip();
+              txt(c, l, g.tx, yy, { size: g.fit.size, color: C.paper });
+              c.restore();
+            });
+          // The underline follows the line count as one title becomes the other.
+          var nA = g.fit.lines.length,
+            nNow = g.fitB ? nA + (g.fitB.lines.length - nA) * (window.TimKinetic ? TimKinetic.phase(sp).k : 0) : nA,
+            ul = ty + g.lh * nNow + 14;
           c.fillStyle = C.teal;
           c.fillRect(g.tx, ul, (V ? 240 : 220) * eOut(lin(1.25, 1.55, t)), 6);
           c.fillStyle = C.gold;
@@ -2003,7 +2091,7 @@
           );
         }
         // ---------- controls
-        ['pr_stamp', 'pr_title', 'pr_cta'].forEach(function (id) {
+        ['pr_stamp', 'pr_title', 'pr_cta', 'pr_to'].forEach(function (id) {
           var el = $(id);
           el.value = S[id];
           el.addEventListener('input', function () {
@@ -2141,6 +2229,14 @@
               String(S[b.dataset.g]) === b.dataset.v ? 'true' : 'false',
             );
           });
+          $('morphOpts').hidden = S.morph === 'none';
+          $('kinNote').textContent =
+            S.morph !== 'none'
+              ? 'The title morphs after it lands, before the closing glitch. ' +
+                (S.morph === 'liquid' ? 'Liquid reads best with short titles.' : '')
+              : S.kin === 'original'
+                ? 'Original: the title wipes in.'
+                : 'Applies to the video title.';
           renderSounds();
           renderNotes();
           renderCtas();

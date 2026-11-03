@@ -31,6 +31,7 @@ function fakeCanvas() {
     beginPath() {}, rect() {}, clip() {},
     measureText: (s) => ({ width: Array.from(s).length * 20 }),
     fillText(text, x, y) { calls.push({ text, x: st.tx + x * st.s, y: st.ty + y * st.sy, s: st.s, sy: st.sy, a: st.a }); },
+    strokeText(text, x, y) { calls.push({ op: 'stroke', text, x: st.tx + x * st.s, y: st.ty + y * st.sy, s: st.s, sy: st.sy, a: st.a }); },
   };
   return { c, calls };
 }
@@ -168,4 +169,63 @@ test('word punch shows one word at a time, then the full phrase', () => {
   const end = fakeCanvas();
   K.draw(end.c, { ...block, t: 1.4, style: 'punch' });
   assert.deepEqual(plainData(end.calls.map((k) => k.text)), ['ONE STEP', 'AT A TIME']);
+});
+
+test('layers draw every letter per layer, outlines first, with offsets', () => {
+  const passes = [
+    { op: 'stroke', style: '#0E1A2E', width: 14, dx: 7, dy: 7 },
+    { op: 'fill', style: '#2E9BAD', dx: 7, dy: 7 },
+    { op: 'stroke', style: '#0E1A2E', width: 14 },
+    { op: 'fill', style: '#E8C96A' },
+  ];
+  for (const style of ['cascade', 'words', 'slice', 'punch']) {
+    const { c, calls } = fakeCanvas();
+    K.draw(c, { ...block, t: 0.5, style, passes });
+    const ops = calls.map((k) => (k.op === 'stroke' ? 's' : 'f'));
+    const n = ops.length / 4;
+    assert.ok(Number.isInteger(n) && n > 0, `${style} draws the same letters on each layer`);
+    assert.equal(ops.join(''), 's'.repeat(n) + 'f'.repeat(n) + 's'.repeat(n) + 'f'.repeat(n), style);
+    // The offset scales with the letter (a punched word's shadow grows with it).
+    assert.equal(Math.round((calls[0].x - calls[2 * n].x) / calls[0].s), 7, `${style} shadow layer is offset`);
+  }
+  const plain = fakeCanvas();
+  K.draw(plain.c, { ...block, t: 1.5, style: 'cascade' });
+  assert.ok(plain.calls.every((k) => !k.op), 'no layers: plain fills only');
+});
+
+test('every tool that uses the engine loads it and offers the same styles', async () => {
+  // Chip-based tools list every style and morph as buttons.
+  for (const [tool, morphs] of [['title-maker', true], ['promo-maker', true], ['special-post', true], ['celebrate', true], ['mile-marker', true]]) {
+    const html = readFileSync(`${tool}/index.html`, 'utf8');
+    assert.match(html, /<script src="\.\.\/shared\/kinetic\.js"><\/script>/, `${tool} loads the engine`);
+    for (const [id] of K.styles) assert.match(html, new RegExp(`data-g="kin" data-v="${id}"`), `${tool} offers ${id}`);
+    if (morphs) for (const [id] of K.morphs) assert.match(html, new RegExp(`data-g="morph" data-v="${id}"`), `${tool} morph ${id}`);
+  }
+  // Tier List builds its buttons from the engine's own list.
+  assert.match(readFileSync('tier-list/index.html', 'utf8'), /<script src="\.\.\/shared\/kinetic\.js"><\/script>/);
+  assert.match(readFileSync('tier-list/index.html', 'utf8'), /TimKinetic\.styles\.map/);
+  // Brand Assets validates saved projects against its own list.
+  const { KINETIC } = await import('../brand-assets/model.mjs');
+  assert.deepEqual(KINETIC, plainData(STYLES), 'Brand Assets accepts exactly the engine styles');
+  const ba = readFileSync('brand-assets/index.html', 'utf8');
+  for (const id of STYLES) assert.match(ba, new RegExp(`<option value="${id}">`), `Brand Assets offers ${id}`);
+});
+
+test('a punched word never grows past maxWidth', () => {
+  const { c, calls } = fakeCanvas();
+  K.draw(c, { lines: [{ text: 'MOVING', x: 0, y: 100 }], align: 'left', t: 0.01, len: 1, style: 'punch', maxWidth: 120 });
+  assert.ok(calls.length);
+  for (const k of calls) assert.ok(Array.from(k.text).length * 20 * k.s <= 120 + 0.5, `width ${Array.from(k.text).length * 20 * k.s}`);
+});
+
+test('perChar spacing sums single-letter widths', () => {
+  // A font where pairs kern tighter (18px each) than single letters (20px).
+  const kerned = (perChar) => {
+    const f = fakeCanvas();
+    f.c.measureText = (s) => ({ width: Array.from(s).length === 1 ? 20 : Array.from(s).length * 18 });
+    K.draw(f.c, { lines: [{ text: 'ABC', x: 0, y: 0 }], align: 'left', t: 2, len: 1, style: 'cascade', perChar });
+    return f.calls.map((k) => Math.round(k.x));
+  };
+  assert.deepEqual(kerned(true), [0, 20, 40], 'letter by letter');
+  assert.deepEqual(kerned(false), [0, 20, 36], 'default keeps kerning');
 });

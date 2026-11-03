@@ -44,7 +44,7 @@
     <meta name="claude:viewport-fit-sides" content="cover" />
     <link rel="stylesheet" href="../shared/fonts.css" /><link
       rel="stylesheet"
-      href="../shared/projects.css" /><script src="../shared/projects.js"></script><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head><body
+      href="../shared/projects.css" /><script src="../shared/projects.js"></script><script src="../shared/kinetic.js"></script><link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head><body
     ><tim-studio-bar></tim-studio-bar><style>
       /* Layout: a two-column studio. Live sign preview on the left, grouped controls on the right; stacks to one column on phones.
    Single dark look on purpose: the T.im navy is the brand ground. */
@@ -492,6 +492,44 @@
           </fieldset>
 
           <fieldset>
+            <legend>Text motion</legend>
+            <div class="row" id="kinStyles"
+              ><span class="lab">Words in</span>
+              <button class="chip sm" data-g="kin" data-v="original" type="button">Original</button>
+              <button class="chip sm" data-g="kin" data-v="cascade" type="button">Cascade</button>
+              <button class="chip sm" data-g="kin" data-v="bounce" type="button">Bounce</button>
+              <button class="chip sm" data-g="kin" data-v="wave" type="button">Wave</button>
+              <button class="chip sm" data-g="kin" data-v="flip" type="button">Flip</button>
+              <button class="chip sm" data-g="kin" data-v="decode" type="button">Decode</button>
+              <button class="chip sm" data-g="kin" data-v="words" type="button">Word by word</button>
+              <button class="chip sm" data-g="kin" data-v="punch" type="button">Word punch</button>
+              <button class="chip sm" data-g="kin" data-v="slice" type="button">Slice</button>
+              <button class="chip sm" data-g="kin" data-v="mask" type="button">Mask rise</button>
+              <button class="chip sm" data-g="kin" data-v="split" type="button">Split</button>
+            </div>
+            <div class="row" id="morphStyles"
+              ><span class="lab">Morph</span>
+              <button class="chip sm" data-g="morph" data-v="none" type="button">None</button>
+              <button class="chip sm" data-g="morph" data-v="glide" type="button">Word to word</button>
+              <button class="chip sm" data-g="morph" data-v="scramble" type="button">Scramble</button>
+              <button class="chip sm" data-g="morph" data-v="liquid" type="button">Liquid</button>
+            </div>
+            <div id="morphOpts">
+            <div class="row">
+              <span class="lab">Morph into</span>
+              <input type="text" id="bigTo" maxlength="8" placeholder="26.2" aria-label="Morph into" />
+            </div>
+            <div class="row"
+              ><span class="lab">Speed</span>
+              <button class="chip sm" data-g="morphLen" data-v="0.6" type="button">Quick</button>
+              <button class="chip sm" data-g="morphLen" data-v="1" type="button">Normal</button>
+              <button class="chip sm" data-g="morphLen" data-v="1.6" type="button">Slow</button>
+            </div>
+            </div>
+            <p class="note" id="kinNote"></p>
+          </fieldset>
+
+          <fieldset>
             <legend>Sound</legend>
             <div class="sounds" id="sounds"></div>
             <div class="row">
@@ -634,6 +672,10 @@
           size: '1',
           dur: '3',
           cel: 'auto',
+          kin: 'original',
+          morph: 'none',
+          morphLen: '1',
+          bigTo: '26.2',
         };
         try {
           var saved = JSON.parse(
@@ -693,6 +735,13 @@
             top: top,
             miles: d.unit === 'km' ? d.v * 0.621371 : d.v,
           };
+        }
+        // ---------- kinetic number and morph (shared/kinetic.js)
+        function bigTo() {
+          return S.morph !== 'none' ? (S.bigTo || '').trim().toUpperCase() : '';
+        }
+        function kinOn() {
+          return !!window.TimKinetic && (TimKinetic.isKinetic(S.kin) || !!bigTo());
         }
         function celebrating() {
           var m = signText().miles;
@@ -789,7 +838,8 @@
             k = parseFloat(S.size) * (V ? 1.15 : 1),
             txt = signText();
           setFont(ctx, 900, 120 * k, 0);
-          var nw = ctx.measureText(txt.big).width;
+          // The board fits the wider number when one morphs into the other.
+          var nw = Math.max(ctx.measureText(txt.big).width, bigTo() ? ctx.measureText(bigTo()).width : 0);
           setFont(ctx, 700, 34 * k, 6 * k);
           var tw = ctx.measureText(txt.top).width;
           var bw = Math.max(230 * k, nw + 80 * k, tw + 70 * k),
@@ -875,14 +925,39 @@
           c.fillStyle = C.gold;
           c.fillText(g.txt.top, 3 * k, by + 70 * k);
           var pop = clamp((t - 0.38) / 0.25, 0, 1),
-            ps = t < 0.38 ? 0.85 : 1 + 0.08 * Math.sin(Math.PI * pop);
-          c.save();
-          c.translate(0, by + 168 * k);
-          c.scale(ps, ps);
-          setFont(c, 900, 120 * k, 0);
-          c.fillStyle = C.paper;
-          c.fillText(g.txt.big, 0, 0);
-          c.restore();
+            ps = t < 0.38 ? 0.85 : 1 + 0.08 * Math.sin(Math.PI * pop),
+            drawn = false;
+          if (kinOn()) {
+            var to = bigTo(),
+              ny = by + 168 * k,
+              w = TimKinetic.morphWindow(0.38 + 0.4, T - 0.6, +S.morphLen);
+            c.save();
+            setFont(c, 900, 120 * k, 0);
+            c.fillStyle = C.paper;
+            drawn = TimKinetic.draw(c, {
+              lines: [{ text: g.txt.big, x: 0, y: ny }],
+              align: 'center',
+              t: t - 0.38,
+              len: 0.4,
+              style: S.kin,
+              seed: 81,
+              opaque: S.bg === 'green',
+              to: to ? { lines: [{ text: to, x: 0, y: ny }] } : null,
+              morph: to ? S.morph : 'none',
+              morphAt: w.at - 0.38,
+              morphLen: w.len,
+            });
+            c.restore();
+          }
+          if (!drawn) {
+            c.save();
+            c.translate(0, by + 168 * k);
+            c.scale(ps, ps);
+            setFont(c, 900, 120 * k, 0);
+            c.fillStyle = C.paper;
+            c.fillText(g.txt.big, 0, 0);
+            c.restore();
+          }
           c.restore();
           // celebration burst (solid colors so green screen keys cleanly; it shrinks instead of fading)
           if (celebrating()) {
@@ -1509,6 +1584,10 @@
           S.label = e.target.value;
           update();
         });
+        $('bigTo').addEventListener('input', function (e) {
+          S.bigTo = e.target.value;
+          update();
+        });
         $('u_mi').onclick = function () {
           S.unit = 'mi';
           update();
@@ -1544,6 +1623,13 @@
           renderPresets();
           renderSounds();
           syncGroups();
+          $('morphOpts').hidden = S.morph === 'none';
+          $('kinNote').textContent =
+            S.morph !== 'none'
+              ? 'The number morphs after the sign lands, before it leaves.'
+              : S.kin === 'original'
+                ? 'Original: the number pops in with the sign.'
+                : 'Applies to the big number.';
           $('u_mi').setAttribute(
             'aria-pressed',
             S.unit === 'mi' ? 'true' : 'false',
@@ -1565,6 +1651,7 @@
         }
         $('custom').value = S.custom;
         $('label').value = S.label;
+        $('bigTo').value = S.bigTo;
         $('climb').checked = S.climb;
         $('moves').checked = S.moves;
         $('vol').value = S.vol;
