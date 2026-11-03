@@ -33,6 +33,15 @@ link provides a fallback. Without JavaScript, the three view links open their
 original tools. Local previews have a different browser-storage origin from
 GitHub Pages, so hosted ideas/plans appear locally only if imported from backups.
 
+Workspace cloud sync (optional) signs in with a Loadout account by email link
+and keeps one copy of the ideas and plans in Supabase for accounts granted
+Content Studio access. It syncs on sign-in, every 15 seconds while the page is
+visible and online, and on Sync now; it waits while an idea is open for editing
+or filming mode is open. Merged data replaces the local copy only when nothing
+changed locally during the sync, and the previous copy is kept under
+`<storage key>:before-supabase-sync`. After merging plans it signals the planner
+frame to reload them. This sync is separate from each editor's Google Drive sync.
+
 Run `npm run test:content-studio:browser` for capture/promotion, duplicate
 prevention, two-way stage/date updates, checklist/take-note retention, editor and
 filming guards, original-format backup transfer, malformed-store protection,

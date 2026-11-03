@@ -612,7 +612,8 @@ $('import').onchange = async () => {
   }
 };
 window.addEventListener('storage', (e) => {
-  if (e.key === KEY)
+  // A merge this page already reloaded (Content Studio cloud sync) is not a conflict.
+  if (e.key === KEY && e.newValue !== lastSaved)
     say(
       'Plans changed in another tab. Export your work and reload before editing.',
     );

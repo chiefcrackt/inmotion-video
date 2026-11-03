@@ -47,6 +47,19 @@ function editing() {
   );
 }
 
+// The open planner treats a write it did not make as another tab's edit and
+// stops saving. Tell it the plans were merged so it reloads them instead.
+// Idea Vault already reloads on storage events, so it needs no signal.
+function notifyPlanner() {
+  for (const frame of document.querySelectorAll(
+    '#editors iframe[data-editor="planner"]',
+  )) {
+    try {
+      frame.contentWindow?.dispatchEvent(new Event('tim-projects-merged'));
+    } catch {}
+  }
+}
+
 function validate(dataset, payload) {
   if (dataset === 'projects')
     return { version: 1, projects: validateBackup(payload) };
@@ -114,6 +127,7 @@ async function syncDataset(sb, dataset, key) {
       if (raw !== null)
         localStorage.setItem(key + ':before-supabase-sync', raw);
       localStorage.setItem(key, JSON.stringify(merged));
+      if (dataset === 'projects') notifyPlanner();
     }
     if (dataset === 'ideas')
       localStorage.setItem(baseKey, JSON.stringify(baseOf(merged.ideas)));
