@@ -1,6 +1,24 @@
 // Original T.im motion toys. One deterministic vector scene for SVG and canvas.
 export const toys = [
   {
+    id: 'delivery-bot',
+    name: 'Tiny delivery bot',
+    actions: ['Roll + deliver', 'Express delivery + salute'],
+    label: 'SPECIAL DELIVERY',
+  },
+  {
+    id: 'shy-star',
+    name: 'Shy star',
+    actions: ['Peek + sparkle', 'Hide + happy hop'],
+    label: 'A LITTLE GEM',
+  },
+  {
+    id: 'dumpling-chef',
+    name: 'Dumpling chef',
+    actions: ['Hop + serve', 'Steamer surprise'],
+    label: 'FRESH LITTLE FIND',
+  },
+  {
     id: 'magnetic-assembly',
     name: 'Magnetic assembly',
     actions: ['Snap frame together', 'Polarity flip'],
@@ -308,6 +326,116 @@ export function commands(id, progress, remix = false) {
       );
     panel(470, 270, Math.max(0.001, back((p - 0.62) / 0.38)));
     burst(290, 280, clamp((p - 0.8) / 0.2));
+  } else if (id === 'delivery-bot') {
+    const arrive = ease(p / 0.72),
+      salute = ease((p - 0.6) / 0.4),
+      x = 70 + 240 * arrive;
+    const bob = (remix ? 12 : 5) * Math.sin(p * 22) * (1 - salute);
+    panel(470, 270, Math.max(0.001, back((p - 0.5) / 0.5)));
+    group(x, 270 + bob, 1, (remix ? -0.1 : 0) * (1 - arrive), () => {
+      for (const wheel of [-27, 27]) {
+        ellipse(wheel, 42, 17, 17, N, T, 5);
+        group(wheel, 42, 1, p * (remix ? 28 : 16), () =>
+          path('M-9 0H9M0-9V9', 'none', G, 3),
+        );
+      }
+      path('M-49-22Q-49-39-32-39H32Q49-39 49-22V26H-49Z', T, N, 5);
+      path('M-32-24H32V10H-32Z', N, G, 4);
+      ellipse(-13, -8, 5, 7, G);
+      ellipse(13, -8, 5, 7, G);
+      path('M-9 3q9 8 18 0', 'none', P, 3);
+      path('M0-40V-63l17-9', 'none', G, 5);
+      ellipse(19, -74, 6, 6, T, G, 2);
+      path(`M49 9L76 ${9 - 30 * salute}l18 ${-18 * salute}`, 'none', G, 8);
+      path('M-49 12l-21 10', 'none', G, 8);
+      rect(-21, 17, 42, 15, N);
+      path('M-11 24H11', 'none', G, 3);
+    });
+    burst(310, 180, clamp((p - 0.76) / 0.24));
+  } else if (id === 'shy-star') {
+    const reveal = ease((p - 0.12) / 0.7),
+      happy = ease((p - 0.65) / 0.35);
+    const x = remix ? 250 + 60 * reveal : 260 + 50 * reveal,
+      y = remix
+        ? 325 - 55 * reveal - 55 * Math.sin(Math.PI * reveal)
+        : 300 - 30 * reveal;
+    // The little navy pocket reads as its hiding place, not a background plate.
+    path('M220 330q90 35 180 0l-20 40H240Z', N, T, 5);
+    group(
+      x,
+      y,
+      Math.max(0.001, 0.3 + 0.7 * reveal),
+      Math.sin(p * 12) * (1 - happy) * 0.25,
+      () => {
+        path(
+          'M0-60 18-21 60-17 29 12 38 55 0 34-38 55-29 12-60-17-18-21Z',
+          G,
+          N,
+          5,
+        );
+        ellipse(-13, -2, 4, 6, N);
+        ellipse(13, -2, 4, 6, N);
+        path('M-8 12q8 9 16 0', 'none', N, 3);
+        ellipse(-26, 11, 7, 3, T);
+        ellipse(26, 11, 7, 3, T);
+        path(`M39 25l${18 + 10 * happy} ${-22 * happy}`, 'none', T, 7);
+      },
+    );
+    panel(470, 270, Math.max(0.001, back((p - 0.55) / 0.45)));
+    for (let i = 0; i < 3; i++)
+      spark(
+        235 + i * 70,
+        190 + (i % 2) * -30,
+        happy * (remix ? 1.2 : 0.8),
+        p * 0.5 + i,
+      );
+    burst(310, 250, clamp((p - 0.7) / 0.3));
+  } else if (id === 'dumpling-chef') {
+    const arrive = ease(p / 0.6),
+      serve = ease((p - 0.45) / 0.55);
+    const x = remix ? 310 : 120 + 190 * arrive,
+      y = remix
+        ? 310 - 45 * serve
+        : 270 - 65 * Math.abs(Math.sin(arrive * Math.PI * 2)) * (1 - serve);
+    // Steamer base and lifted lid share the same transparent stage.
+    path('M220 325H400L384 362H236Z', N, G, 5);
+    path('M242 340H378M255 352H365', 'none', T, 4);
+    group(
+      310,
+      remix ? 245 - 85 * serve : 200 - 10 * serve,
+      1,
+      remix ? -0.18 * serve : 0,
+      () => {
+        path('M-87 0Q-65-32 0-32T87 0Z', N, G, 5);
+        path('M-18-32v-12h36v12', 'none', T, 5);
+      },
+    );
+    group(
+      x,
+      y,
+      Math.max(0.001, Math.min(1, p * 7)),
+      (1 - serve) * Math.sin(p * 14) * 0.12,
+      () => {
+        path(
+          'M-58 20Q-58-15-35-28Q-20-49 0-38Q20-49 35-28Q58-15 58 20Q35 49 0 45Q-35 49-58 20Z',
+          G,
+          N,
+          5,
+        );
+        path('M-35-28l17 22M-13-38l6 28M13-38 7-10M35-28 18-6', 'none', N, 3);
+        ellipse(-16, 10, 4, 6, N);
+        ellipse(16, 10, 4, 6, N);
+        path('M-8 25q8 7 16 0', 'none', N, 3);
+        path('M-58 13l-18-14M58 13l22-19', 'none', T, 7);
+      },
+    );
+    for (let i = 0; i < 3; i++) {
+      const sx = 270 + i * 40,
+        sy = 145 - 22 * serve;
+      path(`M${sx} ${sy}q-10-12 0-23t0-23`, 'none', T, 3);
+    }
+    panel(470, 270, Math.max(0.001, back((p - 0.6) / 0.4)));
+    burst(310, 270, clamp((p - 0.75) / 0.25));
   } else throw Error('Unknown motion toy');
   return out;
 }

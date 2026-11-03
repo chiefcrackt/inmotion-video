@@ -35,7 +35,7 @@ export function templateScene(id) {
           kind: 'text',
           text: toy.label,
           color: '#f6f4ef',
-          fontSize: 57,
+          fontSize: 48,
           x: 65,
           y: 50,
           size: 38,

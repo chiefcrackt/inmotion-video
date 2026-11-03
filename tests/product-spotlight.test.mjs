@@ -7,7 +7,7 @@ import { validate } from '../asset-studio/model.mjs';
 import { byId } from '../asset-studio/catalog.mjs';
 test('18 designs have blank artwork, editable wording and trusted aligned parts', () => {
   assert.equal(assets.length, 18);
-  assert.equal(templates.size, 25);
+  assert.equal(templates.size, 28);
   assert.equal(new Set(assets.map((a) => a.id)).size, 18);
   assert.equal(
     assets.reduce((n, a) => n + a.layers.length, 0),
