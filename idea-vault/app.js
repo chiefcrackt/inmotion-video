@@ -1166,3 +1166,8 @@ renderSyncState();
 // Opening Idea Vault checks the cloud and uploads anything left unsynced.
 if (isConnected()) syncer.requestSync({ immediate: true });
 
+// Leave draft edits in place until the user saves or closes the idea editor.
+window.TimPlanningEditor = Object.freeze({
+  isBusy: () => $('editor').classList.contains('open'),
+});
+

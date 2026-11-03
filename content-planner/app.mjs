@@ -541,10 +541,12 @@ if (new URLSearchParams(location.search).get('view') === 'shoot') {
   else say('Create a video to start its shoot plan.');
 }
 
-// Idea Vault is the source for captured ideas. Promoting an idea links it to a project, and the two stay in step.
-try {
-  const vault = JSON.parse(localStorage.getItem('tim-idea-vault-v1') || 'null');
-  for (const idea of (vault?.ideas || []).filter(
+// Read on refresh and on promotion: an open planner must not copy stale notes.
+function refreshIdeaOptions() {
+  const selected = $('ideas').value;
+  const ideas = readIdeas();
+  $('ideas').replaceChildren(new Option('Choose an idea in this browser', ''));
+  for (const idea of (ideas || []).filter(
     (i) =>
       i &&
       typeof i.id === 'string' &&
@@ -553,32 +555,40 @@ try {
       !i.conflictOf,
   ))
     $('ideas').add(new Option(idea.title, idea.id));
-  $('from-idea').onclick = () => {
-    if (loadFailed) return say('Import a valid backup first.');
-    const idea = vault?.ideas?.find((i) => i.id === $('ideas').value);
-    if (!idea) return say('Choose an Idea Vault entry first.');
-    const existing = projects.find((p) => p.id === 'idea:' + idea.id);
-    if (existing) {
-      if (existing.deleted) {
-        existing.deleted = false;
-        save();
-      }
-      return open(existing.id);
-    }
-    const p = newProject(idea.title);
-    p.id = 'idea:' + idea.id;
-    p.outline = String(idea.notes || '');
-    p.outlineUrl = safeUrl(idea.docUrl || '');
-    p.publishDate = String(idea.dueDate || '');
-    p.stage = STAGE_FOR_STATUS[idea.status] || 'Idea';
-    projects.push(p);
-    save();
-    tab = 'details';
-    open(p.id);
-  };
-} catch {
-  $('from-idea').disabled = true;
+  if ([...$('ideas').options].some((option) => option.value === selected))
+    $('ideas').value = selected;
+  $('from-idea').disabled = ideas === null;
 }
+// Idea Vault is the source for captured ideas. Promoting an idea links it to a project, and the two stay in step.
+$('from-idea').onclick = () => {
+  if (loadFailed) return say('Import a valid backup first.');
+  const ideas = readIdeas();
+  const idea = ideas?.find((i) => i.id === $('ideas').value);
+  if (!idea || idea.archived || idea.conflictOf)
+    return say('Choose an active Idea Vault entry first.');
+  const existing = projects.find((p) => p.id === 'idea:' + idea.id);
+  if (existing) {
+    if (existing.deleted) {
+      existing.deleted = false;
+      save();
+    }
+    return open(existing.id);
+  }
+  const p = newProject(idea.title);
+  p.id = 'idea:' + idea.id;
+  p.outline = String(idea.notes || '');
+  p.outlineUrl = safeUrl(idea.docUrl || '');
+  p.publishDate = String(idea.dueDate || '');
+  p.stage = STAGE_FOR_STATUS[idea.status] || 'Idea';
+  projects.push(p);
+  save();
+  tab = 'details';
+  open(p.id);
+};
+refreshIdeaOptions();
+window.addEventListener('storage', (e) => {
+  if (e.key === IDEA_KEY || e.key === null) refreshIdeaOptions();
+});
 // Bring linked ideas up to date on open, and again whenever the Idea Vault changes in another tab.
 if (!loadFailed && projects.length) {
   const ideas = readIdeas();
@@ -697,3 +707,25 @@ $('drive-folder').onclick = async () => {
   }
 };
 
+// The planning host uses one planner instance for Videos and Shoot views.
+// Switching views reads existing data; it never creates or migrates a project.
+window.TimPlanningEditor = Object.freeze({
+  isBusy: () => $('filming').open,
+  showView: (view) => {
+    refreshIdeaOptions();
+    if (view !== 'details' && view !== 'shoot') return;
+    if (view === 'shoot' && !current) {
+      const first = projects.find((project) => !project.deleted);
+      if (first) open(first.id);
+      else say('Create a video to start its shoot plan.');
+    }
+    tab = view;
+    if (current) {
+      showTab(view);
+      window.scrollTo({
+        top: $('project').getBoundingClientRect().top + window.scrollY,
+        behavior: 'instant',
+      });
+    }
+  },
+});

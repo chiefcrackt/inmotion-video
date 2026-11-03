@@ -1,6 +1,8 @@
 import { readFile, access } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const files = [
+  'content-studio/index.html',
+  'content-studio/studio.js',
   'text-and-titles/index.html',
   'text-and-titles/studio.js',
   'celebration-studio/index.html',

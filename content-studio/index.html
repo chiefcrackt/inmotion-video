@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#0e1a2e" />
+    <title>Content Planner · T.IM</title>
+    <link rel="icon" href="../favicon.svg" />
+    <link rel="stylesheet" href="../shared/fonts.css" />
+    <link rel="stylesheet" href="studio.css" />
+    <script src="studio.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <a href="../">← T.IM Studio</a>
+      <h1>Content Planner</h1>
+      <p class="intro">From your first idea to a finished video.</p>
+      <nav aria-label="Planning view">
+        <a href="../idea-vault/" data-mode="ideas">Ideas</a>
+        <a href="../content-planner/" data-mode="videos">Videos</a>
+        <a href="../shoot-planner/" data-mode="shoot">Shoot</a>
+      </nav>
+      <p id="hint"
+        >Choose Create from idea to turn a captured idea into a video plan.</p
+      >
+      <p id="status" role="status" aria-live="polite"></p>
+      <a
+        id="standalone"
+        href="../content-planner/"
+        target="_blank"
+        rel="noopener"
+        >Open this view in a new tab ↗</a
+      >
+    </header>
+    <main id="editors" aria-label="Planning workspace"></main>
+    <noscript><p>Choose a view above to open its planner.</p></noscript>
+  </body>
+</html>
