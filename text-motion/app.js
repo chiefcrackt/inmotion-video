@@ -43,17 +43,29 @@ const exitOptions = () =>
     ['exStyle', 'exLen', 'exEase', 'exDir', 'exStagger', 'exOrder', 'exHold'].map((k) => [k, $(k).value]),
   );
 const ease = (x) => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3);
+// The morph runs in the middle of the clip, after the entrance and before the exit.
+const morphLength = () => Math.min(Number($('morphLen').value), duration() * 0.3);
+const morphStart = () => Math.max(1.1 * Number($('speed').value) + 0.3, duration() * 0.45 - morphLength() / 2);
 function linesFor(text, width, fontSize) {
   ctx.font = `900 ${fontSize}px ${window.TimProjects.family(textFont)}`;
-  const lines = [];
+  // Wrap at spaces; only a single word too wide for the line is split by letter.
+  const fits = (s) => ctx.measureText(s).width <= width,
+    lines = [];
   for (const paragraph of text.split('\n')) {
     let line = '';
-    for (const char of paragraph) {
-      if (ctx.measureText(line + char).width > width && line) {
+    for (const word of paragraph.split(' ')) {
+      const next = line ? line + ' ' + word : word;
+      if (fits(next) || !line) line = next;
+      else {
         lines.push(line);
-        line = '';
+        line = word;
       }
-      line += char;
+      while (!fits(line) && line.length > 1) {
+        let cut = line.length - 1;
+        while (cut > 1 && !fits(line.slice(0, cut))) cut--;
+        lines.push(line.slice(0, cut));
+        line = line.slice(cut);
+      }
     }
     lines.push(line);
   }
@@ -66,15 +78,19 @@ function draw(t) {
   ctx.globalAlpha = 1;
   ctx.clearRect(0, 0, w, h);
   let size = Number($('size').value) * unit;
-  let lines = linesFor($('headline').value, w * 0.82, size);
-  while (lines.length * size * 1.06 > h * 0.55 && size > 10) {
+  // A morph needs both phrases to fit at one size, so letters can travel between them.
+  const morphText = $('morph').value === 'none' ? '' : $('morphTo').value.trim();
+  let lines = linesFor($('headline').value, w * 0.82, size),
+    linesB = morphText ? linesFor(morphText, w * 0.82, size) : null;
+  const tallest = () => Math.max(lines.length, linesB ? linesB.length : 0);
+  while (tallest() * size * 1.06 > h * 0.55 && size > 10) {
     size *= 0.92;
     lines = linesFor($('headline').value, w * 0.82, size);
+    if (morphText) linesB = linesFor(morphText, w * 0.82, size);
   }
   const speed = Number($('speed').value);
   const ex = exitOptions(),
-    original = ex.exStyle === 'original',
-    n = lines.length + 2; // accent bar, each line, caption
+    original = ex.exStyle === 'original';
   // "Reverse" replays the entrance backwards over the exit window.
   const back = ex.exStyle === 'reverse' ? window.TimExits.progress(t, duration(), ex, 0, 1) : 0;
   const tIn = back > 0 ? Math.min(t, (1 - back) * 1.25 * speed) : t;
@@ -85,7 +101,7 @@ function draw(t) {
   const align = $('align').value;
   const anchor =
     align === 'left' ? w * 0.09 : align === 'right' ? w * 0.91 : w / 2;
-  const blockHalf = lines.length * size * 0.53 + 110 * unit;
+  const blockHalf = tallest() * size * 0.53 + 110 * unit;
   const desiredY = { top: h * 0.3, center: h / 2, bottom: h * 0.7 }[
     $('placement').value
   ];
@@ -116,6 +132,28 @@ function draw(t) {
   }
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
+  // Kinetic entrances and morphs come from the shared engine; the six original
+  // entrances above stay as they were.
+  const kin = window.TimKinetic,
+    placed = (arr) =>
+      arr.map((text, i) => ({ text, x: 0, y: (i - (arr.length - 1) / 2) * size * 1.06 })),
+    kspec = kin && {
+      lines: placed(lines),
+      align,
+      t: tIn,
+      mt: t,
+      len: 1.1 * speed,
+      style: effect,
+      seed: 7,
+      opaque: !$('transparent').checked && /^#00ff00$/i.test($('background').value),
+      to: morphText ? { lines: placed(linesB) } : null,
+      morph: $('morph').value,
+      morphAt: morphStart(),
+      morphLen: morphLength(),
+    },
+    current = kin && kspec.to && kin.showing(kspec) === 'to' ? linesB : lines,
+    whole = kin && kin.whole(kspec),
+    n = current.length + 2; // accent bar, each line, caption
   // each element leaves through the shared exit engine (no-op for Original and Reverse)
   const centerY = Math.max(blockHalf, Math.min(h - blockHalf, desiredY));
   const env = { W: w, H: h, x0: -anchor, y0: -centerY };
@@ -124,7 +162,7 @@ function draw(t) {
   const leave = (i, box, fn) =>
     window.TimExits.draw(ctx, window.TimExits.progress(t, duration(), ex, i, n), ex, box, env, fn);
   const barX = align === 'left' ? 0 : align === 'right' ? -64 * unit : -32 * unit,
-    barY = -lines.length * size * 0.53 - 60 * unit;
+    barY = -tallest() * size * 0.53 - 60 * unit;
   leave(0, { x: barX, y: barY, w: 64 * unit, h: 6 * unit }, () => {
     ctx.fillStyle = $('accent').value;
     ctx.fillRect(barX, barY, 64 * unit * enter, 6 * unit);
@@ -133,21 +171,23 @@ function draw(t) {
   let remaining = Math.floor(
     Math.min(1, tIn / (1.25 * speed)) * lines.join('').length,
   );
-  lines.forEach((line, i) => {
+  current.forEach((line, i) => {
     const shown =
       effect === 'type' ? line.slice(0, Math.max(0, remaining)) : line;
     remaining -= line.length;
-    const y = (i - (lines.length - 1) / 2) * size * 1.06,
+    const y = (i - (current.length - 1) / 2) * size * 1.06,
       [x0, x1] = span(ctx.measureText(line).width);
     leave(1 + i, { x: x0, y: y - size * 0.5, w: x1 - x0, h: size }, () => {
       ctx.fillStyle = $('ink').value;
       ctx.font = `900 ${size}px ${window.TimProjects.family(textFont)}`;
-      ctx.fillText(shown, 0, y);
+      // While a morph or word punch runs, line 0 draws the whole block.
+      const drawn = kin && kin.draw(ctx, kspec, whole ? (i === 0 ? 0 : -1) : i);
+      if (!drawn) ctx.fillText(shown, 0, y);
     });
   });
   ctx.globalAlpha = alpha;
   ctx.font = `600 ${28 * unit}px ${window.TimProjects.family(textFont)}`;
-  const capY = lines.length * size * 0.53 + 60 * unit,
+  const capY = tallest() * size * 0.53 + 60 * unit,
     [c0, c1] = span(Math.min(ctx.measureText($('caption').value).width, w * 0.82));
   leave(n - 1, { x: c0, y: capY - 18 * unit, w: c1 - c0, h: 36 * unit }, () => {
     ctx.fillStyle = $('accent').value;
@@ -255,6 +295,16 @@ function sync() {
     : style === 'reverse'
       ? 'Your entrance plays backwards over the exit length, so the clip ends where it began.'
       : 'The accent bar, each headline line and the caption leave one after another. The exit finishes as the clip ends.';
+  const morph = $('morph').value;
+  $('morphRow').hidden = morph === 'none';
+  $('morphHint').textContent =
+    morph === 'liquid'
+      ? 'The letters melt into the new words. Reads best with short phrases.'
+      : morph === 'scramble'
+        ? 'The letters scramble and settle on the new words.'
+        : 'Shared letters glide to their new places; the rest swap out.';
+  if (morph !== 'none' && morphStart() + morphLength() > duration() - 0.6)
+    $('morphHint').textContent += ' Pick a longer duration so the new words have time on screen.';
   position = Math.min(position, duration());
   draw(position);
 }

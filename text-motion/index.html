@@ -69,7 +69,21 @@ MOVING.</textarea
               ><option value="pop">Pop in</option
               ><option value="slide">Slide across</option
               ><option value="fade">Fade in</option
-              ><option value="wipe">Wipe reveal</option></select
+              ><option value="wipe">Wipe reveal</option
+              ><optgroup label="Letters"
+                ><option value="cascade">Letter cascade</option
+                ><option value="bounce">Letter bounce</option
+                ><option value="wave">Letter wave</option
+                ><option value="flip">Letter flip</option
+                ><option value="decode">Decode</option></optgroup
+              ><optgroup label="Words"
+                ><option value="words">Word by word</option
+                ><option value="punch">Word punch</option></optgroup
+              ><optgroup label="Split &amp; mask"
+                ><option value="slice">Slice reveal</option
+                ><option value="mask">Mask rise</option
+                ><option value="split">Split</option></optgroup
+              ></select
             ><div class="pair"
               ><div
                 ><label for="duration">Duration</label
@@ -87,6 +101,22 @@ MOVING.</textarea
                   ><option value="square">1:1 · Square</option></select
                 ></div
               ></div
+            ><label for="morph">Morph</label
+            ><select id="morph"
+              ><option value="none">No morph</option
+              ><option value="glide">Word to word</option
+              ><option value="scramble">Scramble</option
+              ><option value="liquid">Liquid</option></select
+            ><div id="morphRow" hidden
+              ><label for="morphTo">Morph into</label
+              ><input id="morphTo" maxlength="80" value="ONE MILE AT A TIME"
+              /><label for="morphLen">Morph speed</label
+              ><select id="morphLen"
+                ><option value="0.6">Quick</option
+                ><option value="1" selected>Normal</option
+                ><option value="1.6">Slow</option></select
+              ><p class="hint" id="morphHint"></p
+            ></div
             ></fieldset
           >
           <fieldset
@@ -256,6 +286,7 @@ MOVING.</textarea
         ></div
       > </main
     ><script src="../shared/exits.js" defer></script
+    ><script src="../shared/kinetic.js" defer></script
     ><script src="alpha-video.js" defer></script
     ><script src="app.js" defer></script></body
 ></html>
