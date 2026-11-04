@@ -1,5 +1,20 @@
 # Transcribe Video (local)
 
+After transcription, **Full edit plan + content package** builds a copyable
+brief for ChatGPT or Claude. Add the platform, target length, audience, goal,
+style, available footage and extra directions. **Copy prompt + word JSON**
+includes the current transcript and original recognition timings in one paste.
+**Copy prompt only** pairs with **Download matching JSON**; a combined text-file
+download is also available for longer recordings. Preview the generated prompt
+before copying. Nothing is sent automatically.
+
+The brief requests a recommended edit, source-timed timeline, three opening
+options, best takes/cuts, visual/sound plan, caption checks, standalone clips,
+titles/covers/description/carousel, chapters and a prioritized handoff. It
+distinguishes original timings from finished edit times and limits conclusions
+to transcript evidence. Matching AI JSON includes current unsaved text edits;
+the ordinary transcript downloads still require **Save edits** to update.
+
 Double-click **Start Transcribe Video.cmd**. Keep its terminal open and use
 http://127.0.0.1:8765 in your browser. Choose a video/audio file, select the model
 and press **Transcribe recording**. Sentence Play buttons seek in the recording;
@@ -47,6 +62,9 @@ input size is 8 GB. Browser playback depends on the media codecs even when the
 transcriber can decode the file.
 
 ## Validation
+
+Run `node --test local-transcriber/ai-prompt.test.cjs` for prompt/data consistency,
+original-word preservation, corrected-text labeling and invalid-time checks.
 
 Start the server, then run `node local-transcriber/check-browser.cjs` with a
 spoken sample at `data/test/sample.wav`. Set `TRANSCRIBE_SAMPLE` (relative to this

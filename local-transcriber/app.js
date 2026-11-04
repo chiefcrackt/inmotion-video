@@ -2,6 +2,7 @@ const $ = (id) => document.getElementById(id);
 const token = document.querySelector('meta[name="local-token"]').content;
 let jobId,
   mediaUrl,
+  currentJob,
   dirty = false;
 const headers = { 'X-Local-Token': token };
 async function responseJSON(response) {
@@ -45,6 +46,8 @@ function downloadLinks(enabled = true) {
   }
 }
 function render(job) {
+  currentJob = structuredClone(job);
+  currentJob.original_segments ||= structuredClone(job.segments);
   $('segments').replaceChildren();
   job.segments.forEach((segment, i) => {
     const row = document.createElement('div');
@@ -85,11 +88,14 @@ function render(job) {
   $('save-status').textContent = '';
   downloadLinks();
   $('result').classList.remove('hidden');
+  $('ai-panel').classList.remove('hidden');
+  updateAIPreview();
 }
 $('segments').addEventListener('input', () => {
   dirty = true;
   $('save-status').textContent = 'Unsaved edits';
   downloadLinks(false);
+  updateAIPreview();
 });
 $('save').onclick = async () => {
   try {
@@ -108,6 +114,7 @@ $('save').onclick = async () => {
     dirty = false;
     $('save-status').textContent = 'Saved locally';
     downloadLinks();
+    updateAIPreview();
   } catch (error) {
     $('save-status').textContent = error.message;
   }
@@ -128,6 +135,7 @@ $('form').onsubmit = async (event) => {
       control.disabled = true;
     });
   $('result').classList.add('hidden');
+  $('ai-panel').classList.add('hidden');
   $('warnings').textContent = '';
   $('status').textContent =
     'Copying recording to the local transcription folder…';
@@ -182,3 +190,100 @@ window.addEventListener('beforeunload', (event) => {
     event.returnValue = '';
   }
 });
+
+const aiFields = [
+  'title',
+  'platform',
+  'length',
+  'audience',
+  'goal',
+  'style',
+  'footage',
+  'instructions',
+];
+function aiPackage() {
+  if (!currentJob) throw Error('Transcribe a recording first.');
+  const segments = [...document.querySelectorAll('.segment')].map((row) => {
+    const start = row.querySelector('[data-field=start]');
+    const end = row.querySelector('[data-field=end]');
+    if (!start.value || !end.value)
+      throw Error('Fill in the transcript start and end times.');
+    return {
+      start: Number(start.value),
+      end: Number(end.value),
+      text: row.querySelector('textarea').value,
+    };
+  });
+  return {
+    context: Object.fromEntries(
+      aiFields.map((key) => [key, $('ai-' + key).value]),
+    ),
+    payload: TranscriptAI.makePayload(currentJob, segments),
+  };
+}
+function updateAIPreview() {
+  try {
+    const { context, payload } = aiPackage();
+    $('ai-preview').value = TranscriptAI.buildPrompt(context, payload);
+    for (const id of ['ai-copy', 'ai-copy-only', 'ai-json', 'ai-text'])
+      $(id).disabled = false;
+    $('ai-status').textContent = dirty
+      ? 'Includes your current unsaved text edits. The matching JSON below uses those same edits.'
+      : '';
+  } catch (error) {
+    $('ai-preview').value = '';
+    $('ai-status').textContent = error.message;
+    for (const id of ['ai-copy', 'ai-copy-only', 'ai-json', 'ai-text'])
+      $(id).disabled = true;
+  }
+}
+aiFields.forEach((key) =>
+  $('ai-' + key).addEventListener('input', updateAIPreview),
+);
+async function copyAIPrompt(includeJSON) {
+  try {
+    const { context, payload } = aiPackage();
+    const text = TranscriptAI.buildPrompt(context, payload, includeJSON);
+    $('ai-preview').value = text;
+    try {
+      await navigator.clipboard.writeText(text);
+      $('ai-status').textContent = includeJSON
+        ? 'Copied the full edit brief, content-package request and word JSON. Paste into ChatGPT or Claude.'
+        : 'Copied the prompt. Attach the matching JSON when you paste it into your assistant.';
+    } catch {
+      $('ai-preview-details').open = true;
+      $('ai-preview').focus();
+      $('ai-preview').select();
+      $('ai-status').textContent =
+        'Clipboard access was unavailable. The prompt is selected below; press Ctrl+C to copy.';
+    }
+  } catch (error) {
+    $('ai-status').textContent = error.message;
+  }
+}
+function downloadAI(kind) {
+  try {
+    const { context, payload } = aiPackage();
+    const text =
+      kind === 'json'
+        ? JSON.stringify(payload, null, 2)
+        : TranscriptAI.buildPrompt(context, payload);
+    const blob = new Blob([text], {
+      type: kind === 'json' ? 'application/json' : 'text/plain;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download =
+      kind === 'json' ? 'ai-transcript.json' : 'ai-edit-brief.txt';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    $('ai-status').textContent = 'Downloaded ' + link.download;
+  } catch (error) {
+    $('ai-status').textContent = error.message;
+  }
+}
+$('ai-copy').onclick = () => copyAIPrompt(true);
+$('ai-copy-only').onclick = () => copyAIPrompt(false);
+$('ai-json').onclick = () => downloadAI('json');
+$('ai-text').onclick = () => downloadAI('text');

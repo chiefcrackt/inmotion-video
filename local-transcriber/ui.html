@@ -289,6 +289,104 @@
           ></section
         ></div
       >
+      <section id="ai-panel" class="hidden" aria-labelledby="ai-heading">
+        <div class="eyebrow">PREPARE FOR CHATGPT OR CLAUDE</div>
+        <h2 id="ai-heading">Full edit plan + content package</h2>
+        <p
+          >Build a detailed brief with your transcript and word timings. Copy it
+          into your assistant to get a proposed timeline, best takes, hooks,
+          captions, visual ideas, clips and publishing copy.</p
+        >
+        <div class="options">
+          <label
+            >Project title<input
+              id="ai-title"
+              maxlength="200"
+              placeholder="Use the recording filename"
+          /></label>
+          <label
+            >Platform / format<select id="ai-platform"
+              ><option>YouTube · landscape</option
+              ><option>Instagram Reels · vertical</option
+              ><option>TikTok · vertical</option
+              ><option>YouTube Shorts · vertical</option
+              ><option>Recommend from the material</option></select
+            ></label
+          >
+          <label
+            >Target finished length<input
+              id="ai-length"
+              maxlength="120"
+              placeholder="e.g. 60–90 seconds or 8 minutes"
+          /></label>
+        </div>
+        <label
+          >Audience<input
+            id="ai-audience"
+            maxlength="500"
+            placeholder="e.g. beginner runners considering their first race"
+        /></label>
+        <label
+          >Goal / takeaway<input
+            id="ai-goal"
+            maxlength="1000"
+            placeholder="What should viewers understand, feel or do?"
+        /></label>
+        <label
+          >Voice / editing style<input
+            id="ai-style"
+            maxlength="1000"
+            value="Natural, clear and engaging. Preserve my speaking speed, meaning and meaningful pauses."
+        /></label>
+        <label
+          >Available visuals and context<textarea
+            id="ai-footage"
+            maxlength="4000"
+            rows="3"
+            placeholder="Mention B-roll, screen recordings or graphics you actually have. Leave blank if only the transcript is available."
+          ></textarea>
+        </label>
+        <label
+          >Extra instructions<textarea
+            id="ai-instructions"
+            maxlength="4000"
+            rows="3"
+            placeholder="Must-keep moments, points to avoid, your call to action or anything else the edit should respect."
+          ></textarea>
+        </label>
+        <p
+          ><button id="ai-copy">Copy prompt + word JSON</button>
+          <button id="ai-copy-only" class="secondary"
+            >Copy prompt only</button
+          ></p
+        >
+        <p
+          ><button id="ai-json" class="secondary"
+            >Download matching JSON</button
+          >
+          <button id="ai-text" class="secondary"
+            >Download prompt + JSON</button
+          ></p
+        >
+        <div id="ai-status" role="status" aria-live="polite"></div>
+        <details id="ai-preview-details"
+          ><summary>Preview the full prompt</summary
+          ><label
+            >Generated prompt<textarea
+              id="ai-preview"
+              rows="16"
+              readonly
+            ></textarea></label
+        ></details>
+        <p
+          ><small
+            >The combined prompt includes your current transcript edits and
+            original recognition timings. Nothing is sent automatically. Pasting
+            it into an assistant shares that text with the assistant. Text
+            corrections do not realign word timings.</small
+          ></p
+        >
+      </section>
       <p
         ><small
           >Recordings and exports are stored in local-transcriber/data on this
@@ -297,5 +395,6 @@
           timing.</small
         ></p
       > </main
+    ><script src="/ai-prompt.js"></script
     ><script src="/app.js"></script></body
 ></html>

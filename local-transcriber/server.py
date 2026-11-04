@@ -65,7 +65,7 @@ def export(job, segments):
     folder = DATA / job['id']
     # Word alignment refers to recognized speech, not manually revised text.
     result = {k: job.get(k) for k in ['id', 'filename', 'language', 'duration', 'device', 'model', 'warnings']}
-    result.update(segments=segments, original_words=job.get('words', []),
+    result.update(segments=segments, original_segments=job.get('original_segments', []), original_words=job.get('words', []),
                   word_timing_note='Original recognition timings; text edits do not realign words.')
     (folder / 'transcript.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
     (folder / 'transcript.txt').write_text('\n'.join(s['text'] for s in segments), encoding='utf-8')
@@ -110,6 +110,7 @@ def transcribe(job, options):
                 recognize('cpu')
             else:
                 raise
+        job['original_segments'] = [dict(segment) for segment in job['segments']]
         export(job, job['segments'])
         job.update(status='complete', progress=100, message='Transcript ready.' if job['segments'] else 'No speech detected.')
     except Exception as error:
@@ -151,6 +152,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(html.encode(), content_type='text/html; charset=utf-8')
         if path == '/app.js':
             return self.send((ROOT / 'app.js').read_bytes(), content_type='text/javascript; charset=utf-8')
+        if path == '/ai-prompt.js':
+            return self.send((ROOT / 'ai-prompt.js').read_bytes(), content_type='text/javascript; charset=utf-8')
         if path.startswith('/api/job/'):
             job = JOBS.get(path.rsplit('/', 1)[-1])
             return self.send(job if job else {'error': 'Job not found'}, 200 if job else 404)

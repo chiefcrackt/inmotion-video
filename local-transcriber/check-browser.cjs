@@ -10,7 +10,13 @@ const { launchBrowser } = require('../tests/browser-utils.cjs');
     });
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
-    await page.goto('http://127.0.0.1:8765');
+    const base = process.env.TRANSCRIBE_BASE || 'http://127.0.0.1:8765';
+    await page
+      .context()
+      .grantPermissions(['clipboard-read', 'clipboard-write'], {
+        origin: base,
+      });
+    await page.goto(base);
     await page.setInputFiles(
       '#file',
       path.join(
@@ -41,6 +47,17 @@ const { launchBrowser } = require('../tests/browser-utils.cjs');
       .first()
       .inputValue();
     console.log('Recognized:', initial);
+    await page.locator('#ai-audience').fill('Beginner runners');
+    await page.locator('#ai-length').fill('60 seconds');
+    await page.click('#ai-copy');
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    for (const text of [
+      'Beginner runners',
+      'PROPOSED TIMELINE',
+      'CONTENT PACKAGE',
+      'BEGIN_TRANSCRIPT_JSON',
+    ])
+      assert.ok(copied.includes(text));
     assert.match(
       (await page.locator('#segments').textContent()) + initial,
       /ran|river|kilometer|Today/i,
@@ -50,6 +67,27 @@ const { launchBrowser } = require('../tests/browser-utils.cjs');
       .first()
       .fill('Corrected running transcript.');
     assert.equal(await page.locator('#downloads a').count(), 0);
+    assert.ok(
+      (await page.locator('#ai-preview').inputValue()).includes(
+        'Corrected running transcript.',
+      ),
+    );
+    const aiDownload = page.waitForEvent('download');
+    await page.click('#ai-json');
+    const downloaded = await aiDownload;
+    const payload = JSON.parse(
+      fs.readFileSync(await downloaded.path(), 'utf8'),
+    );
+    assert.equal(payload.transcript_edited, true);
+    assert.equal(payload.segments[0].text, 'Corrected running transcript.');
+    assert.equal(payload.original_segments[0].text, initial);
+    assert.ok(payload.original_words.length);
+    await page.click('#ai-copy-only');
+    assert.ok(
+      !(await page.evaluate(() => navigator.clipboard.readText())).includes(
+        'BEGIN_TRANSCRIPT_JSON',
+      ),
+    );
     await page.click('#save');
     await page.waitForFunction(
       () =>
@@ -78,10 +116,9 @@ const { launchBrowser } = require('../tests/browser-utils.cjs');
         );
       }
     }
-    const denied = await page.request.post(
-      'http://127.0.0.1:8765/api/transcribe',
-      { data: 'invalid' },
-    );
+    const denied = await page.request.post(base + '/api/transcribe', {
+      data: 'invalid',
+    });
     assert.equal(denied.status(), 403);
     await page.screenshot({
       path: path.join(__dirname, 'data/desktop.png'),
@@ -97,9 +134,22 @@ const { launchBrowser } = require('../tests/browser-utils.cjs');
       path: path.join(__dirname, 'data/mobile.png'),
       fullPage: true,
     });
+    await page.evaluate(() => {
+      navigator.clipboard.writeText = async () => {
+        throw Error('Clipboard unavailable');
+      };
+    });
+    await page.click('#ai-copy');
+    assert.equal(
+      await page.locator('#ai-preview-details').getAttribute('open'),
+      '',
+    );
+    assert.ok(
+      (await page.locator('#ai-status').textContent()).includes('Ctrl+C'),
+    );
     assert.deepEqual(errors, []);
     console.log(
-      'PASS: real transcription, word timings, text edits, exports, missing-token rejection, mobile layout, no page errors.',
+      'PASS: real transcription, word timings, edited AI JSON, combined/prompt-only clipboard, clipboard fallback, exports, token rejection, mobile layout, no page errors.',
     );
   } finally {
     await browser.close();
