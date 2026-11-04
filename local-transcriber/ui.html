@@ -435,11 +435,39 @@
       <p
         ><small
           >Recordings and exports are stored in local-transcriber/data on this
-          computer. Keep your exports; close the launcher to stop the service.
-          Transcription can make mistakes—review names, numbers and subtitle
-          timing.</small
+          computer. Keep your exports. Transcription can make mistakes—review
+          names, numbers and subtitle timing.</small
+        ></p
+      >
+      <p
+        ><button id="quit" class="secondary" type="button"
+          >Stop Transcribe Video</button
+        >
+        <small id="quit-note"
+          >It runs in the background with no window. Stop it when you're done;
+          Start Transcribe Video.cmd starts it again.</small
         ></p
       > </main
+    ><script>
+      document.getElementById('quit').onclick = async () => {
+        const note = document.getElementById('quit-note');
+        try {
+          await fetch('/api/quit', {
+            method: 'POST',
+            headers: {
+              'X-Local-Token': document.querySelector(
+                'meta[name="local-token"]',
+              ).content,
+            },
+          });
+          note.textContent =
+            'Stopped. You can close this tab. Start Transcribe Video.cmd starts it again.';
+          document.getElementById('quit').disabled = true;
+        } catch {
+          note.textContent = 'It may already be stopped.';
+        }
+      };</script
+    ><script src="/ai-prompt.js"></script
     ><script src="/ai-prompt.js"></script
     ><script src="/app.js"></script></body
 ></html>

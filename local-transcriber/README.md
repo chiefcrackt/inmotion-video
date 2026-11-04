@@ -22,10 +22,16 @@ distinguishes original timings from finished edit times and limits conclusions
 to transcript evidence. Matching AI JSON includes current unsaved text edits;
 the ordinary transcript downloads still require **Save edits** to update.
 
-Double-click **Start Transcribe Video.cmd**. Keep its terminal open and use
+Double-click **Start Transcribe Video.cmd**; the studio opens at
 http://127.0.0.1:8765 in your browser. Choose a video/audio file, select the model
 and press **Transcribe recording**. Sentence Play buttons seek in the recording;
 edit text/timings and press **Save edits** before downloading.
+
+It runs in the background with no window: the launcher's window shows only
+while it installs or starts, then closes. **Stop** at the bottom of the page
+ends it; opening the launcher again while it runs just opens the page. If it
+can't start, the window stays open with the reason; its messages go to
+`data/server.log`.
 
 Exports: TXT, SRT, VTT, JSON with original word timestamps/confidence, and review
 notes for words below 65% confidence. This threshold is a review aid, not an

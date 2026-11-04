@@ -284,11 +284,43 @@
       <p>
         <small
           >Recordings and results are stored in local-voice/data on this
-          computer. Remove old job folders when you no longer need them. Close
-          the launcher window to stop the service.</small
+          computer. Remove old job folders when you no longer need them.</small
+        >
+      </p>
+      <p>
+        <button
+          id="quit"
+          type="button"
+          style="background: #293f59; color: #f6f4ef"
+        >
+          Stop Clean Voice
+        </button>
+        <small id="quit-note"
+          >It runs in the background with no window. Stop it when you're done;
+          Start Clean Voice.cmd starts it again.</small
         >
       </p>
     </main>
+    <script>
+      document.getElementById('quit').onclick = async () => {
+        const note = document.getElementById('quit-note');
+        try {
+          await fetch('/api/quit', {
+            method: 'POST',
+            headers: {
+              'X-Local-Token': document.querySelector(
+                'meta[name="local-token"]',
+              ).content,
+            },
+          });
+          note.textContent =
+            'Stopped. You can close this tab. Start Clean Voice.cmd starts it again.';
+          document.getElementById('quit').disabled = true;
+        } catch {
+          note.textContent = 'It may already be stopped.';
+        }
+      };
+    </script>
     <script src="/app.js"></script>
   </body>
 </html>

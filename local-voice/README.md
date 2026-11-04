@@ -4,8 +4,8 @@ Removes background noise from a video or audio recording, or pulls the voice
 away from music, then evens out the volume. It runs on this computer's NVIDIA
 GPU (or the CPU).
 
-Double-click **Start Clean Voice.cmd**. Keep its window open and use
-http://127.0.0.1:8766 in your browser (it opens by itself). Choose a recording,
+Double-click **Start Clean Voice.cmd**; the studio opens at
+http://127.0.0.1:8766 in your browser. Choose a recording,
 pick a mode and press **Clean voice**. When it's done, switch between
 **Original** and **Cleaned** while it plays to compare, then download:
 
@@ -13,6 +13,12 @@ pick a mode and press **Clean voice**. When it's done, switch between
   the cleaned sound as 192 kbps AAC. Videos whose codec MP4 can't hold come out
   as MKV.
 - **Sound only (WAV)**: 48 kHz, 24-bit stereo.
+
+It runs in the background with no window: the launcher's window shows only
+while it installs or starts, then closes. **Stop** at the bottom of the page
+ends it; opening the launcher again while it runs just opens the page. If it
+can't start, the window stays open with the reason; its messages go to
+`data/server.log`.
 
 ## Modes
 

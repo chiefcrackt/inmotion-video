@@ -220,6 +220,10 @@ class Handler(BaseHTTPRequestHandler):
         if self.headers.get('X-Local-Token') != TOKEN:
             return self.send({'error': 'Reload this local page'}, 403)
         path = urlparse(self.path).path
+        if path == '/api/quit':
+            # The page's Stop button: the server runs without a window to close.
+            self.send({'stopping': True})
+            return threading.Thread(target=self.server.shutdown, daemon=True).start()
         try:
             size = int(self.headers.get('Content-Length', '0'))
             if size <= 0 or size > (MAX_UPLOAD if path == '/api/transcribe' else 20 * 1024 ** 2):
@@ -266,15 +270,29 @@ class Handler(BaseHTTPRequestHandler):
             self.send({'error': str(error)}, 500)
 
 
+class Server(ThreadingHTTPServer):
+    # Windows' SO_REUSEADDR would let a second copy share the port; refuse instead.
+    allow_reuse_address = os.name != 'nt'
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=8765)
     parser.add_argument('--no-browser', action='store_true')
     args = parser.parse_args()
     DATA.mkdir(exist_ok=True)
-    server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
-    url = f'http://127.0.0.1:{server.server_port}'
-    print(f'Transcribe Video: {url}\nKeep this process running. Press Ctrl+C to stop.', flush=True)
+    if sys.stdout is None:
+        # Started with pythonw (no window): keep messages and errors in a log.
+        sys.stdout = sys.stderr = open(DATA / 'server.log', 'a', encoding='utf-8', buffering=1)
+    url = f'http://127.0.0.1:{args.port}'
+    try:
+        server = Server(('127.0.0.1', args.port), Handler)
+    except OSError:
+        # Already running (the launcher was opened again): just show it.
+        print(f'Transcribe Video is already running at {url}', flush=True)
+        if not args.no_browser: webbrowser.open(url)
+        return
+    print(f'Transcribe Video: {url} ({time.strftime("%Y-%m-%d %H:%M")}). Stop it from the page.', flush=True)
     if not args.no_browser: webbrowser.open(url)
     try: server.serve_forever()
     except KeyboardInterrupt: pass
