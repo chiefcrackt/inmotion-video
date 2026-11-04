@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en"
+  ><head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1"
+    /><meta name="local-token" content="__TOKEN__" /><title
+      >Transcribe Video · T.im</title
+    >
+    <style>
+      :root {
+        color-scheme: dark;
+        font: 16px system-ui;
+        background: #0e1a2e;
+        color: #f6f4ef;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      main {
+        max-width: 1200px;
+        margin: auto;
+        padding: 36px 24px;
+      }
+      header {
+        margin-bottom: 28px;
+      }
+      .eyebrow {
+        color: #e8c96a;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        font-size: 12px;
+      }
+      h1 {
+        font-size: clamp(30px, 5vw, 48px);
+        margin: 8px 0;
+      }
+      p {
+        color: #b7c6d8;
+        line-height: 1.6;
+      }
+      section {
+        background: #15253c;
+        border: 1px solid #2c4059;
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 20px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        color: #c5d4e3;
+        margin: 12px 0;
+      }
+      input,
+      select,
+      textarea,
+      button {
+        font: inherit;
+        border-radius: 8px;
+      }
+      input,
+      select,
+      textarea {
+        background: #0c1728;
+        color: #f6f4ef;
+        border: 1px solid #435771;
+        padding: 10px;
+        width: 100%;
+        margin-top: 6px;
+      }
+      input[type='file'] {
+        padding: 22px;
+        border-style: dashed;
+      }
+      button,
+      .download {
+        display: inline-block;
+        background: #e8c96a;
+        color: #102033;
+        border: 0;
+        padding: 12px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: wait;
+      }
+      button.secondary {
+        background: #293f59;
+        color: #f6f4ef;
+      }
+      video {
+        width: 100%;
+        max-height: 420px;
+        background: #080f1c;
+        border-radius: 10px;
+      }
+      progress {
+        width: 100%;
+        accent-color: #2e9bad;
+        margin: 12px 0;
+      }
+      #status {
+        margin: 12px 0;
+        min-height: 24px;
+      }
+      #warnings {
+        color: #e8c96a;
+        white-space: pre-wrap;
+      }
+      #segments {
+        max-height: 650px;
+        overflow: auto;
+      }
+      .segment {
+        border-bottom: 1px solid #2c4059;
+        padding: 14px 0;
+      }
+      .times {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .times input {
+        width: 110px;
+      }
+      .times button {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .segment textarea {
+        min-height: 76px;
+        resize: vertical;
+      }
+      .downloads {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 16px 0;
+      }
+      .download {
+        font-size: 13px;
+        background: #2d5262;
+        color: white;
+      }
+      #save-status {
+        color: #e8c96a;
+      }
+      .hidden {
+        display: none;
+      }
+      small {
+        color: #a9bdd0;
+      }
+      a {
+        color: #e8c96a;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible,
+      select:focus-visible {
+        outline: 3px solid #2e9bad;
+        outline-offset: 3px;
+      }
+      @media (max-width: 760px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .options {
+          grid-template-columns: 1fr;
+        }
+        main {
+          padding: 24px 14px;
+        }
+        section {
+          padding: 18px;
+        }
+        .times input {
+          width: 85px;
+        }
+      }
+    </style></head
+  ><body
+    ><main>
+      <header
+        ><div class="eyebrow">T.IM / LOCAL STUDIO</div><h1>Transcribe Video</h1
+        ><p
+          >Turn a recording into editable text, subtitles and word timings.
+          Processing stays on this computer.</p
+        ></header
+      >
+      <section
+        ><form id="form"
+          ><label
+            >Choose a video or audio recording<input
+              id="file"
+              type="file"
+              accept="video/*,audio/*,.mkv,.m4a,.wav,.mp3"
+              required
+          /></label>
+          <div class="options"
+            ><label
+              >Model<select id="quality"
+                ><option value="fast">Fast · small English model</option
+                ><option value="quality"
+                  >Higher quality · medium English model</option
+                ></select
+              ></label
+            ><label
+              >Processing<select id="device"
+                ><option value="auto">Automatic · GPU if available</option
+                ><option value="cpu">CPU</option
+                ><option value="cuda">NVIDIA GPU</option></select
+              ></label
+            ><label
+              >Language<select id="language"
+                ><option value="en">English</option
+                ><option value="auto">Detect language</option></select
+              ></label
+            ></div
+          >
+          <label
+            >Names and vocabulary hints<input
+              id="vocabulary"
+              maxlength="1000"
+              value="T.im, tristan.inmotion, running, cadence, Strava"
+              placeholder="Names, brands, specialist words"
+          /></label>
+          <small id="model-note"
+            >First use downloads the model. Later runs can work offline. Choose
+            CPU if NVIDIA libraries are unavailable.</small
+          ><p
+            ><button id="start" type="submit">Transcribe recording</button></p
+          ></form
+        >
+        <div id="status" role="status" aria-live="polite"
+          >Choose a recording to begin.</div
+        ><progress
+          id="progress"
+          value="0"
+          max="100"
+          aria-label="Transcription progress"
+        ></progress
+        ><div id="warnings"></div
+      ></section>
+      <div class="layout"
+        ><section
+          ><h2>Your recording</h2
+          ><video id="video" controls preload="metadata"></video
+          ><p
+            >Use a sentence’s Play button to jump to that point. Times are in
+            seconds from the original recording.</p
+          ><small
+            >Some video formats can be transcribed even when this browser cannot
+            play them.</small
+          ></section
+        >
+        <section id="result" class="hidden"
+          ><h2>Transcript</h2
+          ><p
+            >Edit text or sentence timings, then save to update your
+            downloads.</p
+          ><div id="segments"></div
+          ><p
+            ><button id="save">Save edits</button>
+            <span id="save-status" role="status"></span></p
+          ><div id="downloads" class="downloads"></div
+          ><small
+            >JSON includes the original word timings and confidence estimates.
+            Editing sentence text does not realign individual words.
+            Low-confidence words are listed in Review notes.</small
+          ></section
+        ></div
+      >
+      <p
+        ><small
+          >Recordings and exports are stored in local-transcriber/data on this
+          computer. Keep your exports; close the launcher to stop the service.
+          Transcription can make mistakes—review names, numbers and subtitle
+          timing.</small
+        ></p
+      > </main
+    ><script src="/app.js"></script></body
+></html>

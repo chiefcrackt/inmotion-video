@@ -1,5 +1,12 @@
 # inmotion-video
 
+**Transcribe Video** is available from the tools hub at `/transcribe-video/`.
+It opens the local transcription engine on the current computer. Start
+`local-transcriber/Start Transcribe Video.cmd` on Windows; the studio opens at
+`http://127.0.0.1:8765/`. GPU/CPU processing, recordings and exports stay local.
+See [setup and usage](local-transcriber/README.md). GitHub Pages hosts the entry
+page; the Python engine runs only on the computer where the launcher is started.
+
 Celebration Studio is available for review at `/celebration-studio/`, combining
 Special Post and Celebration as two modes while retaining both original editors
 and dashboard links. See [preview behavior and validation](celebration-studio/README.md).

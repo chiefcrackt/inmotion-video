@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0e1a2e">
+  <title>Transcribe Video · T.IM Studio</title>
+  <link rel="stylesheet" href="../shared/fonts.css">
+  <link rel="stylesheet" href="../shared/studio-bar.css">
+  <script type="module" src="../shared/studio-bar.mjs"></script>
+  <style>
+    :root{color-scheme:dark;font:16px system-ui;background:#0e1a2e;color:#f6f4ef}*{box-sizing:border-box}body{margin:0}main{max-width:850px;margin:auto;padding:48px 24px}a{color:#e8c96a}.back{display:inline-block;margin-bottom:36px}.eyebrow{color:#e8c96a;font-weight:700;font-size:12px;letter-spacing:.14em}h1{font-size:clamp(36px,7vw,56px);margin:12px 0}p,li{line-height:1.7;color:#bccddd}section{background:#15253c;border:1px solid #31445d;border-radius:18px;padding:28px;margin:24px 0}.button{display:inline-block;background:#e8c96a;color:#102033;text-decoration:none;font-weight:700;padding:15px 22px;border-radius:9px}.tag{display:inline-block;color:#9dd8d8;font-size:14px}code{overflow-wrap:anywhere}li{margin:12px 0}a:focus-visible{outline:3px solid #2e9bad;outline-offset:4px}
+  </style>
+</head>
+<body><tim-studio-bar></tim-studio-bar><main>
+  <div class="eyebrow">AUDIO / LOCAL TOOL</div>
+  <h1>Transcribe Video</h1>
+  <p>Turn a recording into editable text, subtitles and word timings using your computer’s GPU or CPU.</p>
+  <section>
+    <span class="tag">Runs on this computer</span>
+    <h2>Open your local studio</h2>
+    <ol>
+      <li>On your Windows computer, open the repo’s <code>local-transcriber</code> folder and double-click <strong>Start Transcribe Video.cmd</strong>.</li>
+      <li>Keep the launcher running, then open the studio below.</li>
+      <li>Choose a video, transcribe it, review the text and download your exports.</li>
+    </ol>
+    <p><a class="button" href="http://127.0.0.1:8765/" target="_blank" rel="noopener noreferrer">Open Transcribe Video ↗</a></p>
+    <p>If the page cannot connect, start the launcher first. The address opens a service on the device you are using. Your phone cannot use the engine on your PC.</p>
+  </section>
+  <h2>Text, captions and word timings</h2>
+  <p>Edit transcript text and sentence timings, jump to a passage in your recording, and export TXT, SRT, VTT, word-timing JSON and review notes.</p>
+  <p>Recordings stay on your computer. First use downloads the selected speech model; cached models can run offline. No paid transcription API is used.</p>
+  <p><a href="https://github.com/chiefcrackt/inmotion-video/tree/main/local-transcriber">Setup instructions and local tool files</a></p>
+</main></body>
+</html>

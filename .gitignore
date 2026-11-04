@@ -3,3 +3,6 @@ test-results/
 playwright-report/
 tests/sound-forge-*.png
 artifacts/
+.venv-transcribe/
+local-transcriber/data/
+__pycache__/
