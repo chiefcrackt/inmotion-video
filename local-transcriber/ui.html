@@ -293,6 +293,16 @@
         <div class="eyebrow">PREPARE FOR CHATGPT OR CLAUDE</div>
         <h2 id="ai-heading">Full edit plan + content package</h2>
         <p
+          ><small
+            >Your platform, length, audience, goal and style choices are
+            remembered on this browser. Choose “Recommend from the transcript”
+            to let the assistant decide.</small
+          >
+          <button id="ai-reset" class="secondary" type="button"
+            >Reset preferences</button
+          ></p
+        >
+        <p
           >Build a detailed brief with your transcript and word timings. Copy it
           into your assistant to get a proposed timeline, best takes, hooks,
           captions, visual ideas, clips and publishing copy.</p
@@ -314,29 +324,50 @@
             ></label
           >
           <label
-            >Target finished length<input
+            >Target finished length<select
               id="ai-length"
-              maxlength="120"
-              placeholder="e.g. 60–90 seconds or 8 minutes"
+              aria-label="Target finished length"
+            ></select
+            ><input
+              id="ai-length-custom"
+              maxlength="1000"
+              aria-label="Custom target finished length"
+              placeholder="Enter your own target finished length"
+              hidden
           /></label>
         </div>
         <label
-          >Audience<input
-            id="ai-audience"
-            maxlength="500"
-            placeholder="e.g. beginner runners considering their first race"
+          >Audience<select id="ai-audience" aria-label="Audience"></select
+          ><input
+            id="ai-audience-custom"
+            maxlength="1000"
+            aria-label="Custom audience"
+            placeholder="Enter your own audience"
+            hidden
         /></label>
         <label
-          >Goal / takeaway<input
+          >Goal / takeaway<select
             id="ai-goal"
+            aria-label="Goal / takeaway"
+          ></select
+          ><input
+            id="ai-goal-custom"
             maxlength="1000"
-            placeholder="What should viewers understand, feel or do?"
+            aria-label="Custom goal / takeaway"
+            placeholder="Enter your own goal / takeaway"
+            hidden
         /></label>
         <label
-          >Voice / editing style<input
+          >Voice / editing style<select
             id="ai-style"
+            aria-label="Voice / editing style"
+          ></select
+          ><input
+            id="ai-style-custom"
             maxlength="1000"
-            value="Natural, clear and engaging. Preserve my speaking speed, meaning and meaningful pauses."
+            aria-label="Custom voice / editing style"
+            placeholder="Enter your own voice / editing style"
+            hidden
         /></label>
         <label
           >Available visuals and context<textarea

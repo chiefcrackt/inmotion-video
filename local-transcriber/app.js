@@ -201,6 +201,114 @@ const aiFields = [
   'footage',
   'instructions',
 ];
+const aiPresets = {
+  length: [
+    '',
+    '20–30 seconds',
+    '30–45 seconds',
+    '45–60 seconds',
+    '60–90 seconds',
+    '2–3 minutes',
+    '5–8 minutes',
+    '8–12 minutes',
+    '12–20 minutes',
+  ],
+  audience: [
+    '',
+    'Beginner runners',
+    'Recreational runners',
+    'Experienced runners',
+    'People researching running shoes and gear',
+    'My existing followers',
+    'Content creators',
+    'A general audience',
+  ],
+  goal: [
+    '',
+    'Teach a practical running tip',
+    'Share a personal story or experience',
+    'Recap a race or event',
+    'Review running shoes or gear honestly',
+    'Document training progress',
+    'Motivate viewers to get moving',
+    'Help viewers make a buying decision',
+    'Start a discussion and invite comments',
+    'Encourage viewers to watch the full video',
+  ],
+  style: [
+    'Natural, clear and engaging. Preserve my speaking speed, meaning and meaningful pauses.',
+    'Concise and energetic, with a strong hook. Preserve natural speech speed and word endings.',
+    'Calm, reflective storytelling. Give meaningful moments room to breathe.',
+    'Practical and educational. Use clear steps, examples and restrained graphics.',
+    'Honest, balanced gear review. Prioritize evidence, useful details and trade-offs.',
+    'Race recap with a clear beginning, challenge and finish. Preserve the actual story.',
+    'Casual and conversational. Keep my personality, natural rhythm and appropriate humor.',
+    '',
+  ],
+};
+const aiStorageKey = 'tim-transcriber-ai-preferences-v1';
+for (const [key, values] of Object.entries(aiPresets)) {
+  const select = $('ai-' + key);
+  for (const [index, value] of values.entries()) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent =
+      key === 'style' && value
+        ? [
+            'Natural & conversational',
+            'Energetic & concise',
+            'Reflective storytelling',
+            'Clear & educational',
+            'Balanced gear review',
+            'Race recap',
+            'Casual with personality',
+          ][index]
+        : value || 'Recommend from the transcript';
+    select.append(option);
+  }
+  const custom = document.createElement('option');
+  custom.value = '__custom__';
+  custom.textContent = 'Custom…';
+  select.append(custom);
+}
+function refreshCustomFields() {
+  for (const key of Object.keys(aiPresets))
+    $('ai-' + key + '-custom').hidden = $('ai-' + key).value !== '__custom__';
+}
+function rememberAIPreferences() {
+  const values = { platform: $('ai-platform').value };
+  for (const key of Object.keys(aiPresets)) {
+    values[key] = $('ai-' + key).value;
+    values[key + 'Custom'] = $('ai-' + key + '-custom').value;
+  }
+  try {
+    localStorage.setItem(aiStorageKey, JSON.stringify(values));
+  } catch {
+    /* Preferences remain usable without storage. */
+  }
+}
+try {
+  const saved = JSON.parse(localStorage.getItem(aiStorageKey) || '{}');
+  for (const key of ['platform', ...Object.keys(aiPresets)]) {
+    const select = $('ai-' + key);
+    if ([...select.options].some((option) => option.value === saved[key]))
+      select.value = saved[key];
+    if (key in aiPresets && typeof saved[key + 'Custom'] === 'string')
+      $('ai-' + key + '-custom').value = saved[key + 'Custom'].slice(0, 1000);
+  }
+} catch {
+  /* Ignore invalid or unavailable saved preferences. */
+}
+refreshCustomFields();
+$('ai-reset').onclick = () => {
+  for (const key of ['platform', ...Object.keys(aiPresets)])
+    $('ai-' + key).selectedIndex = 0;
+  for (const key of Object.keys(aiPresets))
+    $('ai-' + key + '-custom').value = '';
+  refreshCustomFields();
+  rememberAIPreferences();
+  if (currentJob) updateAIPreview();
+};
 function aiPackage() {
   if (!currentJob) throw Error('Transcribe a recording first.');
   const segments = [...document.querySelectorAll('.segment')].map((row) => {
@@ -216,7 +324,12 @@ function aiPackage() {
   });
   return {
     context: Object.fromEntries(
-      aiFields.map((key) => [key, $('ai-' + key).value]),
+      aiFields.map((key) => [
+        key,
+        key in aiPresets && $('ai-' + key).value === '__custom__'
+          ? $('ai-' + key + '-custom').value
+          : $('ai-' + key).value,
+      ]),
     ),
     payload: TranscriptAI.makePayload(currentJob, segments),
   };
@@ -237,9 +350,18 @@ function updateAIPreview() {
       $(id).disabled = true;
   }
 }
-aiFields.forEach((key) =>
-  $('ai-' + key).addEventListener('input', updateAIPreview),
-);
+aiFields.forEach((key) => {
+  $('ai-' + key).addEventListener('input', () => {
+    refreshCustomFields();
+    rememberAIPreferences();
+    if (currentJob) updateAIPreview();
+  });
+  if (key in aiPresets)
+    $('ai-' + key + '-custom').addEventListener('input', () => {
+      rememberAIPreferences();
+      if (currentJob) updateAIPreview();
+    });
+});
 async function copyAIPrompt(includeJSON) {
   try {
     const { context, payload } = aiPackage();

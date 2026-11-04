@@ -46,7 +46,7 @@ Primary platform / format: ${field('platform', 'Recommend a suitable primary pla
 Target finished length: ${field('length', 'Recommend a realistic length from the available material; explain why')}
 Audience: ${field('audience', 'Infer a likely audience cautiously and label it as an assumption')}
 Goal / takeaway: ${field('goal', 'Identify the strongest supported takeaway and propose a goal')}
-Voice / editing style: ${field('style', 'Natural, clear and engaging. Preserve my speaking speed, meaning, voice and meaningful pauses.')}
+Voice / editing style: ${field('style', 'Recommend a suitable style from the transcript and goal. Preserve natural speaking speed, meaning and meaningful pauses.')}
 Available visuals / context: ${field('footage', 'Only the transcript is supplied. Visual coverage, framing, energy and audio quality are unknown.')}
 Additional directions: ${field('instructions', 'None')}
 

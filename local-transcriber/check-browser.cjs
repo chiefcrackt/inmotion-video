@@ -47,8 +47,15 @@ const { launchBrowser } = require('../tests/browser-utils.cjs');
       .first()
       .inputValue();
     console.log('Recognized:', initial);
-    await page.locator('#ai-audience').fill('Beginner runners');
-    await page.locator('#ai-length').fill('60 seconds');
+    await page.locator('#ai-audience').selectOption('Beginner runners');
+    await page.locator('#ai-length').selectOption('__custom__');
+    await page.locator('#ai-length-custom').fill('60 seconds');
+    await page
+      .locator('#ai-goal')
+      .selectOption('Teach a practical running tip');
+    await page
+      .locator('#ai-platform')
+      .selectOption({ label: 'Instagram Reels · vertical' });
     await page.click('#ai-copy');
     const copied = await page.evaluate(() => navigator.clipboard.readText());
     for (const text of [
@@ -56,6 +63,8 @@ const { launchBrowser } = require('../tests/browser-utils.cjs');
       'PROPOSED TIMELINE',
       'CONTENT PACKAGE',
       'BEGIN_TRANSCRIPT_JSON',
+      '60 seconds',
+      'Teach a practical running tip',
     ])
       assert.ok(copied.includes(text));
     assert.match(
@@ -147,6 +156,32 @@ const { launchBrowser } = require('../tests/browser-utils.cjs');
     assert.ok(
       (await page.locator('#ai-status').textContent()).includes('Ctrl+C'),
     );
+    await page.reload();
+    await page.waitForFunction(
+      () => document.querySelector('#ai-audience').options.length > 1,
+    );
+    assert.equal(
+      await page.locator('#ai-audience').inputValue(),
+      'Beginner runners',
+    );
+    assert.equal(await page.locator('#ai-length').inputValue(), '__custom__');
+    assert.equal(
+      await page.locator('#ai-length-custom').inputValue(),
+      '60 seconds',
+    );
+    assert.equal(
+      await page.locator('#ai-goal').inputValue(),
+      'Teach a practical running tip',
+    );
+    assert.equal(
+      await page.locator('#ai-platform').inputValue(),
+      'Instagram Reels · vertical',
+    );
+    await page.locator('#ai-reset').evaluate((button) => button.click());
+    assert.equal(await page.locator('#ai-audience').inputValue(), '');
+    assert.equal(await page.locator('#ai-length').inputValue(), '');
+    assert.equal(await page.locator('#ai-length-custom').inputValue(), '');
+    assert.equal(await page.locator('#ai-length-custom').isVisible(), false);
     assert.deepEqual(errors, []);
     console.log(
       'PASS: real transcription, word timings, edited AI JSON, combined/prompt-only clipboard, clipboard fallback, exports, token rejection, mobile layout, no page errors.',

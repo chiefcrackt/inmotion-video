@@ -8,6 +8,13 @@ includes the current transcript and original recognition timings in one paste.
 download is also available for longer recordings. Preview the generated prompt
 before copying. Nothing is sent automatically.
 
+Length, audience, goal and editing style have reusable dropdown presets plus
+**Custom…**. **Recommend from the transcript** leaves the choice to the assistant.
+Platform and these four choices, including custom text, are remembered in this
+browser on this local origin. **Reset preferences** restores the defaults.
+Project title, footage notes and extra instructions are specific to the current
+session and are not persisted.
+
 The brief requests a recommended edit, source-timed timeline, three opening
 options, best takes/cuts, visual/sound plan, caption checks, standalone clips,
 titles/covers/description/carousel, chapters and a prioritized handoff. It
