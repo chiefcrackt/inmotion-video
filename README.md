@@ -7,6 +7,11 @@ It opens the local transcription engine on the current computer. Start
 See [setup and usage](local-transcriber/README.md). GitHub Pages hosts the entry
 page; the Python engine runs only on the computer where the launcher is started.
 
+**Clean Voice** is available from the tools hub at `/clean-voice/`. Start
+`local-voice/Start Clean Voice.cmd` on Windows; the studio opens at
+`http://127.0.0.1:8766/`. It removes background noise or isolates the voice on
+the NVIDIA GPU, then evens out the volume. See [setup and usage](local-voice/README.md).
+
 Celebration Studio is available for review at `/celebration-studio/`, combining
 Special Post and Celebration as two modes while retaining both original editors
 and dashboard links. See [preview behavior and validation](celebration-studio/README.md).
@@ -62,6 +67,7 @@ The home page groups tools by task and offers search and category filters. All t
 | Activity Studio     | `/activity-studio/` | Local FIT/GPX/TCX imports, editable run cards, dashboards, route reveals, elevation profiles and recorded lap graphics; PNG and browser-recorded video; route draw styles (glowing head, comet trail, ghost route, runner dot, zoom-follow) and an optional route intro that draws in, glides into the card and lands on the finished card |
 | Sound Forge         | `/sound-forge/`     | Four-layer sound effects studio: 35 procedural presets (incl. the data-kit hits), samples, effects, shared local library, stereo WAV and stems                                                                                                                                                                                       |
 | Beat Bed            | `/beat-bed/`        | Music beds in 14 styles (Cyber, Soft, Minimal, Drive, Lo-fi, Synthwave, Cinematic, Trap, Anthem, Reflective, Trail, Heartbeat, Playful, Sunny), each with 2–3 grooves and a Dark/Bright/Dreamy mood: tempo, swing, key, sections (intro, build, drop, verse, breakdown, outro) or one length, intros and endings, a five-part mixer with mute/solo, bass sound, brightness, reverb and echo; live preview and 48 kHz stereo WAV that ends on the bar |
+| Clean Voice         | `/clean-voice/`     | Computer only, with the local launcher: GPU noise removal (MossFormer2) or voice isolation (Demucs), loudness to −16 LUFS; cleaned MP4 with the original picture, or WAV                                                                                                                                                                                                                                                                             |
 | Title Maker         | `/title-maker/`     | Cyber-kit title cards, lower thirds, word tags and chapter cards with sound; optional exits (reverse, fade, wipe, slide, drop, shrink, pop, glitch, cut) with length, easing, direction and end hold, or each card’s original ending |
 | Promo Maker         | `/promo-maker/`     | An "Out now" clip from a video's thumbnail and title                                                                                                                                                                                                                                                       |
 | Cover Maker         | `/cover-maker/`     | YouTube thumbnails, Reel covers and highlight covers as PNGs                                                                                                                                                                                                                                               |

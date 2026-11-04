@@ -2,6 +2,7 @@ import { readFile, access } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const files = [
   'transcribe-video/index.html',
+  'clean-voice/index.html',
   'dashboard-preview/index.html',
   'dashboard-preview/app.mjs',
   'social-post-studio/index.html',

@@ -26,6 +26,15 @@ export const TOOLS = Object.freeze([
     icon: 'idea',
   },
   {
+    id: 'clean-voice',
+    name: 'Clean Voice',
+    href: 'clean-voice/',
+    description: 'Computer only — requires the local Windows launcher. Remove background noise, isolate your voice from music and even out the volume on your NVIDIA GPU. Not available on phones or tablets.',
+    workspaces: ['audio'],
+    keywords: ['noise', 'denoise', 'noise reduction', 'voice', 'enhance', 'clean', 'audio', 'isolate', 'local', 'gpu', 'loudness'],
+    icon: 'waveform',
+  },
+  {
     id: 'brand-assets',
     name: 'Brand Assets',
     href: 'brand-assets/',

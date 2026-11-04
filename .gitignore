@@ -5,4 +5,7 @@ tests/sound-forge-*.png
 artifacts/
 .venv-transcribe/
 local-transcriber/data/
+.venv-clean-voice/
+local-voice/data/
+local-voice/models/
 __pycache__/
