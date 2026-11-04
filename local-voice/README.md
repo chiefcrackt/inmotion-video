@@ -52,6 +52,13 @@ offline. Nothing is sent anywhere else.
 DeepFilterNet was the first choice, but its helper library has no Windows build
 for Python 3.12, which the transcriber already uses.
 
+## From Transcribe Video
+
+Transcribe Video's **Clean voice first** option runs `clean_file.py` on the
+upload (`python clean_file.py <input> <folder> --mode --strength --device`,
+which prints the job as JSON lines), then transcribes the cleaned sound. Only
+this environment needs to exist; the Clean Voice page doesn't have to be open.
+
 ## Local files
 
 Inputs and results are kept under `data/<job-id>/` (excluded from Git). The job

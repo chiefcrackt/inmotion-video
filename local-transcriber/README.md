@@ -33,6 +33,19 @@ accuracy guarantee. Sentence edits do not realign individual word timings.
 The subtitle cues follow recognition segments; they are not automatically
 reflowed into short social-video caption groups. No captions are burned in.
 
+## Clean voice first
+
+**Clean voice first** runs Clean Voice (`../local-voice`) on the upload before
+transcribing: Remove noise (Light, Medium, Strong) or Isolate voice from music.
+Whisper then hears the cleaned sound, the player switches to the cleaned
+recording, and **Cleaned video** and **Cleaned WAV** join the downloads, with
+the same timings as the original. It runs `local-voice/clean_file.py` in
+Clean Voice's own environment (`.venv-clean-voice`, made by
+**Start Clean Voice.cmd**; the Clean Voice page itself needn't be open). Until
+that exists the choice stays Off. The choice is remembered in this browser.
+Cleaning takes the first 30% of the progress bar; its log is
+`data/<job-id>/clean.log`.
+
 ## Installation and models
 
 The launcher uses Python 3.12 and an isolated `.venv-transcribe` directory in the

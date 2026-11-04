@@ -218,8 +218,9 @@ def write_video(source, target, audio):
 
 
 def process(job, options, device):
-    folder = DATA / job['id']
-    media = folder / 'media'
+    # clean_file.py (Transcribe Video's clean-first step) names its own input and folder.
+    folder = Path(job.get('folder') or DATA / job['id'])
+    media = Path(job.get('media') or folder / 'media')
     job.update(status='working', device=device, warnings=job['warnings'],
                message='Loading models. First use downloads them; later runs use the local cache.')
     started = time.time()

@@ -237,6 +237,20 @@
             ></div
           >
           <label
+            >Clean voice first<select id="clean"
+              ><option value="off">Off · transcribe the original sound</option
+              ><option value="light">Remove noise · Light</option
+              ><option value="medium">Remove noise · Medium</option
+              ><option value="strong">Remove noise · Strong</option
+              ><option value="isolate">Isolate voice from music</option></select
+            ></label
+          >
+          <small id="clean-note"
+            >Removes background noise with Clean Voice on this computer, then
+            transcribes the cleaned sound. You also get the cleaned
+            video.</small
+          >
+          <label
             >Names and vocabulary hints<input
               id="vocabulary"
               maxlength="1000"

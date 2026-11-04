@@ -27,9 +27,50 @@ $('file').addEventListener('change', () => {
     $('video').src = mediaUrl;
   }
 });
+// Clean voice first: remembered on this browser, off when Clean Voice isn't installed.
+const cleanKey = 'tim-transcriber-clean-v1';
+try {
+  const saved = localStorage.getItem(cleanKey);
+  if (saved && [...$('clean').options].some((o) => o.value === saved))
+    $('clean').value = saved;
+} catch {
+  /* Works without storage. */
+}
+$('clean').addEventListener('change', () => {
+  try {
+    localStorage.setItem(cleanKey, $('clean').value);
+  } catch {
+    /* Works without storage. */
+  }
+});
+fetch('/api/status')
+  .then((response) => response.json())
+  .then((status) => {
+    if (status.cleaner) return;
+    $('clean').value = 'off';
+    for (const option of $('clean').options)
+      option.disabled = option.value !== 'off';
+    $('clean-note').textContent =
+      'To clean the voice first, run local-voice/Start Clean Voice.cmd once to install Clean Voice, then reload this page.';
+  })
+  .catch(() => {});
+const cleanedLabels = {
+  'cleaned.mp4': 'Cleaned video',
+  'cleaned.mkv': 'Cleaned video',
+  'cleaned.wav': 'Cleaned WAV',
+};
 function downloadLinks(enabled = true) {
   $('downloads').replaceChildren();
   if (!enabled) return;
+  const cleaned = (currentJob?.cleaned || []).slice();
+  cleaned.sort((a) => (a === 'cleaned.wav' ? 1 : -1)); // Video first.
+  for (const name of cleaned) {
+    const link = document.createElement('a');
+    link.className = 'download';
+    link.href = `/download/${jobId}/${name}`;
+    link.textContent = cleanedLabels[name];
+    $('downloads').append(link);
+  }
   for (const [name, label] of [
     ['transcript.txt', 'Text'],
     ['transcript.srt', 'SRT'],
@@ -147,6 +188,7 @@ $('form').onsubmit = async (event) => {
       device: $('device').value,
       language: $('language').value,
       vocabulary: $('vocabulary').value,
+      clean: $('clean').value,
     };
     const started = await responseJSON(
       await fetch('/api/transcribe', {
@@ -164,10 +206,17 @@ $('form').onsubmit = async (event) => {
       const job = await responseJSON(await fetch(`/api/job/${jobId}`));
       $('status').textContent = job.message || 'Preparing transcription…';
       $('warnings').textContent = job.warnings.join('\n');
-      if (job.status === 'transcribing' || job.status === 'complete')
+      if (['cleaning', 'transcribing', 'complete'].includes(job.status))
         $('progress').value = job.progress;
       if (job.status === 'error') throw Error(job.message);
       if (job.status === 'complete') {
+        // Play the cleaned recording, so the Play buttons sound like the result.
+        const cleaned = job.cleaned.find((name) => name !== 'cleaned.wav');
+        if (cleaned || job.cleaned.length) {
+          const time = $('video').currentTime;
+          $('video').src = `/media/${jobId}/${cleaned || job.cleaned[0]}`;
+          $('video').currentTime = time;
+        }
         render(job);
         break;
       }
