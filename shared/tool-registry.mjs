@@ -20,7 +20,7 @@ export const TOOLS = Object.freeze([
     id: 'transcribe-video',
     name: 'Transcribe Video',
     href: 'transcribe-video/',
-    description: 'Transcribe recordings on this computer, edit the text and export subtitles and word timings. Requires the local launcher.',
+    description: 'Computer only — requires the local Windows launcher. Transcribe recordings, edit text and export subtitles and word timings. Not available on phones or tablets.',
     workspaces: ['audio', 'plan', 'publishing'],
     keywords: ['transcription', 'transcript', 'captions', 'subtitles', 'speech', 'whisper', 'local', 'srt', 'vtt'],
     icon: 'idea',
