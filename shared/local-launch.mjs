@@ -80,6 +80,8 @@ const CSS = `
 .ll-code code{flex:1;font:14px/1.5 ui-monospace,Consolas,monospace;color:#f6f4ef;overflow-wrap:anywhere;white-space:pre-wrap}
 .ll-btn{display:inline-block;background:#e8c96a;color:#102033;border:0;border-radius:9px;padding:12px 18px;font:700 15px system-ui;cursor:pointer;text-decoration:none}
 .ll-btn.ll-quiet{background:#293f59;color:#f6f4ef}
+.ll-btn:disabled{opacity:.45;cursor:not-allowed}
+.ll-dialog input[aria-invalid=true]{border-color:#e8c96a;box-shadow:0 0 0 2px rgba(232,201,106,.35)}
 .ll-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
 .ll-status{min-height:24px;color:#9dd8d8;font-weight:600}
 .ll-dialog small{color:#a9bdd0}
@@ -125,7 +127,13 @@ function dialog(tool, url) {
   folder.value = stored(FOLDER_KEY);
   let shell = stored(SHELL_KEY, 'ps');
   const render = () => {
-    $('code').textContent = command(tool, folder.value, shell);
+    // No folder yet: ask for it rather than show a command with a made-up path in it.
+    const ready = Boolean(cleanFolder(folder.value));
+    $('code').textContent = ready
+      ? command(tool, folder.value, shell)
+      : '↑ Paste your inmotion-video folder above first. In File Explorer, open the folder, click the address bar and copy it.';
+    $('.ll-copy').disabled = !ready;
+    folder.setAttribute('aria-invalid', String(!ready));
     back
       .querySelectorAll('[data-shell]')
       .forEach((b) =>
