@@ -35,6 +35,8 @@
     .styles input{margin-top:4px;accent-color:var(--gold)}
     .styles strong{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:900;text-transform:uppercase;font-size:18px;color:var(--paper)}
     .styles span{display:block;color:var(--muted);font-size:14px;line-height:1.45}
+    .fade-in{display:flex;gap:10px;align-items:center;margin:14px 0 4px;color:var(--paper);cursor:pointer}
+    .fade-in input{accent-color:var(--gold);width:18px;height:18px}
     input[type=range]{width:100%;accent-color:var(--gold)}
     .stage{position:relative;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:
       repeating-conic-gradient(#1b2d47 0% 25%,#13223a 0% 50%) 0 0/24px 24px}
@@ -72,6 +74,9 @@
             <option value="2">Up to 2 words</option>
             <option value="3" selected>Up to 3 words</option>
             <option value="4">Up to 4 words</option>
+            <option value="6">Up to 6 words</option>
+            <option value="8">Up to 8 words</option>
+            <option value="sentence">Whole sentence</option>
           </select>
         </div>
         <p class="note" id="timingNote">Best: <strong>Word JSON</strong> from Transcribe Video, with <strong>Precise word timing</strong> ticked. Each word lights up when you say it, and captions break at pauses and punctuation. SRT and VTT spread each caption's words evenly across its time instead.</p>
@@ -95,6 +100,8 @@
           <label><input type="radio" name="style" value="glitch">
             <div><strong>Glitch</strong><span>The current word gets a teal and gold colour split that jitters, from the T.im video kit.</span></div></label>
         </div>
+        <label class="fade-in"><input type="checkbox" id="fadeIn"> Fade and rise each caption in, with any style</label>
+        <p class="note">For a whole line with the spoken word styled, pick a longer <strong>Words per caption</strong> (up to 8, or Whole sentence) and any style but Full line.</p>
       </section>
 
       <section>
@@ -203,8 +210,12 @@ Train the downhills as hard as the climbs`;
     return { words, precise };
   }
 
-  function groupWords(words, max) {
-    // A caption ends at the word limit, a pause, or the end of a sentence (or a comma once it has 2 words).
+  function groupWords(words, setting) {
+    // A caption ends at the word limit, a pause, or the end of a sentence (or a comma once it has a few words).
+    // Longer captions hold through short breaths; a whole sentence stops at 14 words so it can't fill the screen.
+    const max = setting === 'sentence' ? 14 : +setting;
+    const pause = max >= 6 ? 0.8 : 0.45;
+    const commaAfter = max >= 6 ? 5 : 2;
     const groups = [];
     let current = [];
     words.forEach((w, i) => {
@@ -212,7 +223,7 @@ Train the downhills as hard as the climbs`;
       const next = words[i + 1];
       const gap = next ? next.start - w.end : Infinity;
       const raw = w.word.trim();
-      if (current.length >= max || gap > 0.45 || /[.?!]$/.test(raw) || (/[,;:]$/.test(raw) && current.length >= 2)) {
+      if (current.length >= max || gap > pause || /[.?!]$/.test(raw) || (/[,;:]$/.test(raw) && current.length >= commaAfter)) {
         groups.push(current);
         current = [];
       }
@@ -251,7 +262,7 @@ Train the downhills as hard as the climbs`;
 
   function regroup() {
     if (!sourceWords) return;
-    setCues(groupWords(sourceWords, +$('perCaption').value));
+    setCues(groupWords(sourceWords, $('perCaption').value));
     if (cues.length)
       $('status').textContent = `${cues.length} captions from ${sourceWords.length} words, ` +
         (precise ? 'with precise word timing.' : 'with Whisper’s word timing. Tick Precise word timing in Transcribe Video for tighter highlights.');
@@ -328,7 +339,7 @@ Train the downhills as hard as the climbs`;
     c.shadowOffsetY = 6;
 
     let rise = 0, alpha = 1;
-    if (style === 'line') {
+    if (style === 'line' || $('fadeIn').checked) {
       const k = Math.min(1, (time - cue.start) / 0.18);
       alpha = k;
       rise = (1 - k) * 28;
@@ -436,6 +447,7 @@ Train the downhills as hard as the climbs`;
   };
   $('scrub').oninput = (e) => { t = +e.target.value; playing = false; $('play').textContent = 'Play'; draw(); updateTime(); };
   document.querySelectorAll('input[name=style]').forEach((el) => el.onchange = draw);
+  $('fadeIn').onchange = draw;
   $('size').oninput = () => { $('sizeVal').textContent = `(${$('size').value})`; draw(); };
   $('pos').oninput = () => { $('posVal').textContent = `(${$('pos').value}% down)`; draw(); };
   $('apply').onclick = () => load($('input').value);
