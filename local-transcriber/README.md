@@ -52,6 +52,25 @@ that exists the choice stays Off. The choice is remembered in this browser.
 Cleaning takes the first 30% of the progress bar; its log is
 `data/<job-id>/clean.log`.
 
+## Precise word timing
+
+**Precise word timing (for captions)** pins every word to the audio after
+Whisper: wav2vec2 forced alignment (`align.py`, English only), one segment at a
+time with 0.25 s of margin, in steps of about 20 ms. On a test recording with
+known word times, starts were typically 37 ms off (worst 0.27 s) where
+Whisper's own were 198 ms off and up to 1.2 s early after pauses; ends were
+about the same (56 ms). The Word JSON then says `"word_timing": "aligned"`,
+gives each word an `alignment` score and keeps Whisper's estimates as
+`whisper_start` and `whisper_end`; sentence edges follow their first and last
+words, so SRT and VTT tighten too. Words with no letters to align (Whisper
+writes "twelve" as "12") are placed between their aligned neighbours.
+
+It runs in Clean Voice's environment (it needs PyTorch), so Clean Voice must be
+installed; first use downloads a 360 MB model to PyTorch's cache (retried, as
+download.pytorch.org sometimes drops the connection). If it fails, the
+transcript keeps Whisper's times with a warning; `data/<job-id>/align.log`
+says why. Edited text still isn't re-aligned.
+
 ## Installation and models
 
 The launcher uses Python 3.12 and an isolated `.venv-transcribe` directory in the

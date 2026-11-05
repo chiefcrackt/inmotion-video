@@ -43,10 +43,28 @@ $('clean').addEventListener('change', () => {
     /* Works without storage. */
   }
 });
+// Precise word timing: remembered too; it runs in Clean Voice's environment.
+const alignKey = 'tim-transcriber-align-v1';
+try {
+  $('align').checked = localStorage.getItem(alignKey) === '1';
+} catch {
+  /* Works without storage. */
+}
+$('align').addEventListener('change', () => {
+  try {
+    localStorage.setItem(alignKey, $('align').checked ? '1' : '0');
+  } catch {
+    /* Works without storage. */
+  }
+});
 fetch('/api/status')
   .then((response) => response.json())
   .then((status) => {
     if (status.cleaner) return;
+    $('align').checked = false;
+    $('align').closest('label').hidden = true;
+    $('align-note').textContent =
+      'Precise word timing also needs Clean Voice: run local-voice/Start Clean Voice.cmd once, then reload this page.';
     $('clean').value = 'off';
     for (const option of $('clean').options)
       option.disabled = option.value !== 'off';
@@ -189,6 +207,7 @@ $('form').onsubmit = async (event) => {
       language: $('language').value,
       vocabulary: $('vocabulary').value,
       clean: $('clean').value,
+      align: $('align').checked,
     };
     const started = await responseJSON(
       await fetch('/api/transcribe', {
@@ -206,7 +225,11 @@ $('form').onsubmit = async (event) => {
       const job = await responseJSON(await fetch(`/api/job/${jobId}`));
       $('status').textContent = job.message || 'Preparing transcription…';
       $('warnings').textContent = job.warnings.join('\n');
-      if (['cleaning', 'transcribing', 'complete'].includes(job.status))
+      if (
+        ['cleaning', 'transcribing', 'aligning', 'complete'].includes(
+          job.status,
+        )
+      )
         $('progress').value = job.progress;
       if (job.status === 'error') throw Error(job.message);
       if (job.status === 'complete') {
