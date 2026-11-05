@@ -31,7 +31,7 @@
         >Open this view in a new tab ↗</a
       >
     </header>
-    <details id="studio-sync">
+    <details id="studio-sync" open>
       <summary>Workspace cloud sync</summary>
       <form>
         <label>Loadout email <input type="email" name="email" autocomplete="email" required /></label>
@@ -41,7 +41,8 @@
       <button type="button" data-disconnect hidden>Disconnect this browser</button>
       <p role="status">Checking cloud connection…</p>
     </details>
-    <main id="editors" aria-label="Planning workspace"></main>
+    <p id="waiting">Sign in and sync to load your Content Studio. Nothing is shown until your cloud workspace has synced.</p>
+    <main id="editors" aria-label="Planning workspace" hidden></main>
     <noscript><p>Choose a view above to open its planner.</p></noscript>
   </body>
 </html>

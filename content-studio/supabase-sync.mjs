@@ -160,6 +160,7 @@ async function sync() {
     const ideas = await syncDataset(sb, 'ideas', IDEA_KEY);
     const projects = ideas && (await syncDataset(sb, 'projects', PLANNER_KEY));
     connected = true;
+    window.dispatchEvent(new Event('tim-cloud-ready'));
     const ideaCount =
       JSON.parse(localStorage.getItem(IDEA_KEY) || '{}').ideas?.filter(
         (i) => i && !i.archived,
@@ -177,7 +178,7 @@ async function sync() {
           ' projects · ' +
           new Date().toLocaleTimeString()
         : 'No ideas or projects to sync. Sync first from the browser that has your workspace.'
-      : 'Local changes saved. Sync will retry shortly.';
+      : 'Sync will retry shortly.';
   } catch (error) {
     message = 'Cloud sync: ' + error.message;
   } finally {
@@ -220,6 +221,7 @@ client()
       user = session?.user;
       if (previous === user?.id && previous) return;
       connected = false;
+      if (!user) window.dispatchEvent(new Event('tim-cloud-signed-out'));
       show(
         user
           ? 'Connected to Supabase.'
@@ -229,7 +231,7 @@ client()
     });
   })
   .catch(() =>
-    show('Cloud connection unavailable. You can still work locally.'),
+    show('Cloud connection unavailable. Content Studio cannot load until it is back.'),
   );
 setInterval(() => {
   if (connected && !document.hidden && navigator.onLine) sync();

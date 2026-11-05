@@ -21,6 +21,9 @@
   };
   const frames = new Map();
   const status = document.getElementById('status');
+  const editors = document.getElementById('editors');
+  const waiting = document.getElementById('waiting');
+  let ready = false;
   const links = [...document.querySelectorAll('[data-mode]')];
   let active;
   const projectId = () => new URLSearchParams(location.search).get('project');
@@ -51,6 +54,7 @@
   }
 
   function show(mode, updateUrl = true) {
+    if (!ready) return false;
     if (active && active !== mode) {
       const frame = frames.get(views[active].editor);
       if (frame?.contentWindow.TimPlanningEditor?.isBusy()) {
@@ -126,7 +130,7 @@
         }
       });
       frames.set(view.editor, frame);
-      document.getElementById('editors').append(frame);
+      editors.append(frame);
     }
     active = mode;
     for (const [id, frame] of frames) frame.hidden = id !== view.editor;
@@ -149,6 +153,22 @@
       event.preventDefault();
       show(link.dataset.mode);
     });
+  window.addEventListener('tim-cloud-ready', () => {
+    if (ready) return;
+    ready = true;
+    waiting.hidden = true;
+    editors.hidden = false;
+    show(requested(), false);
+  });
+  window.addEventListener('tim-cloud-signed-out', () => {
+    ready = false;
+    for (const frame of frames.values()) frame.remove();
+    frames.clear();
+    active = undefined;
+    status.textContent = '';
+    editors.hidden = true;
+    waiting.hidden = false;
+  });
   const requested = () =>
     location.hash === '#videos'
       ? 'projects'
@@ -156,7 +176,7 @@
         ? location.hash.slice(1)
         : 'projects';
   window.addEventListener('hashchange', () => {
-    if (!show(requested(), false)) history.replaceState(null, '', '#' + active);
+    if (ready && !show(requested(), false))
+      history.replaceState(null, '', '#' + active);
   });
-  show(requested(), false);
 })();

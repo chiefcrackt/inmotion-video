@@ -87,6 +87,10 @@ iframe {
 iframe[hidden] {
   display: none;
 }
+main[hidden],
+#waiting[hidden] {
+  display: none;
+}
 @media (max-width: 600px) {
   body > header {
     padding: 10px 12px;
