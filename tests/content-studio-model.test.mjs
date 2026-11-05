@@ -12,7 +12,6 @@ import {
   groupByStage,
   videoFrom,
   migrate,
-  outlineMigrationList,
 } from '../content-studio/video-model.mjs';
 
 const idea = (over = {}) => ({
@@ -220,12 +219,3 @@ test('attachments keep only text fields', () => {
   ]);
 });
 
-test('outlineMigrationList lists live Drive-linked ideas only', () => {
-  const list = outlineMigrationList([
-    idea(),
-    idea({ id: 'i2', sourceId: 'def', archived: true }),
-    idea({ id: 'i3', sourceId: undefined }),
-    idea({ id: 'i4', sourceId: 'ghi', conflictOf: 'i1' }),
-  ]);
-  assert.deepEqual(list, [{ id: 'i1', docId: 'abc', title: 'Soft flask video' }]);
-});

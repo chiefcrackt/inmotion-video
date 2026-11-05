@@ -184,10 +184,8 @@ export function videoFrom({ idea = null, project = null }) {
 }
 
 // Fields that are never written to the unified record:
-//  - sourceId, driveAssets, driveFolder, footageUrl, thumbnailUrl: Google Drive
-//    references. Drive is being removed; footage and thumbnails stay on the
-//    device only.
-// sourceId is still read by the outline migration (see outlineMigrationList).
+//  - Google Drive references and footage or thumbnail links. Footage and
+//    thumbnails stay on the device only.
 //
 // Migrates the two old stores into one list.
 //
@@ -253,11 +251,3 @@ export function migrate({ ideas = [], projects = [] } = {}) {
   return { videos, report };
 }
 
-// Videos whose outline still lives in a Google Doc. Run this once, while the
-// Drive connection still works, to copy each outline into the outline text
-// field. After that the Drive link is no longer needed.
-export function outlineMigrationList(ideas = []) {
-  return ideas
-    .filter((i) => i && i.sourceId && !i.archived && !i.conflictOf)
-    .map((i) => ({ id: i.id, docId: i.sourceId, title: i.title || '' }));
-}

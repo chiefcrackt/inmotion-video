@@ -270,7 +270,7 @@ test('unparseable entries pass through so an upload never drops them', () => {
   assert.ok(result.ideas.includes(broken));
 });
 
-test('legacy: the same Google Doc under two ids with identical content collapses to one card', () => {
+test('legacy: the same linked document under two ids with identical content collapses to one card', () => {
   const local = [idea('phone-uuid', { sourceId: 'doc1', title: 'Same doc' })];
   const cloud = [idea('desktop-uuid', { sourceId: 'doc1', title: 'Same doc' })];
   const result = mergeIdeas(local, cloud, {}, makeId).ideas.filter(
@@ -279,7 +279,7 @@ test('legacy: the same Google Doc under two ids with identical content collapses
   assert.equal(result.length, 1);
 });
 
-test('legacy: the same Google Doc under two ids with different edits keeps both as a conflict copy', () => {
+test('legacy: the same linked document under two ids with different edits keeps both as a conflict copy', () => {
   const local = [
     idea('phone-uuid', {
       sourceId: 'doc1',
@@ -356,7 +356,7 @@ test('resolution refuses to act on an ordinary idea', () => {
   assert.throws(() => discardCopy(ideas, '1', T1), /not a conflict copy/);
 });
 
-// ---- Google Docs import (PR #29 behavior) ----------------------------------
+// ---- Legacy document import (PR #29 behavior) ----------------------------------
 
 const at = '2026-11-01T00:00:00.000Z';
 let n = 0;

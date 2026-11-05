@@ -31,7 +31,7 @@ round trips to the originals, PNG dimensions, promo and brand recordings,
 mode-change guards, stopping audio, persistence, mobile and no-JavaScript
 fallback. Also run `npm run test:brand-assets`, `npm test` and `npm run build`.
 
-Real iPhone/iPad sharing and account-dependent Drive exports still require
+Real iPhone/iPad sharing and still require
 manual checks on the hosted origin before replacing dashboard entries. Local
 preview storage is separate from GitHub Pages; hosted projects appear locally
 only if imported via JSON. Brand Assets retains its own export capabilities.

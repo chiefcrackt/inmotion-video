@@ -30,13 +30,13 @@ is unchanged.
 
 **Status:** in progress: pilot merged to `main` (PR #66). Step 3 (phone editing path) in progress on branch `feature/ui-consistency-phone-editing`: Cover Maker template links moved into a collapsed Templates section; Text Motion preview surround reduced; focused fields scroll clear of the software keyboard; exports pixel-identical to the original. Edit/Preview switch deferred (listed as "consider"). Remaining: common editor hierarchy (step 4) and dashboard polish (step 5). Requested by Tristan, 2026-11-03. Claude owns implementation.
 
-**Pilot notes (2026-11-03):** CSS-only changes in `cover-maker/index.html` (interface sans for labels and inputs, compact phone header with template links inline, saved-projects panel moved below the editing controls) and `text-motion/style.css` (interface sans, compact phone preview so the first text field is on screen, larger transport buttons, saved-projects and Drive panels moved after the editing fields). Exports are pixel-identical to `HEAD` for both tools. Verified in Chrome at 1440, 768 and 390 px: no horizontal overflow, no page errors, all phone controls at least 44px, undo/redo, draft persistence, PNG export and saved-project save/reload/load. The Playwright suites (`test:cover:browser` and others) were **not** run: `npm ci` could not reach the npm registry from the build environment. Live Drive and real-device checks remain in `docs/hosted-validation.md`.
+**Pilot notes (2026-11-03):** CSS-only changes in `cover-maker/index.html` (interface sans for labels and inputs, compact phone header with template links inline, saved-projects panel moved below the editing controls) and `text-motion/style.css` (interface sans, compact phone preview so the first text field is on screen, larger transport buttons, saved-projects panels moved after the editing fields). Exports are pixel-identical to `HEAD` for both tools. Verified in Chrome at 1440, 768 and 390 px: no horizontal overflow, no page errors, all phone controls at least 44px, undo/redo, draft persistence, PNG export and saved-project save/reload/load. The Playwright suites (`test:cover:browser` and others) were **not** run: `npm ci` could not reach the npm registry from the build environment. Real-device checks remain open.
 
 **Review basis:** source at `23a1cf5`, followed by local Chrome rendering of the
 current homepage, Cover Maker, Text Motion and consolidated dashboard preview.
 Cover Maker, Text Motion and dashboard preview were inspected at 1440 × 900
 and/or 390 × 844 CSS-pixel viewports. These are desktop browser responsive
-checks, not actual-phone, screen-reader, export or live Drive validation.
+checks, not actual-phone, screen-reader, or export validation.
 The hosted homepage returned a connection reset; local rendering succeeded.
 
 ### What the rendered UI shows
@@ -45,7 +45,7 @@ The hosted homepage returned a connection reset; local rendering succeeded.
   product a coherent identity. Preserve them; improve hierarchy and readability.
 - Cover Maker's phone header includes two widely spaced template links before
   its description and mode picker. The preview starts far down the first screen.
-- Cover Maker presents Project & Google Drive and Saved projects & text / theme
+- Cover Maker presents Saved projects & text / theme
   before its editing controls. These large panels compete with the edit task.
 - Text Motion has a substantially narrower desktop inspector than Cover Maker.
   Both use small condensed labels/help, but their save panels differ in order,
@@ -109,8 +109,8 @@ The hosted homepage returned a connection reset; local rendering succeeded.
   `test:projects:browser`, `test:responsive`, `test:hub`, `test:dashboard`) and
   applicable build/static checks. Record actual commands/results and outstanding
   checks; automated layout tests do not replace screenshot review.
-- Keep real-device sharing and live Drive validation tracked separately in
-  `docs/hosted-validation.md`; do not claim they pass from viewport emulation.
+- Keep real-device sharing validation tracked separately; do not claim it
+  passes from viewport emulation.
 - Deliver a focused pilot PR with screenshots and reusable UI tokens before
   extending the pattern across every editor. This is a UI task; deeper save or
   export architecture changes should be separately scoped if needed.

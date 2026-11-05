@@ -15,14 +15,11 @@ export function newProject(title = 'Untitled video') {
     stage: 'Idea',
     outline: '',
     outlineUrl: '',
-    footageUrl: '',
-    thumbnailUrl: '',
     publishedUrl: '',
     filmDate: '',
     publishDate: '',
     items: [],
     attachments: [],
-    driveAssets: [],
     deleted: false,
     revision: '',
     clock: {},
@@ -98,8 +95,6 @@ export function validateBackup(doc) {
       'title',
       'outline',
       'outlineUrl',
-      'footageUrl',
-      'thumbnailUrl',
       'publishedUrl',
       'filmDate',
       'publishDate',
@@ -147,33 +142,6 @@ export function validateBackup(doc) {
       ),
     );
     if (typeof p.conflictOf === 'string') out.conflictOf = p.conflictOf;
-    if (
-      p.driveFolder &&
-      typeof p.driveFolder.id === 'string' &&
-      typeof p.driveFolder.account === 'string'
-    )
-      out.driveFolder = {
-        id: p.driveFolder.id,
-        account: p.driveFolder.account,
-        name: String(p.driveFolder.name || ''),
-      };
-    out.driveAssets = (Array.isArray(p.driveAssets) ? p.driveAssets : [])
-      .filter(
-        (a) =>
-          a &&
-          typeof a.id === 'string' &&
-          typeof a.name === 'string' &&
-          typeof a.account === 'string',
-      )
-      .map((a) => ({
-        id: a.id,
-        name: a.name,
-        account: a.account,
-        url: safeUrl(a.url),
-        mimeType: String(a.mimeType || ''),
-        tool: String(a.tool || ''),
-        updated: Number(a.updated) || 0,
-      }));
     return out;
   });
 }

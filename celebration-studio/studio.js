@@ -10,7 +10,7 @@
 
   function editorUrl(mode) {
     const url = new URL(modes[mode].path, location.href);
-    // Keep project association and editable Drive setup links intact.
+    // Keep project association intact.
     url.search = location.search;
     return url;
   }

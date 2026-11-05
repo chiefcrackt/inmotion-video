@@ -17,9 +17,7 @@ const path = require('node:path');
   const base = 'http://127.0.0.1:' + srv.address().port;
   const artifacts = artifactDirectory('planner');
   try {
-    await page.goto(base + '/');
-    await page.locator('a.tool[href="content-planner/"]').waitFor();
-    await page.locator('a.tool[href="content-planner/"]').click();
+    await page.goto(base + '/content-planner/');
     await page.evaluate(() =>
       localStorage.setItem(
         'tim-idea-vault-v1',
@@ -81,12 +79,6 @@ const path = require('node:path');
       'captured',
     );
     await page.locator('[data-tab="assets"]').click();
-    await page.locator('#footageUrl').fill('javascript:alert(1)');
-    assert.equal(await page.locator('#asset-links a').count(), 0);
-    await page.locator('#footageUrl').fill('https://example.com/footage');
-    await page
-      .getByRole('link', { name: 'Open footage', exact: true })
-      .waitFor();
     await page
       .locator('#tools')
       .getByRole('link', { name: 'Title Maker', exact: true })
