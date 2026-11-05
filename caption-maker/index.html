@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0e1a2e">
+  <title>Caption Maker · T.IM Studio</title>
+  <link rel="icon" href="../favicon.svg">
+  <link rel="stylesheet" href="../shared/fonts.css">
+  <link rel="stylesheet" href="../shared/studio-bar.css">
+  <script type="module" src="../shared/studio-bar.mjs"></script>
+  <script src="../text-motion/alpha-video.js" defer></script>
+  <style>
+    :root{color-scheme:dark;background:#0e1a2e;color:#f6f4ef;font:16px system-ui;--navy:#0e1a2e;--panel:#15253c;--line:#31445d;--gold:#e8c96a;--teal:#2e9bad;--paper:#f6f4ef;--muted:#bccddd}
+    *{box-sizing:border-box}
+    body{margin:0}
+    main{max-width:1100px;margin:auto;padding:40px 20px 80px}
+    h1{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:900;text-transform:uppercase;font-size:clamp(36px,7vw,56px);margin:8px 0 6px}
+    .eyebrow{color:var(--gold);font-weight:700;font-size:12px;letter-spacing:.14em}
+    p{color:var(--muted);line-height:1.6;margin:8px 0}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:24px;align-items:start;margin-top:24px}
+    @media (max-width:820px){.layout{grid-template-columns:1fr}}
+    section{background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:14px;padding:20px;margin-bottom:18px}
+    h2{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:900;text-transform:uppercase;font-size:22px;margin:0 0 10px}
+    label.lbl{display:block;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin:14px 0 6px}
+    textarea{width:100%;min-height:150px;background:#0e1a2e;color:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.5 ui-monospace,Consolas,monospace}
+    input[type=file]{color:var(--muted)}
+    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    button{font:700 14px system-ui;background:var(--gold);color:#102033;border:0;border-radius:9px;padding:11px 16px;cursor:pointer}
+    button.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold)}
+    button:disabled{opacity:.45;cursor:default}
+    .styles{display:grid;gap:10px}
+    .styles label{display:flex;gap:12px;align-items:flex-start;background:#0e1a2e;border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer}
+    .styles input{margin-top:4px;accent-color:var(--gold)}
+    .styles strong{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:900;text-transform:uppercase;font-size:18px;color:var(--paper)}
+    .styles span{display:block;color:var(--muted);font-size:14px;line-height:1.45}
+    input[type=range]{width:100%;accent-color:var(--gold)}
+    .stage{position:relative;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:
+      repeating-conic-gradient(#1b2d47 0% 25%,#13223a 0% 50%) 0 0/24px 24px}
+    .stage canvas{position:absolute;inset:0;width:100%;height:100%}
+    .safe{position:absolute;left:0;right:0;top:13%;bottom:21%;border:1px dashed rgba(232,201,106,.7);pointer-events:none}
+    .safe::before{content:"safe zone";position:absolute;top:4px;left:6px;font:700 11px system-ui;color:rgba(232,201,106,.85);letter-spacing:.1em;text-transform:uppercase}
+    .transport{display:flex;gap:10px;align-items:center;margin-top:12px}
+    .time{font:700 13px ui-monospace,Consolas,monospace;color:var(--muted);min-width:118px;text-align:right}
+    #status{min-height:22px;color:var(--teal);font-size:14px}
+    .note{font-size:13px;color:var(--muted)}
+  </style>
+</head>
+<body><tim-studio-bar></tim-studio-bar>
+<main>
+  <div class="eyebrow">TEXT &amp; CAPTIONS / OVERLAY</div>
+  <h1>Caption Maker</h1>
+  <p>Turn a transcript into on-screen captions in the T.im style. Export a transparent overlay to lay over your clip in CapCut.</p>
+
+  <div class="layout">
+    <div>
+      <section>
+        <h2>1. Captions</h2>
+        <label class="lbl" for="file">Upload SRT or VTT</label>
+        <input id="file" type="file" accept=".srt,.vtt,.txt">
+        <label class="lbl" for="input">Or paste it here</label>
+        <textarea id="input" spellcheck="false" placeholder="1&#10;00:00:00,000 --&gt; 00:00:02,000&#10;Your first caption line"></textarea>
+        <div class="row" style="margin-top:12px">
+          <button id="apply" type="button">Use these captions</button>
+          <button id="sample" type="button" class="ghost">Load sample</button>
+        </div>
+        <p class="note">Word highlighting spreads each caption's words evenly across its time. Exact word timings from the Transcribe tool can replace this later.</p>
+      </section>
+
+      <section>
+        <h2>2. Word style</h2>
+        <div class="styles" role="radiogroup" aria-label="Word style">
+          <label><input type="radio" name="style" value="pop" checked>
+            <div><strong>Word pop</strong><span>The word being spoken turns gold and pops. Everything else stays paper-white.</span></div></label>
+          <label><input type="radio" name="style" value="line">
+            <div><strong>Full line</strong><span>The whole caption fades and rises in. No highlight. Clean for quotes and longer lines.</span></div></label>
+          <label><input type="radio" name="style" value="sweep">
+            <div><strong>Sweep</strong><span>Words already spoken turn gold. The current word is marked by a teal underline.</span></div></label>
+          <label><input type="radio" name="style" value="box">
+            <div><strong>Highlight box</strong><span>The current word sits on a gold box with navy text.</span></div></label>
+          <label><input type="radio" name="style" value="type">
+            <div><strong>Typewriter</strong><span>Words appear one at a time as they are spoken.</span></div></label>
+          <label><input type="radio" name="style" value="slam">
+            <div><strong>Slam</strong><span>The current word drops in from above and lands with a punch.</span></div></label>
+          <label><input type="radio" name="style" value="glitch">
+            <div><strong>Glitch</strong><span>The current word gets a teal and gold colour split that jitters, from the T.im video kit.</span></div></label>
+        </div>
+      </section>
+
+      <section>
+        <h2>3. Size and position</h2>
+        <label class="lbl" for="size">Text size <span id="sizeVal"></span></label>
+        <input id="size" type="range" min="60" max="130" value="96">
+        <label class="lbl" for="pos">Vertical position <span id="posVal"></span></label>
+        <input id="pos" type="range" min="20" max="80" value="62">
+      </section>
+
+      <section>
+        <h2>4. Export</h2>
+        <div class="row">
+          <button id="exportPng" type="button" class="ghost">Save this frame (PNG)</button>
+          <button id="exportWebm" type="button">Transparent WebM</button>
+        </div>
+        <p class="note">The WebM keeps transparency for CapCut. Use Chrome or Edge. The preview checkerboard is not exported.</p>
+        <p id="status" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+
+    <div>
+      <section>
+        <h2>Preview</h2>
+        <div class="stage" id="stage">
+          <canvas id="cv" width="1080" height="1920"></canvas>
+          <div class="safe"></div>
+        </div>
+        <div class="transport">
+          <button id="play" type="button" class="ghost">Play</button>
+          <input id="scrub" type="range" min="0" max="10" step="0.01" value="0">
+          <span class="time" id="time">0.00 / 0.00 s</span>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script>
+(() => {
+  const W = 1080, H = 1920;
+  const PAPER = '#f6f4ef', GOLD = '#e8c96a', TEAL = '#2e9bad', DIM = '#7f93ab', NAVY = '#0e1a2e';
+  const FONT = '"Barlow Condensed", "Arial Narrow", sans-serif';
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const $ = (id) => document.getElementById(id);
+
+  let cues = [];
+  let duration = 0;
+  let t = 0;
+  let playing = false;
+  let last = 0;
+
+  const SAMPLE = `1
+00:00:00,000 --> 00:00:02,400
+Five miles did not prepare me for thirteen
+
+2
+00:00:02,500 --> 00:00:05,200
+Pace is the first thing to go on the hills
+
+3
+00:00:05,300 --> 00:00:08,000
+Train the downhills as hard as the climbs`;
+
+  function toSeconds(s) {
+    const m = s.trim().match(/(?:(\d+):)?(\d+):(\d+)[,.](\d+)/);
+    if (!m) return NaN;
+    return (+(m[1] || 0)) * 3600 + (+m[2]) * 60 + (+m[3]) + (+('0.' + m[4]));
+  }
+
+  function parseSubs(raw) {
+    const blocks = raw.replace(/\r/g, '').split(/\n\s*\n/);
+    const out = [];
+    for (const block of blocks) {
+      const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
+      const i = lines.findIndex((l) => l.includes('-->'));
+      if (i < 0) continue;
+      const [a, b] = lines[i].split('-->');
+      const start = toSeconds(a), end = toSeconds(b);
+      const text = lines.slice(i + 1).join(' ').replace(/<[^>]+>/g, '').trim();
+      if (!text || isNaN(start) || isNaN(end) || end <= start) continue;
+      out.push({ start, end, words: text.split(/\s+/).map((w) => w.toUpperCase()) });
+    }
+    return out;
+  }
+
+  function setCues(list) {
+    cues = list;
+    duration = cues.length ? cues[cues.length - 1].end + 0.6 : 0;
+    $('scrub').max = duration.toFixed(2);
+    t = 0;
+    $('status').textContent = cues.length ? `${cues.length} captions loaded.` : 'No captions found. Check the format (SRT or VTT).';
+    draw();
+    updateTime();
+  }
+
+  function wrap(words, size) {
+    ctx.font = `900 ${size}px ${FONT}`;
+    const maxW = 940;
+    const lines = [];
+    let line = [];
+    for (const w of words) {
+      const test = [...line, w].join(' ');
+      if (line.length && ctx.measureText(test).width > maxW) {
+        lines.push(line);
+        line = [w];
+      } else line.push(w);
+    }
+    if (line.length) lines.push(line);
+    return lines;
+  }
+
+  function roundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+
+  function drawFrame(c, time) {
+    c.clearRect(0, 0, W, H);
+    const cue = cues.find((q) => time >= q.start && time < q.end);
+    if (!cue) return;
+    const style = document.querySelector('input[name=style]:checked').value;
+    const size = +$('size').value;
+    const cy = H * (+$('pos').value) / 100;
+    const lines = wrap(cue.words, size);
+    const lh = size * 1.04;
+    const n = cue.words.length;
+    const dur = cue.end - cue.start;
+    const pos = (time - cue.start) / dur;                 // 0..1 through the cue
+    const active = Math.min(n - 1, Math.floor(pos * n));  // index of word being spoken
+    const wordStart = cue.start + (active / n) * dur;
+    const age = time - wordStart;
+
+    c.save();
+    c.font = `900 ${size}px ${FONT}`;
+    c.textAlign = 'left';
+    c.textBaseline = 'middle';
+    c.shadowColor = 'rgba(0,0,0,0.65)';
+    c.shadowBlur = 22;
+    c.shadowOffsetY = 6;
+
+    let rise = 0, alpha = 1;
+    if (style === 'line') {
+      const k = Math.min(1, (time - cue.start) / 0.18);
+      alpha = k;
+      rise = (1 - k) * 28;
+    }
+    c.globalAlpha = alpha;
+
+    const top = cy - (lines.length * lh) / 2 + lh / 2 + rise;
+    let index = 0;
+    lines.forEach((line, li) => {
+      const widths = line.map((w) => c.measureText(w).width);
+      const gap = size * 0.22;
+      const total = widths.reduce((a, b) => a + b, 0) + gap * (line.length - 1);
+      let x = W / 2 - total / 2;
+      const y = top + li * lh;
+      line.forEach((w, wi) => {
+        const wx = x, ww = widths[wi];
+        if (style === 'type' && index > active) {
+          x += ww + gap;
+          index++;
+          return;
+        }
+        let color = PAPER, s = 1, dy = 0, box = false, glitch = false;
+        if (style === 'pop') {
+          if (index === active) {
+            color = GOLD;
+            s = 1 + 0.14 * Math.max(0, 1 - age / 0.14);
+          }
+        } else if (style === 'sweep') {
+          if (index < active) color = GOLD;
+        } else if (style === 'box') {
+          if (index === active) { box = true; color = NAVY; }
+        } else if (style === 'slam') {
+          if (index === active) {
+            const k = Math.min(1, age / 0.18);
+            const ease = 1 - Math.pow(1 - k, 3);
+            dy = -(1 - ease) * 160;
+            s = 1.2 - 0.2 * ease;
+            color = GOLD;
+          }
+        } else if (style === 'glitch') {
+          if (index === active) { glitch = true; color = PAPER; }
+        }
+        if (box) {
+          c.save();
+          c.shadowColor = 'transparent';
+          c.fillStyle = GOLD;
+          roundRect(c, wx - size * 0.12, y - size * 0.52, ww + size * 0.24, size * 1.04, size * 0.14);
+          c.fill();
+          c.restore();
+        }
+        c.save();
+        c.translate(wx + ww / 2, y + dy);
+        c.scale(s, s);
+        if (glitch) {
+          // Teal and gold colour split, jittering on each frame, as in the T.im video kit
+          const f = Math.floor(time * 24);
+          const off = (f % 3 === 0 ? 1.4 : 0.6) * size * 0.035;
+          c.shadowBlur = 0;
+          c.fillStyle = TEAL;
+          c.fillText(w, -ww / 2 - off, 0);
+          c.fillStyle = GOLD;
+          c.fillText(w, -ww / 2 + off, 0);
+        }
+        c.fillStyle = color;
+        c.fillText(w, -ww / 2, 0);
+        c.restore();
+        if (style === 'sweep' && index === active) {
+          c.save();
+          c.shadowBlur = 0;
+          c.fillStyle = TEAL;
+          c.fillRect(wx, y + size * 0.5, ww, Math.max(6, size * 0.06));
+          c.restore();
+        }
+        x += ww + gap;
+        index++;
+      });
+    });
+    c.restore();
+  }
+
+  function draw() { drawFrame(ctx, t); }
+
+  function updateTime() {
+    $('time').textContent = `${t.toFixed(2)} / ${duration.toFixed(2)} s`;
+    $('scrub').value = t;
+  }
+
+  function tick(now) {
+    if (playing) {
+      t += (now - last) / 1000;
+      if (t >= duration) { t = 0; }
+      draw();
+      updateTime();
+    }
+    last = now;
+    requestAnimationFrame(tick);
+  }
+
+  // Controls
+  $('play').onclick = () => {
+    if (!duration) return;
+    playing = !playing;
+    $('play').textContent = playing ? 'Pause' : 'Play';
+    last = performance.now();
+  };
+  $('scrub').oninput = (e) => { t = +e.target.value; playing = false; $('play').textContent = 'Play'; draw(); updateTime(); };
+  document.querySelectorAll('input[name=style]').forEach((el) => el.onchange = draw);
+  $('size').oninput = () => { $('sizeVal').textContent = `(${$('size').value})`; draw(); };
+  $('pos').oninput = () => { $('posVal').textContent = `(${$('pos').value}% down)`; draw(); };
+  $('apply').onclick = () => setCues(parseSubs($('input').value));
+  $('sample').onclick = () => { $('input').value = SAMPLE; setCues(parseSubs(SAMPLE)); };
+  $('file').onchange = async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const text = await f.text();
+    $('input').value = text;
+    setCues(parseSubs(text));
+  };
+
+  function download(blob, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+
+  $('exportPng').onclick = () => {
+    if (!duration) return $('status').textContent = 'Load captions first.';
+    draw();
+    cv.toBlob((blob) => {
+      download(blob, `tim-caption-${t.toFixed(2)}s.png`);
+      $('status').textContent = 'PNG saved, with transparency.';
+    }, 'image/png');
+  };
+
+  $('exportWebm').onclick = async () => {
+    if (!duration) return $('status').textContent = 'Load captions first.';
+    playing = false;
+    $('play').textContent = 'Play';
+    $('exportWebm').disabled = true;
+    try {
+      const blob = await window.exportAlphaVideo(
+        cv,
+        (time) => drawFrame(ctx, time),
+        duration,
+        (fraction) => { $('status').textContent = 'Encoding transparent video… ' + Math.round(fraction * 100) + '%'; }
+      );
+      download(blob, 'tim-captions-transparent.webm');
+      $('status').textContent = 'Transparent WebM ready. Import it into CapCut as an overlay.';
+    } catch (err) {
+      $('status').textContent = err.message;
+    } finally {
+      $('exportWebm').disabled = false;
+      draw();
+      updateTime();
+    }
+  };
+
+  // Boot: fonts ready, then sample captions so the preview isn't blank
+  $('sizeVal').textContent = `(${$('size').value})`;
+  $('posVal').textContent = `(${$('pos').value}% down)`;
+  document.fonts.ready.then(() => {
+    $('input').value = SAMPLE;
+    setCues(parseSubs(SAMPLE));
+  });
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
