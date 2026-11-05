@@ -99,6 +99,24 @@
             <div><strong>Slam</strong><span>The current word drops in from above and lands with a punch.</span></div></label>
           <label><input type="radio" name="style" value="glitch">
             <div><strong>Glitch</strong><span>The current word gets a teal and gold colour split that jitters, from the T.im video kit.</span></div></label>
+          <label><input type="radio" name="style" value="grow">
+            <div><strong>Underline grow</strong><span>A gold bar grows under the word as you say it, like a progress bar for long words.</span></div></label>
+          <label><input type="radio" name="style" value="dim">
+            <div><strong>Colour pop + dim</strong><span>The spoken word turns gold; words still to come wait at 40%. Easy to follow on busy footage.</span></div></label>
+          <label><input type="radio" name="style" value="bounce">
+            <div><strong>Bounce</strong><span>The spoken word hops up a little and settles. Playful, quieter than Slam.</span></div></label>
+          <label><input type="radio" name="style" value="pill">
+            <div><strong>Teal pill</strong><span>A rounded teal pill slides from word to word.</span></div></label>
+          <label><input type="radio" name="style" value="zoom">
+            <div><strong>Zoom punch</strong><span>The spoken word grows to 1.3× and the line makes room for it. Good for hooks.</span></div></label>
+          <label><input type="radio" name="style" value="shake">
+            <div><strong>Shake</strong><span>A short gold jitter on the word. For “insane” and “blasted” moments.</span></div></label>
+          <label><input type="radio" name="style" value="outline">
+            <div><strong>Outline to fill</strong><span>Words wait as gold outlines and fill in solid as they're said.</span></div></label>
+          <label><input type="radio" name="style" value="pace">
+            <div><strong>Pace bar</strong><span>A thin teal line under the caption keeps pace with your speech; the spoken word is gold.</span></div></label>
+          <label><input type="radio" name="style" value="stride">
+            <div><strong>Stride</strong><span>Words step in from the right one at a time as you say them.</span></div></label>
         </div>
         <label class="fade-in"><input type="checkbox" id="fadeIn"> Fade and rise each caption in, with any style</label>
         <p class="note">For a whole line with the spoken word styled, pick a longer <strong>Words per caption</strong> (up to 8, or Whole sentence) and any style but Full line.</p>
@@ -235,7 +253,7 @@ Train the downhills as hard as the climbs`;
       const nextStart = groups[i + 1] ? groups[i + 1][0].start : Infinity;
       // Hold the caption until the next one starts, but no more than 0.4 s after its last word.
       const end = Math.max(start + 0.05, Math.min(nextStart, lastEnd + 0.4));
-      return { start, end, words: g.map((w) => cleanWord(w.word)), times: g.map((w) => w.start) };
+      return { start, end, words: g.map((w) => cleanWord(w.word)), times: g.map((w) => w.start), ends: g.map((w) => w.end) };
     });
   }
 
@@ -316,19 +334,28 @@ Train the downhills as hard as the climbs`;
     const lh = size * 1.04;
     const n = cue.words.length;
     const dur = cue.end - cue.start;
-    let active, wordStart;
+    let active, wordStart, wordEnd, speechEnd;
     if (cue.times) {
       // Word JSON: the word being spoken is the last one that has started.
       active = 0;
       for (let k = 1; k < n; k++) if (time >= cue.times[k]) active = k;
       wordStart = cue.times[active];
+      wordEnd = cue.ends[active];
+      speechEnd = cue.ends[n - 1];
     } else {
       // SRT or VTT: no word times, so spread the words evenly across the caption.
       const pos = (time - cue.start) / dur;
       active = Math.min(n - 1, Math.floor(pos * n));
       wordStart = cue.start + (active / n) * dur;
+      wordEnd = cue.start + ((active + 1) / n) * dur;
+      speechEnd = cue.end;
     }
     const age = time - wordStart;
+    const clamp = (v) => Math.max(0, Math.min(1, v));
+    const ease = (v) => 1 - Math.pow(1 - clamp(v), 3);
+    // How far through the spoken word (and the whole caption's speech) we are.
+    const said = clamp(age / Math.max(0.12, wordEnd - wordStart));
+    const spoken = clamp((time - cue.start) / Math.max(0.2, speechEnd - cue.start));
 
     c.save();
     c.font = `900 ${size}px ${FONT}`;
@@ -347,21 +374,53 @@ Train the downhills as hard as the climbs`;
     c.globalAlpha = alpha;
 
     const top = cy - (lines.length * lh) / 2 + lh / 2 + rise;
+    const gap = size * 0.22;
+    // Zoom punch makes room for the big word, so its neighbours move aside instead of overlapping it.
+    const zoom = style === 'zoom' ? 1 + 0.3 * ease(age / 0.12) : 1;
+    // Lay every word out first: the pill slides between words and the pace bar spans the caption.
+    const placed = [];
     let index = 0;
     lines.forEach((line, li) => {
-      const widths = line.map((w) => c.measureText(w).width);
-      const gap = size * 0.22;
+      const widths = line.map((w, wi) => c.measureText(w).width * (index + wi === active ? zoom : 1));
       const total = widths.reduce((a, b) => a + b, 0) + gap * (line.length - 1);
       let x = W / 2 - total / 2;
-      const y = top + li * lh;
       line.forEach((w, wi) => {
-        const wx = x, ww = widths[wi];
-        if (style === 'type' && index > active) {
-          x += ww + gap;
-          index++;
-          return;
-        }
-        let color = PAPER, s = 1, dy = 0, box = false, glitch = false;
+        placed.push({ w, x, y: top + li * lh, ww: widths[wi], line: li, index: index++ });
+        x += widths[wi] + gap;
+      });
+    });
+    const now = placed[active];
+
+    if (style === 'pill' && now) {
+      // A teal pill that slides from the last word to this one.
+      const before = placed[active - 1];
+      const k = before && before.line === now.line ? ease(age / 0.14) : 1;
+      const from = k < 1 ? before : now;
+      const px = from.x + (now.x - from.x) * k, pw = from.ww + (now.ww - from.ww) * k;
+      c.save();
+      c.shadowColor = 'transparent';
+      c.fillStyle = TEAL;
+      roundRect(c, px - size * 0.16, now.y - size * 0.5, pw + size * 0.32, size, size * 0.5);
+      c.fill();
+      c.restore();
+    }
+    if (style === 'pace' && placed.length) {
+      // A thin teal line under the whole caption, running at the pace of the speech.
+      const last = placed.filter((p) => p.line === lines.length - 1);
+      const left = Math.min(...placed.map((p) => p.x)), right = Math.max(...placed.map((p) => p.x + p.ww));
+      c.save();
+      c.shadowColor = 'transparent';
+      c.fillStyle = 'rgba(46,155,173,0.3)';
+      c.fillRect(left, last[0].y + size * 0.62, right - left, Math.max(6, size * 0.07));
+      c.fillStyle = TEAL;
+      c.fillRect(left, last[0].y + size * 0.62, (right - left) * spoken, Math.max(6, size * 0.07));
+      c.restore();
+    }
+
+    for (const { w, x: wx, y, ww, index } of placed) {
+      {
+        if ((style === 'type' || style === 'stride') && index > active) continue;
+        let color = PAPER, s = 1, dx = 0, dy = 0, box = false, glitch = false, wordAlpha = 1, outline = false, fill = 1;
         if (style === 'pop') {
           if (index === active) {
             color = GOLD;
@@ -381,6 +440,38 @@ Train the downhills as hard as the climbs`;
           }
         } else if (style === 'glitch') {
           if (index === active) { glitch = true; color = PAPER; }
+        } else if (style === 'grow' || style === 'pace') {
+          if (index === active) color = GOLD;
+        } else if (style === 'dim') {
+          if (index === active) color = GOLD;
+          else if (index > active) wordAlpha = 0.4;
+        } else if (style === 'bounce') {
+          if (index === active) {
+            color = GOLD;
+            dy = -Math.sin(Math.PI * clamp(age / 0.28)) * size * 0.22;
+          }
+        } else if (style === 'pill') {
+          if (index === active) color = NAVY;
+        } else if (style === 'zoom') {
+          if (index === active) { color = GOLD; s = zoom; }
+        } else if (style === 'shake') {
+          if (index === active) {
+            color = GOLD;
+            const k = 1 - clamp(age / 0.3), f = Math.floor(time * 30);
+            dx = Math.sin(f * 12.9898) * size * 0.05 * k;
+            dy = Math.cos(f * 78.233) * size * 0.04 * k;
+          }
+        } else if (style === 'outline') {
+          // Gold outlines that fill in solid as each word is said.
+          if (index > active) { outline = true; fill = 0; }
+          else if (index === active) { outline = true; fill = said; }
+        } else if (style === 'stride') {
+          if (index === active) {
+            const k = ease(age / 0.22);
+            dx = (1 - k) * size * 0.7;
+            wordAlpha = k;
+            color = GOLD;
+          }
         }
         if (box) {
           c.save();
@@ -391,20 +482,39 @@ Train the downhills as hard as the climbs`;
           c.restore();
         }
         c.save();
-        c.translate(wx + ww / 2, y + dy);
+        c.globalAlpha = alpha * wordAlpha;
+        // A zoomed word was laid out at its zoomed width; draw it from its normal-size centre.
+        c.translate(wx + ww / 2 + dx, y + dy);
         c.scale(s, s);
+        const tw = ww / (index === active ? zoom : 1);
+        if (outline) {
+          c.shadowColor = 'transparent';
+          c.lineWidth = Math.max(3, size * 0.045);
+          c.lineJoin = 'round';
+          c.strokeStyle = GOLD;
+          c.strokeText(w, -tw / 2, 0);
+          if (fill > 0) {
+            c.beginPath();
+            c.rect(-tw / 2 - size * 0.1, -size, (tw + size * 0.2) * fill, size * 2);
+            c.clip();
+            c.fillStyle = PAPER;
+            c.fillText(w, -tw / 2, 0);
+          }
+          c.restore();
+          continue;
+        }
         if (glitch) {
           // Teal and gold colour split, jittering on each frame, as in the T.im video kit
           const f = Math.floor(time * 24);
           const off = (f % 3 === 0 ? 1.4 : 0.6) * size * 0.035;
           c.shadowBlur = 0;
           c.fillStyle = TEAL;
-          c.fillText(w, -ww / 2 - off, 0);
+          c.fillText(w, -tw / 2 - off, 0);
           c.fillStyle = GOLD;
-          c.fillText(w, -ww / 2 + off, 0);
+          c.fillText(w, -tw / 2 + off, 0);
         }
         c.fillStyle = color;
-        c.fillText(w, -ww / 2, 0);
+        c.fillText(w, -tw / 2, 0);
         c.restore();
         if (style === 'sweep' && index === active) {
           c.save();
@@ -413,10 +523,16 @@ Train the downhills as hard as the climbs`;
           c.fillRect(wx, y + size * 0.5, ww, Math.max(6, size * 0.06));
           c.restore();
         }
-        x += ww + gap;
-        index++;
-      });
-    });
+        if (style === 'grow' && index === active) {
+          // A gold bar that grows under the word over the time it takes to say it.
+          c.save();
+          c.shadowBlur = 0;
+          c.fillStyle = GOLD;
+          c.fillRect(wx, y + size * 0.5, ww * Math.max(0.08, said), Math.max(6, size * 0.07));
+          c.restore();
+        }
+      }
+    }
     c.restore();
   }
 
