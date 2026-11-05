@@ -52,6 +52,17 @@ that exists the choice stays Off. The choice is remembered in this browser.
 Cleaning takes the first 30% of the progress bar; its log is
 `data/<job-id>/clean.log`.
 
+## Skipped speech
+
+Whisper can skip a phrase after a pause or stretch one word over it (the
+medium model dropped two phrases of a 4:46 run video). After transcribing, the
+voice detector that ships with faster-whisper looks for stretches of 1.5 s or
+more with at least 1 s of speech and no word over it (a word counts for at
+most 1 s); each is transcribed again on its own, without carry-over or the
+vocabulary hint, and confident words are added. The sentences around it end at
+its edges. A warning lists the times filled, to check; recovered words carry
+`"recovered": true` in the Word JSON.
+
 ## Precise word timing
 
 **Precise word timing (for captions)** pins every word to the audio after
@@ -62,8 +73,9 @@ Whisper's own were 198 ms off and up to 1.2 s early after pauses; ends were
 about the same (56 ms). The Word JSON then says `"word_timing": "aligned"`,
 gives each word an `alignment` score and keeps Whisper's estimates as
 `whisper_start` and `whisper_end`; sentence edges follow their first and last
-words, so SRT and VTT tighten too. Words with no letters to align (Whisper
-writes "twelve" as "12") are placed between their aligned neighbours.
+words, so SRT and VTT tighten too. Numbers are spelled the way they're said
+before aligning ("2025" as twenty twenty five, "100%", "13.1", "5:30", "21st");
+a word still left without letters is placed between its aligned neighbours.
 
 It runs in Clean Voice's environment (it needs PyTorch), so Clean Voice must be
 installed; first use downloads a 360 MB model to PyTorch's cache (retried, as

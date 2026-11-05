@@ -28,9 +28,49 @@ def read_audio(path):
     return np.concatenate(chunks).astype(np.float32)
 
 
+ONES = ('ZERO ONE TWO THREE FOUR FIVE SIX SEVEN EIGHT NINE TEN ELEVEN TWELVE THIRTEEN FOURTEEN FIFTEEN '
+        'SIXTEEN SEVENTEEN EIGHTEEN NINETEEN').split()
+TENS = 'ZERO TEN TWENTY THIRTY FORTY FIFTY SIXTY SEVENTY EIGHTY NINETY'.split()
+ORDINAL = {'ONE': 'FIRST', 'TWO': 'SECOND', 'THREE': 'THIRD', 'FIVE': 'FIFTH', 'EIGHT': 'EIGHTH', 'NINE': 'NINTH', 'TWELVE': 'TWELFTH'}
+
+
+def say(n):
+    """A whole number as words, up to the millions."""
+    if n < 20: return ONES[n]
+    if n < 100: return TENS[n // 10] + ('' if n % 10 == 0 else ' ' + ONES[n % 10])
+    if n < 1000: return ONES[n // 100] + ' HUNDRED' + ('' if n % 100 == 0 else ' ' + say(n % 100))
+    for size, name in ((10 ** 6, 'MILLION'), (1000, 'THOUSAND')):
+        if n >= size:
+            return say(n // size) + ' ' + name + ('' if n % size == 0 else ' ' + say(n % size))
+
+
+def say_number(text, year=False):
+    if year and len(text) == 4 and 1100 <= int(text) <= 2099 and not 2000 <= int(text) <= 2009:
+        n = int(text)  # Years by pairs: 2025 is "twenty twenty five", 1990 "nineteen ninety", 1900 "nineteen hundred".
+        return say(n // 100) + ' ' + ('HUNDRED' if n % 100 == 0 else ('OH ' if n % 100 < 10 else '') + say(n % 100))
+    return say(int(text))
+
+
+def spoken(word):
+    """Whisper writes numbers as digits ("2025", "100%", "100k", "13.1", "5:30"); the model only
+    knows letters, so spell them the way they are said."""
+    word = word.replace(',', '') if re.search(r'\d,\d', word) else word
+    word = re.sub(r'\$(\d+)', lambda m: m.group(1) + ' DOLLARS', word)
+    word = re.sub(r'(\d+):(\d\d)', lambda m: say_number(m.group(1)) + ('' if m.group(2) == '00' else ' ' + ('OH ' if m.group(2)[0] == '0' else '') + say_number(m.group(2))), word)
+    word = re.sub(r'(\d+)\.(\d+)', lambda m: say_number(m.group(1)) + ' POINT ' + ' '.join(ONES[int(d)] for d in m.group(2)), word)
+    def ordinal(m):
+        words = say_number(m.group(1)).split()
+        last = words[-1]
+        words[-1] = ORDINAL.get(last, last[:-1] + 'IETH' if last.endswith('Y') else last + 'TH')
+        return ' '.join(words)
+    word = re.sub(r'(\d+)(?:st|nd|rd|th)\b', ordinal, word, flags=re.I)
+    word = re.sub(r'\d+', lambda m: say_number(m.group(0), year=True), word)
+    return word.replace('%', ' PERCENT').replace('&', ' AND ').replace('+', ' PLUS ')
+
+
 def letters(word):
     """The word as the model spells it: capitals and apostrophes only."""
-    word = word.upper().replace('’', "'").replace('‘', "'")
+    word = spoken(word).upper().replace('’', "'").replace('‘', "'")
     return re.sub(r"[^A-Z']", '', word).strip("'")
 
 

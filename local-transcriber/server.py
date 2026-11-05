@@ -169,6 +169,72 @@ def align_words(job, source, groups, options):
     job['message'] = f'Pinned {aligned} of {len(words)} words to the audio.'
 
 
+def split_at(pairs, gap_start, gap_end):
+    """End the sentences around a filled gap at its edges, so alignment doesn't smear their words over it."""
+    result = []
+    for segment, members in pairs:
+        if any(w.get('recovered') for w in members) or segment['end'] <= gap_start or segment['start'] >= gap_end:
+            result.append((segment, members))
+            continue
+        before = [w for w in members if w['start'] < gap_start]
+        after = [w for w in members if w['start'] >= gap_start]
+        for w in before:
+            w['end'] = min(w['end'], max(w['start'] + 0.05, gap_start))  # The word stretched over the gap.
+        for part, start, end in ((before, segment['start'], gap_start), (after, gap_end, segment['end'])):
+            if part:
+                text = segment['text'] if len(part) == len(members) else ''.join(w['word'] for w in part).strip()
+                result.append(({'start': max(start, min(w['start'] for w in part) if start == gap_end else start),
+                                'end': max(end, max(w['end'] for w in part)) if part is after else max(min(end, segment['end']), part[-1]['end']),
+                                'text': text}, part))
+    return result
+
+
+def fill_skipped(job, model, source, options, groups):
+    """Whisper sometimes skips speech after a pause (the medium model dropped two phrases of a
+    4-minute run video) or stretches one word over it. Find stretches where the voice detector
+    hears speech but no word covers it, transcribe just those again without carry-over, and
+    put the words in. Returns the times it filled."""
+    from faster_whisper.audio import decode_audio
+    from faster_whisper.vad import VadOptions, get_speech_timestamps
+    rate = 16000
+    audio = decode_audio(str(source), sampling_rate=rate)
+    speech = [(s['start'] / rate, s['end'] / rate) for s in get_speech_timestamps(audio, VadOptions(min_silence_duration_ms=300))]
+    words = job['words']
+    # A word covers at most 1 s: one stretched over several seconds hides what was said there.
+    edges = [(0.0, 0.0)] + [(w['start'], min(w['end'], w['start'] + 1.0)) for w in words] + [(len(audio) / rate, len(audio) / rate)]
+    pairs = [(segment, [words[n] for n in members]) for segment, members in zip(job['segments'], groups)]
+    filled = []
+    for (_, gap_start), (gap_end, _) in zip(edges, edges[1:]):
+        if gap_end - gap_start < 1.5: continue
+        heard = sum(max(0.0, min(b, gap_end - 0.2) - max(a, gap_start + 0.2)) for a, b in speech)
+        if heard < 1.0: continue
+        clip = audio[int(gap_start * rate):int(gap_end * rate)]
+        # No vocabulary hint here: on a short clip Whisper tends to repeat it instead of listening.
+        segments, _ = model.transcribe(clip, language='en' if options['language'] == 'en' else None, word_timestamps=True,
+                                       vad_filter=False, condition_on_previous_text=False)
+        gap_added = False
+        for segment in segments:
+            found = [w for w in (segment.words or []) if w.word.strip()]
+            # Whisper invents "Thank you." over noise: keep only confident speech.
+            if not found or segment.no_speech_prob > 0.6 or sum(w.probability for w in found) / len(found) < 0.5:
+                continue
+            new_words = [{'start': gap_start + w.start, 'end': gap_start + w.end, 'word': w.word,
+                          'probability': w.probability, 'recovered': True} for w in found]
+            pairs.append(({'start': new_words[0]['start'], 'end': new_words[-1]['end'], 'text': segment.text.strip()}, new_words))
+            filled.append(gap_start)
+            gap_added = True
+        if gap_added:
+            pairs = split_at(pairs, gap_start, gap_end)
+    if filled:
+        pairs.sort(key=lambda pair: pair[0]['start'])
+        job['segments'], job['words'], groups[:] = [], [], []
+        for segment, members in pairs:
+            job['segments'].append(segment)
+            groups.append(list(range(len(job['words']), len(job['words']) + len(members))))
+            job['words'].extend(members)
+    return sorted(set(round(t) for t in filled))
+
+
 def transcribe(job, options):
     try:
         source, base = DATA / job['id'] / 'media', 0
@@ -201,6 +267,12 @@ def transcribe(job, options):
                 job['words'].extend({'start': w.start, 'end': w.end, 'word': w.word, 'probability': w.probability} for w in (segment.words or []))
                 groups.append(list(range(first, len(job['words']))))
                 job['progress'] = min(99, base + round(segment.end / max(info.duration, 1) * (top - base)))
+            if job['words']:
+                job['message'] = 'Checking for skipped speech…'
+                filled = fill_skipped(job, MODELS[key], source, options, groups)
+                if filled:
+                    job['warnings'].append('Whisper skipped speech here, so it was transcribed again and added (check these): '
+                                           + ', '.join(f'{t // 60}:{t % 60:02d}' for t in filled))
         try:
             recognize(device)
         except RuntimeError as error:

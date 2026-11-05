@@ -198,7 +198,9 @@ Train the downhills as hard as the climbs`;
       .map((w) => ({ word: String(w.word ?? w.text ?? ''), start: +w.start, end: +w.end }))
       .filter((w) => cleanWord(w.word) && isFinite(w.start) && isFinite(w.end) && w.end >= w.start)
       .sort((a, b) => a.start - b.start);
-    return { words, precise: data.word_timing === 'aligned' };
+    // Older matching-JSON downloads have no word_timing field, but aligned words carry a score.
+    const precise = data.word_timing === 'aligned' || list.some((w) => w && 'alignment' in w);
+    return { words, precise };
   }
 
   function groupWords(words, max) {
