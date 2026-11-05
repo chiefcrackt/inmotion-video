@@ -22,6 +22,7 @@ Feature 4 was dropped and is intentionally not listed.
 | 10 | [#11 Idea Vault ↔ Content Planner sync](#11-idea-vault--content-planner-sync) | Idea Vault, Content Planner | done (local branch `feature/idea-content-sync`, not pushed; browser tests not run) |
 | 11 | Content Planner Edit checklist and final-film tracking | Content Planner | todo |
 | 12 | [General UI consistency and mobile editing](#general-ui-consistency-and-mobile-editing-claude) | Shared UI, dashboard, Cover Maker, Text Motion | in progress (pilot) |
+| 13 | [#12 Transcript cut step](#12-transcript-cut-step) | Transcribe Video (`local-transcriber/`) | done locally (browser check not run) |
 
 #1 is dropped (not planned). The Race Recap download pack (`tools/race-recap/`)
 is unchanged.
@@ -908,3 +909,32 @@ need `npm ci`, which the sandbox could not reach.
 
 ---
 
+## #12 Transcript cut step
+
+Where: `local-transcriber/server.py` (`keep_ranges`, `cut_filter`, `cut_video`,
+`POST /api/cut/<job>`, `GET /cut/<job>/<file>`), `local-transcriber/cut-list.js`,
+`local-transcriber/ai-prompt.js` (optional item 11), `ui.html` and `app.js` (Cut the video panel).
+
+The edit plan can return a cut list (JSON, source seconds, sections to REMOVE)
+when "Also ask for a cut list" is ticked. The page parses it (fenced JSON is
+accepted), shows the removed and kept totals, asks for confirmation, and sends it
+to the local server. FFmpeg trims each kept section (video and audio), joins them in
+order and re-encodes with libx264 CRF 18 and AAC 192 kbps, so cuts are frame-accurate.
+Output is a new `cut-<n>.mp4` in `local-transcriber/data/<job>/cut/`; the uploaded
+copy is read only and the original on the computer is never changed.
+
+Captions are not part of this step: they stay in CapCut, so the SRT is not
+remapped or burned in here.
+
+FFmpeg is found through `FFMPEG_PATH`, then `ffmpeg` on PATH. It is not bundled
+with the transcriber; if it is missing the page says how to install it.
+
+**Acceptance:** a cut list pasted from the edit plan removes the listed sections
+and the result plays with the expected length; overlapping and out-of-range cuts
+are refused with a clear message; the original file is unchanged after cutting;
+the download is named `<title> (cut).mp4`.
+
+Tests: `node --test cut-list.test.cjs ai-prompt.test.cjs` and
+`python -m unittest test_cut -v` (run from `local-transcriber`). The end-to-end
+test needs FFmpeg and is skipped without it.
+Still to do: a browser check of the new panel on a real recording.

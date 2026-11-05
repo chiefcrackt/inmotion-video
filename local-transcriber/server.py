@@ -4,7 +4,9 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import secrets
+import shutil
 import subprocess
 import threading
 import time
@@ -167,6 +169,90 @@ def align_words(job, source, groups, options):
     aligned = sum('alignment' in w for w in words)
     job['word_timing'] = 'aligned'
     job['message'] = f'Pinned {aligned} of {len(words)} words to the audio.'
+
+
+FFMPEG_HELP = ('FFmpeg was not found. Install it (for example: winget install Gyan.FFmpeg), then start '
+               'Transcribe Video again. Or set the FFMPEG_PATH environment variable to ffmpeg.exe.')
+CUT_NAME = re.compile(r'cut-\d+\.mp4')
+
+
+def find_ffmpeg():
+    configured = os.environ.get('FFMPEG_PATH')
+    if configured and Path(configured).exists():
+        return configured
+    found = shutil.which('ffmpeg')
+    if found:
+        return found
+    raise RuntimeError(FFMPEG_HELP)
+
+
+def keep_ranges(cuts, duration):
+    """Turn the sections to remove into the sections to keep, all in seconds on the original recording."""
+    if not isinstance(cuts, list) or not cuts or len(cuts) > 1000:
+        raise ValueError('The cut list needs at least one cut (and no more than 1000).')
+    spans = []
+    for cut in cuts:
+        if not isinstance(cut, dict):
+            raise ValueError('Each cut needs a start and an end, in seconds.')
+        start, end = float(cut['start']), float(cut['end'])
+        if not math.isfinite(start) or not math.isfinite(end) or start < 0 or end <= start:
+            raise ValueError('Each cut must end after it starts, in seconds from the start of the recording.')
+        if start >= duration - 0.01:
+            raise ValueError(f'A cut starts after the end of the recording ({start:.2f} s).')
+        spans.append([start, min(end, duration)])
+    spans.sort()
+    merged = []
+    for start, end in spans:
+        if merged and start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    keep, position = [], 0.0
+    for start, end in merged:
+        if start > position + 0.001:
+            keep.append((position, start))
+        position = end
+    if duration > position + 0.001:
+        keep.append((position, duration))
+    if not keep:
+        raise ValueError('The cuts remove the whole recording.')
+    return keep
+
+
+def cut_filter(keep):
+    """Trim each kept section (video and audio) and join them in order. Frame-accurate: re-encodes."""
+    parts = []
+    for n, (start, end) in enumerate(keep):
+        parts.append(f'[0:v]trim=start={start:.3f}:end={end:.3f},setpts=PTS-STARTPTS[v{n}];')
+        parts.append(f'[0:a]atrim=start={start:.3f}:end={end:.3f},asetpts=PTS-STARTPTS[a{n}];')
+    labels = ''.join(f'[v{n}][a{n}]' for n in range(len(keep)))
+    parts.append(f'{labels}concat=n={len(keep)}:v=1:a=1[outv][outa]')
+    return ''.join(parts)
+
+
+def cut_video(job, cuts):
+    """Write a new cut file. The uploaded copy is read only; the original on the computer is never touched."""
+    if not job.get('duration'):
+        raise ValueError('Transcript is not ready')
+    keep = keep_ranges(cuts, float(job['duration']))
+    ffmpeg = find_ffmpeg()
+    folder = DATA / job['id'] / 'cut'
+    folder.mkdir(exist_ok=True)
+    name = f'cut-{time.time_ns() // 1000000}.mp4'
+    target = folder / name
+    command = [ffmpeg, '-hide_banner', '-y', '-i', str(DATA / job['id'] / 'media'),
+               '-filter_complex', cut_filter(keep), '-map', '[outv]', '-map', '[outa]',
+               '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
+               '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', str(target)]
+    result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8', errors='replace',
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    (folder / 'cut.log').write_text(result.stderr, encoding='utf-8')
+    if result.returncode != 0 or not target.exists():
+        raise RuntimeError('FFmpeg could not make the cut. The last lines of its log: ' +
+                           ' | '.join(result.stderr.strip().splitlines()[-4:]))
+    kept = sum(end - start for start, end in keep)
+    return {'file': name, 'kept_seconds': round(kept, 2), 'sections': len(keep),
+            'removed_seconds': round(float(job['duration']) - kept, 2)}
 
 
 def split_at(pairs, gap_start, gap_end):
@@ -337,6 +423,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(html.encode(), content_type='text/html; charset=utf-8')
         if path == '/app.js':
             return self.send((ROOT / 'app.js').read_bytes(), content_type='text/javascript; charset=utf-8')
+        if path == '/cut-list.js':
+            return self.send((ROOT / 'cut-list.js').read_bytes(), content_type='text/javascript; charset=utf-8')
         if path == '/ai-prompt.js':
             return self.send((ROOT / 'ai-prompt.js').read_bytes(), content_type='text/javascript; charset=utf-8')
         if path == '/api/status':
@@ -344,6 +432,14 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith('/api/job/'):
             job = JOBS.get(path.rsplit('/', 1)[-1])
             return self.send(job if job else {'error': 'Job not found'}, 200 if job else 404)
+        if path.startswith('/cut/'):
+            parts = path.split('/')
+            job = JOBS.get(parts[2]) if len(parts) == 4 else None
+            if not job or not CUT_NAME.fullmatch(parts[3]): return self.send({'error': 'Not found'}, 404)
+            file = DATA / parts[2] / 'cut' / parts[3]
+            if not file.exists(): return self.send({'error': 'Not found'}, 404)
+            name = Path(job['filename']).stem[:120].replace('"', '') + ' (cut).mp4'
+            return self.send(file.read_bytes(), content_type='video/mp4', disposition=f'attachment; filename="{name}"')
         if path.startswith('/download/') or path.startswith('/media/'):
             parts = path.split('/')
             job = JOBS.get(parts[2]) if len(parts) == 4 else None
@@ -403,6 +499,12 @@ class Handler(BaseHTTPRequestHandler):
                     LOCK.release()
                     raise
                 return self.send({'id': job_id})
+            if path.startswith('/api/cut/'):
+                job = JOBS.get(path.rsplit('/', 1)[-1])
+                if not job or job['status'] != 'complete': return self.send({'error': 'Transcript is not ready'}, 409)
+                cuts = json.loads(self.rfile.read(size))
+                if isinstance(cuts, dict): cuts = cuts.get('cuts')
+                return self.send(cut_video(job, cuts))
             if path.startswith('/api/save/'):
                 job = JOBS.get(path.rsplit('/', 1)[-1])
                 if not job or job['status'] != 'complete': return self.send({'error': 'Transcript is not ready'}, 409)

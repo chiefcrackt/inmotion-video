@@ -148,6 +148,7 @@ function render(job) {
   downloadLinks();
   $('result').classList.remove('hidden');
   $('ai-panel').classList.remove('hidden');
+  $('cut-panel').classList.remove('hidden');
   updateAIPreview();
 }
 $('segments').addEventListener('input', () => {
@@ -195,6 +196,7 @@ $('form').onsubmit = async (event) => {
     });
   $('result').classList.add('hidden');
   $('ai-panel').classList.add('hidden');
+  $('cut-panel').classList.add('hidden');
   $('warnings').textContent = '';
   $('status').textContent =
     'Copying recording to the local transcription folder…';
@@ -395,7 +397,9 @@ function aiPackage() {
     };
   });
   return {
-    context: Object.fromEntries(
+    context: {
+      cutList: $('ai-cutlist').checked,
+      ...Object.fromEntries(
       aiFields.map((key) => [
         key,
         key in aiPresets && $('ai-' + key).value === '__custom__'
@@ -403,6 +407,7 @@ function aiPackage() {
           : $('ai-' + key).value,
       ]),
     ),
+    },
     payload: TranscriptAI.makePayload(currentJob, segments),
   };
 }
@@ -481,3 +486,52 @@ $('ai-copy').onclick = () => copyAIPrompt(true);
 $('ai-copy-only').onclick = () => copyAIPrompt(false);
 $('ai-json').onclick = () => downloadAI('json');
 $('ai-text').onclick = () => downloadAI('text');
+$('ai-cutlist').addEventListener('change', updateAIPreview);
+
+// Cut the video: the page only checks and shows the list; the server does the cut.
+function cutSummary() {
+  const cuts = CutList.parseCutList($('cut-input').value);
+  const summary = CutList.summarize(cuts, Number(currentJob.duration));
+  if (!(summary.duration > 0)) throw Error('Transcribe a recording first.');
+  return summary;
+}
+$('cut-check').onclick = () => {
+  try {
+    const s = cutSummary();
+    $('cut-status').textContent =
+      `${s.cuts} cut${s.cuts === 1 ? '' : 's'}: removes about ${s.removed.toFixed(2)} s and keeps about ${s.kept.toFixed(2)} s of ${s.duration.toFixed(2)} s.`;
+  } catch (error) {
+    $('cut-status').textContent = error.message;
+  }
+};
+$('cut-run').onclick = async () => {
+  try {
+    const s = cutSummary();
+    const ok = confirm(
+      `Make a new cut video? It removes about ${s.removed.toFixed(2)} s in ${s.cuts} section${s.cuts === 1 ? '' : 's'} and keeps about ${s.kept.toFixed(2)} s. Your original file is not changed. Continue?`,
+    );
+    if (!ok) return;
+    const cuts = CutList.parseCutList($('cut-input').value);
+    $('cut-run').disabled = true;
+    $('cut-status').textContent = 'Cutting… this can take a while for long recordings.';
+    $('cut-download').replaceChildren();
+    const result = await responseJSON(
+      await fetch(`/api/cut/${jobId}`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cuts }),
+      }),
+    );
+    $('cut-status').textContent = `Cut made: kept ${result.kept_seconds} s in ${result.sections} section${result.sections === 1 ? '' : 's'}.`;
+    const link = document.createElement('a');
+    link.className = 'download';
+    link.href = `/cut/${jobId}/${result.file}`;
+    link.download = '';
+    link.textContent = 'Download cut video';
+    $('cut-download').append(link);
+  } catch (error) {
+    $('cut-status').textContent = error.message;
+  } finally {
+    $('cut-run').disabled = false;
+  }
+};

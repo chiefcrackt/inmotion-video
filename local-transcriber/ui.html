@@ -420,6 +420,12 @@
           ></textarea>
         </label>
         <p
+          ><label
+            ><input id="ai-cutlist" type="checkbox" checked /> Also ask for a
+            cut list for the Cut the video step below</label
+          ></p
+        >
+        <p
           ><button id="ai-copy">Copy prompt + word JSON</button>
           <button id="ai-copy-only" class="secondary"
             >Copy prompt only</button
@@ -451,6 +457,41 @@
             corrections do not realign word timings.</small
           ></p
         >
+      </section>
+      <section id="cut-panel" class="hidden" aria-labelledby="cut-heading">
+        <div class="eyebrow">CUT THE VIDEO</div>
+        <h2 id="cut-heading">Cut out sections</h2>
+        <p
+          ><small
+            >Paste the JSON cut list from your edit plan. Each section listed
+            is removed; everything else is joined in order. Cutting re-encodes
+            the video, so it takes a while. Check the list before you cut.</small
+          ></p
+        >
+        <p
+          ><small
+            ><strong
+              >Back up your original recording first.</strong
+            >
+            This makes a new file from the copy Transcribe Video holds. It never
+            changes the original on your computer.</small
+          ></p
+        >
+        <label
+          >Cut list<textarea
+            id="cut-input"
+            rows="6"
+            placeholder='{"cuts":[{"start": 12.5, "end": 20.1, "reason": "repeat take"}]}'
+          ></textarea
+        ></label>
+        <p
+          ><button id="cut-check" class="secondary" type="button"
+            >Check cut list</button
+          >
+          <button id="cut-run" type="button">Make cut video</button></p
+        >
+        <div id="cut-status" role="status" aria-live="polite"></div>
+        <div id="cut-download" class="downloads"></div>
       </section>
       <p
         ><small
@@ -487,7 +528,7 @@
           note.textContent = 'It may already be stopped.';
         }
       };</script
-    ><script src="/ai-prompt.js"></script
+    ><script src="/cut-list.js"></script
     ><script src="/ai-prompt.js"></script
     ><script src="/app.js"></script></body
 ></html>

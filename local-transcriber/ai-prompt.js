@@ -40,6 +40,15 @@
         'Word timings and confidence belong to recognition and were not realigned to text edits.',
     };
   }
+  // Asked for when the cut list box is ticked: the page reads this block for the Cut step.
+  const CUT_LIST_SECTION = `
+
+11. CUT LIST (for my Cut the video step): After everything above, output exactly one fenced \`\`\`json block in this form and nothing else in that block:
+{"cuts":[{"start": <seconds>, "end": <seconds>, "reason": "<a few words>"}]}
+- List ONLY the source sections to REMOVE from the recommended edit, in seconds on the ORIGINAL recording (the same timebase as the transcript, not the finished edit).
+- Sort them ascending, non-overlapping, with end greater than start. Round to 0.01 s.
+- Include only cuts that are part of the recommended edit. Keep pauses you chose to keep out of this list. If nothing should be cut, return {"cuts":[]}.
+- Do not add any text inside the json block.`;
   function buildPrompt(context, payload, includeJSON = true) {
     const field = (key, fallback) =>
       String(context[key] || '').trim() || fallback;
@@ -80,7 +89,7 @@ RETURN THIS IN ORDER
 9. CHAPTERS: Suggest section labels with ORIGINAL source times. If the recommended edit reorders or removes material, say that final chapter timestamps need recalculating after the edit is locked. Do not label original times as publish-ready chapters.
 10. HANDOFF: A short prioritized edit checklist, unresolved questions and any pickups. Ask only questions whose answers would materially change the edit; still provide the best supported first pass.
 
-Use concise explanations and actionable tables. Keep source quotes separate from new copy. End with the next concrete editing step, not a generic summary.`;
+Use concise explanations and actionable tables. Keep source quotes separate from new copy. End with the next concrete editing step, not a generic summary.${context.cutList ? CUT_LIST_SECTION : ''}`;
     return includeJSON
       ? brief +
           '\n\nBEGIN_TRANSCRIPT_JSON\n' +
