@@ -104,6 +104,15 @@ export const TOOLS = Object.freeze([
     quick: true,
   },
   {
+    id: 'caption-maker',
+    name: 'Caption Maker',
+    href: 'caption-maker/',
+    description: 'Word-by-word captions in seven T.im styles from Transcribe Video’s Word JSON (or SRT/VTT), as a transparent overlay.',
+    workspaces: ['graphics'],
+    keywords: ['captions', 'subtitles', 'words', 'karaoke', 'highlight', 'overlay', 'transcript', 'srt', 'vtt', 'json'],
+    icon: 'text-motion',
+  },
+  {
     id: 'text-motion',
     name: 'Text Motion',
     href: 'text-motion/',
@@ -297,7 +306,7 @@ export const TOOLS = Object.freeze([
 // projects, exports, saved setups and the current homepage.
 export const DASHBOARD_GROUPS = Object.freeze([
   { id: 'content-studio', name: 'Content Studio', href: 'content-studio/', description: 'Capture ideas, plan videos and take your checklist filming.', members: ['content-planner', 'idea-vault', 'shoot-planner'], modes: ['projects', 'ideas', null] },
-  { id: 'text-and-titles', name: 'Text & Titles', href: 'text-and-titles/', description: 'Animate words or create title cards, lower thirds and chapters with sound.', members: ['text-motion', 'title-maker'], modes: ['text', 'titles'] },
+  { id: 'text-and-titles', name: 'Text & Titles', href: 'text-and-titles/', description: 'Animate words or create title cards, lower thirds and chapters with sound.', members: ['text-motion', 'title-maker', 'caption-maker'], modes: ['text', 'titles', 'captions'] },
   { id: 'celebration-studio', name: 'Celebration Studio', href: 'celebration-studio/', description: 'Celebrate with runners, name cards, cakes, race bibs and medals.', members: ['special-post', 'celebrate'], modes: ['runners', 'cards'] },
   { id: 'publishing-studio', name: 'Publishing Studio', href: 'publishing-studio/', description: 'Make covers, announce a video or customize a brand template.', members: ['cover-maker', 'promo-maker', 'brand-assets'], modes: ['covers', 'promos', 'brand'] },
   { id: 'runner-animator', name: 'Runner Animator', href: 'runner-animator/', description: 'Count down to a race start or build a running scene.', members: ['start-line', 'river-run'], modes: ['start', 'run'] },
