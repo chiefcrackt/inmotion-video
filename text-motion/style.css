@@ -326,8 +326,7 @@ label {
 #controls > #status {
   order: 3;
 }
-#controls > .tim-projects,
-#controls > .tim-drive-export {
+#controls > .tim-projects {
   order: 4;
 }
 

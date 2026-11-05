@@ -105,43 +105,6 @@ test('a planner edit arriving during an upload remains pending for the follow-up
   assert.equal(sync.base.a, 'r2');
 });
 
-function uploadHarness(responses) {
-  let attempts = 0, updates = 0;
-  const context = {
-    Blob, URL, UPLOAD: 'https://www.googleapis.com/upload/drive/v3/', connectedAccount: 'account',
-    SyncError: class extends Error {}, requireToken() {}, serial: (_, fn) => fn(),
-    ensureFolder: async () => ({ id: 'folder' }), readProjects: () => [{ id: 'p', driveAssets: [] }],
-    request: async (url) => {
-      if (url.includes('uploadType=resumable'))
-        return { headers: { get: () => 'https://www.googleapis.com/session' } };
-      assert.ok(++attempts <= 15, 'Upload must stop when no progress is made');
-      const response = responses(attempts);
-      return { status: response.status, headers: { get: () => response.range || null }, json: async () => ({ id: 'asset' }) };
-    },
-    json: async () => ({ id: 'asset', name: 'test.txt', parents: ['folder'], size: '10' }),
-    updateProject: (_, fn) => { fn({ driveAssets: [] }); updates++; },
-    startSync: () => ({ requestSync() {} }),
-  };
-  vm.createContext(context);
-  const handler = between(source('shared/project-drive.mjs'), 'export async function uploadAsset(', '\nfunction safeWeb(').replace('export async function', 'async function');
-  vm.runInContext(handler + ';globalThis.upload = uploadAsset;', context);
-  return { run: () => context.upload('p', new Blob(['0123456789']), 'test.txt'), attempts: () => attempts, updates: () => updates };
-}
-
-test('Drive uploads stop after four responses accepting no bytes', async () => {
-  const h = uploadHarness(() => ({ status: 308 }));
-  await assert.rejects(h.run(), /Upload stalled/);
-  assert.equal(h.attempts(), 4);
-  assert.equal(h.updates(), 0);
-});
-
-test('Drive upload progress resets the stall limit and permits completion', async () => {
-  const h = uploadHarness((n) => n === 9 ? { status: 200 } : { status: 308, range: n >= 5 ? 'bytes=0-3' : n >= 1 ? 'bytes=0-1' : null });
-  await h.run();
-  assert.equal(h.attempts(), 9);
-  assert.equal(h.updates(), 1);
-});
-
 function recordingHarness({ startFails = false, constructFails = false } = {}) {
   const elements = new Map(), queued = new Map(), listeners = {}, recorders = [];
   let next = 0, stoppedTracks = 0, draws = 0, delivered = 0, now = 0;
