@@ -7,32 +7,39 @@
     <title>Content Studio · T.IM Studio</title>
     <link rel="icon" href="../favicon.svg" />
     <link rel="stylesheet" href="../shared/fonts.css" />
+    <link rel="stylesheet" href="../shared/studio-bar.css" />
     <link rel="stylesheet" href="studio.css" />
-    <script src="studio.js" defer></script>
+    <script type="module" src="../shared/studio-bar.mjs"></script>
     <script type="module" src="supabase-sync.mjs"></script>
-  <link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
-  <body><tim-studio-bar></tim-studio-bar>
-    <header>
+    <script type="module" src="app.mjs"></script>
+  </head>
+  <body>
+    <tim-studio-bar></tim-studio-bar>
+    <header class="top">
       <h1>Content Studio</h1>
-      <p class="intro">From your first idea to a finished video.</p>
-      <nav aria-label="Planning view">
-        <a href="../idea-vault/" data-mode="ideas">Ideas</a>
-        <a href="../content-planner/" data-mode="projects">Projects</a>
-      </nav>
-      <p id="hint"
-        >Choose Create from idea to turn a captured idea into a video plan.</p
-      >
+      <p class="intro">Every video, from first idea to published.</p>
+      <div class="toolbar" role="search">
+        <label class="grow">Search
+          <input id="query" type="search" placeholder="Title, notes, outline" autocomplete="off" />
+        </label>
+        <label>Platform
+          <select id="platform-filter">
+            <option value="">All platforms</option>
+          </select>
+        </label>
+        <label class="check"><input id="show-archived" type="checkbox" /> Show archived</label>
+      </div>
+      <div class="toolbar actions">
+        <button type="button" id="export-backup">Export backup</button>
+        <label class="file-button">Import backup<input id="import-backup" type="file" accept=".json,application/json" /></label>
+        <button type="button" id="export-due">Due dates CSV</button>
+      </div>
       <p id="status" role="status" aria-live="polite"></p>
-      <a
-        id="standalone"
-        href="../content-planner/"
-        target="_blank"
-        rel="noopener"
-        >Open this view in a new tab ↗</a
-      >
+      <p id="conflicts" hidden></p>
     </header>
+
     <details id="studio-sync" open>
-      <summary>Workspace cloud sync</summary>
+      <summary>Cloud sync</summary>
       <form>
         <label>Loadout email <input type="email" name="email" autocomplete="email" required /></label>
         <button>Send sign-in link</button>
@@ -41,8 +48,116 @@
       <button type="button" data-disconnect hidden>Disconnect this browser</button>
       <p role="status">Checking cloud connection…</p>
     </details>
-    <p id="waiting">Sign in and sync to load your Content Studio. Nothing is shown until your cloud workspace has synced.</p>
-    <main id="editors" aria-label="Planning workspace" hidden></main>
-    <noscript><p>Choose a view above to open its planner.</p></noscript>
+
+    <p id="waiting" class="waiting">Sign in and sync to load your Content Studio. Nothing is shown until your cloud workspace has synced.</p>
+
+    <main id="app" hidden>
+      <form id="capture" class="capture" aria-label="Capture an idea">
+        <h2>Capture an idea</h2>
+        <div class="capture-row">
+          <label class="grow">Title <input name="title" required maxlength="200" autocomplete="off" /></label>
+          <label>Platform
+            <select name="platform">
+              <option>YouTube</option>
+              <option>TikTok</option>
+              <option>Reels</option>
+              <option>Shorts</option>
+              <option selected>Other</option>
+            </select>
+          </label>
+        </div>
+        <label>Notes <textarea name="notes" rows="2" maxlength="20000"></textarea></label>
+        <button type="submit">Add idea</button>
+      </form>
+
+      <section id="board" aria-label="Videos by stage"></section>
+    </main>
+
+    <dialog id="detail" aria-labelledby="detail-title">
+      <div class="detail-head">
+        <h2 id="detail-title">Video</h2>
+        <button type="button" id="detail-close">Close</button>
+      </div>
+      <div role="tablist" aria-label="Video sections" class="tabs">
+        <button role="tab" type="button" id="tab-outline" aria-controls="panel-outline" aria-selected="true" data-tab="outline">Outline</button>
+        <button role="tab" type="button" id="tab-shoot" aria-controls="panel-shoot" aria-selected="false" tabindex="-1" data-tab="shoot">Shoot</button>
+        <button role="tab" type="button" id="tab-assets" aria-controls="panel-assets" aria-selected="false" tabindex="-1" data-tab="assets">Assets</button>
+        <button role="tab" type="button" id="tab-snapshots" aria-controls="panel-snapshots" aria-selected="false" tabindex="-1" data-tab="snapshots">Snapshots</button>
+      </div>
+
+      <section role="tabpanel" id="panel-outline" aria-labelledby="tab-outline" class="panel">
+        <div class="grid">
+          <label>Title <input id="d-title" maxlength="200" /></label>
+          <label>Stage
+            <select id="d-stage"></select>
+          </label>
+          <label>Platform
+            <select id="d-platform"></select>
+          </label>
+          <label>Category <input id="d-category" maxlength="100" /></label>
+          <label>Film date <input id="d-film" type="date" /></label>
+          <label>Publish date <input id="d-publish" type="date" /></label>
+        </div>
+        <label>Idea notes <textarea id="d-notes" rows="3" maxlength="20000"></textarea></label>
+        <label>Outline <textarea id="d-outline" rows="8" maxlength="100000" placeholder="One line per point. Start a line with B-roll:, Gear: or Location: to classify it."></textarea></label>
+        <div class="steps">
+          <h3>Production checklist</h3>
+          <ul id="d-steps"></ul>
+          <form id="d-step-form" class="inline">
+            <input id="d-step-text" maxlength="120" placeholder="Add a step" aria-label="New step" />
+            <button type="submit">Add step</button>
+          </form>
+        </div>
+        <p class="danger-row"><button type="button" id="d-archive">Archive</button></p>
+      </section>
+
+      <section role="tabpanel" id="panel-shoot" aria-labelledby="tab-shoot" class="panel" hidden>
+        <div class="row">
+          <button type="button" id="d-generate">Add shots from outline</button>
+          <button type="button" id="d-film-start">Film through shots</button>
+          <span id="d-shot-progress" class="muted"></span>
+        </div>
+        <div id="d-filming" class="filming" hidden>
+          <p class="muted" id="d-film-count"></p>
+          <p class="film-now" id="d-film-now"></p>
+          <p id="d-film-notes-wrap"><label>Notes <input id="d-film-notes" maxlength="2000" /></label></p>
+          <div class="row">
+            <button type="button" data-result="captured">Captured</button>
+            <button type="button" data-result="retake">Retake</button>
+            <button type="button" data-result="skipped">Skip</button>
+            <button type="button" id="d-film-exit">Stop filming</button>
+          </div>
+        </div>
+        <form id="d-shot-form" class="shot-form">
+          <label>Kind
+            <select id="d-shot-kind"></select>
+          </label>
+          <label class="grow">Shot <input id="d-shot-text" maxlength="500" placeholder="What to capture or say" /></label>
+          <button type="submit">Add shot</button>
+        </form>
+        <ul id="d-shots" class="shots"></ul>
+      </section>
+
+      <section role="tabpanel" id="panel-assets" aria-labelledby="tab-assets" class="panel" hidden>
+        <div class="grid">
+          <label>Outline link <input id="d-outline-url" type="url" placeholder="https://" /></label>
+          <label>Published link <input id="d-published-url" type="url" placeholder="https://" /></label>
+        </div>
+        <p class="muted">Footage and thumbnails are not stored in the cloud. Keep them where you edit.</p>
+        <h3>Open a tool for this video</h3>
+        <ul id="d-tools" class="tool-links"></ul>
+      </section>
+
+      <section role="tabpanel" id="panel-snapshots" aria-labelledby="tab-snapshots" class="panel" hidden>
+        <p class="muted">Saved work from the tools, attached to this video.</p>
+        <ul id="d-attachments" class="attachments"></ul>
+        <form id="d-attach-form" class="inline">
+          <select id="d-saved" aria-label="Saved work in this browser"></select>
+          <button type="submit">Attach</button>
+        </form>
+      </section>
+    </dialog>
+
+    <noscript><p>Content Studio needs JavaScript to show your videos.</p></noscript>
   </body>
 </html>

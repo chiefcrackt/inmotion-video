@@ -21,36 +21,6 @@ function storage(initial = {}) {
   };
 }
 
-test('planner writes durably mark linked ideas pending without losing sync preferences', () => {
-  const localStorage = storage({
-    'tim-idea-vault-sync-v1': JSON.stringify({ connected: true, pending: false, base: { a: 'r1' } }),
-  });
-  const context = { localStorage, IDEA_KEY: 'tim-idea-vault-v1' };
-  vm.createContext(context);
-  vm.runInContext(between(source('content-planner/app.mjs'), 'function writeIdeas(', '\nfunction save()'), context);
-  vm.runInContext('writeIdeas([{id:"a",status:"Ready to Film"}])', context);
-  const sync = JSON.parse(localStorage.getItem('tim-idea-vault-sync-v1'));
-  assert.equal(sync.pending, true);
-  assert.equal(sync.connected, true);
-  assert.deepEqual(sync.base, { a: 'r1' });
-  assert.equal(JSON.parse(localStorage.getItem('tim-idea-vault-v1')).ideas[0].status, 'Ready to Film');
-});
-
-test('dragging a linked project advances its stage after a newer notes-only idea edit', () => {
-  const project = { id: 'idea:a', stage: 'Outline', publishDate: '', updated: 1000 };
-  const idea = { id: 'a', status: 'Developing', dueDate: '', updatedAt: new Date(2000).toISOString() };
-  const col = {};
-  const context = {
-    col, projects: [project], stage: 'Film', current: null,
-    save: () => reconcileLinked([project], [idea]), renderBoard() {},
-  };
-  vm.createContext(context);
-  vm.runInContext(between(source('content-planner/app.mjs'), '    col.ondrop =', '\n    for (const p of list)'), context);
-  col.ondrop({ preventDefault() {}, dataTransfer: { getData: () => project.id } });
-  assert.equal(project.stage, 'Film');
-  assert.equal(idea.status, 'Ready to Film');
-});
-
 function recordingHarness({ startFails = false, constructFails = false } = {}) {
   const elements = new Map(), queued = new Map(), listeners = {}, recorders = [];
   let next = 0, stoppedTracks = 0, draws = 0, delivered = 0, now = 0;
@@ -116,33 +86,3 @@ test('constructor, startup and runtime recorder failures release resources and u
   }
 });
 
-test('Content Studio cloud sync tells the open planner to reload merged plans', () => {
-  const events = [];
-  const frame = (editor) => ({
-    editor,
-    contentWindow: { dispatchEvent: (e) => events.push(editor + ':' + e.type) },
-  });
-  const frames = [frame('ideas'), frame('planner')];
-  const document = {
-    querySelectorAll: (selector) =>
-      frames.filter((f) => selector.includes(`data-editor="${f.editor}"`)),
-  };
-  const context = { document, Event: class { constructor(type) { this.type = type; } } };
-  vm.createContext(context);
-  vm.runInContext(
-    between(source('content-studio/supabase-sync.mjs'), 'function notifyPlanner(', '\nfunction validate(') +
-      '\nnotifyPlanner();',
-    context,
-  );
-  assert.deepEqual(events, ['planner:tim-projects-merged']);
-  assert.match(
-    source('content-studio/supabase-sync.mjs'),
-    /localStorage\.setItem\(key, JSON\.stringify\(merged\)\);\s*if \(dataset === 'projects'\) notifyPlanner\(\);/,
-    'The notice follows the merged planner write',
-  );
-  assert.match(
-    source('content-planner/app.mjs'),
-    /e\.key === KEY && e\.newValue !== lastSaved/,
-    'A merge the planner already reloaded is not reported as another tab',
-  );
-});

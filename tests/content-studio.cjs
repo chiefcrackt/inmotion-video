@@ -6,8 +6,12 @@ const {
   launchBrowser,
   artifactDirectory,
 } = require('./browser-utils.cjs');
+
 const IDEA_KEY = 'tim-idea-vault-v1';
 const PLAN_KEY = 'tim-content-planner-v1';
+
+// Content Studio loads only after a cloud sync, so sign in with an in-memory
+// Supabase stand-in. No network or real account is used.
 const fakeSupabase = `
 const user = { id: 'test-user' };
 const ok = { error: null, data: [{ revision: 1 }] };
@@ -16,9 +20,7 @@ const query = {
   eq() { return this; },
   maybeSingle: async () => ({ data: null, error: null }),
   insert: async () => ok,
-  update() {
-    return { eq() { return this; }, select: async () => ok };
-  },
+  update() { return { eq() { return this; }, select: async () => ok }; },
 };
 export function createClient() {
   return {
@@ -39,271 +41,220 @@ export function createClient() {
 }
 `;
 
+async function signedInContext(browser) {
+  const context = await browser.newContext({ acceptDownloads: true });
+  await context.route(
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/+esm',
+    (r) => r.fulfill({ contentType: 'text/javascript', body: fakeSupabase }),
+  );
+  const page = await context.newPage();
+  page.setDefaultTimeout(20000);
+  page.on('dialog', (d) => d.accept());
+  return { context, page };
+}
+
+// Playwright's fill() does not fire "change"; the page saves on change.
+async function commit(locator, value) {
+  await locator.fill(value);
+  await locator.dispatchEvent('change');
+}
+
 (async () => {
   const http = server();
   await new Promise((r) => (http.listening ? r() : http.once('listening', r)));
   let browser;
+  const contexts = [];
   try {
     browser = await launchBrowser();
-    const context = await browser.newContext({ acceptDownloads: true });
-    // Content Studio loads only after a cloud sync, so sign in with an
-    // in-memory Supabase stand-in. No network or real account is used.
-    await context.route(
-      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/+esm',
-      (r) => r.fulfill({ contentType: 'text/javascript', body: fakeSupabase }),
-    );
-    const page = await context.newPage();
-    page.setDefaultTimeout(20000);
-    page.on('dialog', (d) => d.accept());
+    const base = `http://127.0.0.1:${http.address().port}`;
+    const artifacts = artifactDirectory('content-studio');
+    const main = await signedInContext(browser);
+    contexts.push(main.context);
+    const { page } = main;
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
-    const artifacts = artifactDirectory('content-studio');
-    const base = `http://127.0.0.1:${http.address().port}`;
-    const select = (mode) => page.locator(`a[data-mode="${mode}"]`).click();
-    await page.goto(base + '/content-studio/');
-    const planner = page.frameLocator('iframe[data-editor="planner"]');
-    // The planner disables this button once its script has read the ideas.
-    await planner.locator('#from-idea[disabled]').waitFor();
-    assert.equal(await planner.locator('#from-idea').isDisabled(), true);
-    assert.equal(
-      await page.evaluate((key) => localStorage.getItem(key), PLAN_KEY),
-      null,
-      'Opening does not create a project',
-    );
 
-    await select('ideas');
-    const ideas = page.frameLocator('iframe[data-editor="ideas"]');
-    await ideas
-      .locator('#capture input[name="title"]')
-      .fill('First merged workflow');
-    await ideas
+    // Nothing shows until the cloud sync has finished.
+    await page.goto(base + '/content-studio/');
+    await page.locator('#app').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#waiting').isVisible(), false);
+
+    // Capture an idea.
+    await page.locator('#capture input[name="title"]').fill('First merged workflow');
+    await page
       .locator('#capture textarea[name="notes"]')
       .fill('Opening hook\nB-roll: Shoes\nGear: Microphone');
-    await ideas.locator('#capture button[type="submit"]').click();
+    await page.locator('#capture select[name="platform"]').selectOption('TikTok');
+    await page.locator('#capture button[type="submit"]').click();
+    const card = page.locator('#board button.card', { hasText: 'First merged workflow' });
+    await card.waitFor();
     const ideaId = await page.evaluate(
       (key) => JSON.parse(localStorage.getItem(key)).ideas[0].id,
       IDEA_KEY,
     );
-    await ideas.locator('#results article button').first().click();
-    await ideas
-      .locator('#e-notes')
-      .fill('Opening hook updated\nB-roll: Shoes\nGear: Microphone');
-    await select('projects');
-    assert.match(await page.locator('#status').textContent(), /Save or close/);
-    assert.equal(
-      await ideas.locator('#e-notes').inputValue(),
-      'Opening hook updated\nB-roll: Shoes\nGear: Microphone',
+    assert.equal(await page.locator('#board .column', { hasText: 'Idea · 1' }).count(), 1);
+
+    // Open the video and move it to Outline: both stores agree.
+    await card.click();
+    await page.locator('#detail[open]').waitFor();
+    assert.equal(await page.locator('#d-title').inputValue(), 'First merged workflow');
+    await page.locator('#d-stage').selectOption('Outline');
+    const outlined = await page.evaluate(
+      ([i, p]) => ({
+        idea: JSON.parse(localStorage.getItem(i)).ideas[0].status,
+        project: JSON.parse(localStorage.getItem(p)).projects[0],
+      }),
+      [IDEA_KEY, PLAN_KEY],
     );
-    await ideas.locator('#save').click();
-    await select('projects');
-    await planner.locator('#ideas').selectOption(ideaId);
-    await planner.locator('#from-idea').click();
+    assert.equal(outlined.idea, 'Developing');
+    assert.equal(outlined.project.id, 'idea:' + ideaId);
+    assert.equal(outlined.project.stage, 'Outline');
     assert.equal(
-      await planner.locator('#title').inputValue(),
-      'First merged workflow',
-    );
-    assert.match(
-      await planner.locator('#outline').inputValue(),
-      /hook updated/,
-    );
-    await planner.locator('#from-idea').click();
-    assert.equal(
-      await planner.locator('.card').count(),
-      1,
-      'Repeated promotion opens the same project',
+      outlined.project.outline,
+      'Opening hook\nB-roll: Shoes\nGear: Microphone',
+      'the outline starts from the notes',
     );
 
-    await planner.locator('[data-tab=shoot]').click();
-    assert.equal(
-      await page.locator('iframe').count(),
-      2,
-      'Videos and Shoot share one planner instance',
-    );
-    assert.equal(await planner.locator('#shoot').isVisible(), true);
-    await planner.locator('#generate').click();
-    await planner.locator('#generate').click();
-    assert.equal(await planner.locator('.item').count(), 3);
-    await planner.locator('#film').click();
-    await planner.locator('#film-notes').fill('Use take 2');
-    await planner.locator('[data-result="captured"]').click();
-    await select('ideas');
-    assert.match(await page.locator('#status').textContent(), /Exit filming/);
-    await planner.locator('#exit-film').click();
-    await select('projects');
-    await planner.locator('#stage').selectOption('Scheduled');
-    await planner.locator('#publishDate').fill('2099-12-31');
-    await select('ideas');
-    await ideas.locator('#results article button').first().click();
-    assert.equal(await ideas.locator('#e-status').inputValue(), 'Scheduled');
-    assert.equal(await ideas.locator('#e-due').inputValue(), '2099-12-31');
-    assert.equal(await ideas.locator('#e-status').isDisabled(), true);
-    await ideas.locator('#e-due').fill('2099-11-30');
-    await ideas.locator('#save').click();
-    await select('projects');
-    await planner.locator('#stage').evaluate(async (el) => {
-      while (el.value !== 'Scheduled') await new Promise((r) => setTimeout(r, 20));
-    });
-    assert.equal(
-      await planner.locator('#publishDate').inputValue(),
-      '2099-11-30',
-    );
-    await planner.locator('[data-tab=shoot]').click();
-    assert.equal(
-      await planner.locator('.item').first().locator('textarea').inputValue(),
-      'Use take 2',
-    );
-    assert.equal(
-      await planner
-        .locator('.item')
-        .first()
-        .getByLabel('Capture status')
-        .inputValue(),
-      'captured',
-    );
+    // Outline to shots: generated once, shown as shots.
+    await commit(page.locator('#d-outline'), 'Opening hook updated\nB-roll: Shoes\nGear: Microphone');
+    await page.locator('#tab-shoot').click();
+    await page.locator('#d-generate').click();
+    await page.locator('#d-shots li.shot').first().waitFor();
+    assert.equal(await page.locator('#d-shots li.shot').count(), 3);
+    await page.locator('#d-generate').click();
+    assert.equal(await page.locator('#d-shots li.shot').count(), 3, 'generation is additive');
 
-    // Legacy backup formats still contain their original data, including checklist notes.
-    const [planDownload] = await Promise.all([
-      page.waitForEvent('download'),
-      planner.locator('#export').click(),
-    ]);
-    const planBackup = await fs.readFile(await planDownload.path());
-    const saved = JSON.parse(planBackup).projects;
-    assert.equal(saved.length, 1);
-    assert.equal(saved[0].items[0].notes, 'Use take 2');
-    await select('ideas');
-    const [ideaDownload] = await Promise.all([
-      page.waitForEvent('download'),
-      ideas.locator('#export').click(),
-    ]);
-    const ideaBackup = await fs.readFile(await ideaDownload.path());
-    assert.equal(JSON.parse(ideaBackup).ideas[0].id, ideaId);
-    // Quick-capture drafts remain in memory while switching views.
-    await ideas.locator('#capture input[name="title"]').fill('Not saved yet');
-    await select('projects');
-    await select('ideas');
-    assert.equal(
-      await ideas.locator('#capture input[name="title"]').inputValue(),
-      'Not saved yet',
-    );
-    for (const width of [1440, 390]) {
-      await page.setViewportSize({ width, height: 900 });
-      for (const mode of ['ideas', 'projects']) {
-        await select(mode);
-        assert.ok(
-          (await page.locator('body > header').boundingBox()).y >= 0,
-          'Workspace navigation stays visible',
-        );
-        assert.ok(
-          await page.evaluate(
-            () => document.documentElement.scrollWidth <= innerWidth,
-          ),
-        );
-        const editor = mode === 'ideas' ? ideas : planner;
-        assert.ok(
-          await editor
-            .locator('body')
-            .evaluate(() => document.documentElement.scrollWidth <= innerWidth),
-        );
-        await page.screenshot({
-          path: path.join(artifacts, `${mode}-${width}.png`),
-        });
-      }
-      await select('projects');
-      await planner.locator('[data-tab=shoot]').click();
-      await planner.locator('#film').click();
-      const dialog = await planner.locator('#filming').boundingBox();
-      const host = await page
-        .locator('iframe[data-editor="planner"]')
-        .boundingBox();
-      assert.ok(
-        dialog.y >= host.y &&
-          dialog.y + dialog.height <= host.y + host.height + 1,
-        'Filming dialog stays within the visible workspace',
-      );
-      await planner.locator('#exit-film').click();
-    }
-    // An explicit project link restores its shoot view after reload.
-    await page.goto(
-      base +
-        '/content-studio/?project=' +
-        encodeURIComponent(saved[0].id) +
-        '#shoot',
-    );
-    const restored = page.frameLocator('iframe[data-editor="planner"]');
-    await restored.locator('#shoot').waitFor();
-    assert.equal(
-      await restored.locator('.item').first().locator('textarea').inputValue(),
-      'Use take 2',
-    );
-    // Original pages can import the same backups on a fresh device.
-    const fresh = await browser.newContext();
-    const original = await fresh.newPage();
-    original.on('dialog', (d) => d.accept());
-    await original.goto(base + '/content-planner/');
-    await original.locator('#import').setInputFiles({
-      name: 'plans.json',
-      mimeType: 'application/json',
-      buffer: planBackup,
-    });
-    await original.locator('.card').first().click();
-    await original.locator('[data-tab="shoot"]').click();
-    assert.equal(
-      await original.locator('.item').first().locator('textarea').inputValue(),
-      'Use take 2',
-    );
-    await original.goto(base + '/idea-vault/');
-    await original.locator('#importfile').setInputFiles({
-      name: 'ideas.json',
-      mimeType: 'application/json',
-      buffer: ideaBackup,
-    });
-    await original.locator('#results article').waitFor();
-    assert.match(
-      await original.locator('#results').textContent(),
-      /First merged workflow/,
-    );
-    await fresh.close();
-
-    // Unreadable local data blocks Content Studio (nothing loads until the
-    // sync can read both stores) and is never overwritten by the host.
-    await page.evaluate(
-      (key) => localStorage.setItem(key, '{broken'),
-      IDEA_KEY,
-    );
-    await page.goto(base + '/content-studio/#videos');
-    await page.locator('#studio-sync [role="status"]').filter({
-      hasText: /Cloud sync:/,
-    }).waitFor();
-    assert.equal(await page.locator('#editors').isVisible(), false);
-    assert.equal(
-      await page.evaluate((key) => localStorage.getItem(key), IDEA_KEY),
-      '{broken',
-    );
-    await page.evaluate((key) => localStorage.removeItem(key), IDEA_KEY);
-    await page.evaluate(
-      (key) => localStorage.setItem(key, '{unreadable plans'),
+    // Film through the pending shots and record a result.
+    await page.locator('#d-film-start').click();
+    await page.locator('#d-filming').waitFor({ state: 'visible' });
+    assert.match(await page.locator('#d-film-count').textContent(), /Shot 1 of 3/);
+    await commit(page.locator('#d-film-notes'), 'Use take 2');
+    await page.locator('[data-result="captured"]').click();
+    assert.match(await page.locator('#d-film-count').textContent(), /Shot 2 of 3/);
+    await page.locator('#d-film-exit').click();
+    assert.equal(await page.locator('#d-filming').isVisible(), false);
+    const firstShot = await page.evaluate(
+      (key) => JSON.parse(localStorage.getItem(key)).projects[0].items[0],
       PLAN_KEY,
     );
-    await page.goto(base + '/content-studio/#shoot');
-    await page.locator('#studio-sync [role="status"]').filter({
-      hasText: /Cloud sync:/,
-    }).waitFor();
-    assert.equal(await page.locator('#editors').isVisible(), false);
-    assert.equal(
-      await page.evaluate((key) => localStorage.getItem(key), PLAN_KEY),
-      '{unreadable plans',
+    assert.equal(firstShot.status, 'captured');
+    assert.equal(firstShot.notes, 'Use take 2');
+
+    // The publish date is one fact shared by the idea and the project.
+    await page.locator('#tab-outline').click();
+    await commit(page.locator('#d-publish'), '2099-11-30');
+    const dated = await page.evaluate(
+      ([i, p]) => ({
+        due: JSON.parse(localStorage.getItem(i)).ideas[0].dueDate,
+        publish: JSON.parse(localStorage.getItem(p)).projects[0].publishDate,
+      }),
+      [IDEA_KEY, PLAN_KEY],
     );
-    const noJs = await browser.newContext({ javaScriptEnabled: false });
-    const fallback = await noJs.newPage();
-    await fallback.goto(base + '/content-studio/');
-    await fallback.locator('a[data-mode="projects"]').click();
-    assert.match(fallback.url(), /\/content-planner\/$/);
-    await noJs.close();
+    assert.deepEqual(dated, { due: '2099-11-30', publish: '2099-11-30' });
+
+    // Steps save to the idea.
+    await page.locator('#d-step-text').fill('Thumbnail check');
+    await page.locator('#d-step-form button[type="submit"]').click();
+    await page.locator('#d-steps li.step', { hasText: 'Thumbnail check' }).waitFor();
+
+    // Tools open for this video, carrying its id.
+    await page.locator('#tab-assets').click();
+    const toolHref = await page.locator('#d-tools a').first().getAttribute('href');
+    assert.match(toolHref, /\?videoProject=/);
+
+    // Reopening with the id in the address opens that video.
+    await page.goto(base + '/content-studio/?videoProject=' + encodeURIComponent(ideaId));
+    await page.locator('#detail[open]').waitFor();
+    assert.equal(await page.locator('#d-title').inputValue(), 'First merged workflow');
+    await page.keyboard.press('Escape');
+
+    // Old links still open the right place.
+    await page.goto(base + '/idea-vault/');
+    await page.waitForURL(/\/content-studio\//);
+    await page.goto(base + '/content-planner/#' + encodeURIComponent('idea:' + ideaId));
+    await page.waitForURL(/\/content-studio\/\?videoProject=/);
+    await page.locator('#detail[open]').waitFor();
+    await page.keyboard.press('Escape');
+
+    // Backup downloads both stores as one file.
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.locator('#export-backup').click(),
+    ]);
+    const backupText = await fs.readFile(await download.path(), 'utf8');
+    const backup = JSON.parse(backupText);
+    assert.equal(backup.format, 'tim-content-studio');
+    assert.equal(backup.ideas[0].id, ideaId);
+    assert.equal(backup.projects[0].items.length, 3);
+
+    // Restore on a fresh device; importing again does not duplicate.
+    const fresh = await signedInContext(browser);
+    contexts.push(fresh.context);
+    const device = fresh.page;
+    device.on('pageerror', (e) => errors.push(e.message));
+    await device.goto(base + '/content-studio/');
+    await device.locator('#app').waitFor({ state: 'visible' });
+    const importOnce = async () =>
+      device.locator('#import-backup').setInputFiles({
+        name: 'backup.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(backupText),
+      });
+    await importOnce();
+    await device.locator('#board button.card', { hasText: 'First merged workflow' }).waitFor();
+    assert.match(await device.locator('#status').textContent(), /Imported 1 ideas and 1 projects/);
+    await importOnce();
+    await device.waitForFunction(() => document.getElementById('status').textContent.startsWith('Imported'));
+    assert.equal(await device.locator('#board button.card').count(), 1);
+    assert.equal(
+      await device.evaluate((key) => JSON.parse(localStorage.getItem(key)).ideas.length, IDEA_KEY),
+      1,
+    );
+
+    // Unreadable local data blocks loading and is never overwritten.
+    const corrupt = await signedInContext(browser);
+    contexts.push(corrupt.context);
+    await corrupt.page.goto(base + '/content-studio/');
+    await corrupt.page.evaluate((key) => localStorage.setItem(key, '{broken'), IDEA_KEY);
+    await corrupt.page.goto(base + '/content-studio/');
+    await corrupt.page.locator('#studio-sync [role="status"]').filter({ hasText: /Cloud sync:/ }).waitFor();
+    assert.equal(await corrupt.page.locator('#app').isVisible(), false);
+    assert.equal(
+      await corrupt.page.evaluate((key) => localStorage.getItem(key), IDEA_KEY),
+      '{broken',
+    );
+
+    // Desktop: the board and the detail dialog.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(base + '/content-studio/');
+    await page.locator('#board button.card', { hasText: 'First merged workflow' }).click();
+    await page.locator('#detail[open]').waitFor();
+    await page.screenshot({ path: path.join(artifacts, 'detail-1440.png') });
+    await page.keyboard.press('Escape');
+
+    // Phone width: no sideways page scroll; the board and detail sheet fit.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(base + '/content-studio/');
+    await page.locator('#board').waitFor();
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      'no sideways page scroll at 390px',
+    );
+    await page.screenshot({ path: path.join(artifacts, 'board-390.png') });
+    await page.locator('#board button.card', { hasText: 'First merged workflow' }).click();
+    await page.locator('#detail[open]').waitFor();
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      'the detail sheet fits 390px',
+    );
+    await page.screenshot({ path: path.join(artifacts, 'detail-390.png') });
+
     assert.deepEqual(errors, []);
     console.log(
-      'Content Studio passed: capture/promote without duplicates, project-owned stage and linked dates, filming notes/guards, original backups, corrupt-data protection, mobile and fallback.',
+      'Content Studio passed: cloud-gated loading, capture, stage and date sync between stores, outline to shots, filming, tools, old links, backup and restore, corrupt-data protection, phone width.',
     );
   } finally {
+    for (const c of contexts) await c.close().catch(() => {});
     await browser?.close();
     http.close();
   }
