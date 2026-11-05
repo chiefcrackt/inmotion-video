@@ -8,6 +8,36 @@ const {
 } = require('./browser-utils.cjs');
 const IDEA_KEY = 'tim-idea-vault-v1';
 const PLAN_KEY = 'tim-content-planner-v1';
+const fakeSupabase = `
+const user = { id: 'test-user' };
+const ok = { error: null, data: [{ revision: 1 }] };
+const query = {
+  select() { return this; },
+  eq() { return this; },
+  maybeSingle: async () => ({ data: null, error: null }),
+  insert: async () => ok,
+  update() {
+    return { eq() { return this; }, select: async () => ok };
+  },
+};
+export function createClient() {
+  return {
+    auth: {
+      onAuthStateChange(callback) {
+        setTimeout(() => callback('SIGNED_IN', { user }), 0);
+        return { data: { subscription: { unsubscribe() {} } } };
+      },
+      signOut: async () => ({ error: null }),
+      signInWithOtp: async () => ({ error: null }),
+    },
+    from(table) {
+      if (table === 'entitlements')
+        return { ...query, maybeSingle: async () => ({ data: { product: 'content-studio' }, error: null }) };
+      return query;
+    },
+  };
+}
+`;
 
 (async () => {
   const http = server();
@@ -16,9 +46,11 @@ const PLAN_KEY = 'tim-content-planner-v1';
   try {
     browser = await launchBrowser();
     const context = await browser.newContext({ acceptDownloads: true });
-    // No real Google account or Drive writes are involved.
-    await context.route('https://accounts.google.com/**', (r) =>
-      r.fulfill({ contentType: 'text/javascript', body: '' }),
+    // Content Studio loads only after a cloud sync, so sign in with an
+    // in-memory Supabase stand-in. No network or real account is used.
+    await context.route(
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/+esm',
+      (r) => r.fulfill({ contentType: 'text/javascript', body: fakeSupabase }),
     );
     const page = await context.newPage();
     page.setDefaultTimeout(20000);
@@ -30,7 +62,8 @@ const PLAN_KEY = 'tim-content-planner-v1';
     const select = (mode) => page.locator(`a[data-mode="${mode}"]`).click();
     await page.goto(base + '/content-studio/');
     const planner = page.frameLocator('iframe[data-editor="planner"]');
-    await planner.locator('#from-idea').waitFor();
+    // The planner disables this button once its script has read the ideas.
+    await planner.locator('#from-idea[disabled]').waitFor();
     assert.equal(await planner.locator('#from-idea').isDisabled(), true);
     assert.equal(
       await page.evaluate((key) => localStorage.getItem(key), PLAN_KEY),
@@ -175,6 +208,8 @@ const PLAN_KEY = 'tim-content-planner-v1';
           path: path.join(artifacts, `${mode}-${width}.png`),
         });
       }
+      await select('projects');
+      await planner.locator('[data-tab=shoot]').click();
       await planner.locator('#film').click();
       const dialog = await planner.locator('#filming').boundingBox();
       const host = await page
@@ -229,26 +264,31 @@ const PLAN_KEY = 'tim-content-planner-v1';
     );
     await fresh.close();
 
-    // Bad idea storage is never overwritten by the host, and promotion stays unavailable.
+    // Unreadable local data blocks Content Studio (nothing loads until the
+    // sync can read both stores) and is never overwritten by the host.
     await page.evaluate(
       (key) => localStorage.setItem(key, '{broken'),
       IDEA_KEY,
     );
     await page.goto(base + '/content-studio/#videos');
-    const corrupt = page.frameLocator('iframe[data-editor="planner"]');
-    await corrupt.locator('#from-idea').waitFor();
-    assert.equal(await corrupt.locator('#from-idea').isDisabled(), true);
+    await page.locator('#studio-sync [role="status"]').filter({
+      hasText: /Cloud sync:/,
+    }).waitFor();
+    assert.equal(await page.locator('#editors').isVisible(), false);
     assert.equal(
       await page.evaluate((key) => localStorage.getItem(key), IDEA_KEY),
       '{broken',
     );
+    await page.evaluate((key) => localStorage.removeItem(key), IDEA_KEY);
     await page.evaluate(
       (key) => localStorage.setItem(key, '{unreadable plans'),
       PLAN_KEY,
     );
     await page.goto(base + '/content-studio/#shoot');
-    const badPlans = page.frameLocator('iframe[data-editor="planner"]');
-    await badPlans.locator('#new').click();
+    await page.locator('#studio-sync [role="status"]').filter({
+      hasText: /Cloud sync:/,
+    }).waitFor();
+    assert.equal(await page.locator('#editors').isVisible(), false);
     assert.equal(
       await page.evaluate((key) => localStorage.getItem(key), PLAN_KEY),
       '{unreadable plans',
