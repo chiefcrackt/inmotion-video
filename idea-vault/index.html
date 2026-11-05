@@ -378,15 +378,9 @@
       <header
         ><div
           ><div class="eyebrow">T.IM / CREATOR WORKSPACE</div><h1>IDEA VAULT</h1
-          ><p class="muted">Capture → Develop → Create</p></div
-        ><div class="top-actions"
-          ><button id="connect">Connect Google Drive</button
-          ><button id="sync">Sync now</button></div
-        ></header
+          ><p class="muted">Capture → Develop → Create</p></div></header
       >
-      <p id="cloudstatus" role="status"
-        >Local draft mode · Google Drive not connected</p
-      ><p id="message" role="status" aria-live="polite"></p>
+      <p id="message" role="status" aria-live="polite"></p>
       <div class="panel-grid"
         ><section
           ><h2>Quick Capture</h2
@@ -412,8 +406,7 @@
               ></label
             ><button class="primary" type="submit">+ Save Idea</button></form
           ><p id="idea-save-hint" class="hint" style="margin-top: 12px"
-            >Your ideas save on this device instantly. Connect Google for cloud
-            sync.</p
+            >Your ideas save on this device instantly. Use Content Studio to sync across devices.</p
           ></section
         >
         <div
@@ -427,27 +420,6 @@
                   id="importfile"
                   type="file"
                   accept="application/json,.json" /></label></div
-            ><div
-              id="drive-import-controls"
-              style="
-                display: grid;
-                grid-template-columns: 1fr auto;
-                gap: 9px;
-                margin: 12px 0;
-              "
-            >
-              <label
-                >Google Drive outlines folder URL or ID<input
-                  id="folder-input"
-                  placeholder="Paste your YouTube Outlines folder link"
-                  autocomplete="off"
-              /></label>
-              <button id="import-drive" type="button" style="align-self: end"
-                >Import / Refresh from Drive</button
-              > </div
-            ><p id="drive-import-hint" class="hint"
-              >Imports Google Docs as linked idea cards without changing the
-              originals. Google will request read-only metadata permission.</p
             ><p class="stats" id="stats"></p
             ><div class="filters"
               ><input
@@ -470,10 +442,7 @@
               ></div
             ><div id="results"></div></section></div
       ></div>
-      <footer id="idea-footer"
-        >Ideas remain private in your Google Drive app data once connected.
-        Existing documents are never modified.</footer
-      >
+      
     </main>
     <div id="editor" role="dialog" aria-modal="true" aria-labelledby="editTitle"
       ><div class="editor-box"
@@ -530,32 +499,6 @@
           ><button id="e-step-defaults" type="button" hidden
             >Use default steps</button
           ></section
-        ><section
-          id="doc-section"
-          class="doc-section"
-          hidden
-          aria-labelledby="doc-heading"
-          ><div
-            ><h3 id="doc-heading">Imported Google Doc · read-only</h3
-            ><p class="hint"
-              >This shows the document's content for reading. It is kept
-              separate from your production notes above, and the document itself
-              is never changed.</p
-            ></div
-          ><div class="actions"
-            ><button id="doc-refresh" type="button">Show document</button></div
-          ><p
-            id="doc-status"
-            class="doc-status"
-            role="status"
-            aria-live="polite"
-          ></p
-          ><article
-            id="doc-viewer"
-            class="doc-viewer"
-            aria-label="Imported Google Doc content"
-            aria-busy="false"
-          ></article></section
         ><div
           id="resolve"
           class="resolve"
@@ -573,12 +516,9 @@
           ></div
         ><div class="actions"
           ><button id="save" class="primary">Save changes</button
-          ><a id="doclink" target="_blank" rel="noopener" hidden
-            >Open original outline</a
           ><button id="archive">Archive</button></div
         ></div
       ></div
     >
-    <script src="./config.js"></script
-    ><script type="module" src="./app.js"></script></body
+    <script type="module" src="./app.js"></script></body
 ></html>

@@ -1,11 +1,9 @@
-import * as studioDrive from '../shared/project-drive.mjs';
 import {
   PLANNER_KEY,
   reconcileLinked,
   statusForStage,
 } from '../shared/pipeline-link.mjs';
 import {
-  WORKSPACE_FILE,
   isWorkspace,
   hasIdentity,
   rev,
@@ -13,14 +11,9 @@ import {
   baseOf,
   sameVersion,
   newRevision,
-  workspaceListQuery,
-  pickWorkspaceFile,
   mergeIdeas,
   useCopyAsOriginal,
   discardCopy,
-  isGoogleDoc,
-  folderIdFrom,
-  planImport,
   validDueDate,
   localDay,
   defaultChecklist,
@@ -29,136 +22,20 @@ import {
   isOverdue,
   dueDateCsv,
 } from './vault-core.mjs';
-import {
-  documentRequestUrl,
-  classifyDocsResponse,
-  networkErrorMessage,
-  documentToModel,
-  DRIVE_FILE_SCOPE,
-} from './docs-core.mjs';
-import { renderDocument } from './docs-view.mjs';
-import { createSyncController, SyncError } from './sync-controller.mjs';
-
 // Storage keys. Changing KEY would strand existing user data, so it stays fixed.
 const KEY = 'tim-idea-vault-v1'; // ideas, version 1 (unchanged)
-const SYNC_KEY = 'tim-idea-vault-sync-v1'; // { pending, lastSyncedAt, base }
 const BACKUP_KEY = 'tim-idea-vault-backups-v1'; // rolling safety copies, newest first
 const UNREADABLE_KEY = 'tim-idea-vault-unreadable-v1'; // raw copy of unreadable local data
-const FOLDER_KEY = 'tim-idea-vault-import-folder';
-const DRIVE = 'https://www.googleapis.com/drive/v3/';
-const UPLOAD = 'https://www.googleapis.com/upload/drive/v3/';
-const APPDATA_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
-const METADATA_SCOPE =
-  'https://www.googleapis.com/auth/drive.metadata.readonly';
-
 const $ = (id) => document.getElementById(id);
 const now = () => new Date().toISOString();
 let items = [],
-  selected = null,
-  token = null,
-  remote = null,
-  importing = false;
-
-// Read-only Google Docs viewer state. Document content stays in memory only.
-let docsToken = null,
-  docsTokenExpiresAt = 0,
-  docRequest = 0,
-  pickerReady = null;
-const docCache = new Map(); // idea id -> { model, loadedAt }
+  selected = null;
 let draftChecklist = []; // steps being edited in the open idea; saved only by Save changes
 const MAX_CHECKLIST_STEPS = 50;
-
-// Sync timing. Tokens are in memory only; lastCheckAt is when Drive was last read.
-let tokenExpiresAt = 0,
-  lastCheckAt = 0;
-const AUTO_CHECK_MS = window.TIM_IDEA_VAULT_CONFIG?.autoCheckMs ?? 30000; // minimum gap between focus-triggered cloud checks
 
 function notify(s) {
   $('message').textContent = s;
 }
-const SYNC_LABEL = {
-  local: 'Saved locally',
-  syncing: 'Syncing',
-  synced: 'Synced',
-  attention: 'Needs attention',
-};
-// One status line for the whole app: Saved locally / Syncing / Synced / Needs attention.
-function setCloudStatus(kind, detail = '') {
-  const el = $('cloudstatus');
-  el.dataset.state = kind;
-  el.textContent = SYNC_LABEL[kind] + (detail ? ' · ' + detail : '');
-}
-function isConnected() {
-  if (studioDrive.usesSupabaseWorkspace()) return false;
-  return studioDrive.sharesStudioDrive
-    ? studioDrive.state().connected === true
-    : readSync().connected === true;
-}
-function timeNow() {
-  return new Date().toLocaleTimeString();
-}
-function renderSyncState(s = syncer.getStatus()) {
-  if (studioDrive.usesSupabaseWorkspace()) {
-    $('connect').hidden = true;
-    $('sync').hidden = true;
-    setCloudStatus('local', 'Use Content Studio cloud sync for ideas');
-    return;
-  }
-  if (studioDrive.sharesStudioDrive) {
-    const access = studioDrive.studioAccess();
-    $('connect').hidden = !!access;
-    $('connect').textContent = isConnected()
-      ? 'Reconnect Drive'
-      : 'Connect Google Drive';
-    if (isConnected() && !access) {
-      setCloudStatus('local', 'Reconnect Drive to sync ideas');
-      return;
-    }
-  }
-  if (!isConnected()) {
-    setCloudStatus('local', 'not connected to Google Drive');
-    return;
-  }
-  switch (s.state) {
-    case 'syncing':
-      setCloudStatus('syncing');
-      return;
-    case 'queued':
-      setCloudStatus('local', 'uploading shortly');
-      return;
-    case 'retrying':
-      setCloudStatus('local', 'retrying upload');
-      return;
-    case 'offline':
-      setCloudStatus('local', 'offline, will sync when back online');
-      return;
-    case 'needs-attention':
-      setCloudStatus('attention', s.reason);
-      return;
-  }
-  if (hasPendingChanges()) setCloudStatus('local', 'uploads automatically');
-  else setCloudStatus('synced', 'checked ' + timeNow());
-}
-
-// ---- Durable local state -------------------------------------------------
-
-function readSync() {
-  try {
-    return JSON.parse(localStorage.getItem(SYNC_KEY)) || {};
-  } catch {
-    return {};
-  }
-}
-function writeSync(patch) {
-  localStorage.setItem(SYNC_KEY, JSON.stringify({ ...readSync(), ...patch }));
-}
-// Pending survives reloads. A missing record with local ideas means "not known
-// to be in the cloud", so treat it as pending rather than assume it is synced.
-function hasPendingChanges() {
-  const flag = readSync().pending;
-  return typeof flag === 'boolean' ? flag : items.length > 0;
-}
-
 // Keep the last three copies of local data before any destructive step.
 // Throws if storage is full; callers must abort rather than proceed unprotected.
 function snapshot(reason, ideas) {
@@ -173,14 +50,10 @@ function snapshot(reason, ideas) {
   localStorage.setItem(BACKUP_KEY, JSON.stringify(list.slice(0, 3)));
 }
 
-// Every change is saved on this device at once. Once connected, it also queues a
-// debounced upload; the scheduler makes sure only one upload runs at a time.
+// Every change is saved on this device at once. Cloud sync runs through Content Studio.
 function persist() {
   localStorage.setItem(KEY, JSON.stringify({ version: 1, ideas: items }));
-  writeSync({ pending: true });
   render();
-  if (isConnected()) syncer.requestSync();
-  renderSyncState();
 }
 
 function load() {
@@ -238,10 +111,7 @@ function render() {
         .includes(q),
   );
   $('stats').textContent =
-    items.filter((x) => !x.archived).length +
-    ' active · ' +
-    items.filter((x) => x.sourceId).length +
-    ' linked Drive outlines';
+    items.filter((x) => !x.archived).length + ' active';
   $('results').replaceChildren();
   const projects = plannerProjects();
   for (const i of visible.sort((a, b) =>
@@ -312,10 +182,7 @@ function open(id) {
   $('e-due').value = validDueDate(i.dueDate);
   draftChecklist = normalizeChecklist(i.checklist);
   renderChecklist();
-  $('doclink').hidden = !i.docUrl;
-  if (i.docUrl) $('doclink').href = i.docUrl;
   $('resolve').hidden = !i.conflictOf;
-  showDocSection(i);
   $('editor').classList.add('open');
   $('e-title').focus();
 }
@@ -386,8 +253,6 @@ $('e-step-defaults').onclick = () => {
 };
 
 function close() {
-  docRequest++; // ignore any document load still running
-  setDocBusy(false);
   $('editor').classList.remove('open');
   selected = null;
 }
@@ -413,9 +278,7 @@ $('capture').onsubmit = (e) => {
   });
   persist();
   e.target.reset();
-  notify(
-    'Idea saved on this device. Press Sync now to back it up to Google Drive.',
-  );
+  notify('Idea saved on this device. Content Studio syncs it when signed in.');
 };
 
 $('save').onclick = () => {
@@ -445,7 +308,7 @@ $('archive').onclick = () => {
   const i = items.find((x) => x.id === selected);
   if (
     !i ||
-    !confirm('Archive this idea? The original Google Doc will not be changed.')
+    !confirm('Archive this idea?')
   )
     return;
   i.archived = true;
@@ -547,717 +410,6 @@ $('importfile').onchange = async (e) => {
   e.target.value = '';
 };
 
-// ---- Google Drive appData sync -------------------------------------------
-
-function httpError(label, status, body = '') {
-  const error = new Error(
-    label + ' (' + status + ')' + (body ? ': ' + body.slice(0, 120) : ''),
-  );
-  error.status = status;
-  return error;
-}
-
-// Resolves the full token response (access_token, expires_in).
-// prompt '' lets Google skip the consent screen when access already exists.
-function requestGrant(scope, prompt = 'consent') {
-  return new Promise((resolve, reject) => {
-    const client = google.accounts.oauth2.initTokenClient({
-      client_id: window.TIM_IDEA_VAULT_CONFIG.googleClientId,
-      scope,
-      callback: (response) =>
-        response.error ? reject(Error(response.error)) : resolve(response),
-      error_callback: (e) =>
-        reject(Error(e?.type || 'Google authorization cancelled')),
-    });
-    client.requestAccessToken({ prompt });
-  });
-}
-
-function requestToken(scope) {
-  return requestGrant(scope).then((r) => r.access_token);
-}
-
-async function driveJson(url, options = {}) {
-  const r = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: 'Bearer ' + syncAccessToken(),
-      ...(options.headers || {}),
-    },
-  });
-  if (!r.ok) throw httpError('Google Drive', r.status, await r.text());
-  return r.status === 204 ? null : r.json();
-}
-
-async function listWorkspaceFiles() {
-  const params = new URLSearchParams({
-    spaces: 'appDataFolder',
-    q: workspaceListQuery(WORKSPACE_FILE),
-    fields: 'files(id,name,version)',
-    pageSize: '100',
-  });
-  const r = await driveJson(DRIVE + 'files?' + params);
-  return r.files || [];
-}
-
-async function downloadWorkspace(id) {
-  const r = await fetch(
-    DRIVE + 'files/' + encodeURIComponent(id) + '?alt=media',
-    {
-      headers: { Authorization: 'Bearer ' + syncAccessToken() },
-    },
-  );
-  if (!r.ok) throw httpError('Cannot download cloud file', r.status);
-  const d = await r.json();
-  if (!isWorkspace(d))
-    throw Error('Cloud file has an unsupported format. Nothing was changed.');
-  return d;
-}
-
-// Merge the cloud copy into local data using per-idea revisions and the
-// device's base. A safety snapshot is written first; if it cannot be saved the
-// merge is aborted, so local data is never replaced unprotected.
-async function reconcileWith(latest) {
-  const cloud = await downloadWorkspace(latest.id);
-  const base = readSync().base || {};
-  const result = mergeIdeas(items, cloud.ideas, base, () =>
-    crypto.randomUUID(),
-  );
-  if (result.changed) {
-    snapshot('before cloud merge', items);
-    items = result.ideas;
-    localStorage.setItem(KEY, JSON.stringify({ version: 1, ideas: items }));
-  }
-  remote = latest;
-  writeSync({
-    pending: result.needsUpload,
-    base: { ...base, ...result.synced },
-  });
-  return result;
-}
-
-function conflictNote(result) {
-  const n = result.conflicts.length;
-  if (!n) return '';
-  return (
-    ' ' +
-    n +
-    (n === 1 ? ' edit conflicted' : ' edits conflicted') +
-    ': both versions were kept (see "Conflict copy" cards). Open each one and choose which to keep.'
-  );
-}
-
-async function createWorkspace(payload) {
-  const boundary =
-    'tim_boundary_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-  const body =
-    '--' +
-    boundary +
-    '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' +
-    JSON.stringify({
-      name: WORKSPACE_FILE,
-      parents: ['appDataFolder'],
-      mimeType: 'application/json',
-    }) +
-    '\r\n--' +
-    boundary +
-    '\r\nContent-Type: application/json\r\n\r\n' +
-    payload +
-    '\r\n--' +
-    boundary +
-    '--';
-  const r = await fetch(
-    UPLOAD + 'files?uploadType=multipart&fields=id,name,version',
-    {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + syncAccessToken(),
-        'Content-Type': 'multipart/related; boundary=' + boundary,
-      },
-      body,
-    },
-  );
-  if (!r.ok) throw httpError('Cloud creation failed', r.status);
-  return r.json();
-}
-
-async function updateWorkspace(id, payload) {
-  const r = await fetch(
-    UPLOAD +
-      'files/' +
-      encodeURIComponent(id) +
-      '?uploadType=media&fields=id,name,version',
-    {
-      method: 'PATCH',
-      headers: {
-        Authorization: 'Bearer ' + syncAccessToken(),
-        'Content-Type': 'application/json',
-      },
-      body: payload,
-    },
-  );
-  if (!r.ok) throw httpError('Cloud save failed', r.status);
-  return r.json();
-}
-
-// Google Drive token. Held in memory only and refreshed silently when possible.
-// If Google needs a user action, this throws SyncError('auth'); the status then
-// asks for a tap on Sync now instead of opening a popup from background code.
-function syncAccessToken() {
-  if (
-    studioDrive.sharesStudioDrive &&
-    studioDrive.studioAccess()?.token !== token
-  )
-    throw new SyncError(
-      'auth',
-      'Drive connection changed. Sync again when connected.',
-    );
-  return token;
-}
-
-function tokenValid() {
-  return !!token && Date.now() < tokenExpiresAt;
-}
-
-async function acquireDriveToken(prompt) {
-  let grant;
-  try {
-    grant = await requestGrant(APPDATA_SCOPE, prompt);
-  } catch {
-    throw new SyncError(
-      'auth',
-      'Google sign-in needed. Press Sync now to reconnect. Edits are saved on this device.',
-    );
-  }
-  token = grant.access_token;
-  tokenExpiresAt =
-    Date.now() + ((Number(grant.expires_in) || 3600) - 60) * 1000;
-  return token;
-}
-
-async function ensureDriveToken() {
-  if (!studioDrive.sharesStudioDrive)
-    return tokenValid() ? token : acquireDriveToken('');
-  const access = studioDrive.studioAccess();
-  if (!access) throw new SyncError('auth', 'Reconnect Drive to sync ideas.');
-  const prefs = readSync();
-  if (prefs.account && prefs.account !== access.account)
-    throw new SyncError(
-      'auth',
-      'Reconnect using the Google account linked to Idea Vault.',
-    );
-  if (!prefs.account) writeSync({ account: access.account, connected: true });
-  token = access.token;
-  return token;
-}
-
-async function connect() {
-  if (studioDrive.usesSupabaseWorkspace()) return;
-  if (studioDrive.sharesStudioDrive) return sync();
-  const clientId = window.TIM_IDEA_VAULT_CONFIG?.googleClientId;
-  if (!clientId) {
-    notify(
-      'Google Cloud setup needed: configure public OAuth client ID in idea-vault/config.js. See IMPLEMENTATION.md.',
-    );
-    return;
-  }
-  if (!window.google?.accounts?.oauth2) {
-    notify('Google sign-in has not loaded. Try again.');
-    return;
-  }
-  try {
-    await acquireDriveToken('consent');
-    writeSync({ connected: true });
-    const latest = pickWorkspaceFile(await listWorkspaceFiles());
-    lastCheckAt = Date.now();
-    if (latest) {
-      const result = await reconcileWith(latest);
-      notify(
-        'Connected. Existing ideas were merged; nothing was deleted.' +
-          conflictNote(result),
-      );
-      if (result.needsUpload) syncer.requestSync({ immediate: true });
-    } else {
-      remote = null;
-      writeSync({ pending: items.length > 0 });
-      notify('Connected. No cloud copy exists yet.');
-      if (items.length) syncer.requestSync({ immediate: true });
-    }
-    render();
-    renderSyncState();
-  } catch (e) {
-    notify(e.message);
-    renderSyncState();
-  }
-}
-
-// One complete sync: check Drive, merge any newer cloud copy, and upload only
-// when there are local changes (or no cloud copy yet). Throws on failure; the
-// controller decides whether to retry. Never runs concurrently (see syncer).
-async function syncOnce() {
-  const latest = pickWorkspaceFile(await listWorkspaceFiles());
-  lastCheckAt = Date.now();
-  let result = null;
-  if (latest && (!remote || !sameVersion(latest.version, remote.version))) {
-    result = await reconcileWith(latest);
-  }
-  const note = result ? conflictNote(result) : '';
-  if (latest && !hasPendingChanges()) {
-    render();
-    return {
-      uploaded: false,
-      message:
-        (result?.changed
-          ? 'Merged changes from another device. '
-          : 'Already up to date. Nothing uploaded. ') + note,
-    };
-  }
-  const payload = JSON.stringify({ version: 1, ideas: items });
-  remote = latest
-    ? await updateWorkspace(latest.id, payload)
-    : await createWorkspace(payload);
-  // Another tab may have written a planner edit while the upload was in flight.
-  // Only the uploaded snapshot is synced; leave newer local data pending.
-  writeSync({
-    pending: localStorage.getItem(KEY) !== payload,
-    lastSyncedAt: now(),
-    base: baseOf(JSON.parse(payload).ideas),
-  });
-  render();
-  return {
-    uploaded: true,
-    message:
-      (result?.changed
-        ? 'Merged changes from another device, then synced. '
-        : 'Cloud sync complete. ') + note,
-  };
-}
-
-// Maps any failure to a SyncError kind so the controller knows what to do next.
-function classifySyncError(e) {
-  if (e instanceof SyncError) return e;
-  if (e?.status === 401) {
-    studioDrive.invalidateStudioAccess(token);
-    token = null; // the next attempt gets a fresh token
-    return new SyncError(
-      'auth',
-      'Google sign-in expired. Press Sync now to reconnect. Edits are saved on this device.',
-    );
-  }
-  if (e instanceof TypeError) {
-    return navigator.onLine
-      ? new SyncError('transient', 'Could not reach Google Drive.')
-      : new SyncError('offline', 'Offline.');
-  }
-  if (e?.status === 429 || e?.status >= 500) {
-    return new SyncError('transient', e.message);
-  }
-  return new SyncError('fatal', e?.message || 'Sync failed.');
-}
-
-async function runSync() {
-  if (studioDrive.usesSupabaseWorkspace()) return;
-  if (!navigator.onLine) throw new SyncError('offline', 'Offline.');
-  try {
-    await ensureDriveToken();
-    return await syncOnce();
-  } catch (e) {
-    throw classifySyncError(e);
-  }
-}
-
-// Sync scheduler: debounced auto-upload, one run at a time, backoff on failure.
-const syncer = createSyncController({
-  run: runSync,
-  delayMs: window.TIM_IDEA_VAULT_CONFIG?.autoSyncDelayMs ?? 4000,
-  onState: () => renderSyncState(),
-});
-
-// "Sync now" is a user tap, so it may open the Google sign-in popup.
-async function sync() {
-  if (studioDrive.usesSupabaseWorkspace()) return;
-  if (!studioDrive.sharesStudioDrive && !token && !isConnected())
-    return connect();
-  try {
-    if (studioDrive.sharesStudioDrive) await studioDrive.connect();
-    await ensureDriveToken();
-  } catch (e) {
-    notify(e.message);
-    renderSyncState();
-    return;
-  }
-  const outcome = await syncer.requestSync({ manual: true });
-  notify(
-    outcome && 'message' in outcome
-      ? outcome.message
-      : outcome?.reason ||
-          'Sync did not finish. Edits are saved on this device.',
-  );
-}
-
-// ---- Read-only Google Docs viewer ----------------------------------------
-// Access uses drive.file: the user confirms the document in Google Picker,
-// which grants this app access to that one file. The only request made is a
-// GET to the Docs API. Nothing in this section writes to Google or to ideas.
-
-const PICKER_NOT_CONFIGURED =
-  'Document reading needs Google Picker setup. See docs/idea-vault/IMPLEMENTATION.md.';
-
-class DocsError extends Error {}
-
-function setDocStatus(s) {
-  $('doc-status').textContent = s;
-}
-function setDocBusy(busy) {
-  $('doc-refresh').disabled = busy;
-  $('doc-viewer').setAttribute('aria-busy', String(busy));
-}
-function showDocPlaceholder(s) {
-  const v = $('doc-viewer');
-  v.replaceChildren();
-  txt(v, 'p', s, 'muted');
-}
-
-function showDocSection(i) {
-  if (studioDrive.usesSupabaseWorkspace()) {
-    $('doc-section').hidden = true;
-    return;
-  }
-  docRequest++; // cancel any load still running for another idea
-  setDocBusy(false);
-  $('doc-section').hidden = !i.sourceId;
-  setDocStatus('');
-  const cached = docCache.get(i.id);
-  if (cached) {
-    renderDocument($('doc-viewer'), cached.model);
-    setDocStatus(
-      'Showing the version loaded at ' +
-        cached.loadedAt.toLocaleTimeString() +
-        '.',
-    );
-  } else {
-    showDocPlaceholder(
-      'The document is not loaded yet. Nothing in it will be changed.',
-    );
-  }
-  $('doc-refresh').textContent = cached ? 'Refresh document' : 'Show document';
-  // Opening the workspace refreshes the document. It never opens a popup or the
-  // Picker: if Google can renew access silently, the document loads; otherwise the
-  // "Show document" button stays as the one manual step.
-  if (!i.sourceId) return;
-  if (docsTokenValid()) {
-    loadDocument(i, { auto: true });
-    return;
-  }
-  silentDocsToken().then((ok) => {
-    if (ok && selected === i.id) loadDocument(i, { auto: true });
-  });
-}
-
-function docsTokenValid() {
-  if (studioDrive.sharesStudioDrive) return !!studioDrive.studioAccess();
-  return Boolean(docsToken) && Date.now() < docsTokenExpiresAt;
-}
-
-// Asks Google for a drive.file token without any prompt. Resolves false when the
-// browser cannot do it silently (no Google session, blocked third-party cookies).
-async function silentDocsToken() {
-  if (docsTokenValid()) return true;
-  if (studioDrive.sharesStudioDrive) return false;
-  if (!window.google?.accounts?.oauth2) return false;
-  try {
-    const grant = await requestGrant(DRIVE_FILE_SCOPE, '');
-    docsToken = grant.access_token;
-    docsTokenExpiresAt =
-      Date.now() + ((Number(grant.expires_in) || 3600) - 60) * 1000;
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function loadPicker() {
-  if (!pickerReady) {
-    pickerReady = new Promise((resolve, reject) => {
-      if (!window.gapi?.load)
-        return reject(
-          Error(
-            'Google Picker has not loaded. Check your connection and try again.',
-          ),
-        );
-      window.gapi.load('picker', {
-        callback: resolve,
-        onerror: () =>
-          reject(Error('Google Picker could not load. Try again.')),
-      });
-    }).catch((e) => {
-      pickerReady = null;
-      throw e;
-    });
-  }
-  return pickerReady;
-}
-
-// Opens the Picker listing the user's documents, so the linked document can be
-// chosen even when the Picker cannot preselect it. Resolves only when the user
-// picks the linked document; rejects if they close the Picker or pick another one.
-async function grantDocumentAccess(docId, accessToken) {
-  const { pickerApiKey, cloudProjectNumber } =
-    window.TIM_IDEA_VAULT_CONFIG || {};
-  if (!pickerApiKey || !cloudProjectNumber)
-    throw new DocsError(PICKER_NOT_CONFIGURED);
-  await loadPicker();
-  await new Promise((resolve, reject) => {
-    const picker = new google.picker.PickerBuilder()
-      .addView(new google.picker.DocsView(google.picker.ViewId.DOCUMENTS))
-      .setOAuthToken(accessToken)
-      .setDeveloperKey(pickerApiKey)
-      .setAppId(cloudProjectNumber)
-      .setOrigin(window.location.origin)
-      .setTitle('Choose the linked Google Doc to allow reading')
-      .setCallback((data) => {
-        const action = data[google.picker.Response.ACTION];
-        if (action === google.picker.Action.PICKED) {
-          const picked = (data[google.picker.Response.DOCUMENTS] || [])[0];
-          if (picked?.id === docId) resolve();
-          else
-            reject(
-              new DocsError(
-                'That is not the document linked to this idea. Choose the linked document, or press Refresh document to try again.',
-              ),
-            );
-        } else if (action === google.picker.Action.CANCEL)
-          reject(
-            new DocsError(
-              'Document access was not granted. Press Refresh document to try again.',
-            ),
-          );
-      })
-      .build();
-    picker.setVisible(true);
-  });
-}
-
-// Reuses the drive.file token in memory until shortly before it expires.
-async function docsAccessToken() {
-  if (studioDrive.sharesStudioDrive) {
-    await studioDrive.connect();
-    const access = studioDrive.studioAccess();
-    if (!access)
-      throw new SyncError('auth', 'Reconnect Drive to open the document.');
-    return access.token;
-  }
-  if (docsToken && Date.now() < docsTokenExpiresAt) return docsToken;
-  const grant = await requestGrant(DRIVE_FILE_SCOPE, '');
-  docsToken = grant.access_token;
-  docsTokenExpiresAt =
-    Date.now() + ((Number(grant.expires_in) || 3600) - 60) * 1000;
-  return docsToken;
-}
-
-async function requestDocument(docId, accessToken) {
-  const url = documentRequestUrl(docId);
-  try {
-    return await fetch(url, {
-      method: 'GET',
-      headers: { Authorization: 'Bearer ' + accessToken },
-    });
-  } catch {
-    // fetch rejects only when the network request itself fails.
-    throw new DocsError(networkErrorMessage());
-  }
-}
-
-async function readDocumentJson(response) {
-  try {
-    return await response.json();
-  } catch {
-    throw new DocsError(
-      'Google Docs returned content this viewer could not read.',
-    );
-  }
-}
-
-async function loadDocument(i, { auto = false } = {}) {
-  const request = ++docRequest;
-  const current = () => request === docRequest && selected === i.id;
-  const cached = docCache.get(i.id);
-  setDocBusy(true);
-  setDocStatus(cached ? 'Refreshing…' : 'Loading document…');
-  try {
-    const accessToken = await docsAccessToken();
-    let response = await requestDocument(i.sourceId, accessToken);
-    let outcome = classifyDocsResponse(response.status);
-
-    if (outcome.kind === 'expired') {
-      studioDrive.invalidateStudioAccess(accessToken);
-      docsToken = null; // force a fresh sign-in on the next attempt
-      throw new DocsError(outcome.message);
-    }
-    if (outcome.kind === 'forbidden' || outcome.kind === 'notfound') {
-      if (auto) {
-        throw new DocsError(
-          'Press Refresh document to allow reading this document.',
-        );
-      }
-      // The file has not been granted to this app yet: ask via Picker, then retry once.
-      await grantDocumentAccess(i.sourceId, accessToken);
-      if (!current()) return;
-      response = await requestDocument(i.sourceId, accessToken);
-      outcome = classifyDocsResponse(response.status);
-    }
-    if (outcome.kind !== 'ok') throw new DocsError(outcome.message);
-
-    const model = documentToModel(await readDocumentJson(response));
-    if (!current()) return;
-    const loadedAt = new Date();
-    docCache.set(i.id, { model, loadedAt });
-    renderDocument($('doc-viewer'), model);
-    $('doc-refresh').textContent = 'Refresh document';
-    setDocStatus(
-      'Loaded ' + loadedAt.toLocaleTimeString() + '. Read-only copy.',
-    );
-  } catch (e) {
-    if (!current()) return;
-    const message =
-      e instanceof DocsError
-        ? e.message
-        : e.message || 'Could not load the document. Try again.';
-    if (docCache.has(i.id)) {
-      // Keep the last good content on screen and say why it is not current.
-      setDocStatus(
-        message +
-          ' Showing the version loaded at ' +
-          docCache.get(i.id).loadedAt.toLocaleTimeString() +
-          '.',
-      );
-    } else {
-      setDocStatus(message);
-    }
-  } finally {
-    if (current()) setDocBusy(false);
-  }
-}
-
-$('doc-refresh').onclick = () => {
-  const i = items.find((x) => x.id === selected);
-  if (i?.sourceId) loadDocument(i);
-};
-
-// ---- Additive Google Docs import -----------------------------------------
-
-async function listFolderDocs(id, accessToken) {
-  const headers = { Authorization: 'Bearer ' + accessToken };
-  const base = DRIVE + 'files';
-  const fields =
-    'nextPageToken,files(id,name,mimeType,webViewLink,createdTime,modifiedTime,trashed)';
-  let page = '',
-    files = [];
-  do {
-    const params = new URLSearchParams({
-      q: "'" + id + "' in parents and trashed = false",
-      fields,
-      pageSize: '100',
-      orderBy: 'name',
-    });
-    if (page) params.set('pageToken', page);
-    const response = await fetch(base + '?' + params, { headers });
-    if (!response.ok)
-      throw Error(
-        'Google Drive folder lookup failed (' +
-          response.status +
-          '). Check permissions and folder ID.',
-      );
-    const data = await response.json();
-    files.push(...(data.files || []));
-    page = data.nextPageToken || '';
-    if (files.length > 1000)
-      throw Error('Folder has more than 1,000 files. Import a smaller folder.');
-  } while (page);
-  return files.filter(isGoogleDoc);
-}
-
-async function importFromDrive() {
-  if (importing) return;
-  let id;
-  try {
-    id = folderIdFrom($('folder-input').value);
-  } catch (error) {
-    notify(error.message);
-    return;
-  }
-  if (!window.google?.accounts?.oauth2) {
-    notify('Google authentication has not loaded. Try again.');
-    return;
-  }
-  if (!window.TIM_IDEA_VAULT_CONFIG?.googleClientId) {
-    notify('Google OAuth client ID is not configured.');
-    return;
-  }
-  importing = true;
-  $('import-drive').disabled = true;
-  $('import-drive').textContent = 'Connecting…';
-  localStorage.setItem(FOLDER_KEY, id);
-  try {
-    // Metadata-only read. Document bodies are never requested.
-    const accessToken = await requestToken(METADATA_SCOPE);
-    $('import-drive').textContent = 'Reading folder…';
-    const docs = await listFolderDocs(id, accessToken);
-    const plan = planImport(items, docs, () => crypto.randomUUID(), now());
-    if (plan.additions.length) {
-      items.push(...plan.additions);
-      persist();
-    }
-    notify(
-      'Found ' +
-        docs.length +
-        ' Google Docs: ' +
-        plan.additions.length +
-        ' imported, ' +
-        plan.existingCount +
-        ' already linked. Originals unchanged. ' +
-        (plan.additions.length ? 'Tap Sync now to back up the new cards.' : ''),
-    );
-  } catch (error) {
-    notify('Import failed: ' + error.message);
-  } finally {
-    importing = false;
-    $('import-drive').disabled = false;
-    $('import-drive').textContent = 'Import / Refresh from Drive';
-  }
-}
-
-if (studioDrive.usesSupabaseWorkspace()) {
-  $('drive-import-controls').style.display = 'none';
-  $('drive-import-hint').hidden = true;
-  $('idea-save-hint').textContent =
-    'Ideas save on this device. Use Workspace cloud sync to sync across devices.';
-  $('idea-footer').hidden = true;
-} else {
-  for (const src of [
-    'https://accounts.google.com/gsi/client',
-    'https://apis.google.com/js/api.js',
-  ]) {
-    const script = document.createElement('script');
-    script.src = src;
-    document.head.append(script);
-  }
-}
-$('folder-input').value = localStorage.getItem(FOLDER_KEY) || '';
-$('import-drive').onclick = importFromDrive;
-$('connect').onclick = connect;
-$('sync').onclick = sync;
-
-// Coming back to the tab checks the cloud, so edits from another device show up.
-// Checks are skipped if one ran very recently and nothing is waiting to upload.
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden || !isConnected()) return;
-  if (hasPendingChanges() || Date.now() - lastCheckAt > AUTO_CHECK_MS) {
-    syncer.requestSync({ immediate: true });
-  }
-});
-window.addEventListener('online', () => syncer.notifyOnline());
-
 // Projects saved by Content Planner on this device, for keeping promoted ideas in step.
 function plannerProjects() {
   try {
@@ -1273,29 +425,9 @@ window.addEventListener('storage', (e) => {
   if (e.key !== KEY && e.key !== PLANNER_KEY) return;
   if (e.key === KEY) load();
   if (reconcileLinked(plannerProjects(), items, now())) persist();
-  else {
-    render();
-    // Content Planner already reconciled this edit; it still needs an upload.
-    if (e.key === KEY && hasPendingChanges() && isConnected())
-      syncer.requestSync();
-    renderSyncState();
-  }
+  else render();
 });
 render();
-renderSyncState();
-// Opening Idea Vault checks the cloud and uploads anything left unsynced.
-if (isConnected()) syncer.requestSync({ immediate: true });
-
-if (studioDrive.sharesStudioDrive) {
-  let previous = studioDrive.studioAccess()?.token;
-  window.addEventListener('tim-drive-state', () => {
-    const access = studioDrive.studioAccess()?.token;
-    const started = access && access !== previous;
-    previous = access;
-    if (started) syncer.requestSync({ immediate: true });
-    renderSyncState();
-  });
-}
 
 // Leave draft edits in place until the user saves or closes the idea editor.
 window.TimPlanningEditor = Object.freeze({

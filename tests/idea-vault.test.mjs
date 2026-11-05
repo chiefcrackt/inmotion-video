@@ -3,20 +3,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  WORKSPACE_FILE,
   isWorkspace,
   sameVersion,
-  workspaceListQuery,
-  pickWorkspaceFile,
   mergeIdeas,
   baseOf,
   touch,
   useCopyAsOriginal,
   discardCopy,
   stableStringify,
-  isGoogleDoc,
-  folderIdFrom,
-  planImport,
 } from '../idea-vault/vault-core.mjs';
 
 const T0 = '2026-10-01T10:00:00.000Z';
@@ -51,35 +45,6 @@ test('sameVersion treats numeric and string versions as equal (no false conflict
   assert.equal(sameVersion('7', '8'), false);
   assert.equal(sameVersion(undefined, '7'), false);
   assert.equal(sameVersion(null, null), false);
-});
-
-test('workspace list query filters by the exact file name and escapes quotes', () => {
-  assert.equal(
-    workspaceListQuery(WORKSPACE_FILE),
-    "name = 'tim-idea-vault-v1.json'",
-  );
-  assert.equal(workspaceListQuery("a'b"), "name = 'a\\'b'");
-});
-
-test('pickWorkspaceFile returns null when absent and the single match when present', () => {
-  assert.equal(pickWorkspaceFile([]), null);
-  assert.equal(pickWorkspaceFile([{ name: 'other.json', id: 'x' }]), null);
-  const only = { name: WORKSPACE_FILE, id: 'a', version: '3' };
-  assert.equal(
-    pickWorkspaceFile([{ name: 'other.json', id: 'x' }, only]),
-    only,
-  );
-});
-
-test('pickWorkspaceFile refuses duplicate workspace files instead of hiding one', () => {
-  const files = [
-    { name: WORKSPACE_FILE, id: 'a', version: '3' },
-    { name: WORKSPACE_FILE, id: 'b', version: '1' },
-  ];
-  assert.throws(
-    () => pickWorkspaceFile(files),
-    /Multiple Idea Vault cloud files/,
-  );
 });
 
 // ---- Revisions and base ----------------------------------------------------
@@ -393,99 +358,7 @@ test('resolution refuses to act on an ordinary idea', () => {
 
 // ---- Google Docs import (PR #29 behavior) ----------------------------------
 
-test('isGoogleDoc keeps only Google Docs and ignores PDFs and folders', () => {
-  assert.equal(
-    isGoogleDoc({ mimeType: 'application/vnd.google-apps.document' }),
-    true,
-  );
-  assert.equal(isGoogleDoc({ mimeType: 'application/pdf' }), false);
-  assert.equal(
-    isGoogleDoc({ mimeType: 'application/vnd.google-apps.folder' }),
-    false,
-  );
-});
-
-test('folderIdFrom accepts a folder URL or bare ID and rejects other input', () => {
-  assert.equal(
-    folderIdFrom(
-      'https://drive.google.com/drive/folders/1AbCdEfGhIjKlMnOp?usp=sharing',
-    ),
-    '1AbCdEfGhIjKlMnOp',
-  );
-  assert.equal(folderIdFrom('1AbCdEfGhIjKlMnOp'), '1AbCdEfGhIjKlMnOp');
-  assert.throws(() => folderIdFrom('not a folder'));
-});
-
 const at = '2026-11-01T00:00:00.000Z';
 let n = 0;
 const makeImportId = () => 'new-' + ++n;
 
-test('planImport adds new Docs with metadata only, original docUrl, and revision 1', () => {
-  const plan = planImport(
-    [],
-    [
-      {
-        id: 'docA_1234567890',
-        name: 'Oil Creek race recap',
-        webViewLink: 'https://docs.google.com/document/d/docA_1234567890/edit',
-      },
-    ],
-    makeImportId,
-    at,
-  );
-  assert.equal(plan.additions.length, 1);
-  assert.equal(plan.additions[0].sourceId, 'docA_1234567890');
-  assert.equal(plan.additions[0].category, 'Running');
-  assert.equal(plan.additions[0].notes, '');
-  assert.equal(typeof plan.additions[0].revision, 'string');
-});
-
-test('re-importing the same folder is idempotent (no duplicates)', () => {
-  const docs = [{ id: 'docA_1234567890', name: 'Gear review' }];
-  const existing = planImport([], docs, makeImportId, at).additions;
-  const second = planImport(existing, docs, makeImportId, at);
-  assert.equal(second.additions.length, 0);
-  assert.equal(second.existingCount, 1);
-});
-
-test('an archived linked idea is not resurrected by a re-import', () => {
-  const existing = [{ id: 'x', sourceId: 'docA_1234567890', archived: true }];
-  const plan = planImport(
-    existing,
-    [{ id: 'docA_1234567890', name: 'Vlog week' }],
-    makeImportId,
-    at,
-  );
-  assert.equal(plan.additions.length, 0);
-});
-
-test('duplicates within one Drive scan (pagination repeat) are imported once', () => {
-  const docs = [
-    { id: 'docB_1234567890', name: 'A' },
-    { id: 'docB_1234567890', name: 'A' },
-  ];
-  assert.equal(planImport([], docs, makeImportId, at).additions.length, 1);
-});
-
-test('reference documents are categorized separately and invalid ids are skipped', () => {
-  const docs = [
-    { id: 'refDoc_1234567890', name: 'Segment idea bank' },
-    { id: 'bad id!', name: 'Bad' },
-  ];
-  const plan = planImport([], docs, makeImportId, at);
-  assert.equal(plan.additions[0].kind, 'reference');
-  assert.equal(plan.additions[0].category, 'Reference');
-  assert.equal(plan.invalid, 1);
-});
-
-test('planImport never returns or mutates existing ideas', () => {
-  const existing = [{ id: 'keep', title: 'Keep me', sourceId: 'z' }];
-  const before = JSON.stringify(existing);
-  planImport(
-    existing,
-    [{ id: 'docC_1234567890', name: 'New' }],
-    makeImportId,
-    at,
-  );
-  assert.equal(JSON.stringify(existing), before);
-});

@@ -24,7 +24,7 @@
     "test:responsive": "node tests/responsive.cjs",
     "test:hub": "node tests/hub.mjs",
     "build": "node dashboard-preview/build.mjs && node activity-studio/build.mjs && node tests/check-static.mjs",
-    "test": "node --test tests/dashboard-preview.test.mjs tests/studio-bar.test.mjs tests/kinetic.test.mjs activity-studio/tests/*.test.mjs tests/sound.test.mjs tests/beat.test.mjs tests/idea-vault.test.mjs tests/docs-viewer.test.mjs tests/sync-controller.test.mjs carousel-maker/tests/model.test.mjs carousel-maker/tests/overflow.test.mjs tests/idea-vault-due.test.mjs tests/content-planner.test.mjs tests/teleprompter.test.mjs tests/before-after.test.mjs tests/workflow-regressions.test.mjs tests/page-elements.test.mjs",
+    "test": "node --test tests/dashboard-preview.test.mjs tests/studio-bar.test.mjs tests/kinetic.test.mjs activity-studio/tests/*.test.mjs tests/sound.test.mjs tests/beat.test.mjs tests/idea-vault.test.mjs carousel-maker/tests/model.test.mjs carousel-maker/tests/overflow.test.mjs tests/idea-vault-due.test.mjs tests/content-planner.test.mjs tests/teleprompter.test.mjs tests/before-after.test.mjs tests/workflow-regressions.test.mjs tests/page-elements.test.mjs",
     "test:browser": "node activity-studio/tests/browser.mjs && node tests/sound-browser.cjs",
     "preview": "node activity-studio/serve.mjs",
     "test:sound:browser": "node tests/sound-browser.cjs",
@@ -46,11 +46,6 @@
     "test:desktop-save": "node tests/desktop-save.cjs",
     "test:carousel:ux": "node carousel-maker/tests/ux.cjs",
     "test:idea-vault": "node --test tests/idea-vault.test.mjs",
-    "test:idea-vault:browser": "node tests/idea-vault-browser.cjs",
-    "test:idea-vault:docs": "node --test tests/docs-viewer.test.mjs",
-    "test:idea-vault:docs:browser": "node tests/idea-vault-docs-browser.cjs",
-    "test:idea-vault:sync": "node --test tests/sync-controller.test.mjs",
-    "test:idea-vault:auto-sync:browser": "node tests/idea-vault-auto-sync-browser.cjs",
     "test:idea-vault:due": "node --test tests/idea-vault-due.test.mjs",
     "test:idea-vault:due:browser": "node tests/idea-vault-due-browser.cjs",
     "test:planner": "node --test tests/content-planner.test.mjs && node tests/content-planner-browser.cjs"
@@ -76,4 +71,3 @@
   },
   "private": true
 }
-

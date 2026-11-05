@@ -36,26 +36,6 @@ test('planner writes durably mark linked ideas pending without losing sync prefe
   assert.equal(JSON.parse(localStorage.getItem('tim-idea-vault-v1')).ideas[0].status, 'Ready to Film');
 });
 
-test('an open vault queues an externally reconciled planner edit for upload', () => {
-  let handler, uploads = 0, loads = 0;
-  const context = {
-    window: { addEventListener: (_, fn) => { handler = fn; } },
-    KEY: 'ideas', PLANNER_KEY: 'plans', items: [], now: () => '',
-    load: () => loads++, plannerProjects: () => [], reconcileLinked: () => false,
-    persist: () => assert.fail('No reconciliation needed'), render() {}, renderSyncState() {},
-    hasPendingChanges: () => true, isConnected: () => true,
-    syncer: { requestSync: () => uploads++ },
-  };
-  const app = source('idea-vault/app.js');
-  vm.createContext(context);
-  vm.runInContext(between(app.slice(app.lastIndexOf("window.addEventListener('storage'")), "window.addEventListener('storage'", '\nrender();'), context);
-  handler({ key: 'ideas' });
-  assert.equal(loads, 1);
-  assert.equal(uploads, 1);
-  handler({ key: 'unrelated' });
-  assert.equal(uploads, 1);
-});
-
 test('dragging a linked project advances its stage after a newer notes-only idea edit', () => {
   const project = { id: 'idea:a', stage: 'Outline', publishDate: '', updated: 1000 };
   const idea = { id: 'a', status: 'Developing', dueDate: '', updatedAt: new Date(2000).toISOString() };
@@ -69,40 +49,6 @@ test('dragging a linked project advances its stage after a newer notes-only idea
   col.ondrop({ preventDefault() {}, dataTransfer: { getData: () => project.id } });
   assert.equal(project.stage, 'Film');
   assert.equal(idea.status, 'Ready to Film');
-});
-
-test('a planner edit arriving during an upload remains pending for the follow-up sync', async () => {
-  const before = { id: 'a', status: 'Developing', revision: 'r1' };
-  const after = { ...before, status: 'Ready to Film', revision: 'r2' };
-  const serialize = (ideas) => JSON.stringify({ version: 1, ideas });
-  const localStorage = storage({ ideas: serialize([before]) });
-  let sync = { pending: true }, uploads = 0;
-  const context = {
-    KEY: 'ideas', localStorage, items: [before], remote: { id: 'cloud', version: '1' },
-    pickWorkspaceFile: (files) => files[0], listWorkspaceFiles: async () => [{ id: 'cloud', version: '1' }],
-    sameVersion: (a, b) => a === b, hasPendingChanges: () => sync.pending,
-    reconcileWith: () => assert.fail('Cloud version did not change'),
-    conflictNote: () => '', now: () => '2026-11-02T20:00:00Z', render() {}, baseOf,
-    writeSync: (patch) => { sync = { ...sync, ...patch }; },
-    updateWorkspace: async (_, payload) => {
-      uploads++;
-      if (uploads === 1) {
-        assert.equal(JSON.parse(payload).ideas[0].revision, 'r1');
-        context.items = [after];
-        localStorage.setItem('ideas', serialize([after]));
-      } else assert.equal(JSON.parse(payload).ideas[0].revision, 'r2');
-      return { id: 'cloud', version: '1' };
-    },
-  };
-  vm.createContext(context);
-  vm.runInContext(between(source('idea-vault/app.js'), 'async function syncOnce()', '\n// Maps any failure'), context);
-  await vm.runInContext('syncOnce()', context);
-  assert.equal(sync.pending, true);
-  assert.equal(sync.base.a, 'r1');
-  await vm.runInContext('syncOnce()', context);
-  assert.equal(uploads, 2);
-  assert.equal(sync.pending, false);
-  assert.equal(sync.base.a, 'r2');
 });
 
 function recordingHarness({ startFails = false, constructFails = false } = {}) {
