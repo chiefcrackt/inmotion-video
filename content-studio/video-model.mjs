@@ -124,6 +124,18 @@ function cleanSteps(list) {
     .map((x) => ({ text: x.text.trim().slice(0, 120), done: x.done === true }));
 }
 
+// Snapshot references: which tool saved the work, and its name. Text only.
+function cleanAttachments(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((a) => a && typeof a.id === 'string' && typeof a.tool === 'string')
+    .map((a) => ({
+      id: a.id.slice(0, 100),
+      tool: a.tool.slice(0, 100),
+      name: cleanText(a.name, 200),
+    }));
+}
+
 function cleanShots(list) {
   if (!Array.isArray(list)) return [];
   return list
@@ -162,19 +174,21 @@ export function videoFrom({ idea = null, project = null }) {
     filmDate: cleanText(base.filmDate, 20),
     publishDate: cleanText(base.publishDate, 20),
     publishedUrl: cleanText(base.publishedUrl, 2000),
-    footageUrl: cleanText(base.footageUrl, 2000),
-    thumbnailUrl: cleanText(base.thumbnailUrl, 2000),
-    outlineUrl: cleanText(base.outlineUrl || src.docUrl, 2000),
-    sourceId: cleanText(src.sourceId, 200),
+    outlineUrl: cleanText(base.outlineUrl, 2000),
     steps: cleanSteps(src.checklist),
     shots: cleanShots(base.items),
-    attachments: Array.isArray(base.attachments) ? base.attachments : [],
-    driveAssets: Array.isArray(base.driveAssets) ? base.driveAssets : [],
+    attachments: cleanAttachments(base.attachments),
     archived: src.archived === true || base.archived === true,
     updatedAt: newestOf(src.updatedAt, src.updated, base.updated),
   };
 }
 
+// Fields that are never written to the unified record:
+//  - sourceId, driveAssets, driveFolder, footageUrl, thumbnailUrl: Google Drive
+//    references. Drive is being removed; footage and thumbnails stay on the
+//    device only.
+// sourceId is still read by the outline migration (see outlineMigrationList).
+//
 // Migrates the two old stores into one list.
 //
 // ideas:    Idea Vault records (see vault-core.mjs)
@@ -237,4 +251,13 @@ export function migrate({ ideas = [], projects = [] } = {}) {
   }
 
   return { videos, report };
+}
+
+// Videos whose outline still lives in a Google Doc. Run this once, while the
+// Drive connection still works, to copy each outline into the outline text
+// field. After that the Drive link is no longer needed.
+export function outlineMigrationList(ideas = []) {
+  return ideas
+    .filter((i) => i && i.sourceId && !i.archived && !i.conflictOf)
+    .map((i) => ({ id: i.id, docId: i.sourceId, title: i.title || '' }));
 }

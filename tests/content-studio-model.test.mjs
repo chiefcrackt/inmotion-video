@@ -12,6 +12,7 @@ import {
   groupByStage,
   videoFrom,
   migrate,
+  outlineMigrationList,
 } from '../content-studio/video-model.mjs';
 
 const idea = (over = {}) => ({
@@ -104,7 +105,7 @@ test('videoFrom merges the linked project into the idea', () => {
   assert.equal(v.notes, 'Talk about the opening', 'idea notes kept');
   assert.equal(v.dueDate, '2026-11-20', 'due date comes from the idea');
   assert.equal(v.filmDate, '2026-11-10', 'film date comes from the project');
-  assert.equal(v.outlineUrl, idea().docUrl, 'falls back to the idea doc');
+  assert.equal(v.outlineUrl, '', 'Drive doc links are not carried over');
   assert.equal(v.shots.length, 1);
   assert.equal(v.steps.length, 2);
   assert.equal(v.attachments.length, 1);
@@ -188,4 +189,43 @@ test('groupByStage keeps pipeline order and every stage key', () => {
   assert.deepEqual(Object.keys(groups), STAGES);
   assert.equal(groups.Film.length, 1);
   assert.equal(groups.Idea.length, 0);
+});
+
+test('the unified record has no Google Drive fields', () => {
+  const { videos } = migrate({ ideas: [idea()], projects: [project()] });
+  const v = videos[0];
+  for (const key of [
+    'sourceId',
+    'driveAssets',
+    'driveFolder',
+    'footageUrl',
+    'thumbnailUrl',
+  ]) {
+    assert.equal(key in v, false, key + ' must not be stored');
+  }
+});
+
+test('attachments keep only text fields', () => {
+  const v = videoFrom({
+    project: project({
+      attachments: [
+        { id: 'a1', tool: 'Asset Animator', name: 'Snap', url: 'javascript:x' },
+        { id: 7, tool: 'x' },
+        null,
+      ],
+    }),
+  });
+  assert.deepEqual(v.attachments, [
+    { id: 'a1', tool: 'Asset Animator', name: 'Snap' },
+  ]);
+});
+
+test('outlineMigrationList lists live Drive-linked ideas only', () => {
+  const list = outlineMigrationList([
+    idea(),
+    idea({ id: 'i2', sourceId: 'def', archived: true }),
+    idea({ id: 'i3', sourceId: undefined }),
+    idea({ id: 'i4', sourceId: 'ghi', conflictOf: 'i1' }),
+  ]);
+  assert.deepEqual(list, [{ id: 'i1', docId: 'abc', title: 'Soft flask video' }]);
 });
