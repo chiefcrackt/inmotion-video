@@ -261,7 +261,8 @@ Train the downhills as hard as the climbs`;
     cues = list;
     duration = cues.length ? cues[cues.length - 1].end + 0.6 : 0;
     $('scrub').max = duration.toFixed(2);
-    t = 0;
+    // Start on the first caption: speech rarely starts at 0 s, and an empty preview looks broken.
+    t = cues.length ? Math.min(duration, cues[0].start + 0.05) : 0;
     $('status').textContent = cues.length ? `${cues.length} captions loaded.` : 'No captions found. Check the format (SRT or VTT).';
     draw();
     updateTime();
