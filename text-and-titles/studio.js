@@ -2,6 +2,7 @@
   const modes = {
     text: { path: '../text-motion/', title: 'Animated text' },
     titles: { path: '../title-maker/', title: 'Titles and lower thirds' },
+    captions: { path: '../caption-maker/', title: 'Caption maker' },
   };
   const frames = new Map();
   const links = [...document.querySelectorAll('[data-mode]')];
