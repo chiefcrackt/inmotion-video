@@ -12,6 +12,7 @@
     :root{color-scheme:dark;font:16px system-ui;background:#0e1a2e;color:#f6f4ef}*{box-sizing:border-box}body{margin:0}main{max-width:850px;margin:auto;padding:48px 24px}a{color:#e8c96a}.back{display:inline-block;margin-bottom:36px}.eyebrow{color:#e8c96a;font-weight:700;font-size:12px;letter-spacing:.14em}h1{font-size:clamp(36px,7vw,56px);margin:12px 0}p,li{line-height:1.7;color:#bccddd}section{background:#15253c;border:1px solid #31445d;border-radius:18px;padding:28px;margin:24px 0}.button{display:inline-block;background:#e8c96a;color:#102033;text-decoration:none;font-weight:700;padding:15px 22px;border-radius:9px}.tag{display:inline-block;color:#9dd8d8;font-size:14px}code{overflow-wrap:anywhere}li{margin:12px 0}a:focus-visible{outline:3px solid #2e9bad;outline-offset:4px}
   </style>
   <style>.computer-warning{border:1px solid #e8c96a;border-left:5px solid #e8c96a;border-radius:10px;background:#2b2b24;padding:18px 20px;margin:24px 0}.computer-warning strong{color:#e8c96a}.computer-warning p{margin:8px 0 0;color:#f6f4ef}</style>
+  <style>.flow h2{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:900;text-transform:uppercase;margin:0 0 8px;font-size:clamp(26px,5vw,34px)}.flow>p{margin:0 0 20px}.flow-steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;counter-reset:none}.flow-steps li{margin:0;background:#0e1a2e;border:1px solid #31445d;border-top:4px solid #e8c96a;border-radius:12px;padding:18px 16px;position:relative}.flow-num{display:block;font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:900;color:#e8c96a;font-size:32px;line-height:1}.flow-title{display:block;font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:900;text-transform:uppercase;color:#f6f4ef;font-size:21px;line-height:1.15;margin:8px 0 6px}.flow-steps li>span.flow-desc{display:block;color:#bccddd;font-size:15px;line-height:1.5}.flow-steps .flow-tag{display:inline-block;margin-top:10px;font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#9dd8d8;border-top:1px solid #2e9bad;padding-top:6px}.flow-steps li.flow-local{border-top-color:#2e9bad}.flow-note{margin:18px 0 0;font-size:14px;color:#9dd8d8}</style>
 </head>
 <body><tim-studio-bar></tim-studio-bar><main>
   <div class="eyebrow">AUDIO / LOCAL TOOL</div>
@@ -31,6 +32,49 @@
     </ol>
     <p><a class="button" href="http://127.0.0.1:8765/" target="_blank" rel="noopener noreferrer">Open Transcribe Video ↗</a></p>
     <p>If the page cannot connect, start the launcher first. The address opens a service on the device you are using. Your phone cannot use the engine on your PC.</p>
+  </section>
+  <section class="flow" aria-labelledby="flow-title">
+    <h2 id="flow-title">The workflow</h2>
+    <p>From a long talking video to posted short-form clips.</p>
+    <ol class="flow-steps">
+      <li>
+        <span class="flow-num">01</span>
+        <span class="flow-title">Record</span>
+        <span class="flow-desc">Film one long talking video on camera.</span>
+        <span class="flow-tag">You</span>
+      </li>
+      <li>
+        <span class="flow-num">02</span>
+        <span class="flow-title">Transcribe</span>
+        <span class="flow-desc">Run the video through this tool to get timed text and word JSON.</span>
+        <span class="flow-tag">This tool</span>
+      </li>
+      <li>
+        <span class="flow-num">03</span>
+        <span class="flow-title">Copy the brief</span>
+        <span class="flow-desc">Use <strong>Full edit plan + content package</strong> in the local studio, then set your audience and goals.</span>
+        <span class="flow-tag">This tool</span>
+      </li>
+      <li>
+        <span class="flow-num">04</span>
+        <span class="flow-title">Get the plan</span>
+        <span class="flow-desc">Paste the brief into ChatGPT or Claude for clip picks, source ranges and captions.</span>
+        <span class="flow-tag">ChatGPT or Claude</span>
+      </li>
+      <li>
+        <span class="flow-num">05</span>
+        <span class="flow-title">Edit in CapCut</span>
+        <span class="flow-desc">Claude drives CapCut on your computer to cut the clips, set the framing (9:16 for Shorts, Reels and TikTok, or 16:9 for YouTube) and export.</span>
+        <span class="flow-tag">Claude + CapCut</span>
+      </li>
+      <li>
+        <span class="flow-num">06</span>
+        <span class="flow-title">Review and post</span>
+        <span class="flow-desc">Check each clip, then add the captions and hashtags before you post.</span>
+        <span class="flow-tag">You</span>
+      </li>
+    </ol>
+    <p class="flow-note">Steps 02 and 03 happen on your computer. Recordings stay local.</p>
   </section>
   <h2>Text, captions and word timings</h2>
   <p>Choose <strong>Clean voice first</strong> to remove background noise before transcribing: one upload gives you the cleaned video and the transcript together. It needs <a href="../clean-voice/">Clean Voice</a> installed on the same computer.</p>
