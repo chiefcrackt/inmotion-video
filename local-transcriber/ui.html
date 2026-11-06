@@ -189,6 +189,60 @@
         outline: 3px solid #2e9bad;
         outline-offset: 3px;
       }
+      .cut-editor {
+        margin: 12px 0 8px;
+      }
+      .cut-player video {
+        position: sticky;
+        top: 12px;
+      }
+      .words {
+        background: #0c1728;
+        border: 1px solid #435771;
+        border-radius: 10px;
+        padding: 12px;
+        max-height: 460px;
+        overflow: auto;
+        line-height: 2.1;
+      }
+      .words button {
+        display: inline;
+        font-weight: 400;
+        font-size: 16px;
+        padding: 2px 3px;
+        margin: 0 1px;
+        border-radius: 4px;
+        background: none;
+        color: #f6f4ef;
+        cursor: pointer;
+      }
+      .words button:hover {
+        background: #293f59;
+      }
+      .words .low {
+        text-decoration: underline dotted #e8c96a;
+        text-underline-offset: 4px;
+      }
+      .words .pause {
+        font-size: 12px;
+        padding: 2px 7px;
+        background: #1d3049;
+        color: #a9bdd0;
+        border-radius: 999px;
+      }
+      .words .cut {
+        background: rgba(255, 99, 99, 0.16);
+        color: #ff9b94;
+        text-decoration: line-through;
+      }
+      .words .now {
+        outline: 2px solid #2e9bad;
+      }
+      #cut-totals {
+        color: #e8c96a;
+        min-height: 24px;
+        margin-bottom: 6px;
+      }
       @media (max-width: 760px) {
         .layout {
           grid-template-columns: 1fr;
@@ -463,8 +517,9 @@
         <h2 id="cut-heading">Cut out sections</h2>
         <p
           ><small
-            >Paste the JSON cut list from your edit plan. Each section listed
-            is removed; everything else is joined in order. Cutting re-encodes
+            >Click the words and pauses you want gone, or paste the JSON cut
+            list from your edit plan. Each section listed is removed;
+            everything else is joined in order. Cutting re-encodes
             the video, so it takes a while. Check the list before you cut.</small
           ></p
         >
@@ -477,8 +532,46 @@
             changes the original on your computer.</small
           ></p
         >
+        <div id="cut-editor" class="layout cut-editor">
+          <div class="cut-player">
+            <video id="cut-video" controls preload="metadata"></video>
+            <label class="check"
+              ><input id="cut-skip" type="checkbox" checked /> Skip cut
+              sections while playing (preview)</label
+            >
+            <p
+              ><button id="cut-preview" type="button">▶ Preview cuts</button>
+              <button id="cut-clear" class="secondary" type="button"
+                >Clear all cuts</button
+              ></p
+            >
+            <div id="cut-totals" role="status" aria-live="polite"></div>
+            <small
+              >Preview plays from just before the last word you clicked. It
+              skips sections as it plays, so a join can sound slightly rough
+              here; the cut video is exact.</small
+            >
+          </div>
+          <div>
+            <h3>Click words to cut them</h3>
+            <p
+              ><small
+                >Click a word to cut it; click again to keep it. Shift-click
+                cuts or keeps everything between. Click a pause chip to shorten
+                that pause. Alt-click a word to play from it. Dotted words are
+                low-confidence.</small
+              ></p
+            >
+            <div id="cut-words" class="words" aria-label="Transcript words"></div>
+            <small id="cut-words-note"
+              >Words come from the original recognition, so text edits above
+              are not shown here.</small
+            >
+          </div>
+        </div>
         <label
-          >Cut list<textarea
+          >Cut list · built from the words you click, or paste the edit plan's
+          JSON to see it on the words<textarea
             id="cut-input"
             rows="6"
             placeholder='{"cuts":[{"start": 12.5, "end": 20.1, "reason": "repeat take"}]}'

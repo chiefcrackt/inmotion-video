@@ -150,6 +150,7 @@ function render(job) {
   $('ai-panel').classList.remove('hidden');
   $('cut-panel').classList.remove('hidden');
   updateAIPreview();
+  setupWordCutter(job);
 }
 $('segments').addEventListener('input', () => {
   dirty = true;
@@ -535,3 +536,195 @@ $('cut-run').onclick = async () => {
     $('cut-run').disabled = false;
   }
 };
+
+// Word cutter: click words and pauses to cut them. The picks write the cut list above the
+// Make cut video button; a pasted cut list is shown on the words. Preview skips the cuts.
+const cutter = {
+  words: [],
+  duration: 0,
+  removedWords: new Set(),
+  removedGaps: new Set(),
+  anchor: null, // Last word clicked: shift-click range start, and where Preview starts.
+  wordEls: [],
+  gapEls: new Map(),
+  frame: 0,
+  lastNow: null,
+};
+function setupWordCutter(job) {
+  cutter.words = CutList.cleanWords(job.words);
+  cutter.duration = Number(job.duration) || 0;
+  cutter.removedWords = new Set();
+  cutter.removedGaps = new Set();
+  cutter.anchor = null;
+  cutter.lastNow = null;
+  $('cut-input').value = '';
+  $('cut-status').textContent = '';
+  $('cut-download').replaceChildren();
+  $('cut-video').src = $('video').currentSrc || $('video').src || '';
+  $('cut-editor').hidden = !cutter.words.length;
+  const pauses = new Map(
+    CutList.pauses(cutter.words, cutter.duration).map((p) => [p.gap, p]),
+  );
+  const box = $('cut-words');
+  const fragment = document.createDocumentFragment();
+  cutter.wordEls = [];
+  cutter.gapEls = new Map();
+  const addPause = (k) => {
+    const p = pauses.get(k);
+    if (!p) return;
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'pause';
+    chip.dataset.gap = k;
+    const label =
+      k === 0 ? 'start' : k === cutter.words.length ? 'end' : 'pause';
+    chip.textContent = `⏸ ${label} ${(p.end - p.start).toFixed(1)} s`;
+    chip.title = `${p.start.toFixed(2)}–${p.end.toFixed(2)} s · click to shorten`;
+    cutter.gapEls.set(k, chip);
+    fragment.append(chip, ' ');
+  };
+  cutter.words.forEach((w, i) => {
+    addPause(i);
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.dataset.word = i;
+    el.textContent = w.word;
+    el.title = `${w.start.toFixed(2)}–${w.end.toFixed(2)} s`;
+    if (w.probability < 0.65) el.classList.add('low');
+    cutter.wordEls.push(el);
+    fragment.append(el, ' ');
+  });
+  addPause(cutter.words.length);
+  box.replaceChildren(fragment);
+  paintCutter();
+}
+function paintCutter() {
+  cutter.wordEls.forEach((el, i) => {
+    const cut = cutter.removedWords.has(i);
+    el.classList.toggle('cut', cut);
+    el.setAttribute('aria-pressed', String(cut));
+  });
+  for (const [k, el] of cutter.gapEls) {
+    const cut = cutter.removedGaps.has(k);
+    el.classList.toggle('cut', cut);
+    el.setAttribute('aria-pressed', String(cut));
+  }
+  showCutTotals();
+}
+function currentCuts() {
+  try {
+    return CutList.mergeCuts(CutList.parseCutList($('cut-input').value));
+  } catch {
+    return [];
+  }
+}
+function showCutTotals() {
+  const cuts = currentCuts();
+  if (!cuts.length) {
+    $('cut-totals').textContent = 'No cuts yet.';
+    return;
+  }
+  const s = CutList.summarize(cuts, cutter.duration);
+  $('cut-totals').textContent =
+    `${s.cuts} cut${s.cuts === 1 ? '' : 's'} · removes ${s.removed.toFixed(2)} s · new length about ${s.kept.toFixed(2)} s`;
+}
+// Clicks rebuild the cut list from the words; this replaces a pasted list's exact times.
+function writeCutsFromPicks() {
+  const cuts = CutList.selectionCuts(
+    cutter.words,
+    cutter.duration,
+    cutter.removedWords,
+    cutter.removedGaps,
+  );
+  $('cut-input').value = cuts.length
+    ? '{"cuts":[\n' + cuts.map((c) => '  ' + JSON.stringify(c)).join(',\n') + '\n]}'
+    : '';
+  $('cut-status').textContent = '';
+  paintCutter();
+}
+$('cut-words').addEventListener('click', (event) => {
+  const el = event.target.closest('button');
+  if (!el) return;
+  if (el.dataset.gap !== undefined) {
+    const k = Number(el.dataset.gap);
+    if (cutter.removedGaps.has(k)) cutter.removedGaps.delete(k);
+    else cutter.removedGaps.add(k);
+    writeCutsFromPicks();
+    return;
+  }
+  const i = Number(el.dataset.word);
+  if (event.altKey) {
+    playCutVideo(cutter.words[i].start);
+    return;
+  }
+  const cut = !cutter.removedWords.has(i);
+  if (event.shiftKey && cutter.anchor !== null) {
+    const [a, b] = [Math.min(cutter.anchor, i), Math.max(cutter.anchor, i)];
+    for (let n = a; n <= b; n++)
+      cut ? cutter.removedWords.add(n) : cutter.removedWords.delete(n);
+    // Pauses inside a cut range go with it.
+    for (let k = a + 1; k <= b; k++)
+      cut ? cutter.removedGaps.add(k) : cutter.removedGaps.delete(k);
+  } else cut ? cutter.removedWords.add(i) : cutter.removedWords.delete(i);
+  cutter.anchor = i;
+  writeCutsFromPicks();
+});
+// Typing or pasting a cut list shows it on the words without rewriting it.
+$('cut-input').addEventListener('input', () => {
+  const picks = CutList.selectionFromCuts(
+    cutter.words,
+    cutter.duration,
+    currentCuts(),
+  );
+  cutter.removedWords = picks.removedWords;
+  cutter.removedGaps = picks.removedGaps;
+  paintCutter();
+});
+$('cut-clear').onclick = () => {
+  cutter.removedWords.clear();
+  cutter.removedGaps.clear();
+  writeCutsFromPicks();
+};
+function playCutVideo(time) {
+  const video = $('cut-video');
+  video.currentTime = Math.max(0, time);
+  video.play().catch(() => {
+    $('cut-totals').textContent =
+      'This media format cannot be played in the browser, so preview is unavailable. The cut still works.';
+  });
+}
+$('cut-preview').onclick = () => {
+  $('cut-skip').checked = true;
+  const from =
+    cutter.anchor === null ? 0 : cutter.words[cutter.anchor].start - 1;
+  playCutVideo(from);
+};
+// While the video plays: jump over cut sections (when Skip is on) and highlight the spoken word.
+function cutterTick() {
+  const video = $('cut-video');
+  if (video.paused || video.ended) return;
+  const t = video.currentTime;
+  if ($('cut-skip').checked) {
+    const cut = currentCuts().find((c) => t >= c.start - 0.01 && t < c.end);
+    if (cut) {
+      if (cut.end >= cutter.duration - 0.01) video.pause();
+      else video.currentTime = cut.end;
+    }
+  }
+  let now = null;
+  for (let i = 0; i < cutter.words.length; i++) {
+    const w = cutter.words[i];
+    if (t < w.start) break;
+    if (t <= w.end) now = i;
+  }
+  if (now !== cutter.lastNow) {
+    cutter.wordEls[cutter.lastNow]?.classList.remove('now');
+    cutter.wordEls[now]?.classList.add('now');
+    cutter.lastNow = now;
+  }
+  cutter.frame = requestAnimationFrame(cutterTick);
+}
+$('cut-video').addEventListener('play', () => {
+  cancelAnimationFrame(cutter.frame);
+  cutter.frame = requestAnimationFrame(cutterTick);
+});
