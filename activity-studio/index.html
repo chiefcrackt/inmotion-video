@@ -19,7 +19,7 @@
     <link
       rel="stylesheet"
       href="../shared/projects.css"
-    /><script src="../shared/projects.js"></script>
+    /><script src="../shared/projects.js"></script><script src="../text-motion/alpha-video.js" defer></script>
   <link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
   <body
     ><tim-studio-bar></tim-studio-bar><div class="wrap"
@@ -368,9 +368,11 @@
               ><button id="saveVideo" type="button" hidden>Save video</button
               ><p class="note" id="playNote"></p
               ><p class="note"
-                >Video records in real time with an opaque background. MP4 where
-                supported; otherwise WebM. Keep this tab visible while
-                recording.</p
+                >With Transparent background off, video records in real time as
+                MP4 where supported, otherwise WebM. Keep this tab visible while
+                recording. With Transparent background on, Record encodes a WebM
+                with an alpha channel instead. That takes longer than the clip
+                and needs Chrome or Edge.</p
               ></fieldset
             ></section
           >

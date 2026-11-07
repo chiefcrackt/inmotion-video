@@ -463,8 +463,52 @@ function lock(value) {
   $('cancel').hidden = !value;
   $('progress').hidden = !value;
 }
+// Transparent background: MediaRecorder cannot keep alpha, so the frames are
+// encoded as a WebM with a separate alpha stream (text-motion/alpha-video.js).
+async function recordTransparent() {
+  if (!window.exportAlphaVideo) {
+    say('exportStatus', 'Transparent video helper did not load. Reload the page.', true);
+    return;
+  }
+  stop();
+  await document.fonts.ready;
+  videoBlob = null;
+  $('saveVideo').hidden = true;
+  const useIntro = settings.intro;
+  const durationS = useIntro
+    ? introTotal()
+    : Math.max(3, Math.min(60, +$('seconds').value || 12));
+  if (!useIntro) $('seconds').value = durationS;
+  const alphaSettings = { ...settings, transparent: true };
+  const draw = (t) => {
+    if (useIntro)
+      render(canvas, activity, alphaSettings, 1, false, Math.min(1, t / +settings.introLen));
+    else render(canvas, activity, alphaSettings, animationProgress(t / durationS), true);
+  };
+  lock(true);
+  $('cancel').hidden = true;
+  try {
+    const blob = await window.exportAlphaVideo(canvas, draw, durationS, (f) => {
+      $('progress').value = f;
+      say('exportStatus', `Encoding transparent video ${Math.round(f * 100)}% · keep this tab in front`);
+    });
+    videoBlob = blob;
+    videoName = 'tim-activity-transparent.webm';
+    $('saveVideo').hidden = false;
+    say(
+      'exportStatus',
+      `${videoName} ready · ${(blob.size / 1048576).toFixed(1)} MB. Tap Save video to download or share.`,
+    );
+  } catch (e) {
+    say('exportStatus', e.message || 'Could not encode transparent video.', true);
+  } finally {
+    lock(false);
+    paint(false);
+  }
+}
 $('video').onclick = async () => {
   if (importing || recording) return;
+  if (settings.transparent) return recordTransparent();
   const type = pickType();
   if (!type || !canvas.captureStream) {
     say(
