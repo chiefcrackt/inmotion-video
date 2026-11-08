@@ -1,0 +1,958 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="../favicon.png" type="image/png" />
+<link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+<meta name="theme-color" content="#0E1A2E" />
+<title>Stat Counter · T.IM Studio</title>
+<link rel="stylesheet" href="../shared/fonts.css" />
+<link rel="stylesheet" href="../shared/responsive.css" />
+<link rel="stylesheet" href="../shared/studio-bar.css" />
+<script type="module" src="../shared/studio-bar.mjs"></script>
+<script type="module" src="../shared/drive-export.mjs"></script>
+<style>
+  :root {
+    --navy: #0e1a2e;
+    --panel: #13233d;
+    --panel-2: #182b49;
+    --line: #25395c;
+    --gold: #e8c96a;
+    --teal: #2e9bad;
+    --paper: #f6f4ef;
+    --muted: #9fb0c8;
+    --danger: #f08a7a;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--navy);
+    color: var(--paper);
+    font-family: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 20px;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 20px max(16px, env(safe-area-inset-left, 0px)) 40px max(16px, env(safe-area-inset-right, 0px));
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: 1fr; }
+  }
+  .frame {
+    border: 1px solid var(--line);
+    background: var(--navy);
+    display: flex;
+    justify-content: center;
+  }
+  .frame canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .frame.v canvas {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 72vh;
+  }
+  .panel fieldset {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 12px;
+    margin: 0 0 12px;
+    min-width: 0;
+  }
+  legend {
+    color: var(--gold);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 13px;
+    padding: 0 6px;
+  }
+  label.row {
+    display: grid;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 13px;
+    margin: 6px 0;
+  }
+  label.check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--paper);
+    font-size: 15px;
+    min-height: 36px;
+  }
+  input[type='text'], input[type='number'] {
+    background: var(--navy);
+    color: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font: inherit;
+    font-size: 16px;
+    min-height: 40px;
+    width: 100%;
+  }
+  input[type='range'] { width: 100%; accent-color: var(--teal); }
+  input[type='checkbox'] { width: 20px; height: 20px; accent-color: var(--gold); }
+  .out { color: var(--paper); font-weight: 700; }
+  .seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0;
+  }
+  .seg button {
+    flex: 1 1 auto;
+    min-height: 40px;
+    padding: 0 10px;
+    background: var(--panel-2);
+    color: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .seg button[aria-pressed='true'] {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: var(--navy);
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  button.act {
+    min-height: 44px;
+    padding: 0 16px;
+    background: var(--panel-2);
+    color: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  button.act.primary { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+  button.act.on { background: #3a1d22; border-color: var(--danger); color: var(--danger); }
+  button.act:disabled { opacity: 0.5; cursor: default; }
+  .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--danger);
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .status { color: var(--muted); min-height: 1.4em; margin: 10px 0 0; }
+  .status.err { color: var(--danger); }
+  video { width: 100%; max-height: 60vh; background: #000; margin-top: 12px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+</style>
+</head>
+<body>
+<tim-studio-bar></tim-studio-bar>
+
+<main class="wrap">
+  <section>
+    <div class="frame" id="frame"><canvas id="cv" width="1920" height="1080"></canvas></div>
+    <div class="bar">
+      <button class="act primary" id="play" type="button">▶ Play</button>
+      <button class="act" id="rec" type="button">● Record video</button>
+      <button class="act" id="png" type="button">Save still (PNG)</button>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <div id="result" hidden>
+      <video id="vid" controls playsinline></video>
+      <div class="bar">
+        <button class="act primary" id="save" type="button">Save video</button>
+        <button class="act" id="again" type="button">Make another</button>
+      </div>
+      <p class="status" id="savenote"></p>
+    </div>
+    <p class="hint">Sound plays with the animation. Recording needs Safari on iPhone or Chrome on a computer.</p>
+  </section>
+
+  <aside class="panel">
+    <fieldset>
+      <legend>Number</legend>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <label class="row">From<input type="number" step="any" data-k="from" inputmode="decimal" /></label>
+        <label class="row">To<input type="number" step="any" data-k="to" inputmode="decimal" /></label>
+      </div>
+      <label class="row">Prefix<input type="text" data-k="prefix" maxlength="8" /></label>
+      <label class="row">Suffix<input type="text" data-k="suffix" maxlength="8" /></label>
+      <label class="row">Unit label (teal, after the number)<input type="text" data-k="unit" maxlength="12" /></label>
+      <label class="row">Decimal places <span class="out" id="out-dec"></span>
+        <input type="range" min="0" max="2" step="1" data-k="dec" />
+      </label>
+      <label class="check"><input type="checkbox" data-k="sep" /> Thousands separator (1,234)</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Text</legend>
+      <label class="row">Eyebrow (gold, typed in)<input type="text" data-k="eyebrow" maxlength="40" /></label>
+      <label class="row">Sub line (one line, optional)<input type="text" data-k="sub" maxlength="60" /></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Look</legend>
+      <div class="row">Format</div>
+      <div class="seg" data-seg="fmt">
+        <button type="button" data-v="y">16:9</button>
+        <button type="button" data-v="v">9:16</button>
+      </div>
+      <div class="row">Background</div>
+      <div class="seg" data-seg="bg">
+        <button type="button" data-v="navy">Navy</button>
+        <button type="button" data-v="green">Green screen</button>
+      </div>
+      <div class="row">Number colour</div>
+      <div class="seg" data-seg="color">
+        <button type="button" data-v="paper">Paper</button>
+        <button type="button" data-v="gold">Gold</button>
+        <button type="button" data-v="teal">Teal</button>
+      </div>
+      <label class="check"><input type="checkbox" data-k="brackets" /> HUD brackets around the number</label>
+      <label class="check"><input type="checkbox" data-k="glitch" /> Glitch on the hit</label>
+      <label class="check"><input type="checkbox" data-k="footer" /> Footer lockup (TRISTAN.INMOTION)</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Timing</legend>
+      <label class="row">Count time <span class="out" id="out-dur"></span>
+        <input type="range" min="1" max="10" step="0.5" data-k="dur" />
+      </label>
+      <label class="row">Hold after the hit <span class="out" id="out-hold"></span>
+        <input type="range" min="0" max="5" step="0.5" data-k="hold" />
+      </label>
+      <div class="row">Count curve</div>
+      <div class="seg" data-seg="ease">
+        <button type="button" data-v="out">Ease out</button>
+        <button type="button" data-v="lin">Linear</button>
+        <button type="button" data-v="inout">Ease in-out</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Sound</legend>
+      <div class="seg" data-seg="sound">
+        <button type="button" data-v="cyber">Cyber</button>
+        <button type="button" data-v="soft">Soft</button>
+        <button type="button" data-v="minimal">Minimal</button>
+        <button type="button" data-v="none">None</button>
+      </div>
+      <label class="check"><input type="checkbox" data-k="ticks" /> Tick on each count step</label>
+    </fieldset>
+
+    <button class="act" id="reset" type="button" style="width:100%">Reset to defaults</button>
+  </aside>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'tim_stat_counter';
+  var DEF = {
+    from: 0,
+    to: 1000,
+    dec: 0,
+    sep: true,
+    prefix: '',
+    suffix: '',
+    unit: 'FT',
+    eyebrow: 'Total climb',
+    sub: '',
+    fmt: 'y',
+    bg: 'navy',
+    color: 'paper',
+    brackets: true,
+    glitch: true,
+    footer: true,
+    ticks: true,
+    dur: 4,
+    hold: 1.5,
+    ease: 'out',
+    sound: 'cyber'
+  };
+  var PRE = 0.5;          // blank navy before anything moves
+  var ENDTIME = 0.35;     // CRT switch-off length
+  var COLORS = { paper: '#F6F4EF', gold: '#E8C96A', teal: '#2E9BAD' };
+  var FF = '"Barlow Condensed", "Arial Narrow", Arial, sans-serif';
+
+  var S = load();
+  var $ = function (id) { return document.getElementById(id); };
+  var cv = $('cv');
+  var C = cv.getContext('2d');
+
+  // ---------- settings
+  function load() {
+    var s = {};
+    for (var k in DEF) s[k] = DEF[k];
+    try {
+      var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (saved && typeof saved === 'object') {
+        for (var j in saved) if (j in DEF) s[j] = saved[j];
+      }
+    } catch (e) {}
+    return s;
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  }
+  function num(v, fallback) {
+    var n = parseFloat(v);
+    return isFinite(n) ? n : fallback;
+  }
+  function readControls() {
+    document.querySelectorAll('[data-k]').forEach(function (el) {
+      var k = el.getAttribute('data-k');
+      if (el.type === 'checkbox') S[k] = el.checked;
+      else if (el.type === 'number' || el.type === 'range') S[k] = num(el.value, DEF[k]);
+      else S[k] = el.value;
+    });
+    S.dec = Math.max(0, Math.min(2, Math.round(S.dec)));
+    S.dur = Math.max(1, Math.min(10, S.dur));
+    S.hold = Math.max(0, Math.min(5, S.hold));
+  }
+  function writeControls() {
+    document.querySelectorAll('[data-k]').forEach(function (el) {
+      var k = el.getAttribute('data-k');
+      if (el.type === 'checkbox') el.checked = !!S[k];
+      else el.value = S[k];
+    });
+    document.querySelectorAll('[data-seg]').forEach(function (group) {
+      var k = group.getAttribute('data-seg');
+      group.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === S[k]));
+      });
+    });
+    $('out-dec').textContent = ['0', '1', '2'][S.dec] + ' places';
+    $('out-dur').textContent = S.dur + ' s';
+    $('out-hold').textContent = S.hold + ' s';
+    setFormat();
+  }
+  function setFormat() {
+    var v = S.fmt === 'v';
+    cv.width = v ? 1080 : 1920;
+    cv.height = v ? 1920 : 1080;
+    $('frame').classList.toggle('v', v);
+  }
+  function onChange() {
+    readControls();
+    save();
+    writeControls();
+    if (!playing) stillFrame();
+  }
+
+  // ---------- timeline (seconds)
+  function timeline() {
+    var c0 = PRE + 0.6;
+    var c1 = c0 + S.dur;
+    var end = c1 + S.hold;
+    return {
+      brackets: PRE,
+      eyebrow: PRE + 0.3,
+      c0: c0,
+      c1: c1,
+      sub: c1 + 0.35,
+      end: end,
+      total: end + ENDTIME
+    };
+  }
+  function ease(p) {
+    if (S.ease === 'lin') return p;
+    if (S.ease === 'inout') return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+    return 1 - Math.pow(1 - p, 3);
+  }
+  function clamp(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function valueAt(t, T) {
+    var p = clamp((t - T.c0) / S.dur);
+    if (t >= T.c1) return S.to;
+    return S.from + (S.to - S.from) * ease(p);
+  }
+  function fmtNum(v) {
+    var s = Math.abs(v).toFixed(S.dec);
+    if (S.sep) {
+      var parts = s.split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      s = parts.join('.');
+    }
+    var sign = v < 0 && Number(Math.abs(v).toFixed(S.dec)) !== 0 ? '-' : '';
+    return sign + S.prefix + s + S.suffix;
+  }
+  // the last full frame before the CRT switch-off, used for the static preview and PNG still
+  function stillFrame() { frame(timeline().end - 0.05); }
+  function bgColor() { return S.bg === 'green' ? '#00FF00' : '#0E1A2E'; }
+
+  // ---------- drawing (a pure function of time)
+  function hash(n) {
+    var x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  }
+  function measureTracked(text, size, spacing) {
+    var w = 0;
+    for (var i = 0; i < text.length; i++) {
+      w += C.measureText(text[i]).width;
+      if (i < text.length - 1) w += spacing;
+    }
+    return w;
+  }
+  function drawTracked(text, x, y, spacing, align) {
+    var w = measureTracked(text, 0, spacing);
+    var sx = align === 'center' ? x - w / 2 : x;
+    C.textAlign = 'left';
+    for (var i = 0; i < text.length; i++) {
+      C.fillText(text[i], sx, y);
+      sx += C.measureText(text[i]).width + spacing;
+    }
+  }
+  function frame(t) {
+    var W = cv.width, H = cv.height, T = timeline();
+    C.setTransform(1, 0, 0, 1, 0, 0);
+    C.fillStyle = bgColor();
+    C.fillRect(0, 0, W, H);
+    if (t >= T.end) {
+      var p = clamp((t - T.end) / ENDTIME);
+      if (p >= 1) return;
+      C.save();
+      C.beginPath();
+      C.rect(0, H * p / 2, W, H * (1 - p));
+      C.clip();
+      scene(T.end, T, W, H);
+      C.restore();
+      return;
+    }
+    scene(t, T, W, H);
+  }
+  function scene(t, T, W, H) {
+    var v = S.fmt === 'v';
+    var m = Math.min(W, H);
+    var green = S.bg === 'green';
+    var gold = '#E8C96A', teal = '#2E9BAD', paper = '#F6F4EF', navy = '#0E1A2E';
+
+    C.fillStyle = bgColor();
+    C.fillRect(0, 0, W, H);
+
+    // diagonal stripes (navy only, so the green key stays clean)
+    if (!green) {
+      C.strokeStyle = 'rgba(246,244,239,0.05)';
+      C.lineWidth = m * 0.02;
+      for (var x = -H; x < W + H; x += m * 0.12) {
+        C.beginPath();
+        C.moveTo(x, 0);
+        C.lineTo(x + H, H);
+        C.stroke();
+      }
+    }
+
+    // gold wave border on top, with a teal wave
+    var wy = m * 0.035;
+    C.fillStyle = gold;
+    C.beginPath();
+    C.moveTo(0, 0);
+    C.lineTo(W, 0);
+    C.lineTo(W, wy);
+    for (var wx = W; wx >= 0; wx -= W / 48) {
+      C.lineTo(wx, wy + Math.sin(wx / (W / 9)) * m * 0.008);
+    }
+    C.closePath();
+    C.fill();
+    C.fillStyle = teal;
+    C.beginPath();
+    C.moveTo(0, wy * 0.55);
+    for (var wx2 = 0; wx2 <= W; wx2 += W / 48) {
+      C.lineTo(wx2, wy * 0.55 + Math.sin(wx2 / (W / 9) + 1.2) * m * 0.006);
+    }
+    C.lineTo(W, wy * 0.55 + m * 0.012);
+    C.lineTo(0, wy * 0.55 + m * 0.012);
+    C.closePath();
+    C.fill();
+
+    // slash accent, upper right: teal over gold
+    var sx = W - m * 0.28, sh = H * 0.1;
+    C.fillStyle = gold;
+    C.beginPath();
+    C.moveTo(sx, 0); C.lineTo(sx + m * 0.05, 0); C.lineTo(sx - sh * 0.45 + m * 0.05, sh); C.lineTo(sx - sh * 0.45, sh);
+    C.closePath(); C.fill();
+    C.fillStyle = teal;
+    C.beginPath();
+    C.moveTo(sx + m * 0.06, 0); C.lineTo(sx + m * 0.1, 0); C.lineTo(sx - sh * 0.45 + m * 0.1, sh); C.lineTo(sx - sh * 0.45 + m * 0.06, sh);
+    C.closePath(); C.fill();
+
+    var yE = H * (v ? 0.36 : 0.30);
+    var yN = H * 0.5;
+    var ySub = H * (v ? 0.63 : 0.71);
+
+    // eyebrow, typed in
+    var eyeText = (S.eyebrow || '').toUpperCase();
+    if (eyeText && t >= T.eyebrow) {
+      var eyeSize = m * 0.04;
+      var nChars = Math.floor(eyeText.length * clamp((t - T.eyebrow) / 0.5));
+      C.font = '700 ' + eyeSize + 'px ' + FF;
+      C.fillStyle = gold;
+      C.textBaseline = 'middle';
+      drawTracked(eyeText.slice(0, nChars), W / 2, yE, eyeSize * 0.12, 'center');
+    }
+
+    // number + unit layout
+    var txt = fmtNum(valueAt(t, T));
+    var base = m * 0.28;
+    var size = base;
+    C.font = '900 ' + size + 'px ' + FF;
+    var maxW = W * (v ? 0.86 : 0.7);
+    var nw = C.measureText(txt).width;
+    var unitText = (S.unit || '').toUpperCase();
+    var usize = size * 0.26;
+    var gap = size * 0.12;
+    var uw = 0;
+    if (unitText) {
+      C.font = '700 ' + usize + 'px ' + FF;
+      uw = measureTracked(unitText, usize, usize * 0.06);
+    }
+    if (nw + (unitText ? gap + uw : 0) > maxW) {
+      size = size * maxW / (nw + (unitText ? gap + uw : 0));
+      C.font = '900 ' + size + 'px ' + FF;
+      nw = C.measureText(txt).width;
+      usize = size * 0.26;
+      gap = size * 0.12;
+      if (unitText) {
+        C.font = '700 ' + usize + 'px ' + FF;
+        uw = measureTracked(unitText, usize, usize * 0.06);
+      }
+    }
+    var total = nw + (unitText ? gap + uw : 0);
+    var startX = W / 2 - total / 2;
+
+    // HUD brackets, snap in during the pre-roll
+    if (S.brackets && t >= T.brackets) {
+      var bp = clamp((t - T.brackets) / 0.4);
+      var scale = 1 + 0.25 * (1 - ease(bp));
+      var bx0 = startX - size * 0.3, by0 = yN - size * 0.55;
+      var bw = total + size * 0.6, bh = size * 1.1;
+      var cx = bx0 + bw / 2, cy = by0 + bh / 2;
+      var arm = m * 0.05, lw = m * 0.008;
+      C.save();
+      C.translate(cx, cy);
+      C.scale(scale, scale);
+      C.translate(-cx, -cy);
+      C.strokeStyle = gold;
+      C.lineWidth = lw;
+      C.lineCap = 'square';
+      [[bx0, by0, 1, 1], [bx0 + bw, by0, -1, 1], [bx0, by0 + bh, 1, -1], [bx0 + bw, by0 + bh, -1, -1]].forEach(function (c) {
+        C.beginPath();
+        C.moveTo(c[0] + c[2] * arm, c[1]);
+        C.lineTo(c[0], c[1]);
+        C.lineTo(c[0], c[1] + c[3] * arm);
+        C.stroke();
+      });
+      C.restore();
+    }
+
+    // number (with glitch colour split on the hit)
+    var color = COLORS[S.color] || paper;
+    var glitching = S.glitch && t >= T.c1 && t < T.c1 + 0.3;
+    C.font = '900 ' + size + 'px ' + FF;
+    C.textBaseline = 'middle';
+    C.textAlign = 'left';
+    if (glitching) {
+      C.fillStyle = teal;
+      C.globalAlpha = 1;
+      C.fillText(txt, startX - m * 0.01, yN);
+      C.fillStyle = gold;
+      C.fillText(txt, startX + m * 0.01, yN);
+    }
+    C.fillStyle = color;
+    C.fillText(txt, startX, yN);
+    if (glitching) {
+      var step = Math.floor(t * 24);
+      for (var k = 0; k < 4; k++) {
+        var seed = step * 7 + k;
+        var by = hash(seed) * H;
+        var bh2 = m * (0.01 + hash(seed + 3) * 0.04);
+        var dx = (hash(seed + 5) - 0.5) * m * 0.15;
+        C.save();
+        C.beginPath();
+        C.rect(0, by, W, bh2);
+        C.clip();
+        C.fillStyle = hash(seed + 9) > 0.5 ? gold : teal;
+        C.fillText(txt, startX + dx, yN);
+        C.restore();
+      }
+    }
+
+    // unit, slides in on the hit
+    if (unitText && t >= T.c1) {
+      var up = clamp((t - T.c1) / 0.2);
+      var ux = startX + nw + gap + (1 - up) * m * 0.04;
+      C.font = '700 ' + usize + 'px ' + FF;
+      C.fillStyle = teal;
+      C.textBaseline = 'middle';
+      drawTracked(unitText, ux, yN - size * 0.06, usize * 0.06, 'left');
+    }
+
+    // sub line, slides in after the hit
+    if (S.sub && t >= T.sub) {
+      var sp = clamp((t - T.sub) / 0.3);
+      C.font = '700 ' + (m * 0.06) + 'px ' + FF;
+      C.fillStyle = paper;
+      C.textBaseline = 'middle';
+      C.textAlign = 'center';
+      C.fillText(S.sub, W / 2 + (1 - sp) * W * 0.08, ySub);
+      C.textAlign = 'left';
+    }
+
+    // footer lockup, bottom-left
+    if (S.footer) {
+      var fy = v ? H - 420 : H - 70;
+      var fx = v ? 80 : 90;
+      C.fillStyle = teal;
+      C.beginPath();
+      C.arc(fx + m * 0.008, fy, m * 0.008, 0, Math.PI * 2);
+      C.fill();
+      C.font = '700 ' + (m * 0.03) + 'px ' + FF;
+      C.fillStyle = paper;
+      C.textBaseline = 'middle';
+      drawTracked('TRISTAN.INMOTION', fx + m * 0.03, fy, m * 0.006, 'left');
+    }
+  }
+
+  // ---------- sound (Web Audio, scheduled on the same clock as the picture)
+  var audioCtx = null, master = null, dest = null;
+  function audio() {
+    if (!audioCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+      master = audioCtx.createGain();
+      master.gain.value = 0.9;
+      master.connect(audioCtx.destination);
+      if (audioCtx.createMediaStreamDestination) {
+        dest = audioCtx.createMediaStreamDestination();
+        master.connect(dest);
+      }
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function blip(at, type, freq, dur, gain) {
+    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, at);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(gain, at + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    o.connect(g); g.connect(master);
+    o.start(at); o.stop(at + dur + 0.05);
+  }
+  function noise(at, dur, gain, type, freq) {
+    var len = Math.ceil(audioCtx.sampleRate * dur);
+    var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    var src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    var f = audioCtx.createBiquadFilter();
+    f.type = type; f.frequency.value = freq;
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(gain, at);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    src.connect(f); f.connect(g); g.connect(master);
+    src.start(at); src.stop(at + dur + 0.02);
+  }
+  function sweep(at, dur, f0, f1, gain) {
+    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(f0, at);
+    o.frequency.exponentialRampToValueAtTime(f1, at + dur);
+    g.gain.setValueAtTime(gain, at);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    o.connect(g); g.connect(master);
+    o.start(at); o.stop(at + dur + 0.02);
+  }
+  var SOUNDS = {
+    cyber: {
+      tick: function (a) { noise(a, 0.02, 0.25, 'bandpass', 5200); },
+      hit: function (a) { noise(a, 0.16, 0.7, 'lowpass', 2200); sweep(a, 0.45, 110, 42, 0.8); },
+      chime: function (a) { blip(a, 'sine', 1318.5, 0.9, 0.25); blip(a + 0.1, 'sine', 987.8, 0.9, 0.2); }
+    },
+    soft: {
+      tick: function (a) { blip(a, 'sine', 1500, 0.05, 0.08); },
+      hit: function (a) { [329.6, 392, 493.9].forEach(function (f) { blip(a, 'sine', f, 1.6, 0.12); }); },
+      chime: function (a) { blip(a, 'triangle', 659.3, 1.0, 0.16); }
+    },
+    minimal: {
+      tick: function (a) { blip(a, 'sine', 2000, 0.02, 0.05); },
+      hit: function (a) { sweep(a, 0.3, 70, 50, 0.7); },
+      chime: function () {}
+    },
+    none: { tick: function () {}, hit: function () {}, chime: function () {} }
+  };
+  function tickTimes(T) {
+    var N = 400, arr = [], prev = null;
+    var scale = Math.pow(10, S.dec);
+    for (var i = 0; i <= N; i++) {
+      var p = i / N;
+      var tt = T.c0 + p * S.dur;
+      var v = S.from + (S.to - S.from) * ease(p);
+      var key = Math.round(v * scale);
+      if (prev !== null && key !== prev) arr.push(tt);
+      prev = key;
+    }
+    if (arr.length > 60) {
+      var step = arr.length / 60, thin = [];
+      for (var j = 0; j < 60; j++) thin.push(arr[Math.floor(j * step)]);
+      arr = thin;
+    }
+    return arr;
+  }
+  function scheduleSound(t0) {
+    var P = SOUNDS[S.sound] || SOUNDS.cyber;
+    if (S.sound === 'none') return;
+    var T = timeline();
+    if (S.ticks) tickTimes(T).forEach(function (tt) { P.tick(t0 + tt); });
+    P.hit(t0 + T.c1);
+    P.chime(t0 + T.c1 + 0.05);
+  }
+
+  // ---------- playback
+  var playing = false, raf = null, base = 0;
+  function stopPlayback() {
+    if (raf) cancelAnimationFrame(raf);
+    raf = null;
+    playing = false;
+  }
+  function play(onDone) {
+    if (playing) return;
+    readControls();
+    var A = audio();
+    var T = timeline();
+    var lead = A ? 0.08 : 0;
+    if (A) scheduleSound(A.currentTime + lead);
+    base = performance.now() + lead * 1000;
+    playing = true;
+    function loop(now) {
+      var t = (now - base) / 1000;
+      if (t < 0) t = 0;
+      if (t >= T.total) {
+        frame(T.total);
+        stopPlayback();
+        if (onDone) onDone();
+        return;
+      }
+      frame(t);
+      raf = requestAnimationFrame(loop);
+    }
+    raf = requestAnimationFrame(loop);
+  }
+
+  // ---------- recording
+  function pickType() {
+    if (!window.MediaRecorder) return null;
+    var c = [
+      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+      'video/mp4;codecs=avc1,mp4a',
+      'video/mp4',
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm'
+    ];
+    for (var i = 0; i < c.length; i++) {
+      try { if (MediaRecorder.isTypeSupported(c[i])) return c[i]; } catch (e) {}
+    }
+    return '';
+  }
+  var lastBlob = null, lastName = '', lastURL = null;
+  function fileStem() {
+    var base2 = (S.eyebrow || 'counter').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'counter';
+    return 'tim-stat-' + base2 + '-' + (S.fmt === 'v' ? '9x16' : '16x9') + '-' + (S.bg === 'green' ? 'greenscreen' : 'navy');
+  }
+  function setRec(on) {
+    var b = $('rec');
+    b.classList.toggle('on', on);
+    b.disabled = on;
+    $('play').disabled = on;
+    b.innerHTML = on ? '<span class="dot"></span>Recording…' : '● Record video';
+  }
+  function say(msg, isErr) {
+    var el = $('status');
+    el.textContent = msg;
+    el.classList.toggle('err', !!isErr);
+  }
+  function record() {
+    if (playing) return;
+    var type = pickType();
+    if (type === null || !cv.captureStream) {
+      say('This browser can’t record video. Try Safari on iPhone or Chrome on a computer.', true);
+      return;
+    }
+    readControls();
+    var A = audio();
+    var stream = cv.captureStream(30);
+    var tracks = stream.getVideoTracks().slice();
+    if (A && dest && S.sound !== 'none') {
+      dest.stream.getAudioTracks().forEach(function (tr) { tracks.push(tr); });
+    }
+    var mr;
+    try {
+      mr = new MediaRecorder(
+        new MediaStream(tracks),
+        type ? { mimeType: type, videoBitsPerSecond: 12e6, audioBitsPerSecond: 192e3 } : { videoBitsPerSecond: 12e6 }
+      );
+    } catch (e) {
+      say('Recording couldn’t start in this browser (' + e.name + ').', true);
+      return;
+    }
+    var chunks = [];
+    mr.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+    mr.onstop = function () {
+      stream.getVideoTracks().forEach(function (tr) { tr.stop(); });
+      var mt = (mr.mimeType || type || 'video/webm').split(';')[0];
+      var ext = mt.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
+      lastBlob = new Blob(chunks, { type: mt });
+      lastName = fileStem() + '.' + ext;
+      if (lastURL) URL.revokeObjectURL(lastURL);
+      lastURL = URL.createObjectURL(lastBlob);
+      $('vid').src = lastURL;
+      $('result').hidden = false;
+      $('savenote').textContent = lastName + ' · ' + (lastBlob.size / 1048576).toFixed(1) + ' MB';
+      setRec(false);
+      say('Recorded. Check it, then save it.');
+    };
+    setRec(true);
+    say('');
+    frame(0);
+    mr.start();
+    // a short blank pre-roll so the first frame is already in the file
+    setTimeout(function () {
+      play(function () {
+        setTimeout(function () { try { mr.stop(); } catch (e) {} }, 300);
+      });
+    }, 250);
+  }
+
+  // ---------- saving
+  var downloads = null;
+  if (window.claude && claude.use) {
+    claude.use('downloads').then(function (d) {
+      downloads = d;
+      if (!d) { $('save').hidden = true; $('png').hidden = true; }
+    }).catch(function () {});
+  }
+  function fallbackSave(name, data, note) {
+    var blob = data instanceof Blob ? data : new Blob([data]);
+    var type = blob.type || (/\.png$/.test(name) ? 'image/png' : /\.mp4$/.test(name) ? 'video/mp4' : 'video/webm');
+    var file = null;
+    try { file = new File([blob], name, { type: type }); } catch (e) {}
+    function anchor() {
+      var u = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = u; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(u); }, 5000);
+      note.textContent = 'Downloaded ' + name + '.';
+    }
+    if (file && (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)) && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file] }).then(function () {
+        note.textContent = 'Done. If you picked Save Video, it’s in Photos.';
+      }).catch(function (e) {
+        if (e && e.name === 'AbortError') note.textContent = 'Not saved.';
+        else anchor();
+      });
+      return;
+    }
+    anchor();
+  }
+  function saveFile(name, data, note) {
+    if (window.TimDriveExport && window.TimDriveExport.route && window.TimDriveExport.route(data, name)) return;
+    if (!downloads) { fallbackSave(name, data, note); return; }
+    downloads.save({ filename: name, data: data }).then(function (r) {
+      note.textContent = r && r.status === 'saved' ? 'Saved ' + name + '.' : 'Sent ' + name + '.';
+    }).catch(function (e) {
+      var c = e && e.code;
+      note.textContent = c === 'declined' ? 'Not saved.'
+        : c === 'rate_limited' ? 'A save is already open. Finish that one first.'
+        : c === 'too_large' ? 'That file is too large to save here.'
+        : 'Couldn’t save the file here.';
+    });
+  }
+
+  // ---------- wiring
+  document.querySelectorAll('[data-k]').forEach(function (el) {
+    el.addEventListener('input', onChange);
+    el.addEventListener('change', onChange);
+  });
+  document.querySelectorAll('[data-seg]').forEach(function (group) {
+    var k = group.getAttribute('data-seg');
+    group.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        S[k] = b.getAttribute('data-v');
+        onChange();
+      });
+    });
+  });
+  $('play').onclick = function () {
+    if (playing) return;
+    say('');
+    play(function () { say(''); });
+  };
+  $('rec').onclick = record;
+  $('png').onclick = function () {
+    readControls();
+    stillFrame();
+    cv.toBlob(function (b) {
+      if (!b) { say('Couldn’t make the still here.', true); return; }
+      saveFile(fileStem() + '.png', b, $('savenote'));
+    }, 'image/png');
+  };
+  $('save').onclick = function () {
+    if (lastBlob) saveFile(lastName, lastBlob, $('savenote'));
+  };
+  $('again').onclick = function () {
+    $('result').hidden = true;
+    lastBlob = null;
+    say('');
+  };
+  $('reset').onclick = function () {
+    S = {};
+    for (var k in DEF) S[k] = DEF[k];
+    save();
+    writeControls();
+    stillFrame();
+    say('Back to the defaults.');
+  };
+
+  writeControls();
+  function startUp() {
+    stillFrame();
+  }
+  if (document.fonts && document.fonts.load) {
+    Promise.all([
+      document.fonts.load('900 100px "Barlow Condensed"'),
+      document.fonts.load('700 100px "Barlow Condensed"')
+    ]).then(startUp, startUp);
+  } else {
+    startUp();
+  }
+})();
+</script>
+</body>
+</html>

@@ -104,6 +104,15 @@ export const TOOLS = Object.freeze([
     quick: true,
   },
   {
+    id: 'stat-counter',
+    name: 'Stat Counter',
+    href: 'stat-counter/',
+    description: 'A big number counts up to your figure with a unit, eyebrow and sub line, with HUD brackets, a glitch on the hit and sound. Customise every value; 16:9 or 9:16, navy or green screen; video, PNG still.',
+    workspaces: ['graphics', 'running'],
+    keywords: ['stat', 'stats', 'number', 'counter', 'count up', 'big number', 'callout', 'data', 'climb', 'distance', 'intro', 'overlay'],
+    icon: 'title',
+  },
+  {
     id: 'caption-maker',
     name: 'Caption Maker',
     href: 'caption-maker/',
