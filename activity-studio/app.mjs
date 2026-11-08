@@ -1,4 +1,4 @@
-import { render, presets, templates, metric } from './render.mjs';
+import { render, presets, templates, metric } from './render.mjs?v=brand-label-2';
 import { duration, atTime } from './model.mjs';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas');
