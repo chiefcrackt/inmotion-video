@@ -30,8 +30,17 @@ const numeric = [
   'zoom',
   'introLen',
   'introHold',
+  'brandSize',
 ];
-const checks = ['transparent', 'showRoute', 'markers', 'showMetrics', 'intro'];
+const checks = [
+  'transparent',
+  'showRoute',
+  'markers',
+  'showMetrics',
+  'intro',
+  'brandLabel',
+  'brandAccent',
+];
 const settings = {
   preset: 'cyber',
   ...presets.cyber,
@@ -65,6 +74,13 @@ const settings = {
   introHold: 4,
   introPlace: 'center',
   introCard: 'wipe',
+  // brand label at the top of the card
+  brandLabel: true,
+  brandText: 'T.IM  /  ACTIVITY STUDIO',
+  brandSize: 1,
+  brandAlign: 'left',
+  brandAccent: true,
+  brandColor: '#e8c96a',
 };
 function say(id, message, error = false) {
   $(id).textContent = message;
@@ -362,7 +378,15 @@ $('editor').addEventListener('input', (e) => {
   syncMotion();
   paint();
 });
+function syncBrand() {
+  const on = settings.brandLabel !== false;
+  $('brandBox').hidden = !on;
+  $('brandBox2').hidden = !on;
+  $('brandColorRow').hidden = !on;
+  $('brandColor').disabled = settings.brandAccent !== false;
+}
 function syncMotion() {
+  syncBrand();
   $('introBox').hidden = !settings.intro;
   $('trailRow').hidden = settings.drawStyle !== 'comet';
   if (activity) {
