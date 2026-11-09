@@ -164,6 +164,7 @@ export const MOODS = [
   ['dark', 'Dark'],
   ['bright', 'Bright'],
   ['dreamy', 'Dreamy'],
+  ['adventure', 'Country adventure'],
 ];
 
 // Minor keys; value is the bass root (octave 2) in Hz.
@@ -244,6 +245,13 @@ const PROGS = {
     { bass: -3, chord: [9, 12, 16, 19] },
     { bass: -7, chord: [9, 12, 16, 17] },
     { bass: -5, chord: [11, 14, 19, 21] },
+  ],
+  // I – bVII – IV – I (open major with a flattened seventh, the wide western-cinematic feel)
+  adventure: [
+    { bass: 0, chord: [12, 16, 19] },
+    { bass: -2, chord: [10, 14, 17] },
+    { bass: -7, chord: [17, 21, 24] },
+    { bass: 0, chord: [12, 16, 19] },
   ],
 };
 const st = (f, s) => f * Math.pow(2, s / 12);
@@ -342,6 +350,11 @@ export function bedEvents(o = {}) {
       };
       const lastOfBuild = useArr && sec.type === 'build' && k === sec.bars - 1;
       GEN[style]({ t0, b, beat, bar, bf, tones, P, push, pos, g: groove, lastOfBuild, first: k === 0 });
+      // Country adventure: a strummed acoustic guitar on top of any style's chords.
+      if (mood === 'adventure' && P.chords)
+        [0, 1.5, 2, 3.5].forEach((q, i) =>
+          tones.slice(0, 3).forEach((f, j) => push(t0 + q * beat + j * 0.018, 'guitar', 'chords', { f: f * 2, v: i % 2 ? 0.022 : 0.03 })),
+        );
       if (lastOfBuild && P.drums)
         for (let s = 0; s < 16; s++)
           push(t0 + (s * beat) / 4, 'snare', 'drums', { v: 0.08 + (s / 16) * 0.22 });

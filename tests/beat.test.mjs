@@ -106,3 +106,13 @@ test('every style, mood and groove gives its own pattern', async () => {
     assert.equal(seen.size, MOODS.length * STYLES[style].grooves.length, style);
   }
 });
+
+test('country adventure mood adds a strummed guitar layer to any style', async () => {
+  const { bedEvents } = await import('../shared/sound/beat.mjs');
+  const count = (b) => b.events.filter((e) => e.kind === 'guitar').length;
+  const adventure = bedEvents({ style: 'cyber', mood: 'adventure', groove: 'classic', seconds: 16, ending: 'loop' });
+  const dark = bedEvents({ style: 'cyber', mood: 'dark', groove: 'classic', seconds: 16, ending: 'loop' });
+  assert.ok(count(adventure) > 0, 'guitar events present');
+  assert.equal(count(dark), 0, 'no guitar outside the adventure mood');
+  assert.ok(adventure.events.every((e) => Number.isFinite(e.t)));
+});
