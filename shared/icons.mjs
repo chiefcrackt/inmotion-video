@@ -26,6 +26,7 @@ const PATHS = {
   carousel:
     '<rect x="2" y="6" width="5" height="12" rx="1"/><rect x="9.5" y="4" width="5" height="16" rx="1"/><rect x="17" y="6" width="5" height="12" rx="1"/>',
   'tier-list': '<path d="M3 6h2M3 12h2M3 18h2M8 6h13M8 12h10M8 18h7"/>',
+  motion: '<path d="M3 17c3-6 6-6 9 0s6 6 9 0"/><circle cx="12" cy="6" r="2.5"/>',
   stopwatch: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M9.5 2.5h5M18 6l1.5-1.5"/>',
   river: '<path d="M2 9c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 15c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/>',
   mountain: '<path d="M2 20l6.5-10 4 6 2.5-3.5L22 20H2z"/>',

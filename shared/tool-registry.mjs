@@ -158,6 +158,15 @@ export const TOOLS = Object.freeze([
     icon: 'tier-list',
   },
   {
+    id: 'motion-studio',
+    name: 'Motion Studio 2',
+    href: 'motion-studio/',
+    description: 'Build a title card or lower third with the T.im brand, preview it, then export a spec and render it on your computer.',
+    workspaces: ['graphics'],
+    keywords: ['motion', 'title card', 'lower third', 'animation', 'render', 'spec', 'remotion', 'brand'],
+    icon: 'motion',
+  },
+  {
     id: 'start-line',
     name: 'Start Line Recorder',
     href: 'start-line/',

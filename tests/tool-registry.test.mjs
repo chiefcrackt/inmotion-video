@@ -26,7 +26,7 @@ const EXPECTED_HREFS = [
   'brand-assets/',
   'activity-studio/', 'asset-studio/', 'beat-bed/', 'before-after/', 'carousel-maker/',
   'celebrate/', 'content-planner/', 'cover-maker/', 'downloads/', 'icon-pack/',
-  'idea-vault/', 'mile-marker/', 'motion-stats/', 'product-spotlight/', 'promo-maker/',
+  'idea-vault/', 'mile-marker/', 'motion-stats/', 'motion-studio/', 'product-spotlight/', 'promo-maker/',
   'river-run/', 'shoot-planner/', 'sound-forge/', 'special-post/', 'start-line/',
   'teleprompter/', 'text-motion/', 'tier-list/', 'title-maker/', 'video-framer/',
 ];

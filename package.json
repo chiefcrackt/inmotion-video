@@ -54,7 +54,8 @@
     "test:idea-vault:due": "node --test tests/idea-vault-due.test.mjs",
     "test:idea-vault:due:browser": "node tests/idea-vault-due-browser.cjs",
     "test:planner": "node --test tests/content-planner.test.mjs && node tests/content-planner-browser.cjs",
-    "test:drive": "node --test tests/project-drive.test.mjs && node tests/project-drive-browser.cjs"
+    "test:drive": "node --test tests/project-drive.test.mjs && node tests/project-drive-browser.cjs",
+    "test:motion-studio": "node --test tests/motion-studio.test.mjs"
   },
   "repository": {
     "type": "git",

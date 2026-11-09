@@ -1,0 +1,20 @@
+{
+  "name": "motion-studio-render",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Renders a Motion Studio 2 spec.json to MP4 with Remotion. Run `npm ci` once, copy the exported spec.json here, then `npm run render`.",
+  "scripts": {
+    "render": "remotion render src/index.ts motion-piece out/piece.mp4",
+    "render:prores": "remotion render src/index.ts motion-piece out/piece.mov --codec=prores --prores-profile=4444",
+    "still": "remotion still src/index.ts motion-piece out/still.png --frame=60"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "typescript": "^5.6.0"
+  }
+}
