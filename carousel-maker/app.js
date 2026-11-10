@@ -1,15 +1,15 @@
-import { organizeEditor } from './ux.js';
-import { startPositioning } from './positioning.mjs';
-import { startEditor } from './editor.mjs';
-import { defaults, photoSettings } from './photo.mjs';
-import { templates, palettes, clone, move, zipStore } from './model.mjs';
+import { organizeEditor } from './ux.js?v=7e2685cb';
+import { startPositioning } from './positioning.mjs?v=6da4276f';
+import { startEditor } from './editor.mjs?v=b40277fc';
+import { defaults, photoSettings } from './photo.mjs?v=d5c1f36c';
+import { templates, palettes, clone, move, zipStore } from './model.mjs?v=3100ae30';
 import {
   render,
   imageFor,
   loadSlideImages,
   textSizes,
   fitText,
-} from './render.mjs';
+} from './render.mjs?v=17d22bbc';
 const $ = (id) => document.getElementById(id),
   key = 'tim-carousel-v1';
 let backgroundControls;

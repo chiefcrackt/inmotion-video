@@ -1,7 +1,7 @@
-import { icons } from '../icon-pack/icons.mjs';
-import { assets } from '../motion-stats/assets.mjs';
-import { assets as spotlight } from '../product-spotlight/assets.mjs';
-import { toys } from '../weird-motion/artwork.mjs';
+import { icons } from '../icon-pack/icons.mjs?v=c85119a0';
+import { assets } from '../motion-stats/assets.mjs?v=45b9e83c';
+import { assets as spotlight } from '../product-spotlight/assets.mjs?v=8b7a8ff8';
+import { toys } from '../weird-motion/artwork.mjs?v=0496a43e';
 export const catalog = Object.freeze([
   ...toys
     .flatMap((a) => [

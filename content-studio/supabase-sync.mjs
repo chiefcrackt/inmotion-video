@@ -1,8 +1,8 @@
-import { supabaseUrl, supabaseKey } from './supabase-config.mjs';
-import { IDEA_KEY, PLANNER_KEY } from '../shared/pipeline-link.mjs';
-import { isWorkspace, mergeIdeas, baseOf } from '../idea-vault/vault-core.mjs';
-import { validateBackup } from '../content-planner/model.mjs';
-import { mergeProjects, stable } from '../shared/project-sync.mjs';
+import { supabaseUrl, supabaseKey } from './supabase-config.mjs?v=2dbc134a';
+import { IDEA_KEY, PLANNER_KEY } from '../shared/pipeline-link.mjs?v=4d6d1145';
+import { isWorkspace, mergeIdeas, baseOf } from '../idea-vault/vault-core.mjs?v=079d4676';
+import { validateBackup } from '../content-planner/model.mjs?v=9edeb93b';
+import { mergeProjects, stable } from '../shared/project-sync.mjs?v=c640d9a8';
 
 const panel = document.querySelector('#studio-sync');
 const form = panel.querySelector('form');

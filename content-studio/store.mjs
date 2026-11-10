@@ -11,7 +11,7 @@ import {
   IDEA_KEY,
   PROJECT_PREFIX,
   STATUS_FOR_STAGE,
-} from '../shared/pipeline-link.mjs';
+} from '../shared/pipeline-link.mjs?v=4d6d1145';
 import {
   isWorkspace,
   touch,
@@ -20,10 +20,10 @@ import {
   normalizeChecklist,
   mergeIdeas,
   dueDateCsv,
-} from '../idea-vault/vault-core.mjs';
-import { newProject, addOutline, validateBackup } from '../content-planner/model.mjs';
-import { KEY as PLANNER_KEY } from '../shared/project-store.mjs';
-import { mergeProjects } from '../shared/project-sync.mjs';
+} from '../idea-vault/vault-core.mjs?v=079d4676';
+import { newProject, addOutline, validateBackup } from '../content-planner/model.mjs?v=9edeb93b';
+import { KEY as PLANNER_KEY } from '../shared/project-store.mjs?v=07de6878';
+import { mergeProjects } from '../shared/project-sync.mjs?v=c640d9a8';
 import {
   migrate,
   isStage,
@@ -31,7 +31,7 @@ import {
   SHOT_KINDS,
   SHOT_STATUSES,
   PLATFORMS,
-} from './video-model.mjs';
+} from './video-model.mjs?v=b4fc61b1';
 
 export const BACKUP_FORMAT = 'tim-content-studio';
 

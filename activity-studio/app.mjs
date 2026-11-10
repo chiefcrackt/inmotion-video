@@ -1,11 +1,11 @@
-import { render, presets, templates, metric } from './render.mjs?v=recap-2';
+import { render, presets, templates, metric } from './render.mjs?v=47ff6129';
 import {
   recapInputs,
   recapDefaults,
   photoGeometry,
   RECAP_STATS,
-} from './recap.mjs?v=recap-2';
-import { duration, atTime } from './model.mjs';
+} from './recap.mjs?v=6a143b6e';
+import { duration, atTime } from './model.mjs?v=0c775036';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas');
 let activity = null,
@@ -360,7 +360,7 @@ async function load(file) {
   try {
     const buffer = await file.arrayBuffer();
     if (id !== loadId) return;
-    worker = new Worker(new URL('./worker.js', import.meta.url));
+    worker = new Worker(new URL('./worker.js?v=d558eba9', import.meta.url));
     timeout = setTimeout(() => {
       worker?.terminate();
       done();

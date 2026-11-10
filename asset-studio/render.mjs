@@ -1,14 +1,14 @@
-import { byId } from './catalog.mjs';
+import { byId } from './catalog.mjs?v=a021afe7';
 import {
   formats,
   transform,
   entranceMotions,
   entranceProgress,
-} from './model.mjs';
-import { prepareNative, drawNative } from './native-motion.mjs';
-import '../shared/exits.js';
-import { frame as spotFrame, svg as spotSVG } from '../spot-it/artwork.mjs';
-import { draw as drawToy } from '../weird-motion/artwork.mjs';
+} from './model.mjs?v=2d17be42';
+import { prepareNative, drawNative } from './native-motion.mjs?v=c9eb86b2';
+import '../shared/exits.js?v=1f0c926a';
+import { frame as spotFrame, svg as spotSVG } from '../spot-it/artwork.mjs?v=eeef121f';
+import { draw as drawToy } from '../weird-motion/artwork.mjs?v=0496a43e';
 const spotFrames = [];
 let spotReady;
 function prepareSpot() {

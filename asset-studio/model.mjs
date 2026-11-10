@@ -1,5 +1,5 @@
-import { byId } from './catalog.mjs';
-import { toys } from '../weird-motion/artwork.mjs';
+import { byId } from './catalog.mjs?v=a021afe7';
+import { toys } from '../weird-motion/artwork.mjs?v=0496a43e';
 export const formats = {
   square: [1080, 1080],
   landscape: [1920, 1080],

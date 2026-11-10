@@ -1,7 +1,7 @@
 // Run recap card: the Video Framer look (navy grid, gold window brackets, condensed
 // stat stack) built from an imported activity. render.mjs draws the route inside the
 // window with its shared route code; everything else on the card is drawn here.
-import { finite, units, duration } from './model.mjs';
+import { finite, units, duration } from './model.mjs?v=0c775036';
 
 // Typed stat values and the background photo belong to one run on this device.
 // They live here, outside the saved settings, so presets never store them.

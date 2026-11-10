@@ -1,5 +1,5 @@
-import { KEY, validateBackup } from '../content-planner/model.mjs';
-import { stamp } from './project-sync.mjs';
+import { KEY, validateBackup } from '../content-planner/model.mjs?v=9edeb93b';
+import { stamp } from './project-sync.mjs?v=c640d9a8';
 export { KEY };
 export const DEVICE_KEY = 'tim-content-device-v1';
 export const UNREADABLE_KEY = 'tim-content-planner-unreadable-v1';

@@ -1,5 +1,5 @@
-import { makeElement, uid, validProject } from './elements.mjs';
-import { imageFor } from './render.mjs';
+import { makeElement, uid, validProject } from './elements.mjs?v=508aa01b';
+import { imageFor } from './render.mjs?v=17d22bbc';
 const $ = (id) => document.getElementById(id),
   copy = (v) => JSON.parse(JSON.stringify(v));
 export function startEditor(api) {

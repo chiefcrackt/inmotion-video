@@ -12,7 +12,7 @@ import {
   shotProgress,
   isOverdue,
   nextStage,
-} from './video-model.mjs';
+} from './video-model.mjs?v=b4fc61b1';
 import {
   loadVideos,
   snapshotOf,
@@ -32,10 +32,10 @@ import {
   exportBackup,
   importBackup,
   dueDatesCsv,
-} from './store.mjs';
-import { TOOLS, getTool } from '../shared/tool-registry.mjs';
-import { localDay } from '../idea-vault/vault-core.mjs';
-import { IDEA_KEY, PLANNER_KEY } from '../shared/pipeline-link.mjs';
+} from './store.mjs?v=58c69001';
+import { TOOLS, getTool } from '../shared/tool-registry.mjs?v=fb460bd1';
+import { localDay } from '../idea-vault/vault-core.mjs?v=079d4676';
+import { IDEA_KEY, PLANNER_KEY } from '../shared/pipeline-link.mjs?v=4d6d1145';
 
 const $ = (id) => document.getElementById(id);
 

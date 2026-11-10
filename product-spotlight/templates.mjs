@@ -1,5 +1,5 @@
-import { assets } from './assets.mjs';
-import { toys } from '../weird-motion/artwork.mjs';
+import { assets } from './assets.mjs?v=8b7a8ff8';
+import { toys } from '../weird-motion/artwork.mjs?v=0496a43e';
 export const templates = new Map(assets.map((a) => ['spotlight:' + a.id, a]));
 templates.set('signature:spot-it', { name: 'Spot it · signature callout' });
 for (const toy of toys) templates.set('toy:' + toy.id, toy);

@@ -1,5 +1,5 @@
-import { drawElements } from './elements.mjs';
-import { photoSettings, photoGeometry } from './photo.mjs';
+import { drawElements } from './elements.mjs?v=508aa01b';
+import { photoSettings, photoGeometry } from './photo.mjs?v=d5c1f36c';
 // Text sizes. Headline and body sizes are per slide; null means the layout
 // default. Fit text never shrinks below these readable minimums (1080px wide).
 export const textLimits = {

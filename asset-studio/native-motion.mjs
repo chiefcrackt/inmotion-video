@@ -1,13 +1,13 @@
 // Compile trusted library SVG geometry once. Frames then render synchronously on
 // the same canvas clock used by PNG, MediaRecorder and offline alpha encoding.
-import { icons, svg as iconSVG } from '../icon-pack/icons.mjs';
-import { assets as motion, svg as motionSVG } from '../motion-stats/assets.mjs';
+import { icons, svg as iconSVG } from '../icon-pack/icons.mjs?v=c85119a0';
+import { assets as motion, svg as motionSVG } from '../motion-stats/assets.mjs?v=45b9e83c';
 import {
   assets as spotlight,
   svg as spotlightSVG,
-} from '../product-spotlight/assets.mjs';
+} from '../product-spotlight/assets.mjs?v=8b7a8ff8';
 const sources = new Map(icons.map((a) => ['icon:' + a.id, () => iconSVG(a)]));
-import { frame as spotFrame, svg as spotSVG } from '../spot-it/artwork.mjs';
+import { frame as spotFrame, svg as spotSVG } from '../spot-it/artwork.mjs?v=eeef121f';
 sources.set('signature:spot-it', () => spotSVG(spotFrame(3)));
 for (const [prefix, items, svg, partPrefix] of [
   ['motion', motion, motionSVG, 'part'],

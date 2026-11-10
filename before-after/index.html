@@ -8,8 +8,8 @@
     <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
     <meta name="theme-color" content="#0E1A2E" />
     <title>Before &amp; After · T.IM Studio</title>
-    <link rel="stylesheet" href="../shared/fonts.css" />
-    <link rel="stylesheet" href="../shared/responsive.css" />
+    <link rel="stylesheet" href="../shared/fonts.css?v=70017a07" />
+    <link rel="stylesheet" href="../shared/responsive.css?v=bb296b12" />
     <style>
       :root {
         --navy: #0e1a2e;
@@ -93,7 +93,7 @@
       #canvas.busy { cursor: progress; }
       .hint { font-size: 15px; color: var(--muted); text-align: center; margin: 0; }
     </style>
-  <link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
+  <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" /><script type="module" src="../shared/studio-bar.mjs?v=3e15f76e"></script></head>
   <body><tim-studio-bar></tim-studio-bar>
     <div class="wrap">
       <header>
@@ -231,7 +231,7 @@
     <script type="module">
       import {
         ASPECTS, PHOTO_DEFAULTS, clamp, placeImage, panRange, timelineTimes, splitAt, fadeAt, panelAt, labelSize, SPLIT_DEFAULT,
-      } from './model.mjs';
+      } from './model.mjs?v=5994c93b';
 
       const $ = (id) => document.getElementById(id);
       const canvas = $('canvas');

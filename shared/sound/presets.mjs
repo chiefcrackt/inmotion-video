@@ -1,4 +1,4 @@
-import { preset, CATEGORIES } from './model.mjs';
+import { preset, CATEGORIES } from './model.mjs?v=687dd3c7';
 // All factory sounds are synthesized; no licensed or third-party samples.
 const recipes = [
   ['Cyber Glitch', 0, 'square', 780, 120, 0.48, 24, 180, 1800, 0.35],

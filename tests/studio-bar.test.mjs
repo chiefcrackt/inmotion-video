@@ -55,10 +55,10 @@ for (const { dir, name } of pages) {
         1,
         'exactly one <tim-studio-bar>',
       );
-      assert.match(html, /href="\.\.\/shared\/studio-bar\.css"/, 'bar stylesheet');
+      assert.match(html, /href="\.\.\/shared\/studio-bar\.css(?:\?v=[0-9a-f]+)?"/, 'bar stylesheet');
       assert.match(
         html,
-        /<script type="module" src="\.\.\/shared\/studio-bar\.mjs"><\/script>/,
+        /<script type="module" src="\.\.\/shared\/studio-bar\.mjs(?:\?v=[0-9a-f]+)?"><\/script>/,
         'bar script',
       );
       const title = html.match(/<title\b[^>]*>\s*([^<]*?)\s*<\/title\s*>/);

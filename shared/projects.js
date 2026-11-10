@@ -214,7 +214,7 @@
       const videoId = new URLSearchParams(location.search).get('videoProject');
       if (videoId) {
         try {
-          const { updateProject } = await import('./project-store.mjs');
+          const { updateProject } = await import('./project-store.mjs?v=07de6878');
           updateProject(videoId, (video) =>
             video.attachments.push({ id: snapshotId, tool, name: doc.name }),
           );

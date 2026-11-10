@@ -1,4 +1,4 @@
-import { number as n, timestamp as ts, normalize } from './model.mjs';
+import { number as n, timestamp as ts, normalize } from './model.mjs?v=0c775036';
 const children = (el, name) =>
   Array.from(el?.childNodes || []).filter(
     (x) => x.nodeType === 1 && x.localName === name,
