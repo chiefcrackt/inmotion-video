@@ -131,8 +131,13 @@ async function commit(locator, value) {
     await commit(page.locator('#d-film-notes'), 'Use take 2');
     await page.locator('[data-result="captured"]').click();
     assert.match(await page.locator('#d-film-count').textContent(), /Shot 2 of 3/);
+    await page.locator('[data-result="retake"]').click();
     await page.locator('#d-film-exit').click();
     assert.equal(await page.locator('#d-filming').isVisible(), false);
+    // A retake comes round again next time, with the shots not yet filmed.
+    await page.locator('#d-film-start').click();
+    assert.match(await page.locator('#d-film-count').textContent(), /Shot 1 of 2/);
+    await page.locator('#d-film-exit').click();
     const firstShot = await page.evaluate(
       (key) => JSON.parse(localStorage.getItem(key)).projects[0].items[0],
       PLAN_KEY,
@@ -152,10 +157,22 @@ async function commit(locator, value) {
     );
     assert.deepEqual(dated, { due: '2099-11-30', publish: '2099-11-30' });
 
-    // Steps save to the idea.
-    await page.locator('#d-step-text').fill('Thumbnail check');
-    await page.locator('#d-step-form button[type="submit"]').click();
-    await page.locator('#d-steps li.step', { hasText: 'Thumbnail check' }).waitFor();
+    // The stage tracks progress; there is no separate production checklist.
+    assert.equal(await page.locator('#d-steps, #d-step-form').count(), 0);
+    const stageBefore = await page.locator('#d-stage').inputValue();
+    await page.locator('#d-advance').click();
+    assert.notEqual(await page.locator('#d-stage').inputValue(), stageBefore, 'Move to next stage advances the stage');
+    assert.equal(
+      await page.evaluate((p) => JSON.parse(localStorage.getItem(p)).projects[0].stage, PLAN_KEY),
+      await page.locator('#d-stage').inputValue(),
+    );
+
+    // Next up lists the video once, with its publish date.
+    await page.keyboard.press('Escape');
+    const nextRows = page.locator('#next-up-list button', { hasText: 'First merged workflow' });
+    assert.equal(await nextRows.count(), 1);
+    await nextRows.click();
+    await page.locator('#detail[open]').waitFor();
 
     // Tools open for this video, carrying its id.
     await page.locator('#tab-assets').click();
@@ -176,7 +193,8 @@ async function commit(locator, value) {
     await page.locator('#detail[open]').waitFor();
     await page.keyboard.press('Escape');
 
-    // Backup downloads both stores as one file.
+    // Backup downloads both stores as one file (from the folded Backup panel).
+    await page.locator('#backup summary').click();
     const [download] = await Promise.all([
       page.waitForEvent('download'),
       page.locator('#export-backup').click(),
@@ -232,7 +250,8 @@ async function commit(locator, value) {
     await page.screenshot({ path: path.join(artifacts, 'detail-1440.png') });
     await page.keyboard.press('Escape');
 
-    // Phone width: no sideways page scroll; the board and detail sheet fit.
+    // Phone width: capture first, then Next up, then only the stages with
+    // videos; no sideways page scroll; the detail sheet fits.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(base + '/content-studio/');
     await page.locator('#board').waitFor();
@@ -240,6 +259,13 @@ async function commit(locator, value) {
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
       'no sideways page scroll at 390px',
     );
+    const order = await page.evaluate(() =>
+      ['capture', 'next-up', 'board'].map((id) => Math.round(document.getElementById(id).getBoundingClientRect().top)),
+    );
+    assert.ok(order[0] < order[1] && order[1] < order[2], 'capture, then Next up, then videos: ' + order);
+    assert.ok(order[0] < 300, 'capture starts on the first screen (top ' + order[0] + ')');
+    assert.equal(await page.locator('#board .column:visible').count(), 1, 'only stages with videos are listed');
+    assert.equal(await page.locator('#studio-sync').evaluate((el) => el.open), false, 'cloud sync folds away once synced');
     await page.screenshot({ path: path.join(artifacts, 'board-390.png') });
     await page.locator('#board button.card', { hasText: 'First merged workflow' }).click();
     await page.locator('#detail[open]').waitFor();

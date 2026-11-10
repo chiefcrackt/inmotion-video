@@ -255,13 +255,66 @@ button[type='submit'] {
   justify-self: start;
 }
 
-/* Board */
+/* Next up: one row per video, nearest date first. */
+#next-up,
+#videos {
+  margin-bottom: 20px;
+}
+
+#next-up h2,
+.videos-head h2 {
+  margin-bottom: 8px;
+}
+
+#next-up-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.next {
+  width: 100%;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  justify-content: stretch;
+  background: var(--panel);
+  padding: 10px 12px;
+}
+
+.next .meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.next .overdue {
+  color: var(--danger);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.videos-head {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Board: stage columns side by side; on a phone, a list of the stages that
+   have videos (see the media query at the end). */
 #board {
   display: flex;
   gap: 12px;
   overflow-x: auto;
   padding-bottom: 12px;
   scroll-snap-type: x proximity;
+}
+
+.none-yet {
+  display: none;
+  color: var(--muted);
+  margin: 0;
 }
 
 .column {
@@ -274,8 +327,10 @@ button[type='submit'] {
   min-height: 120px;
 }
 
-.column h2 {
-  margin-bottom: 8px;
+.column h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  color: var(--accent);
 }
 
 .cards {
@@ -294,6 +349,7 @@ button[type='submit'] {
 
 .card {
   width: 100%;
+  justify-content: stretch;
   display: grid;
   gap: 4px;
   text-align: left;
@@ -340,10 +396,10 @@ dialog#detail {
   max-height: calc(100dvh - 24px);
   padding: 0;
   overflow: hidden;
-  display: flex;
   flex-direction: column;
 }
 
+/* Only an open dialog is laid out; a closed one must stay hidden. */
 dialog#detail[open] {
   display: flex;
 }
@@ -489,6 +545,11 @@ dialog#detail::backdrop {
   overflow-wrap: anywhere;
 }
 
+.tool-links {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px 12px;
+}
+
 .tool-links a,
 .attachment a {
   color: var(--accent);
@@ -514,6 +575,62 @@ dialog#detail::backdrop {
   margin: 8px 0 0;
 }
 
+.stage-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+}
+
+.stage-row .grow {
+  flex: 1 1 180px;
+}
+
+#d-advance,
+button.primary {
+  background: var(--accent);
+  color: #1a1404;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+#backup,
+#app > #studio-sync {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 4px 16px;
+  background: var(--panel);
+}
+
+#backup summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--accent);
+}
+
+#backup .toolbar {
+  padding-bottom: 12px;
+}
+
+/* Shot rows: kind and text on top, then status and Remove, then notes. */
+.shot {
+  grid-template-columns: 1fr auto;
+}
+
+.shot .kind,
+.shot .text,
+.shot input {
+  grid-column: 1 / -1;
+}
+
+.shot select {
+  width: auto;
+  justify-self: start;
+}
+
 @media (min-width: 720px) {
   .top,
   #app,
@@ -523,8 +640,63 @@ dialog#detail::backdrop {
     padding-right: 24px;
   }
 
+  /* All six stages fit side by side on a laptop; narrower screens scroll the board. */
   .column {
-    flex-basis: 260px;
+    flex: 1 0 180px;
+  }
+
+  .shot {
+    grid-template-columns: 110px 1fr 150px auto;
+  }
+
+  .shot .kind {
+    grid-column: 1;
+  }
+
+  .shot .text {
+    grid-column: 2;
+  }
+
+  .shot input {
+    grid-column: 2 / -1;
+  }
+}
+
+/* Phones: stages become a list of the ones that have videos. */
+@media (max-width: 719px) {
+  .intro {
+    display: none;
+  }
+
+  #board {
+    display: grid;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .column {
+    min-height: 0;
+  }
+
+  .column.empty-stage {
+    display: none;
+  }
+
+  .none-yet:not(.has-videos) {
+    display: block;
+  }
+
+  /* Search and platform share a row. */
+  .videos-head .toolbar {
+    gap: 8px;
+  }
+
+  .videos-head .toolbar .grow {
+    flex: 1 1 150px;
+  }
+
+  .videos-head .toolbar label {
+    min-width: 0;
   }
 }
 
@@ -543,11 +715,4 @@ dialog#detail::backdrop {
     grid-template-columns: 1fr;
   }
 
-  .shot {
-    grid-template-columns: 1fr;
-  }
-
-  .shot button {
-    justify-self: start;
-  }
 }

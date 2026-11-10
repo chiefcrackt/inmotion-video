@@ -1,9 +1,18 @@
 # Content Studio
 
-One place for every video, from first idea to published. The board shows
-videos by stage (Idea, Outline, Film, Edit, Scheduled, Published). Open a video
-to edit its outline, plan its shots, film through them, open the tools for it
-and attach saved tool work.
+One place for every video, from first idea to published.
+
+The page opens to **Capture an idea**, then **Next up** (one row per video:
+film date and shots left until it reaches Edit, then its publish date, nearest
+first), then **Videos by stage**. On a laptop the stages are side-by-side
+columns; on a phone only the stages that have videos are listed. Backup and
+Cloud sync fold away at the bottom once you are signed in.
+
+Open a video to change its stage (or tap Move to the next stage), dates, notes
+and outline; plan its shots and film through them (Retake shots come round
+again); open the tools for it; and attach saved tool work. The stage is the
+progress tracker: the old five-step production checklist is no longer shown,
+though any ticks already saved stay in the data.
 
 ## Data
 

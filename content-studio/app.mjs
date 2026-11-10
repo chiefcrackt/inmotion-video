@@ -1,4 +1,4 @@
-// Content Studio page: the board, capture form and video detail dialog.
+// Content Studio page: capture, Next up, videos by stage and the video dialog.
 // Everything shown comes from the cloud-synced stores (see store.mjs). Nothing
 // renders until the first cloud sync has finished for the signed-in account.
 
@@ -9,9 +9,9 @@ import {
   SHOT_STATUSES,
   filterVideos,
   groupByStage,
-  stepProgress,
   shotProgress,
   isOverdue,
+  nextStage,
 } from './video-model.mjs';
 import {
   loadVideos,
@@ -22,7 +22,6 @@ import {
   setFilmDate,
   setDetails,
   setArchived,
-  setSteps,
   generateShots,
   addShot,
   updateShot,
@@ -162,7 +161,70 @@ function renderPlatformFilter() {
     select.append(el('option', { value: platform }, platform));
 }
 
+// Dates are stored as YYYY-MM-DD. Show them as "Fri, Nov 14".
+function shortDate(day) {
+  const d = new Date(day + 'T12:00:00Z');
+  return Number.isNaN(d.getTime())
+    ? day
+    : d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+}
+
+const shotsLeft = (v) => v.shots.filter((s) => s.status === 'pending' || s.status === 'retake').length;
+const publishDay = (v) => v.dueDate || v.publishDate || '';
+const beforeEdit = (v) => STAGES.indexOf(v.stage) <= STAGES.indexOf('Film');
+
+// What to do next for one video, or null when nothing is scheduled or waiting.
+// Filming comes first until the video reaches Edit; after that, publishing.
+function nextFor(v, today) {
+  if (v.archived || v.stage === 'Published') return null;
+  const left = shotsLeft(v);
+  const publish = publishDay(v);
+  if (beforeEdit(v) && (v.filmDate || (v.stage === 'Film' && left))) {
+    const parts = [v.filmDate ? 'Film ' + shortDate(v.filmDate) : 'Ready to film'];
+    if (left) parts.push(left + (left === 1 ? ' shot' : ' shots') + ' to go');
+    if (publish) parts.push('publish ' + shortDate(publish));
+    return { video: v, day: v.filmDate || publish || '9999', tab: 'shoot', text: parts.join(' · '), late: false };
+  }
+  if (publish)
+    return {
+      video: v,
+      day: publish,
+      tab: 'outline',
+      text: (isOverdue(v, today) ? 'Overdue · publish ' : 'Publish ') + shortDate(publish),
+      late: isOverdue(v, today),
+    };
+  return null;
+}
+
+function renderNextUp() {
+  const today = localDay();
+  const rows = videos
+    .map((v) => nextFor(v, today))
+    .filter(Boolean)
+    .sort((a, b) => a.day.localeCompare(b.day))
+    .slice(0, 5);
+  $('next-up-list').replaceChildren(
+    ...rows.map((row) =>
+      el('li', {}, [
+        el(
+          'button',
+          { type: 'button', className: 'next', onclick: () => openDetail(row.video.id, row.tab) },
+          [
+            el('strong', {}, row.video.title),
+            el('span', { className: row.late ? 'overdue' : 'meta' }, row.text),
+          ],
+        ),
+      ]),
+    ),
+  );
+  if (!rows.length)
+    $('next-up-list').append(
+      el('li', { className: 'empty' }, 'Give a video a film or publish date and it shows up here.'),
+    );
+}
+
 function renderBoard() {
+  renderNextUp();
   const list = filterVideos(videos, {
     query: $('query').value,
     platform: $('platform-filter').value,
@@ -173,8 +235,8 @@ function renderBoard() {
   $('board').replaceChildren(
     ...STAGES.map((stage) => {
       const items = groups[stage];
-      return el('section', { className: 'column', 'aria-label': stage }, [
-        el('h2', {}, stage + ' · ' + items.length),
+      return el('section', { className: 'column' + (items.length ? '' : ' empty-stage'), 'aria-label': stage }, [
+        el('h3', {}, stage + ' · ' + items.length),
         el(
           'ul',
           { className: 'cards' },
@@ -185,12 +247,26 @@ function renderBoard() {
       ]);
     }),
   );
+  // On a phone only stages with videos are listed, so say when there are none.
+  const filtered = $('query').value || $('platform-filter').value;
+  $('board').append(
+    el(
+      'p',
+      { className: 'none-yet' + (list.length ? ' has-videos' : '') },
+      filtered ? 'No videos match this search.' : 'No videos yet. Capture an idea above to start one.',
+    ),
+  );
 }
 
 function cardFor(v, today) {
-  const steps = stepProgress(v);
   const shots = shotProgress(v);
-  const date = v.dueDate || v.publishDate;
+  const publish = publishDay(v);
+  const date =
+    v.filmDate && beforeEdit(v)
+      ? 'Film ' + shortDate(v.filmDate)
+      : publish
+        ? 'Publish ' + shortDate(publish)
+        : '';
   return el(
     'button',
     {
@@ -201,7 +277,7 @@ function cardFor(v, today) {
     [
       el('strong', {}, v.title),
       el('span', { className: 'meta' }, [v.platform, date ? ' · ' + date : '']),
-      el('span', { className: 'progress' }, steps.done + '/' + steps.total + ' steps · ' + shots.done + '/' + shots.total + ' shots'),
+      shots.total ? el('span', { className: 'progress' }, shots.done + '/' + shots.total + ' shots captured') : null,
       isOverdue(v, today) ? el('span', { className: 'overdue' }, 'Overdue') : null,
       v.archived ? el('span', { className: 'badge' }, 'Archived') : null,
     ],
@@ -261,40 +337,13 @@ function renderDetail() {
   $('d-published-url').value = v.publishedUrl;
   $('d-archive').textContent = v.archived ? 'Restore' : 'Archive';
   $('d-archive').disabled = !v.hasIdea;
-  $('d-step-text').disabled = !v.hasIdea;
-  renderSteps(v);
+  const next = nextStage(v.stage);
+  $('d-advance').hidden = !next;
+  $('d-advance').textContent = next ? 'Move to ' + next : '';
   renderShots(v);
   renderTools(v);
   renderFilming();
   refreshSaved();
-}
-
-function renderSteps(v) {
-  $('d-steps').replaceChildren(
-    ...v.steps.map((step, index) =>
-      el('li', { className: 'step' }, [
-        el('label', {}, [
-          el('input', {
-            type: 'checkbox',
-            checked: step.done,
-            disabled: !v.hasIdea,
-            onchange: (event) =>
-              act(() => {
-                const next = v.steps.map((s, i) => (i === index ? { ...s, done: event.target.checked } : s));
-                setSteps(v.id, next);
-              }),
-          }),
-          ' ' + step.text,
-        ]),
-        el('button', {
-          type: 'button',
-          disabled: !v.hasIdea,
-          onclick: () => act(() => setSteps(v.id, v.steps.filter((_, i) => i !== index))),
-        }, 'Remove'),
-      ]),
-    ),
-  );
-  if (!v.steps.length) $('d-steps').append(el('li', { className: 'empty' }, 'No steps yet.'));
 }
 
 function renderShots(v) {
@@ -314,13 +363,14 @@ function renderShots(v) {
           },
           SHOT_STATUSES.map((s) => el('option', { value: s, selected: s === shot.status }, s)),
         ),
+        el('button', { type: 'button', onclick: () => act(() => removeShot(v.id, shot.id)) }, 'Remove'),
         el('input', {
           'aria-label': 'Notes for ' + shot.text,
+          placeholder: 'Take notes',
           value: shot.notes,
           maxlength: 2000,
           onchange: (event) => act(() => updateShot(v.id, shot.id, { notes: event.target.value })),
         }),
-        el('button', { type: 'button', onclick: () => act(() => removeShot(v.id, shot.id)) }, 'Remove'),
       ]),
     ),
   );
@@ -515,15 +565,10 @@ function wire() {
     if (v) act(() => setArchived(v.id, !v.archived));
   });
 
-  $('d-step-form').addEventListener('submit', (event) => {
-    event.preventDefault();
+  $('d-advance').addEventListener('click', () => {
     const v = currentVideo();
-    const text = $('d-step-text').value.trim();
-    if (!v || !text) return;
-    act(() => {
-      setSteps(v.id, [...v.steps, { text, done: false }]);
-      $('d-step-text').value = '';
-    });
+    const next = v && nextStage(v.stage);
+    if (next) act(() => (setStage(v.id, next), 'Moved to ' + next + '.'));
   });
 
   $('d-generate').addEventListener('click', () => {
@@ -549,9 +594,10 @@ function wire() {
   $('d-film-start').addEventListener('click', () => {
     const v = currentVideo();
     if (!v) return;
-    const pending = v.shots.filter((s) => s.status === 'pending').map((s) => s.id);
+    // Shots marked Retake come round again with the ones not yet filmed.
+    const pending = v.shots.filter((s) => s.status === 'pending' || s.status === 'retake').map((s) => s.id);
     if (!pending.length) {
-      setStatus('No pending shots to film.');
+      setStatus('No shots left to film.');
       return;
     }
     filming = { ids: pending, index: 0 };
@@ -592,11 +638,25 @@ function wire() {
 
 // ---- cloud gating -------------------------------------------------------------
 
+// Signed out, the sync panel sits at the top: it is the only thing to do. Once
+// synced it moves to the end of the page and folds away.
+function placeSyncPanel(signedIn) {
+  const panel = $('studio-sync');
+  if (signedIn) {
+    $('app').append(panel);
+    panel.open = false;
+  } else {
+    $('waiting').before(panel);
+    panel.open = true;
+  }
+}
+
 window.addEventListener('tim-cloud-synced', () => {
   if (!ready) {
     ready = true;
     $('waiting').hidden = true;
     $('app').hidden = false;
+    placeSyncPanel(true);
   }
   lastSnapshot = null;
   refresh();
@@ -613,6 +673,7 @@ window.addEventListener('tim-cloud-signed-out', () => {
   $('conflicts').hidden = true;
   $('app').hidden = true;
   $('waiting').hidden = false;
+  placeSyncPanel(false);
   setStatus('');
 });
 
