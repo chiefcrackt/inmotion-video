@@ -1312,8 +1312,9 @@
         // synth guitar stands in if they can't load.
         var token = {};
         live = { ctx: ac, kit: null, raf: 0, short: !!short, token: token };
-        $('play').textContent = STYLES[S.style].samples ? '… Loading guitar' : '■ Stop';
-        loadStyleSamples(ac, S.style).then(function (samples) {
+        var moodNow = S.mood === 'auto' ? STYLES[S.style].mood : S.mood;
+        $('play').textContent = STYLES[S.style].samples || moodNow === 'adventure' ? '… Loading guitar' : '■ Stop';
+        loadStyleSamples(ac, S.style, undefined, moodNow).then(function (samples) {
           if (!live || live.token !== token) return;
           start(samples);
         });

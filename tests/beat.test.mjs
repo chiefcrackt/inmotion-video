@@ -91,7 +91,7 @@ test('swing delays the off-beats and every event has a part', () => {
 
 test('every style, mood and groove gives its own pattern', async () => {
   const { STYLES, MOODS } = await import('../shared/sound/beat.mjs');
-  assert.equal(Object.keys(STYLES).length, 17);
+  assert.equal(Object.keys(STYLES).length, 19);
   for (const style of Object.keys(STYLES)) {
     const seen = new Set();
     for (const [mood] of MOODS)

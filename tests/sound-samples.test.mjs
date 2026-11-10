@@ -118,3 +118,29 @@ test('styles without samples, and failed loads, resolve to the synth fallback', 
   resetSampleCache();
   assert.deepEqual(await loadStyleSamples(ctx, 'acoustic', async () => ({ ok: false })), {});
 });
+
+test('Campfire and Folk Anthem play the real guitar in every groove', () => {
+  for (const style of ['campfire', 'folk']) {
+    assert.equal(STYLES[style].samples, 'steel-guitar');
+    for (const [groove] of STYLES[style].grooves) {
+      const bed = bedEvents({ style, groove, seconds: 16, ending: 'loop' });
+      const gtr = bed.events.filter((e) => e.kind === 'acoustic');
+      assert.ok(gtr.length > 20, style + groove);
+      assert.ok(gtr.every((e) => e.s >= 0 && e.s <= 5 && e.f >= 70 && e.f <= 700), style + groove);
+      assert.equal(bed.events.filter((e) => e.kind === 'guitar').length, 0, style + ' has no synth overlay');
+    }
+  }
+});
+
+test('older guitar styles and the adventure mood switch to the real guitar when loaded', async () => {
+  for (const style of ['trail', 'sunny', 'mountain', 'openroad']) assert.equal(STYLES[style].samples, 'steel-guitar', style);
+  const { ctx, log } = fakeContext();
+  assert.ok((await loadStyleSamples(ctx, 'cyber', diskFetch, 'adventure'))['steel-guitar'], 'adventure mood loads guitar');
+  const samples = await loadStyleSamples(ctx, 'trail', diskFetch);
+  const kit = makeKit(ctx, ctx.destination, { samples });
+  const bed = bedEvents({ style: 'trail', groove: 'strum', seconds: 6, ending: 'loop' });
+  playEvents(kit, 0, bed);
+  const gtr = log.sources.filter((s) => s.buffer && s.buffer.bytes);
+  assert.equal(gtr.length, bed.events.filter((e) => e.kind === 'guitar').length);
+  assert.ok(log.chokes > 0, 'same-register notes damp each other');
+});
