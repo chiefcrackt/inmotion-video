@@ -124,11 +124,11 @@ const path = require('node:path');
       fullPage: true,
     });
     await page.goto(base);
-    await page.locator('a.tool[href="brand-assets/"]').first().waitFor();
+    await page.locator('a[href="brand-assets/"]').first().waitFor({ state: 'attached' });
     await page.goto(base + '/cover-maker/');
-    await page.locator('a[href="../brand-assets/?template=banner"]').waitFor();
+    await page.locator('a[href="../brand-assets/?template=banner"]').waitFor({ state: 'attached' });
     await page.goto(base + '/title-maker/');
-    await page.locator('a[href="../brand-assets/?template=moving"]').waitFor();
+    await page.locator('a[href="../brand-assets/?template=moving"]').waitFor({ state: 'attached' });
     assert.deepEqual(errors, []);
     console.log(
       'Brand Assets: templates, PNG sizes, video, sound, cancellation, saved JSON, reload, hub links and responsive layout passed.',

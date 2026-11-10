@@ -21,9 +21,8 @@ const {
       errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('dialog', (d) => d.accept());
-    await page.goto(base);
-    await page.locator('#q').fill('affiliate');
-    await page.locator('a[href="product-spotlight/"]').click();
+    // Homepage navigation is covered by tests/hub.mjs.
+    await page.goto(base + '/product-spotlight/');
     assert.equal(await page.locator('.card').count(), 18);
     for (const a of assets) {
       const result = await page.evaluate(async (a) => {

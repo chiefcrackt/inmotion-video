@@ -89,7 +89,7 @@ try {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `no sideways scroll at ${width}px`);
     // A studio card starts on the first phone screen.
     const top = await page.locator('[data-entry]').first().evaluate((el) => el.getBoundingClientRect().top);
-    assert.ok(top < 844, `first studio card visible without scrolling at ${width}px (top ${Math.round(top)})`);
+    assert.ok(top < 640, `first studio card visible without scrolling at ${width}px (top ${Math.round(top)})`);
     await page.locator('[data-workspace="running"]').click();
     assert.equal(await visibleCards.count(), searchDashboard('', { workspace: 'running' }).length);
     await page.locator('#reset').click();

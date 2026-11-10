@@ -14,7 +14,7 @@ const { launchBrowser, server, artifactDirectory } = require('./browser-utils.cj
   const browser=await launchBrowser(),base='http://127.0.0.1:'+srv.address().port,out=artifactDirectory('motion-stats');
   try {
     const page=await browser.newPage({acceptDownloads:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));
-    await page.goto(base);await page.locator('#q').fill('movable');await page.locator('a[href="motion-stats/"]').click();
+    await page.goto(base + '/motion-stats/');
     assert.equal(await page.locator('.card').count(),24);
     for(const a of manifest.assets){
       for(const area of a.textSafeAreas)assert(area[0]>=0&&area[1]>=0&&area[0]+area[2]<=a.width&&area[1]+area[3]<=a.height);

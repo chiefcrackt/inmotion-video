@@ -17,9 +17,8 @@ const path = require('node:path');
   const base = 'http://127.0.0.1:' + srv.address().port;
   const artifacts = artifactDirectory('planner');
   try {
-    await page.goto(base + '/');
-    await page.locator('a.tool[href="content-planner/"]').waitFor();
-    await page.locator('a.tool[href="content-planner/"]').click();
+    // Homepage navigation is covered by tests/hub.mjs.
+    await page.goto(base + '/content-planner/');
     await page.evaluate(() =>
       localStorage.setItem(
         'tim-idea-vault-v1',
@@ -154,7 +153,7 @@ const path = require('node:path');
       mimeType: 'application/json',
       buffer: Buffer.from(backup),
     });
-    await phone.getByRole('button', { name: /Race day/ }).click();
+    await phone.locator('#board').getByRole('button', { name: /Race day/ }).first().click();
     await phone.locator('[data-tab="shoot"]').click();
     assert.equal(
       await phone.locator('.item').first().locator('textarea').inputValue(),

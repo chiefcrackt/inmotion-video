@@ -21,7 +21,7 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
         await page.locator('[data-g=bg][data-v=' + value + ']').count(),
         1,
       );
-    assert.equal(await page.locator('#outfit option').count(), 4);
+    assert.equal(await page.locator('#outfit option').count(), 5);
     const ids = await page
       .locator('#timBackgroundChoice option')
       .evaluateAll((opts) => opts.map((o) => o.value).filter(Boolean));
@@ -223,7 +223,7 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
     });
     await review.close();
     console.log(
-      'PASS: six backgrounds × three themes × two formats, three original scenes, four outfits, reload, original toggle, mobile, five-second recorded video with theme pixels.',
+      'PASS: six backgrounds × three themes × two formats, three original scenes, five outfits, reload, original toggle, mobile, five-second recorded video with theme pixels.',
     );
   } finally {
     await browser.close();

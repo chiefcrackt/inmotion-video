@@ -20,15 +20,16 @@ import { ICON_NAMES, iconSvg } from '../shared/icons.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-// The 17 tool pages that the homepage linked before this redesign.
-// Keeping them here stops a tool from being dropped by accident.
+// Every registered tool page. Keeping the list here stops a tool from being
+// dropped by accident; update it on purpose when a tool is added or retired.
 const EXPECTED_HREFS = [
-  'brand-assets/', 'goals-maker/',
-  'activity-studio/', 'asset-studio/', 'beat-bed/', 'before-after/', 'carousel-maker/',
-  'celebrate/', 'content-planner/', 'cover-maker/', 'downloads/', 'icon-pack/',
-  'idea-vault/', 'mile-marker/', 'motion-stats/', 'motion-studio/', 'product-spotlight/', 'promo-maker/',
-  'river-run/', 'shoot-planner/', 'sound-forge/', 'special-post/', 'start-line/',
-  'teleprompter/', 'text-motion/', 'tier-list/', 'title-maker/', 'video-framer/',
+  'activity-studio/', 'asset-studio/', 'beat-bed/', 'before-after/', 'brand-assets/',
+  'caption-maker/', 'carousel-maker/', 'celebrate/', 'clean-voice/', 'content-planner/',
+  'cover-maker/', 'downloads/', 'goals-maker/', 'icon-pack/', 'idea-vault/', 'mile-marker/',
+  'motion-stats/', 'motion-studio/', 'product-spotlight/', 'promo-maker/', 'river-run/',
+  'shoot-planner/', 'sound-forge/', 'special-post/', 'start-line/', 'stat-counter/',
+  'teleprompter/', 'text-motion/', 'tier-list/', 'title-maker/', 'transcribe-video/',
+  'video-framer/', 'weird-motion/',
 ];
 
 test('the registry contains exactly the existing tools, each with one canonical href', () => {
@@ -64,11 +65,11 @@ test('every tool belongs to at least one known workspace, and workspace ids reso
 
 test('the spec placements hold: Running Studio and Publishing Studio contents', () => {
   const ids = (ws) => toolsInWorkspace(ws).map((t) => t.id).sort();
-  assert.deepEqual(ids('running'), ['activity-studio', 'mile-marker', 'river-run', 'start-line']);
-  assert.deepEqual(ids('audio'), ['beat-bed', 'sound-forge']);
-  assert.deepEqual(ids('publishing'), ['before-after', 'brand-assets', 'carousel-maker', 'content-planner', 'cover-maker', 'goals-maker', 'promo-maker', 'tier-list']);
-  assert.deepEqual(ids('library'), ['asset-studio', 'brand-assets', 'downloads', 'icon-pack', 'motion-stats', 'product-spotlight']);
-  assert.deepEqual(ids('plan'), ['content-planner', 'idea-vault', 'shoot-planner', 'teleprompter']);
+  assert.deepEqual(ids('running'), ['activity-studio', 'mile-marker', 'river-run', 'start-line', 'stat-counter']);
+  assert.deepEqual(ids('audio'), ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video']);
+  assert.deepEqual(ids('publishing'), ['before-after', 'brand-assets', 'carousel-maker', 'content-planner', 'cover-maker', 'goals-maker', 'promo-maker', 'tier-list', 'transcribe-video']);
+  assert.deepEqual(ids('library'), ['asset-studio', 'brand-assets', 'downloads', 'icon-pack', 'motion-stats', 'product-spotlight', 'weird-motion']);
+  assert.deepEqual(ids('plan'), ['content-planner', 'idea-vault', 'shoot-planner', 'teleprompter', 'transcribe-video']);
 });
 
 test('counts are derived from the registry, and every tool appears in some workspace', () => {
@@ -87,14 +88,14 @@ test('Content Planner is the flagged tool, and Quick Launch covers the spec shor
 test('search matches names, keywords and workspace names, case-insensitively', () => {
   assert.deepEqual(searchTools('capcut').map((t) => t.id).sort(), ['downloads', 'video-framer']);
   assert.deepEqual(searchTools('STRAVA').map((t) => t.id), ['activity-studio']);
-  assert.deepEqual(searchTools('running studio').map((t) => t.id).sort(), ['activity-studio', 'mile-marker', 'river-run', 'start-line']);
+  assert.deepEqual(searchTools('running studio').map((t) => t.id).sort(), ['activity-studio', 'mile-marker', 'river-run', 'start-line', 'stat-counter']);
   assert.equal(searchTools('').length, TOOLS.length, 'empty query shows everything');
   assert.equal(searchTools('zzqqx').length, 0, 'no match is an empty result');
 });
 
 test('search can be limited to one workspace', () => {
   const hits = searchTools('', { workspace: 'audio' }).map((t) => t.id).sort();
-  assert.deepEqual(hits, ['beat-bed', 'sound-forge']);
+  assert.deepEqual(hits, ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video']);
   assert.deepEqual(searchTools('sound forge', { workspace: 'publishing' }), []);
 });
 
