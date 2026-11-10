@@ -113,6 +113,15 @@ export const TOOLS = Object.freeze([
     icon: 'title',
   },
   {
+    id: 'goals-maker',
+    name: 'Goals Maker',
+    href: 'goals-maker/',
+    description: 'A goals graphic with 5 to 7 goals: checklist, numbered or route layouts, optional photo or logo per goal, a runner, and an animated video with sound. 9:16, 1:1 or 16:9; navy, paper or green screen.',
+    workspaces: ['graphics', 'publishing'],
+    keywords: ['goals', 'goal', 'new year', 'annual', 'plan', 'checklist', 'roadmap', 'year', 'graphic', 'logo', 'race', 'animation'],
+    icon: 'title',
+  },
+  {
     id: 'caption-maker',
     name: 'Caption Maker',
     href: 'caption-maker/',

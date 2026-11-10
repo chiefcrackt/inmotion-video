@@ -23,7 +23,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 // The 17 tool pages that the homepage linked before this redesign.
 // Keeping them here stops a tool from being dropped by accident.
 const EXPECTED_HREFS = [
-  'brand-assets/',
+  'brand-assets/', 'goals-maker/',
   'activity-studio/', 'asset-studio/', 'beat-bed/', 'before-after/', 'carousel-maker/',
   'celebrate/', 'content-planner/', 'cover-maker/', 'downloads/', 'icon-pack/',
   'idea-vault/', 'mile-marker/', 'motion-stats/', 'motion-studio/', 'product-spotlight/', 'promo-maker/',
@@ -66,7 +66,7 @@ test('the spec placements hold: Running Studio and Publishing Studio contents', 
   const ids = (ws) => toolsInWorkspace(ws).map((t) => t.id).sort();
   assert.deepEqual(ids('running'), ['activity-studio', 'mile-marker', 'river-run', 'start-line']);
   assert.deepEqual(ids('audio'), ['beat-bed', 'sound-forge']);
-  assert.deepEqual(ids('publishing'), ['before-after', 'brand-assets', 'carousel-maker', 'content-planner', 'cover-maker', 'promo-maker', 'tier-list']);
+  assert.deepEqual(ids('publishing'), ['before-after', 'brand-assets', 'carousel-maker', 'content-planner', 'cover-maker', 'goals-maker', 'promo-maker', 'tier-list']);
   assert.deepEqual(ids('library'), ['asset-studio', 'brand-assets', 'downloads', 'icon-pack', 'motion-stats', 'product-spotlight']);
   assert.deepEqual(ids('plan'), ['content-planner', 'idea-vault', 'shoot-planner', 'teleprompter']);
 });
