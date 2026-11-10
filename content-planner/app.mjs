@@ -86,8 +86,11 @@ function save() {
     }
     say('Saved in this browser.');
     return true;
-  } catch {
-    say('Could not save. Export a backup now to keep your changes.');
+  } catch (e) {
+    say(
+      (e?.message ? e.message + ' ' : 'Could not save. ') +
+        'Export a backup now to keep your changes.',
+    );
     return false;
   }
 }
@@ -692,7 +695,13 @@ function refreshFromStorage() {
   const prior = current;
   const selected = current?.id;
   const priorRevision = current?.revision;
-  const rows = readProjects();
+  let rows;
+  try {
+    rows = readProjects();
+  } catch (e) {
+    say(e.message);
+    return;
+  }
   projects = rows;
   lastSaved = localStorage.getItem(KEY);
   if (selected) {
