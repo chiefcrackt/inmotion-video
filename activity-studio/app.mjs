@@ -1,9 +1,10 @@
-import { render, presets, templates, metric } from './render.mjs?v=recap-1';
+import { render, presets, templates, metric } from './render.mjs?v=recap-2';
 import {
   recapInputs,
   recapDefaults,
+  photoGeometry,
   RECAP_STATS,
-} from './recap.mjs?v=recap-1';
+} from './recap.mjs?v=recap-2';
 import { duration, atTime } from './model.mjs';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas');
@@ -37,6 +38,9 @@ const numeric = [
   'introHold',
   'brandSize',
   'recapDim',
+  'recapPhotoZoom',
+  'recapPhotoX',
+  'recapPhotoY',
 ];
 const checks = [
   'transparent',
@@ -50,6 +54,7 @@ const checks = [
   'recapElev',
   'recapSplits',
   'recapShowHandle',
+  'recapDragPhoto',
 ];
 const settings = {
   preset: 'cyber',
@@ -99,6 +104,11 @@ const settings = {
   recapSplits: true,
   recapBg: 'grid',
   recapDim: 55,
+  recapPhotoFit: 'fill',
+  recapPhotoZoom: 1,
+  recapPhotoX: 0,
+  recapPhotoY: 0,
+  recapDragPhoto: true,
   recapSpecks: true,
   recapHandle: 'TRISTAN.INMOTION',
   recapShowHandle: true,
@@ -117,8 +127,21 @@ function syncRecap() {
   $('recapBox').hidden = settings.template !== 'recap';
   for (const el of document.querySelectorAll('[data-stat]'))
     el.checked = settings.recapStats.includes(el.dataset.stat);
-  $('recapDimRow').hidden = settings.recapBg !== 'photo';
-  $('recapPhotoDrop').hidden = settings.recapBg !== 'photo';
+  $('recapPhotoBox').hidden = settings.recapBg !== 'photo';
+}
+const movingPhoto = () =>
+  settings.template === 'recap' &&
+  settings.recapBg === 'photo' &&
+  !!recapInputs.photo &&
+  settings.recapDragPhoto !== false;
+function setPhotoPosition(x, y) {
+  for (const [k, v] of [
+    ['recapPhotoX', x],
+    ['recapPhotoY', y],
+  ]) {
+    settings[k] = Math.round(Math.max(-100, Math.min(100, v)));
+    $(k).value = settings[k];
+  }
 }
 function say(id, message, error = false) {
   $(id).textContent = message;
@@ -444,6 +467,21 @@ let drag = null;
 canvas.addEventListener('pointerdown', (e) => {
   if (!activity || recording) return;
   const r = canvas.getBoundingClientRect();
+  if (movingPhoto()) {
+    const g = photoGeometry(recapInputs.photo, canvas.width, canvas.height, settings);
+    drag = {
+      photo: true,
+      px: e.clientX,
+      py: e.clientY,
+      x: settings.recapPhotoX,
+      y: settings.recapPhotoY,
+      // screen pixels → slider units
+      kx: g.rangeX ? (canvas.width / r.width / g.rangeX) * 100 : 0,
+      ky: g.rangeY ? (canvas.height / r.height / g.rangeY) * 100 : 0,
+    };
+    canvas.setPointerCapture(e.pointerId);
+    return;
+  }
   drag = {
     px: e.clientX,
     py: e.clientY,
@@ -456,6 +494,14 @@ canvas.addEventListener('pointerdown', (e) => {
 });
 canvas.addEventListener('pointermove', (e) => {
   if (!drag) return;
+  if (drag.photo) {
+    setPhotoPosition(
+      drag.x + (e.clientX - drag.px) * drag.kx,
+      drag.y + (e.clientY - drag.py) * drag.ky,
+    );
+    paint();
+    return;
+  }
   for (const [k, v] of [
     ['x', drag.x + ((e.clientX - drag.px) / drag.w) * 100],
     ['y', drag.y + ((e.clientY - drag.py) / drag.h) * 100],
@@ -715,6 +761,9 @@ $('recapPhoto').addEventListener('change', async (e) => {
   try {
     await img.decode();
     recapInputs.photo = img;
+    settings.recapPhotoZoom = 1;
+    $('recapPhotoZoom').value = 1;
+    setPhotoPosition(0, 0);
     settings.recapBg = 'photo';
     $('recapBg').value = 'photo';
     syncRecap();
@@ -725,6 +774,10 @@ $('recapPhoto').addEventListener('change', async (e) => {
   }
   paint();
 });
+$('recapPhotoCenter').onclick = () => {
+  setPhotoPosition(0, 0);
+  paint();
+};
 document.fonts.ready.then(() => paint());
 syncMotion();
 paint();

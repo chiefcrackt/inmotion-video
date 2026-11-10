@@ -9,6 +9,7 @@ import {
   recapDefaults,
   recapStats,
   recapInputs,
+  photoGeometry,
 } from '../recap.mjs';
 
 // 5 km at a steady 3 m/s (one record every 10 s), climbing 1 m per record.
@@ -95,4 +96,18 @@ test('layout stays on the canvas and clear of the 9:16 app zones', () => {
       if (opts.route && W === 1080 && H === 1920) assert.ok(L.route.h > 300);
     }
   }
+});
+
+test('photo position: fill slides across the overflow, whole fits inside', () => {
+  const im = { width: 1600, height: 900 };
+  const at = (o) => photoGeometry(im, 1080, 1920, { recapPhotoFit: 'fill', recapPhotoZoom: 1, ...o });
+  const mid = at({});
+  assert.ok(Math.abs(mid.h - 1920) < 0.01);
+  assert.ok(Math.abs(mid.x - (1080 - mid.w) / 2) < 0.01);
+  assert.ok(Math.abs(at({ recapPhotoX: 100 }).x) < 0.01); // left edge on the card's left edge
+  const right = at({ recapPhotoX: -100 });
+  assert.ok(Math.abs(right.x + right.w - 1080) < 0.01); // right edge on the card's right edge
+  assert.ok(at({ recapPhotoZoom: 2 }).w > mid.w * 1.99);
+  const whole = photoGeometry(im, 1080, 1920, { recapPhotoFit: 'whole', recapPhotoZoom: 1 });
+  assert.ok(Math.abs(whole.w - 1080) < 0.01 && whole.h < 1920);
 });

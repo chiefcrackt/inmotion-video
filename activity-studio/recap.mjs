@@ -17,6 +17,51 @@ export const RECAP_LABELS = {
   temp: 'TEMP',
 };
 const TAU = Math.PI * 2;
+
+// Where the background photo sits. Fill covers the card (cropping the overflow);
+// Whole photo fits it inside. Zoom 1–3. Move X/Y (−100…100) slides the photo the
+// way you drag it: +X moves it right, +Y moves it down.
+export function photoGeometry(im, W, H, settings) {
+  const iw = im.naturalWidth || im.width,
+    ih = im.naturalHeight || im.height,
+    fitWhole = settings.recapPhotoFit === 'whole',
+    base = fitWhole ? Math.min(W / iw, H / ih) : Math.max(W / iw, H / ih),
+    z = Math.max(1, Math.min(3, Number(settings.recapPhotoZoom) || 1)),
+    dw = iw * base * z,
+    dh = ih * base * z,
+    // Fill always covers the card, so it only travels as far as it overflows
+    // (zoom in for more room). Whole photo can travel a little past its fit,
+    // since the blurred copy fills any gap.
+    rangeX = fitWhole ? Math.max(Math.abs(dw - W) / 2, W * 0.15) : Math.max(0, dw - W) / 2,
+    rangeY = fitWhole ? Math.max(Math.abs(dh - H) / 2, H * 0.15) : Math.max(0, dh - H) / 2,
+    mx = Math.max(-100, Math.min(100, Number(settings.recapPhotoX) || 0)),
+    my = Math.max(-100, Math.min(100, Number(settings.recapPhotoY) || 0));
+  return {
+    x: (W - dw) / 2 + (mx / 100) * rangeX,
+    y: (H - dh) / 2 + (my / 100) * rangeY,
+    w: dw,
+    h: dh,
+    rangeX,
+    rangeY,
+    whole: fitWhole,
+  };
+}
+// A soft, blurred copy that fills the card behind a whole photo. Drawn small and
+// scaled up, so it works in every browser (Safari's canvas filter support varies).
+const blurCache = new WeakMap();
+function blurredCover(im) {
+  let c = blurCache.get(im);
+  if (c) return c;
+  const iw = im.naturalWidth || im.width,
+    ih = im.naturalHeight || im.height,
+    s = 48 / Math.max(iw, ih);
+  c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(iw * s));
+  c.height = Math.max(1, Math.round(ih * s));
+  c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+  blurCache.set(im, c);
+  return c;
+}
 const COUNTS = ['distance', 'ascent', 'moving'];
 
 export function rgba(hex, a) {
@@ -241,10 +286,18 @@ export function makeRecap(ctx, W, H, settings, family) {
     ctx.fillRect(0, 0, W, H);
     const im = settings.recapBg === 'photo' ? recapInputs.photo : null;
     if (im) {
-      const iw = im.naturalWidth || im.width,
-        ih = im.naturalHeight || im.height,
-        cover = Math.max(W / iw, H / ih);
-      ctx.drawImage(im, (W - iw * cover) / 2, (H - ih * cover) / 2, iw * cover, ih * cover);
+      const g = photoGeometry(im, W, H, settings);
+      if (g.whole) {
+        const b = blurredCover(im),
+          cover = Math.max(W / b.width, H / b.height) * 1.1;
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.globalAlpha = 0.75;
+        ctx.drawImage(b, (W - b.width * cover) / 2, (H - b.height * cover) / 2, b.width * cover, b.height * cover);
+        ctx.restore();
+      }
+      ctx.drawImage(im, g.x, g.y, g.w, g.h);
       ctx.fillStyle = rgba(C.bg, (Number(settings.recapDim) || 0) / 100);
       ctx.fillRect(0, 0, W, H);
     } else {

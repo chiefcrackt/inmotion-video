@@ -13,7 +13,7 @@
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="studio.css?v=recap-1" /><script
       type="module"
-      src="app.mjs?v=recap-1"
+      src="app.mjs?v=recap-2"
     ></script
     ><link rel="stylesheet" href="../shared/fonts.css" />
     <link
@@ -159,29 +159,81 @@
                   ></div
                 >
                 <h3>Background</h3>
-                <div class="pair"
-                  ><label
-                    >Behind the card<select id="recapBg"
-                      ><option value="grid">Navy grid</option
-                      ><option value="photo">My photo</option></select
+                <label
+                  >Behind the card<select id="recapBg"
+                    ><option value="grid">Navy grid</option
+                    ><option value="photo">My photo</option></select
+                  ></label
+                >
+                <div id="recapPhotoBox" hidden>
+                  <label class="drop" id="recapPhotoDrop"
+                    >Choose a run photo<input
+                      id="recapPhoto"
+                      type="file"
+                      accept="image/*" /><small
+                      >Stays on this device · not saved in presets</small
                     ></label
-                  ><label id="recapDimRow" hidden
+                  >
+                  <div class="pair"
+                    ><label
+                      >Photo fit<select id="recapPhotoFit"
+                        ><option value="fill">Fill the card (crops)</option
+                        ><option value="whole"
+                          >Whole photo, blurred behind</option
+                        ></select
+                      ></label
+                    ><label
+                      >Zoom<input
+                        id="recapPhotoZoom"
+                        type="range"
+                        min="1"
+                        max="3"
+                        step="0.05"
+                        value="1" /></label
+                  ></div>
+                  <div class="pair"
+                    ><label
+                      >Move left / right<input
+                        id="recapPhotoX"
+                        type="range"
+                        min="-100"
+                        max="100"
+                        step="1"
+                        value="0" /></label
+                    ><label
+                      >Move up / down<input
+                        id="recapPhotoY"
+                        type="range"
+                        min="-100"
+                        max="100"
+                        step="1"
+                        value="0" /></label
+                  ></div>
+                  <div class="pair"
+                    ><label class="toggle"
+                      ><input id="recapDragPhoto" type="checkbox" checked /> Drag
+                      the preview to move the photo</label
+                    ><button id="recapPhotoCenter" type="button"
+                      >Center photo</button
+                    ></div
+                  >
+                  <label
                     >Photo dim<input
                       id="recapDim"
                       type="range"
                       min="0"
                       max="90"
                       step="5"
-                      value="55" /></label
-                ></div>
-                <label class="drop" id="recapPhotoDrop" hidden
-                  >Choose a run photo<input
-                    id="recapPhoto"
-                    type="file"
-                    accept="image/*" /><small
-                    >Stays on this device · not saved in presets</small
-                  ></label
-                >
+                      value="55"
+                  /></label>
+                  <p class="note"
+                    >A landscape photo on a 9:16 card: Fill crops the sides, so
+                    slide it to the part you want (zoom in to move it up or
+                    down too). Whole photo shows all of it with a blurred copy
+                    filling the gaps. Turn off dragging to
+                    drag the card instead.</p
+                  >
+                </div>
                 <label class="toggle"
                   ><input id="recapSpecks" type="checkbox" checked /> Floating
                   specks</label
