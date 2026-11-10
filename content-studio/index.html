@@ -10,10 +10,12 @@
     <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
     <link rel="stylesheet" href="../shared/fonts.css" />
     <link rel="stylesheet" href="../shared/studio-bar.css" />
-    <link rel="stylesheet" href="studio.css" />
+    <!-- Bump ?v= when these files change: phones cache them for up to 10 minutes,
+         and an old copy mixed with a new page breaks the layout and sync. -->
+    <link rel="stylesheet" href="studio.css?v=2026-11-10b" />
     <script type="module" src="../shared/studio-bar.mjs"></script>
-    <script type="module" src="supabase-sync.mjs"></script>
-    <script type="module" src="app.mjs"></script>
+    <script type="module" src="supabase-sync.mjs?v=2026-11-10b"></script>
+    <script type="module" src="app.mjs?v=2026-11-10b"></script>
   </head>
   <body>
     <tim-studio-bar></tim-studio-bar>
