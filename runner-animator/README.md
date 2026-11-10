@@ -33,7 +33,7 @@ scenes, preview/recording guards, video downloads, original-format project round
 trips, persistence, mobile and no-JavaScript fallback. Also run `npm test`,
 `npm run test:projects:browser`, `npm run test:river:scenes` and `npm run build`.
 
-Real iPhone/iPad sharing and Google Drive exports in the host need manual checks
+Real iPhone/iPad sharing needs manual checks
 on the hosted origin before dashboard replacements. The preview does not change
 the existing tools' codec or browser support.
 

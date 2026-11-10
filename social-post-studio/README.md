@@ -36,7 +36,7 @@ busy guards, photo retention, legacy drafts, mobile and no-JavaScript fallback.
 Also run `npm test`, `npm run test:carousel:editor`, `npm run test:carousel:ux`
 and `npm run build`. Browser artifacts are written to an OS temporary directory.
 
-Real iPhone/iPad sharing and supported tools' Google Drive exports require manual
+Real iPhone/iPad sharing and require manual
 checks on the hosted origin before replacing dashboard entries. Existing native
 codec support is retained.
 

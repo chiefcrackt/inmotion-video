@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { reconcileLinked } from '../shared/pipeline-link.mjs';
+import { baseOf } from '../idea-vault/vault-core.mjs';
 
 const source = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 // Run the production event handlers with controlled browser/network events.
@@ -12,20 +13,13 @@ function between(text, start, end) {
   assert.ok(from >= 0 && to > from, 'Production handler exists');
   return text.slice(from, to);
 }
-test('dragging a linked project advances its stage after a newer notes-only idea edit', () => {
-  const project = { id: 'idea:a', stage: 'Outline', publishDate: '', updated: 1000 };
-  const idea = { id: 'a', status: 'Developing', dueDate: '', updatedAt: new Date(2000).toISOString() };
-  const col = {};
-  const context = {
-    col, projects: [project], stage: 'Film', current: null,
-    save: () => reconcileLinked([project], [idea]), renderBoard() {},
+function storage(initial = {}) {
+  const data = new Map(Object.entries(initial));
+  return {
+    getItem: (key) => data.get(key) ?? null,
+    setItem: (key, value) => data.set(key, value),
   };
-  vm.createContext(context);
-  vm.runInContext(between(source('content-planner/app.mjs'), '    col.ondrop =', '\n    for (const p of list)'), context);
-  col.ondrop({ preventDefault() {}, dataTransfer: { getData: () => project.id } });
-  assert.equal(project.stage, 'Film');
-  assert.equal(idea.status, 'Ready to Film');
-});
+}
 
 function recordingHarness({ startFails = false, constructFails = false } = {}) {
   const elements = new Map(), queued = new Map(), listeners = {}, recorders = [];
@@ -92,33 +86,3 @@ test('constructor, startup and runtime recorder failures release resources and u
   }
 });
 
-test('Content Studio cloud sync tells the open planner to reload merged plans', () => {
-  const events = [];
-  const frame = (editor) => ({
-    editor,
-    contentWindow: { dispatchEvent: (e) => events.push(editor + ':' + e.type) },
-  });
-  const frames = [frame('ideas'), frame('planner')];
-  const document = {
-    querySelectorAll: (selector) =>
-      frames.filter((f) => selector.includes(`data-editor="${f.editor}"`)),
-  };
-  const context = { document, Event: class { constructor(type) { this.type = type; } } };
-  vm.createContext(context);
-  vm.runInContext(
-    between(source('content-studio/supabase-sync.mjs'), 'function notifyPlanner(', '\nfunction validate(') +
-      '\nnotifyPlanner();',
-    context,
-  );
-  assert.deepEqual(events, ['planner:tim-projects-merged']);
-  assert.match(
-    source('content-studio/supabase-sync.mjs'),
-    /localStorage\.setItem\(key, JSON\.stringify\(merged\)\);\s*if \(dataset === 'projects'\) notifyPlanner\(\);/,
-    'The notice follows the merged planner write',
-  );
-  assert.match(
-    source('content-planner/app.mjs'),
-    /e\.key === KEY && e\.newValue !== lastSaved/,
-    'A merge the planner already reloaded is not reported as another tab',
-  );
-});

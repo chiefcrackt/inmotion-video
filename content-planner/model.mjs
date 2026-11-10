@@ -15,14 +15,11 @@ export function newProject(title = 'Untitled video') {
     stage: 'Idea',
     outline: '',
     outlineUrl: '',
-    footageUrl: '',
-    thumbnailUrl: '',
     publishedUrl: '',
     filmDate: '',
     publishDate: '',
     items: [],
     attachments: [],
-    driveAssets: [],
     deleted: false,
     revision: '',
     clock: {},
@@ -98,8 +95,6 @@ export function validateBackup(doc) {
       'title',
       'outline',
       'outlineUrl',
-      'footageUrl',
-      'thumbnailUrl',
       'publishedUrl',
       'filmDate',
       'publishDate',
@@ -108,6 +103,19 @@ export function validateBackup(doc) {
         throw Error('Invalid project field.');
       out[key] = p[key];
     }
+    // Fields this page no longer shows (footage and thumbnail links, Google Drive
+    // links from before November 2026) are kept when present so a save never
+    // erases them.
+    for (const key of ['footageUrl', 'thumbnailUrl'])
+      if (typeof p[key] === 'string' && p[key] && p[key].length <= 100000)
+        out[key] = p[key];
+    if (Array.isArray(p.driveAssets) && p.driveAssets.length)
+      out.driveAssets = p.driveAssets
+        .filter((a) => a && typeof a.name === 'string' && typeof a.url === 'string')
+        .slice(0, 500)
+        .map((a) => ({ name: a.name.slice(0, 500), url: a.url.slice(0, 2000) }));
+    if (p.driveFolder && typeof p.driveFolder.id === 'string')
+      out.driveFolder = { id: p.driveFolder.id.slice(0, 200) };
     const itemIds = new Set();
     out.items = p.items.map((i) => {
       if (
@@ -147,33 +155,6 @@ export function validateBackup(doc) {
       ),
     );
     if (typeof p.conflictOf === 'string') out.conflictOf = p.conflictOf;
-    if (
-      p.driveFolder &&
-      typeof p.driveFolder.id === 'string' &&
-      typeof p.driveFolder.account === 'string'
-    )
-      out.driveFolder = {
-        id: p.driveFolder.id,
-        account: p.driveFolder.account,
-        name: String(p.driveFolder.name || ''),
-      };
-    out.driveAssets = (Array.isArray(p.driveAssets) ? p.driveAssets : [])
-      .filter(
-        (a) =>
-          a &&
-          typeof a.id === 'string' &&
-          typeof a.name === 'string' &&
-          typeof a.account === 'string',
-      )
-      .map((a) => ({
-        id: a.id,
-        name: a.name,
-        account: a.account,
-        url: safeUrl(a.url),
-        mimeType: String(a.mimeType || ''),
-        tool: String(a.tool || ''),
-        updated: Number(a.updated) || 0,
-      }));
     return out;
   });
 }

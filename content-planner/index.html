@@ -1,135 +1,31 @@
 <!doctype html>
-<html lang="en"
-  ><head
-    ><meta charset="utf-8" /><meta
-      name="viewport"
-      content="width=device-width,initial-scale=1" /><meta name="theme-color" content="#0E1A2E" /><title
-      >Content Planner · T.IM Studio</title
-    ><link rel="stylesheet" href="../shared/fonts.css" /><link
-      rel="stylesheet"
-      href="planner.css" /><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head
-  ><body
-    ><tim-studio-bar></tim-studio-bar    ><main
-      ><p class="eyebrow">FROM FIRST IDEA TO FINAL UPLOAD</p
-      ><h1>Content Planner</h1
-      ><p class="muted"
-        >One home for every video, from outline to shoot to final assets.</p
-      ><div class="toolbar"
-        ><button id="new">+ New video</button
-        ><label>Find a video<input id="search" type="search" /></label
-        ><button id="export">Export backup</button
-        ><label
-          >Import backup<input
-            id="import"
-            type="file"
-            accept=".json" /></label></div
-      ><p id="planner-save-hint" class="muted"
-        >Plans save on this device. Use Workspace cloud sync in Content Studio
-        to sync across devices. Scheduled dates are for tracking.</p
-      ><p id="status" role="status" aria-live="polite"></p
-      ><div class="toolbar"
-        ><label
-          >Start from Idea Vault<select id="ideas"
-            ><option value="">Choose an idea in this browser</option></select
-          ></label
-        ><button id="from-idea">Create from idea</button
-        ><a href="../idea-vault/">Open Idea Vault</a></div
-      ><section id="next-up" aria-labelledby="next-up-heading"><h2 id="next-up-heading">Next up</h2><ul id="next-up-list"></ul></section><div id="board" class="board"></div
-      ><section id="project" hidden
-        ><div class="toolbar"
-          ><h2 id="project-heading">Video project</h2
-          ><button id="close">Close project</button></div
-        ><nav class="toolbar" aria-label="Project views"
-          ><button data-tab="details">Project & outline</button
-          ><button data-tab="shoot">Shoot</button
-          ><button data-tab="assets">Assets & tools</button></nav
-        ><div id="details"
-          ><div class="grid"
-            ><label>Video title<input id="title" maxlength="160" /></label
-            ><label>Stage<select id="stage"></select></label
-            ><label>Film date<input id="filmDate" type="date" /></label
-            ><label
-              >Publish date<input id="publishDate" type="date" /></label></div
-          ><h3>Outline & links</h3><label
-            >Outline<textarea
-              id="outline"
-              rows="8"
-              placeholder="One talking point per line. Use B-roll:, Gear: and Location: for other checklist items."
-            ></textarea></label
-          ><label>Outline link<input id="outlineUrl" type="url" /></label
-          ><label
-            >Published video link<input id="publishedUrl" type="url" /></label
-          ><button id="delete">Delete video</button></div
-        ><div id="shoot" hidden
-          ><h3>Shoot Planner</h3
-          ><p class="muted"
-            >Arrange shots in filming order. Adding from the outline preserves
-            existing items and notes.</p
-          ><div class="toolbar"><button id="generate">Add from outline</button><button id="share-brief" type="button">Share shoot brief</button></div
-          ><form id="add-item" class="toolbar"
-            ><label
-              >Type<select id="item-kind"
-                ><option>Talking point</option
-                ><option>B-roll</option
-                ><option>Gear</option
-                ><option>Location</option></select
-              ></label
-            ><label class="grow"
-              >Checklist item<input
-                id="item-text"
-                required
-                maxlength="500" /></label
-            ><button>Add item</button></form
-          ><div class="toolbar"
-            ><label
-              >Show<select id="filter"
-                ><option value="all">All items</option
-                ><option value="remaining">Remaining items</option
-                ><option>Talking point</option
-                ><option>B-roll</option
-                ><option>Gear</option
-                ><option>Location</option></select
-              ></label
-            ><button id="film">Enter filming mode</button
-            ><p id="progress"></p></div
-          ><div id="items"></div></div
-        ><div id="assets" hidden
-          ><div id="earlier-drive" hidden
-            ><h3>Earlier Drive files</h3
-            ><div id="cloud-assets"></div></div
-          ><div class="grid"
-            ><label
-              >Footage folder link<input id="footageUrl" type="url" /></label
-            ><label
-              >Thumbnail link<input id="thumbnailUrl" type="url" /></label></div
-          ><div id="asset-links" class="toolbar"></div
-          ><h3>Create for this video</h3
-          ><p class="muted"
-            >Open a tool here. Saving a snapshot in a supported tool attaches it
-            to this video.</p
-          ><div id="tools" class="toolbar"></div><h3>Saved tool work</h3
-          ><label
-            >Attach an existing snapshot<select id="snapshots"></select></label
-          ><button id="attach">Attach selected</button
-          ><div id="attachments"></div></div></section></main
-    ><dialog id="filming"
-      ><div class="toolbar"
-        ><p class="eyebrow">FILMING MODE</p
-        ><button id="exit-film">Exit</button></div
-      ><p id="film-count"></p><p id="film-kind" class="muted"></p
-      ><h2 id="film-text"></h2
-      ><label
-        >Take / editing notes<textarea
-          id="film-notes"
-          rows="3"
-        ></textarea></label
-      ><div class="toolbar"
-        ><button id="previous">← Previous</button
-        ><button id="next">Next →</button></div
-      ><div class="toolbar"
-        ><button data-result="captured">Captured ✓</button
-        ><button data-result="retake">Retake</button
-        ><button data-result="skipped">Skip</button></div
-      ><p id="film-result" role="status"></p></dialog
-    ><script type="module" src="app.mjs"></script></body
-></html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#0e1a2e" />
+    <title>Content Planner · T.IM Studio</title>
+    <link rel="icon" href="../favicon.svg" />
+    <link rel="stylesheet" href="../shared/fonts.css" />
+    <link rel="stylesheet" href="../shared/studio-bar.css" />
+    <meta http-equiv="refresh" content="0; url=../content-studio/" />
+    <script>
+      (() => {
+        // Keep the query and any video id, so old links still open the right video.
+        const target = new URL('../content-studio/', location.href);
+        target.search = location.search;
+        const id = location.hash.slice(1);
+        if (id) target.searchParams.set('videoProject', decodeURIComponent(id));
+        else target.hash = location.hash;
+        location.replace(target.href);
+      })();
+    </script>
+    <script type="module" src="../shared/studio-bar.mjs"></script>
+  </head>
+  <body>
+    <tim-studio-bar></tim-studio-bar>
+    <main style="padding:16px;font:16px/1.4 Arial,sans-serif;color:#f6f4ef;background:#0e1a2e;min-height:60vh">
+      <p>Content Planner now lives in <a href="../content-studio/" style="color:#e8c96a">Content Studio</a>.</p>
+    </main>
+  </body>
+</html>

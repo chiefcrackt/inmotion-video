@@ -43,3 +43,19 @@ test('only web URLs are opened as external assets', () => {
     'https://example.com/footage',
   );
 });
+
+test('links the page no longer shows are kept, so a save never erases them', () => {
+  const project = {
+    id: 'p1', stage: 'Idea', title: 'T', outline: '', outlineUrl: '', publishedUrl: '',
+    filmDate: '', publishDate: '', items: [], attachments: [],
+    footageUrl: 'https://example.com/footage', thumbnailUrl: 'https://example.com/thumb',
+    driveFolder: { id: 'folder1' }, driveAssets: [{ name: 'cut.mp4', url: 'https://drive.google.com/x' }],
+  };
+  const [out] = validateBackup({ version: 1, projects: [project] });
+  assert.equal(out.footageUrl, project.footageUrl);
+  assert.equal(out.thumbnailUrl, project.thumbnailUrl);
+  assert.deepEqual(out.driveFolder, { id: 'folder1' });
+  assert.deepEqual(out.driveAssets, project.driveAssets);
+  const [bare] = validateBackup({ version: 1, projects: [{ ...project, footageUrl: '', thumbnailUrl: undefined, driveFolder: undefined, driveAssets: [] }] });
+  assert.equal('footageUrl' in bare || 'driveAssets' in bare || 'driveFolder' in bare, false);
+});

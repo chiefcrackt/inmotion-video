@@ -8,7 +8,7 @@ This first integration hosts the existing Special Post and Celebration editors
 in same-origin frames. Renderers, sound, export handlers, storage keys, tool IDs,
 project JSON formats and original URLs are unchanged. Each editor loads only
 when first selected, and stays mounted when switching modes. This preserves
-unsaved in-memory settings, generated recordings and queued Drive uploads.
+unsaved in-memory settings, generated recordings.
 Drafts and named projects remain separate by original tool; no data migration
 or cross-mode project conversion occurs. Reloading has the same persistence
 limits as the original editors (generated video blobs are not saved).
@@ -29,6 +29,6 @@ persistence, saved projects, narrow-screen layout and no-JavaScript fallback.
 The test writes screenshots and exports to a unique OS temporary directory.
 Also run `npm test`, `npm run build`, and `npm run test:projects:browser`.
 
-Real iPhone/iPad sharing and Google account consent/upload inside the combined
+Real iPhone/iPad sharing inside the combined
 page require manual checks on the hosted origin before replacing dashboard
 links. Automated Chromium tests cannot establish those platform behaviors.

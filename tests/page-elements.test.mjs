@@ -17,6 +17,6 @@ function missingIds(htmlPath, scriptPath) {
   return [...used].filter((id) => !declared.has(id)).sort();
 }
 
-test('every element Content Planner wires up exists on its page', () => {
-  assert.deepEqual(missingIds('content-planner/index.html', 'content-planner/app.mjs'), []);
+test('every element Content Studio wires up exists on its page', () => {
+  assert.deepEqual(missingIds('content-studio/index.html', 'content-studio/app.mjs'), []);
 });

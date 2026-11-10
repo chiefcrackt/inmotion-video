@@ -41,25 +41,6 @@ function show(message) {
   disconnect.disabled = running;
 }
 
-function editing() {
-  return [...document.querySelectorAll('#editors iframe')].some((frame) =>
-    frame.contentWindow.TimPlanningEditor?.isBusy(),
-  );
-}
-
-// The open planner treats a write it did not make as another tab's edit and
-// stops saving. Tell it the plans were merged so it reloads them instead.
-// Idea Vault already reloads on storage events, so it needs no signal.
-function notifyPlanner() {
-  for (const frame of document.querySelectorAll(
-    '#editors iframe[data-editor="planner"]',
-  )) {
-    try {
-      frame.contentWindow?.dispatchEvent(new Event('tim-projects-merged'));
-    } catch {}
-  }
-}
-
 function validate(dataset, payload) {
   if (dataset === 'projects')
     return { version: 1, projects: validateBackup(payload) };
@@ -81,7 +62,6 @@ async function syncDataset(sb, dataset, key) {
       .eq('dataset', dataset)
       .maybeSingle();
     if (error) throw error;
-    if (editing()) return false;
     const raw = localStorage.getItem(key);
     const local = validate(
       dataset,
@@ -122,12 +102,11 @@ async function syncDataset(sb, dataset, key) {
         if (!result.data.length) continue;
       }
     }
-    if (raw !== localStorage.getItem(key) || editing()) return false;
+    if (raw !== localStorage.getItem(key)) return false;
     if (stable(merged) !== stable(local)) {
       if (raw !== null)
         localStorage.setItem(key + ':before-supabase-sync', raw);
       localStorage.setItem(key, JSON.stringify(merged));
-      if (dataset === 'projects') notifyPlanner();
     }
     if (dataset === 'ideas')
       localStorage.setItem(baseKey, JSON.stringify(baseOf(merged.ideas)));
@@ -138,7 +117,6 @@ async function syncDataset(sb, dataset, key) {
 
 async function sync() {
   if (!user || running) return;
-  if (editing()) return show('Finish editing or filming to sync.');
   running = true;
   show('Syncing workspace…');
   let message;
@@ -160,6 +138,7 @@ async function sync() {
     const ideas = await syncDataset(sb, 'ideas', IDEA_KEY);
     const projects = ideas && (await syncDataset(sb, 'projects', PLANNER_KEY));
     connected = true;
+    window.dispatchEvent(new Event('tim-cloud-synced'));
     const ideaCount =
       JSON.parse(localStorage.getItem(IDEA_KEY) || '{}').ideas?.filter(
         (i) => i && !i.archived,
@@ -177,7 +156,7 @@ async function sync() {
           ' projects · ' +
           new Date().toLocaleTimeString()
         : 'No ideas or projects to sync. Sync first from the browser that has your workspace.'
-      : 'Local changes saved. Sync will retry shortly.';
+      : 'Sync will retry shortly.';
   } catch (error) {
     message = 'Cloud sync: ' + error.message;
   } finally {
@@ -220,6 +199,7 @@ client()
       user = session?.user;
       if (previous === user?.id && previous) return;
       connected = false;
+      if (!user) window.dispatchEvent(new Event('tim-cloud-signed-out'));
       show(
         user
           ? 'Connected to Supabase.'
@@ -229,7 +209,7 @@ client()
     });
   })
   .catch(() =>
-    show('Cloud connection unavailable. You can still work locally.'),
+    show('Cloud connection unavailable. Content Studio cannot load until it is back.'),
   );
 setInterval(() => {
   if (connected && !document.hidden && navigator.onLine) sync();
