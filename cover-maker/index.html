@@ -792,15 +792,15 @@
           <fieldset id="f_text">
             <legend>Text</legend>
             <div class="field"
-              ><label for="tag">Tag (small box)</label
-              ><input type="text" id="tag" maxlength="28"
+              ><label for="head">Headline</label
+              ><input type="text" id="head" maxlength="60"
             /></div>
             <div class="field"
               ><label for="subtitle">Subtitle (optional)</label
               ><input type="text" id="subtitle" maxlength="100" /></div
             ><div class="field"
-              ><label for="head">Headline</label
-              ><input type="text" id="head" maxlength="60"
+              ><label for="tag">Tag (small box)</label
+              ><input type="text" id="tag" maxlength="28"
             /></div>
             <div class="row" id="goldrow"
               ><span class="lab">Gold line</span>
@@ -2446,6 +2446,8 @@
           }
           if (!id) return;
           selected = id;
+          // Tapping an element shows its controls in Layout & layers.
+          $('f_layout').parentElement.open = true;
           layerUI();
           paint();
           if (element(id).locked) {
@@ -2532,12 +2534,17 @@
           elementUI();
           changed(true);
         });
+        // Text comes first: the headline is what changes on every cover. Photo
+        // follows; Overlays and Layout & layers sit below, folded until needed.
+        var controlsEl = document.querySelector('.controls');
+        controlsEl.prepend($('f_text'), $('f_hl'));
+        controlsEl.append($('f_layout'));
         // Collapsible sections retain the tool's existing fieldsets and visual language.
         document.querySelectorAll('.controls>fieldset').forEach(function (f) {
           var details = document.createElement('details'),
             summary = document.createElement('summary');
           summary.textContent = f.querySelector('legend').textContent;
-          details.open = f.id === 'f_layout' || f.id === 'f_photo';
+          details.open = f.id === 'f_text' || f.id === 'f_hl' || f.id === 'f_photo';
           f.before(details);
           details.append(summary, f);
         });
