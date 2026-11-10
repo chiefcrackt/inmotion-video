@@ -643,6 +643,7 @@
         makeKit,
         playEvents,
         renderBed,
+        loadStyleSamples,
       } from '../shared/sound/beat.mjs';
       import { encodeWav } from '../shared/sound/wav.mjs';
 
@@ -1083,7 +1084,7 @@
       function soundChanged(quiet) {
         persist();
         if (!quiet) renderControls();
-        if (live) live.kit.shape(S.shaping, S.style, S.bpm);
+        if (live && live.kit) live.kit.shape(S.shaping, S.style, S.bpm);
         draw();
       }
       $('bpm').oninput = function () {
@@ -1307,11 +1308,21 @@
             ? opts({ sections: null, seconds: (60 / S.bpm) * 8, intro: 'cold', ending: 'loop', layers: { drums: true, hats: true, bass: true, chords: true } })
             : opts(),
         );
-        var kit = makeKit(ac, ac.destination, { volume: 0.5, music: S.voiceRoom ? 0.5 : 1, seed: 7 });
+        // Styles with recorded samples (Acoustic Adventure) load them first; the
+        // synth guitar stands in if they can't load.
+        var token = {};
+        live = { ctx: ac, kit: null, raf: 0, short: !!short, token: token };
+        $('play').textContent = STYLES[S.style].samples ? '… Loading guitar' : '■ Stop';
+        loadStyleSamples(ac, S.style).then(function (samples) {
+          if (!live || live.token !== token) return;
+          start(samples);
+        });
+        function start(samples) {
+        var kit = makeKit(ac, ac.destination, { volume: 0.5, music: S.voiceRoom ? 0.5 : 1, seed: 7, samples: samples });
         kit.shape(S.shaping, S.style, S.bpm);
         var t0 = ac.currentTime + 0.12;
         playEvents(kit, t0, b);
-        live = { ctx: ac, kit: kit, raf: 0, short: !!short };
+        live.kit = kit;
         $('play').textContent = '■ Stop';
         var tick = function () {
           if (!live) return;
@@ -1322,6 +1333,7 @@
           else stop();
         };
         live.raf = requestAnimationFrame(tick);
+        }
       }
       $('play').onclick = function () {
         if (live) stop();

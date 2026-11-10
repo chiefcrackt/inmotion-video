@@ -2,7 +2,10 @@
 // bedEvents() is pure (a timeline of notes, easy to test); makeKit() and
 // playEvents() turn that timeline into Web Audio on a live or offline context.
 
+import { loadSampleSet, pickNote, midiToFreq } from './samples.mjs';
+
 // Each style has a default mood, a 'good for' hint and two or three grooves.
+// A style with `samples` plays recorded notes from shared/sound/samples/<name>/.
 export const STYLES = {
   cyber: {
     name: "Cyber",
@@ -179,6 +182,18 @@ export const STYLES = {
     use: "Travel vlogs, road trips, inspo montages",
     desc: "Banjo rolls, claps and a harmonica lead. A hopeful road-trip feel.",
     grooves: [["shuffle", "Shuffle"], ["ballad", "Ballad"]],
+  },
+  acoustic: {
+    name: "Acoustic Adventure",
+    bpm: 100,
+    swing: 0.08,
+    mood: 'adventure',
+    bassWave: 'triangle',
+    filter: 16000,
+    samples: 'steel-guitar',
+    use: "Adventure vlogs, trail days, travel",
+    desc: "A real recorded steel-string guitar, strummed or fingerpicked, with brushes and shaker.",
+    grooves: [["strum", "Travel strum"], ["finger", "Fingerstyle"], ["wide", "Wide open"]],
   },
 };
 
@@ -373,7 +388,7 @@ export function bedEvents(o = {}) {
       const lastOfBuild = useArr && sec.type === 'build' && k === sec.bars - 1;
       GEN[style]({ t0, b, beat, bar, bf, tones, P, push, pos, g: groove, lastOfBuild, first: k === 0 });
       // Country adventure: a strummed acoustic guitar on top of any style's chords.
-      if (mood === 'adventure' && P.chords)
+      if (mood === 'adventure' && P.chords && !def.samples)
         [0, 1.5, 2, 3.5].forEach((q, i) =>
           tones.slice(0, 3).forEach((f, j) => push(t0 + q * beat + j * 0.018, 'guitar', 'chords', { f: f * 2, v: i % 2 ? 0.022 : 0.03 })),
         );
@@ -756,6 +771,76 @@ const GEN = {
       }
     }
   },
+  acoustic({ t0, b, beat, bar, bf, tones, P, push, pos, g }) {
+    // Small, repeatable timing and level variation, so it doesn't sound quantized.
+    const rnd = (i) => {
+      const x = Math.sin(b * 12.9898 + i * 78.233) * 43758.5453;
+      return x - Math.floor(x);
+    };
+    let n = 0;
+    const human = (t, v) => [t + (rnd(n++) - 0.5) * 0.012, v * (0.9 + rnd(n++) * 0.2)];
+    // Six-string voicing: bass in the low-string range, fifth, octave, three chord tones above.
+    let low = bf;
+    while (low < 73) low *= 2;
+    while (low >= 147) low /= 2;
+    const upper = tones
+      .slice(0, 3)
+      .map((f) => {
+        while (f < low * 2.05) f *= 2;
+        while (f >= low * 4.1) f /= 2;
+        return f;
+      })
+      .sort((x, y) => x - y);
+    const strings = [low, low * 1.5, low * 2, ...upper];
+    const note = (t, s, v) => {
+      const [tt, vv] = human(t, v);
+      push(Math.max(0, tt), 'acoustic', 'chords', { f: strings[s], v: +vv.toFixed(4), s });
+    };
+    const strum = (t, v, dir = 'down', spread = 0.012, from = 0) => {
+      const order = dir === 'down' ? [0, 1, 2, 3, 4, 5].slice(from) : [5, 4, 3, 2];
+      order.forEach((s, k) => note(t + k * spread, s, v * (dir === 'down' ? 1 - k * 0.04 : 1 - k * 0.1)));
+    };
+    const eighth = (e) => t0 + Math.floor(e / 2) * beat + pos((e % 2) * 2);
+
+    if (P.chords) {
+      if (g === 'strum') {
+        // D . D U . U D U
+        strum(eighth(0), 0.034, 'down');
+        strum(eighth(2), 0.028, 'down', 0.011, 1);
+        strum(eighth(3), 0.017, 'up', 0.009);
+        strum(eighth(5), 0.018, 'up', 0.009);
+        strum(eighth(6), 0.027, 'down', 0.011, 1);
+        strum(eighth(7), 0.016, 'up', 0.009);
+      } else if (g === 'finger') {
+        // Travis picking: thumb alternates bass strings, fingers fill the off-beats.
+        const pattern = [[0, 5], [3], [2], [4], [0], [3], [1], [4]];
+        pattern.forEach((ss, e) => ss.forEach((s) => note(eighth(e), s, s < 3 ? 0.03 : 0.024)));
+      } else {
+        // Wide open: one slow, ringing strum, then a few single notes.
+        strum(t0, 0.036, 'down', 0.028);
+        note(t0 + 2.5 * beat, 4, 0.02);
+        note(t0 + 3 * beat, 5, 0.022);
+        note(t0 + 3.5 * beat, 3, 0.018);
+      }
+    }
+    if (P.drums) {
+      if (g === 'strum') {
+        push(t0, 'kick', 'drums', { v: 0.36, soft: true });
+        push(t0 + 2 * beat, 'kick', 'drums', { v: 0.32, soft: true });
+        [1, 3].forEach((q) => push(t0 + q * beat, 'brush', 'drums', { v: 0.08 }));
+      } else {
+        push(t0, 'kick', 'drums', { v: g === 'wide' ? 0.4 : 0.3, soft: true });
+        if (g === 'finger') push(t0 + 2 * beat, 'kick', 'drums', { v: 0.24, soft: true });
+      }
+    }
+    if (P.hats && g !== 'wide')
+      for (let s = 0; s < 8; s++) push(eighth(s), 'shaker', 'hats', { v: s % 2 ? 0.016 : 0.024 });
+    if (P.bass) {
+      push(t0, 'bass', 'bass', { f: bf, d: beat * 1.8, v: 0.14, cut: 500, wave: 'triangle' });
+      if (g !== 'wide') push(t0 + 2 * beat, 'bass', 'bass', { f: bf, d: beat * 1.6, v: 0.11, cut: 500, wave: 'triangle' });
+    }
+    if (P.chords && g === 'wide') push(t0, 'pad', 'chords', { fs: [low * 2, upper[1]], d: bar * 1.05, v: 0.006, a: 0.8, cut: 1200, wave: 'sine' });
+  },
 };
 
 // Deterministic noise so the same settings always render the same file.
@@ -899,6 +984,8 @@ export function makeKit(ctx, dest, opts = {}) {
   }
   shaper.connect(bus.bass);
   let bassWave = 'auto';
+  const samples = opts.samples || {};
+  const ringing = [];
   const k = {
     ctx,
     master,
@@ -1041,6 +1128,23 @@ export function makeKit(ctx, dest, opts = {}) {
       lfo.start(t);
       o.stop(t + d + 0.1);
       lfo.stop(t + d + 0.1);
+    },
+    // recorded acoustic guitar (falls back to the synth guitar if samples aren't loaded).
+    // Each string chokes its previous note, like a real guitar.
+    acoustic(t, f, v = 0.03, out = bus.chords, string = 0) {
+      const set = samples['steel-guitar'];
+      if (!set) return k.guitar(t, f, v, out);
+      const n = pickNote(set, f);
+      const src = ctx.createBufferSource(),
+        g = ctx.createGain();
+      src.buffer = n.buffer;
+      src.playbackRate.value = f / midiToFreq(n.root);
+      g.gain.setValueAtTime(v * 1.5, t);
+      src.connect(g).connect(out);
+      src.start(t);
+      const prev = ringing[string];
+      if (prev && prev.t < t) prev.g.gain.setTargetAtTime(0, t, 0.015);
+      ringing[string] = { g, t };
     },
     // plucked string: saw through a filter that closes quickly
     guitar(t, f, v = 0.03, out = bus.chords) {
@@ -1216,6 +1320,9 @@ export function playEvents(kit, t0, bed) {
       case 'guitar':
         kit.guitar(t, e.f, e.v, out);
         break;
+      case 'acoustic':
+        kit.acoustic(t, e.f, e.v, out, e.s);
+        break;
       case 'banjo':
         kit.banjo(t, e.f, e.v, out);
         break;
@@ -1274,8 +1381,21 @@ export async function renderBed(opts, sampleRate = 48000) {
     volume: 0.5,
     music: opts.voiceRoom ? 0.5 : 1,
     seed: 7,
+    samples: await loadStyleSamples(ctx, bed.style),
   });
   kit.shape(opts.shaping, bed.style, bed.bpm);
   playEvents(kit, 0, bed);
   return { buffer: await ctx.startRendering(), bed };
+}
+
+// Recorded samples a style needs, decoded for `ctx`. Resolves to {} (synth
+// fallback) when the style has none or they can't be loaded.
+export async function loadStyleSamples(ctx, style, fetchImpl = globalThis.fetch) {
+  const name = STYLES[style]?.samples;
+  if (!name || !fetchImpl) return {};
+  try {
+    return { [name]: await loadSampleSet(ctx, name, fetchImpl) };
+  } catch {
+    return {};
+  }
 }
