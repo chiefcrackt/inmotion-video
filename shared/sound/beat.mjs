@@ -158,6 +158,28 @@ export const STYLES = {
     desc: "Upbeat indie: claps, tambourine and bright chords.",
     grooves: [["indie", "Indie"], ["clap", "Clap-along"]],
   },
+  mountain: {
+    name: "Mountain",
+    bpm: 84,
+    swing: 0,
+    mood: 'bright',
+    bassWave: 'sine',
+    filter: 7000,
+    use: "Summits, big views, sunrise",
+    desc: "Slow fingerpicked guitar over a long open drone, with soft hand drums.",
+    grooves: [["roll", "Rolling picks"], ["open", "Open strums"]],
+  },
+  openroad: {
+    name: "Open Road",
+    bpm: 104,
+    swing: 0.12,
+    mood: 'adventure',
+    bassWave: 'triangle',
+    filter: 10000,
+    use: "Travel vlogs, road trips, inspo montages",
+    desc: "Banjo rolls, claps and a harmonica lead. A hopeful road-trip feel.",
+    grooves: [["shuffle", "Shuffle"], ["ballad", "Ballad"]],
+  },
 };
 
 export const MOODS = [
@@ -676,6 +698,64 @@ const GEN = {
       if (b % 2 === 0) push(t0, 'pad', 'chords', { fs: tones, d: bar * 2, v: 0.012, a: 0.4, cut: 2400, wave: 'triangle' });
     }
   },
+  mountain({ t0, beat, bar, bf, tones, P, push, pos, g }) {
+    // Rolling picks carry hand drums and shaker; open strums add one soft kick per bar.
+    if (P.drums && g === 'open') push(t0, 'kick', 'drums', { v: 0.3, soft: true });
+    if (P.drums && g === 'roll') {
+      push(t0, 'kick', 'drums', { v: 0.34, soft: true });
+      push(t0 + 2 * beat, 'kick', 'drums', { v: 0.3, soft: true });
+      push(t0 + 3 * beat, 'rim', 'drums', { v: 0.07 });
+    }
+    if (P.hats && g === 'roll') for (let s = 0; s < 8; s++) push(t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'shaker', 'hats', { v: s % 2 ? 0.018 : 0.026 });
+    if (P.bass) push(t0, 'bass', 'bass', { f: bf, d: bar * 0.95, v: 0.16, cut: 500, wave: 'sine' });
+    if (P.chords) {
+      // Long drone under everything: root and fifth, slow swell.
+      push(t0, 'pad', 'chords', { fs: [tones[0], tones[0] * 1.5], d: bar * 1.05, v: 0.018, a: 0.6, cut: 1400, wave: 'sine' });
+      if (g === 'open') {
+        // Open strums on beats 1 and 3, the way a slow ballad is played.
+        [0, 2].forEach((q, i) =>
+          tones.slice(0, 3).forEach((f, j) => push(t0 + q * beat + j * 0.02, 'guitar', 'chords', { f: f * 2, v: i ? 0.02 : 0.026 })),
+        );
+      }
+      if (g === 'roll') {
+        // Fingerpicked pattern, one note per eighth, like the Trail pick but slower.
+        const pick = [0, 2, 1, 2, 0, 2, 1, 2];
+        pick.forEach((k, s) => push(t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'guitar', 'chords', { f: (k ? tones[k] : tones[0]) * (k ? 2 : 1), v: 0.024 }));
+      }
+    }
+  },
+  openroad({ t0, b, beat, bar, bf, tones, P, push, pos, g }) {
+    if (g === 'shuffle') {
+      // Backbeat with claps and shaker, a swung eighth feel from the style's swing.
+      if (P.drums) {
+        push(t0, 'kick', 'drums', { v: 0.5 });
+        push(t0 + 2 * beat, 'kick', 'drums', { v: 0.45 });
+        [1, 3].forEach((q) => {
+          push(t0 + q * beat, 'snare', 'drums', { v: 0.2 });
+          push(t0 + q * beat + 0.01, 'clap', 'drums', { v: 0.14 });
+        });
+      }
+      if (P.hats) for (let s = 0; s < 8; s++) push(t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'shaker', 'hats', { v: s % 2 ? 0.018 : 0.028 });
+      if (P.bass) [0, 2].forEach((q) => push(t0 + q * beat, 'bass', 'bass', { f: bf, d: beat * 0.8, v: 0.16, cut: 700, wave: 'triangle' }));
+      if (P.chords) {
+        // Banjo roll on the eighths: root, fifth, third, fifth.
+        const roll = [0, 1, 2, 1, 0, 1, 2, 1];
+        roll.forEach((k, s) => push(t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'banjo', 'chords', { f: tones[k] * 2, v: s % 2 ? 0.022 : 0.03 }));
+        // Harmonica answer on every other bar.
+        if (b % 2 === 0) push(t0 + 2 * beat, 'harmonica', 'chords', { f: tones[2] * 2, d: beat * 1.6, v: 0.035 });
+      }
+    } else {
+      // Ballad: soft kick on the downbeat, strums on 1 and 3, and a long harmonica line.
+      if (P.drums) push(t0, 'kick', 'drums', { v: 0.3, soft: true });
+      if (P.bass) push(t0, 'bass', 'bass', { f: bf, d: bar * 0.9, v: 0.14, cut: 600, wave: 'triangle' });
+      if (P.chords) {
+        [0, 2].forEach((q, i) =>
+          tones.slice(0, 3).forEach((f, j) => push(t0 + q * beat + j * 0.02, 'guitar', 'chords', { f: f * 2, v: i ? 0.02 : 0.026 })),
+        );
+        push(t0, 'harmonica', 'chords', { f: tones[2] * 2, d: bar * 0.9, v: 0.03 });
+      }
+    }
+  },
 };
 
 // Deterministic noise so the same settings always render the same file.
@@ -934,6 +1014,34 @@ export function makeKit(ctx, dest, opts = {}) {
       osc(t, f * 2, 'sine', v * 0.4, d * 0.4, 5000, out, 0.002);
       osc(t, f * 3, 'sine', v * 0.12, d * 0.2, 6000, out, 0.002);
     },
+    // banjo: bright, short pluck with a sharp finger transient and a ringing octave
+    banjo(t, f, v = 0.03, out = bus.chords) {
+      osc(t, f, 'sawtooth', v, 0.28, 4200, out, 0.001);
+      osc(t, f * 2, 'square', v * 0.3, 0.12, 5000, out, 0.001);
+      nz(t, 'highpass', 5000, v * 0.5, 0.02, out);
+    },
+    // harmonica: reedy sawtooth through a bandpass, with a slow vibrato on the pitch
+    harmonica(t, f, d = 0.5, v = 0.04, out = bus.chords) {
+      const o = ctx.createOscillator(),
+        g = ctx.createGain(),
+        bp = ctx.createBiquadFilter(),
+        lfo = ctx.createOscillator(),
+        lfoGain = ctx.createGain();
+      o.type = 'sawtooth';
+      o.frequency.value = f;
+      bp.type = 'bandpass';
+      bp.frequency.value = 1600;
+      bp.Q.value = 2.5;
+      lfo.frequency.value = 5.5;
+      lfoGain.gain.value = f * 0.006;
+      lfo.connect(lfoGain).connect(o.frequency);
+      env(g, t, 0.04, v, d);
+      o.connect(bp).connect(g).connect(out);
+      o.start(t);
+      lfo.start(t);
+      o.stop(t + d + 0.1);
+      lfo.stop(t + d + 0.1);
+    },
     // plucked string: saw through a filter that closes quickly
     guitar(t, f, v = 0.03, out = bus.chords) {
       const o = ctx.createOscillator(),
@@ -1107,6 +1215,12 @@ export function playEvents(kit, t0, bed) {
         break;
       case 'guitar':
         kit.guitar(t, e.f, e.v, out);
+        break;
+      case 'banjo':
+        kit.banjo(t, e.f, e.v, out);
+        break;
+      case 'harmonica':
+        kit.harmonica(t, e.f, e.d, e.v, out);
         break;
       case 'pizz':
         kit.pizz(t, e.f, e.v, out);
