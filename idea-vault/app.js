@@ -40,8 +40,7 @@ function notify(s) {
 function renderSyncState() {
   const el = $('cloudstatus');
   el.dataset.state = 'local';
-  el.textContent =
-    'Saved on this device · use Workspace cloud sync in Content Studio to sync devices';
+  el.textContent = 'Saved on this device';
 }
 
 // ---- Durable local state -------------------------------------------------
