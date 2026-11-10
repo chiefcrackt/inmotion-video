@@ -14,7 +14,9 @@ tim-studio-bar {
   border-bottom: 1px solid #25395c;
   position: relative;
   z-index: 50;
-  max-width: none;
+  /* Its edge-to-edge margins are refitted after a resize; until then this keeps
+     a rotated or resized page from scrolling sideways. */
+  max-width: 100vw;
   width: auto;
 }
 @media print {

@@ -402,14 +402,14 @@ export function featuredTool() {
 export const STUDIO_NAME = 'T.IM Studio';
 
 // Pages that are not tools or studio groups, keyed by directory.
-const OTHER_PAGES = Object.freeze({ 'dashboard-preview/': 'Dashboard preview' });
+const OTHER_PAGES = Object.freeze({ 'dashboard-preview/': 'Dashboard preview', 'spot-it/': 'Spot It prototype' });
 
 /** Display name for a page directory such as 'title-maker/', or null. */
 export function pageName(dir) {
   const tool = TOOLS.find((t) => t.href === dir);
   if (tool) return tool.name;
   const group = DASHBOARD_GROUPS.find((g) => g.href === dir);
-  if (group) return group.id === 'content-studio' ? group.name : group.name + ' preview';
+  if (group) return group.name;
   return OTHER_PAGES[dir] || null;
 }
 

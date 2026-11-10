@@ -7,6 +7,7 @@
   <title>Caption Maker · T.IM Studio</title>
   <link rel="icon" href="../favicon.svg">
   <link rel="stylesheet" href="../shared/fonts.css">
+  <link rel="stylesheet" href="../shared/responsive.css">
   <link rel="stylesheet" href="../shared/studio-bar.css">
   <script type="module" src="../shared/studio-bar.mjs"></script>
   <script src="../text-motion/alpha-video.js" defer></script>
@@ -150,7 +151,7 @@
         </div>
         <div class="transport">
           <button id="play" type="button" class="ghost">Play</button>
-          <input id="scrub" type="range" min="0" max="10" step="0.01" value="0">
+          <input id="scrub" type="range" min="0" max="10" step="0.01" value="0" aria-label="Scrub through the clip">
           <span class="time" id="time">0.00 / 0.00 s</span>
         </div>
       </section>
