@@ -10,17 +10,17 @@
     <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
     <meta name="theme-color" content="#0E1A2E" />
     <title>Video Framer · T.IM Studio</title>
-    <link rel="stylesheet" href="../shared/fonts.css" />
-    <link rel="stylesheet" href="../shared/projects.css" />
-    <script src="../shared/projects.js"></script>
-    <script src="../text-motion/alpha-video.js"></script>
-    <script src="../shared/background-pack.js"></script>
+    <link rel="stylesheet" href="../shared/fonts.css?v=70017a07" />
+    <link rel="stylesheet" href="../shared/projects.css?v=6be12135" />
+    <script src="../shared/projects.js?v=8da29cf0"></script>
+    <script src="../text-motion/alpha-video.js?v=b3481acd"></script>
+    <script src="../shared/background-pack.js?v=0e101bbf"></script>
     <script>
       window.RiverSceneBase = '../river-run/';
     </script>
-    <script src="../river-run/riverside.js"></script>
-    <script src="../river-run/scenes.js"></script>
-    <script src="../shared/runner.js"></script>
+    <script src="../river-run/riverside.js?v=4bafe96e"></script>
+    <script src="../river-run/scenes.js?v=2f9d66d6"></script>
+    <script src="../shared/runner.js?v=c14c9ffa"></script>
     <style>
       /* Two-column studio: live 16:9 preview on the left, grouped controls on the right; one column under 860px.
          Single dark look on purpose: T.im navy is the brand ground. */
@@ -405,7 +405,7 @@
         background: var(--teal);
       }
     </style>
-  <link rel="stylesheet" href="../shared/responsive.css" /><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
+  <link rel="stylesheet" href="../shared/responsive.css?v=bb296b12" /><link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" /><script type="module" src="../shared/studio-bar.mjs?v=7ff96914"></script></head>
   <body><tim-studio-bar></tim-studio-bar>
     <div class="wrap">
       <header>
@@ -2767,7 +2767,7 @@
           f.arrayBuffer().then(function (buffer) {
             var wk;
             try {
-              wk = new Worker('../activity-studio/worker.js');
+              wk = new Worker('../activity-studio/worker.js?v=d558eba9');
             } catch (e) {
               return say('The activity reader couldn’t start here.', true);
             }

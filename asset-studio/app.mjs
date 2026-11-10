@@ -1,4 +1,4 @@
-import { catalog, byId } from './catalog.mjs';
+import { catalog, byId } from './catalog.mjs?v=a021afe7';
 import {
   initial,
   validate,
@@ -10,9 +10,9 @@ import {
   motionOptions,
   suggestedMotion,
   entranceMotions,
-} from './model.mjs';
-import { image, prepare, render, selection, hitTest } from './render.mjs';
-import { templates, templateScene } from '../product-spotlight/templates.mjs';
+} from './model.mjs?v=2d17be42';
+import { image, prepare, render, selection, hitTest } from './render.mjs?v=9ae1313d';
+import { templates, templateScene } from '../product-spotlight/templates.mjs?v=d992cb15';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas'),
   key = 'tim-asset-animator-v1';

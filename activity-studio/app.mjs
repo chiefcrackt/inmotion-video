@@ -1,5 +1,5 @@
-import { render, presets, templates, metric } from './render.mjs?v=brand-label-2';
-import { duration, atTime } from './model.mjs';
+import { render, presets, templates, metric } from './render.mjs?v=90dede58';
+import { duration, atTime } from './model.mjs?v=0c775036';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas');
 let activity = null,
@@ -296,7 +296,7 @@ async function load(file) {
   try {
     const buffer = await file.arrayBuffer();
     if (id !== loadId) return;
-    worker = new Worker(new URL('./worker.js', import.meta.url));
+    worker = new Worker(new URL('./worker.js?v=d558eba9', import.meta.url));
     timeout = setTimeout(() => {
       worker?.terminate();
       done();

@@ -2,7 +2,7 @@
 // tool, so every page gets home the same way.
 //
 // To add it to a page, put these two lines in <head>:
-//   <link rel="stylesheet" href="../shared/studio-bar.css" />
+//   <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" />
 //   <script type="module" src="../shared/studio-bar.mjs"></script>
 // and this as the first thing inside <body>:
 //   <tim-studio-bar></tim-studio-bar>
@@ -13,7 +13,7 @@
 // The bar draws inside a shadow root, so a tool's own link and button styles
 // can't change it. studio-bar.css only reserves its space before this runs.
 
-import { pageName, STUDIO_NAME } from './tool-registry.mjs';
+import { pageName, STUDIO_NAME } from './tool-registry.mjs?v=8038af06';
 
 // The studio home is the folder above shared/, which also works under the
 // GitHub Pages project path (/inmotion-video/).

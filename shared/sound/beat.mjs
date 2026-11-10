@@ -2,7 +2,7 @@
 // bedEvents() is pure (a timeline of notes, easy to test); makeKit() and
 // playEvents() turn that timeline into Web Audio on a live or offline context.
 
-import { loadSampleSet, pickNote, midiToFreq } from './samples.mjs';
+import { loadSampleSet, pickNote, midiToFreq } from './samples.mjs?v=9f2a6df7';
 
 // Each style has a default mood, a 'good for' hint and two or three grooves.
 // A style with `samples` plays recorded notes from shared/sound/samples/<name>/.

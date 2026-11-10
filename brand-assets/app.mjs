@@ -1,7 +1,7 @@
-import { create, validate, dimensions, LAYERS, PRESETS } from './model.mjs';
-import { render } from './render.mjs';
-import { soundtrack } from './audio.mjs';
-import { encodeWav, download } from '../shared/sound/wav.mjs';
+import { create, validate, dimensions, LAYERS, PRESETS } from './model.mjs?v=7067edd4';
+import { render } from './render.mjs?v=7aff5ebc';
+import { soundtrack } from './audio.mjs?v=47819d6b';
+import { encodeWav, download } from '../shared/sound/wav.mjs?v=58bdfa19';
 const $ = (id) => document.getElementById(id),
   cv = $('preview'),
   ctx = cv.getContext('2d');

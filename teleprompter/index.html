@@ -9,8 +9,8 @@
     <meta name="theme-color" content="#0E1A2E" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Teleprompter · T.IM Studio</title>
-    <link rel="stylesheet" href="../shared/fonts.css" />
-    <link rel="stylesheet" href="../shared/responsive.css" />
+    <link rel="stylesheet" href="../shared/fonts.css?v=70017a07" />
+    <link rel="stylesheet" href="../shared/responsive.css?v=bb296b12" />
     <style>
       :root {
         --navy: #0e1a2e;
@@ -94,7 +94,7 @@
       }
       #prompt.idle #bar, #prompt.idle #hint { opacity: 0; pointer-events: none; }
     </style>
-  <link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
+  <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" /><script type="module" src="../shared/studio-bar.mjs?v=7ff96914"></script></head>
   <body><tim-studio-bar></tim-studio-bar>
     <main id="edit">
       <header class="bar">
@@ -176,7 +176,7 @@
         progressFraction,
         remainingSeconds,
         rescaleScroll,
-      } from './model.mjs';
+      } from './model.mjs?v=6fc4cfa6';
 
       const KEY = 'tim-teleprompter-v1';
       const IDLE_MS = 3000;     // controls fade after this long without a touch or key while playing

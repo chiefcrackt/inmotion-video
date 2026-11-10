@@ -13,10 +13,12 @@ import {
 import { renderDashboard, renderHomepage } from '../dashboard-preview/render.mjs';
 const read = (path) =>
   readFileSync(new URL('../' + path, import.meta.url), 'utf8');
+// Pages carry asset versions (tools/stamp-assets.mjs); compare without them.
+const unversioned = (text) => text.replace(/\?v=[0-9a-f]+/g, '');
 
 test('live homepage uses consolidated studios and root-relative assets and original links', () => {
   const html = renderHomepage();
-  assert.equal(read('index.html').replaceAll('\r\n', '\n'), html);
+  assert.equal(unversioned(read('index.html').replaceAll('\r\n', '\n')), html);
   assert.ok(!html.includes('href="../'));
   assert.ok(!html.includes('Dashboard preview'));
   assert.ok(html.includes('src="dashboard-preview/app.mjs"'));
@@ -97,7 +99,7 @@ test('search finds studios by original names and supports workspace filtering wi
 test('generated no-JavaScript page stays in sync and retains every original fallback link', () => {
   const expected = renderDashboard();
   assert.equal(
-    read('dashboard-preview/index.html').replaceAll('\r\n', '\n'),
+    unversioned(read('dashboard-preview/index.html').replaceAll('\r\n', '\n')),
     expected,
   );
   for (const tool of TOOLS)

@@ -1,5 +1,5 @@
 import { Decoder, Stream } from '@garmin/fitsdk';
-import { parseXML, fromFIT } from './parsers.mjs';
+import { parseXML, fromFIT } from './parsers.mjs?v=b51394f0';
 // XML uses the same DOM API in a worker through a bundled standards-based parser.
 import { DOMParser } from '@xmldom/xmldom';
 self.onmessage = ({ data: { buffer, format } }) => {

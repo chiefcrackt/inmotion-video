@@ -11,7 +11,7 @@
 //  - Deleted projects, archived ideas and conflict copies are never touched.
 // Pure functions only: no DOM, no storage. Callers persist the results.
 
-import { newRevision } from '../idea-vault/vault-core.mjs';
+import { newRevision } from '../idea-vault/vault-core.mjs?v=079d4676';
 
 export const IDEA_KEY = 'tim-idea-vault-v1';
 export const PLANNER_KEY = 'tim-content-planner-v1';

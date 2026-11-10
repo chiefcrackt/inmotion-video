@@ -197,12 +197,12 @@ test('every tool that uses the engine loads it and offers the same styles', asyn
   // Chip-based tools list every style and morph as buttons.
   for (const [tool, morphs] of [['title-maker', true], ['promo-maker', true], ['special-post', true], ['celebrate', true], ['mile-marker', true]]) {
     const html = readFileSync(`${tool}/index.html`, 'utf8');
-    assert.match(html, /<script src="\.\.\/shared\/kinetic\.js"><\/script>/, `${tool} loads the engine`);
+    assert.match(html, /<script src="\.\.\/shared\/kinetic\.js(?:\?v=[0-9a-f]+)?"><\/script>/, `${tool} loads the engine`);
     for (const [id] of K.styles) assert.match(html, new RegExp(`data-g="kin" data-v="${id}"`), `${tool} offers ${id}`);
     if (morphs) for (const [id] of K.morphs) assert.match(html, new RegExp(`data-g="morph" data-v="${id}"`), `${tool} morph ${id}`);
   }
   // Tier List builds its buttons from the engine's own list.
-  assert.match(readFileSync('tier-list/index.html', 'utf8'), /<script src="\.\.\/shared\/kinetic\.js"><\/script>/);
+  assert.match(readFileSync('tier-list/index.html', 'utf8'), /<script src="\.\.\/shared\/kinetic\.js(?:\?v=[0-9a-f]+)?"><\/script>/);
   assert.match(readFileSync('tier-list/index.html', 'utf8'), /TimKinetic\.styles\.map/);
   // Brand Assets validates saved projects against its own list.
   const { KINETIC } = await import('../brand-assets/model.mjs');

@@ -49,6 +49,12 @@ Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages 
 **https://chiefcrackt.github.io/inmotion-video/**
 
 For development, run `npm ci`, then `npm test` and `npm run build`.
+
+**Asset versions.** Every local CSS and script link carries `?v=<hash>` of
+that file's content (`tools/stamp-assets.mjs`), so after an update a phone
+never mixes a new page with old cached files. `npm run build` restamps; run it
+(or `npm run stamp`) before committing any page, style or script change.
+`npm test` fails if a version is out of date.
 `npm run format` formats handwritten HTML, CSS, JavaScript and JSON;
 `npm run format:check` checks the same files without writing them. Generated
 `activity-studio/worker.js`, third-party licenses and the lockfile are excluded.

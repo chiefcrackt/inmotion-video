@@ -1,5 +1,5 @@
 // Original product-video overlays. Wording lives in separate editable text layers.
-import { colors, svg as renderSVG } from '../motion-stats/assets.mjs';
+import { colors, svg as renderSVG } from '../motion-stats/assets.mjs?v=45b9e83c';
 export { colors };
 const layer = (id, body) => ({ id, body, motion: 'none', origin: null });
 const text = (value, x, y, width, fontSize = 40, color = '#f6f4ef') => ({

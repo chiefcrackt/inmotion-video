@@ -1,4 +1,4 @@
-import { COLORS as C, dimensions, beatAt } from './model.mjs';
+import { COLORS as C, dimensions, beatAt } from './model.mjs?v=7067edd4';
 
 const FONT = 'Barlow Condensed';
 const easeOut = (x) => 1 - (1 - x) ** 3;

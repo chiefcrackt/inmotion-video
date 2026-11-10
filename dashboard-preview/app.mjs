@@ -1,4 +1,4 @@
-import { dashboardEntries, searchDashboard } from '../shared/tool-registry.mjs';
+import { dashboardEntries, searchDashboard } from '../shared/tool-registry.mjs?v=8038af06';
 const query = document.getElementById('query');
 const cards = [...document.querySelectorAll('[data-entry]')];
 const filters = [...document.querySelectorAll('[data-workspace]')];

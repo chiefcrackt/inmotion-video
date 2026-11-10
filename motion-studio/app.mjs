@@ -6,7 +6,7 @@ import {
   specToJson,
   PIECE_TYPES,
   BRAND,
-} from './model.mjs';
+} from './model.mjs?v=a7255fe3';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('preview');

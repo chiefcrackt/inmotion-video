@@ -1,4 +1,4 @@
-import { preset, random, activeLayers, duration, clamp } from './model.mjs';
+import { preset, random, activeLayers, duration, clamp } from './model.mjs?v=687dd3c7';
 export function audioContext() {
   const C = globalThis.AudioContext || globalThis.webkitAudioContext;
   if (!C) throw Error('Web Audio is unavailable in this browser.');
