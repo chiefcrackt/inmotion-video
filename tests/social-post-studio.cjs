@@ -48,6 +48,8 @@ const {
     const rankInitial = page.frameLocator('iframe[data-mode="rankings"]');
     await rankInitial.locator('#title').waitFor();
     // A small legacy ranking draft keeps the real-time video test bounded.
+    // Tier List saves its draft 250 ms after loading; wait for it.
+    await page.waitForFunction(() => localStorage.getItem('tim_tier_list'));
     await page.evaluate(() => {
       const s = JSON.parse(localStorage.getItem('tim_tier_list'));
       s.items = s.items.slice(0, 1);

@@ -12,34 +12,38 @@ page; the Python engine runs only on the computer where the launcher is started.
 `http://127.0.0.1:8766/`. It removes background noise or isolates the voice on
 the NVIDIA GPU, then evens out the volume. See [setup and usage](local-voice/README.md).
 
-Celebration Studio is available for review at `/celebration-studio/`, combining
+Celebration Studio is at `/celebration-studio/`, combining
 Special Post and Celebration as two modes while retaining both original editors
 and dashboard links. See [preview behavior and validation](celebration-studio/README.md).
 
-Text & Titles has a local preview at `/text-and-titles/` with Animated text and
+Text & Titles is at `/text-and-titles/` with Animated text and
 Titles & lower thirds modes. Original projects and export paths are preserved.
 See [compatibility and validation](text-and-titles/README.md).
 
-Unified Content Planner has a local preview at `/content-studio/`, with Ideas,
+Content Studio is at `/content-studio/`, with Ideas,
 Videos and Shoot views retaining their existing data and sync systems. See
 [workflow, compatibility and validation](content-studio/README.md).
 
-Publishing Studio has a local preview at `/publishing-studio/`, grouping Covers,
+Publishing Studio is at `/publishing-studio/`, grouping Covers,
 Promo clips and Brand templates with the original saved-project formats. See
 [preview behavior and validation](publishing-studio/README.md).
 
-Runner Animator has a local preview at `/runner-animator/`, grouping Start Line
+Runner Animator is at `/runner-animator/`, grouping Start Line
 and Running scenes while preserving their renderers, sound and project formats.
 See [compatibility and validation](runner-animator/README.md).
 
-Social Post Studio has a local preview at `/social-post-studio/`, grouping
+Social Post Studio is at `/social-post-studio/`, grouping
 Carousels, Rankings and Before & After with their original editors and formats.
 See [preview behavior and validation](social-post-studio/README.md).
 
-The homepage now uses the consolidated studio dashboard.
-It groups the studios into 14 main choices while retaining all 27 original
-destinations. `/dashboard-preview/` remains available for comparison. See
+The homepage is the consolidated studio dashboard, built from
+`shared/tool-registry.mjs` by `npm run build`. It shows the studios first and
+keeps every original tool under "Original tools & asset packs". `/dashboard-preview/` remains available for comparison. See
 [preview behavior and validation](dashboard-preview/README.md).
+
+**Saving and sync.** Every tool saves on the device you use it on. Ideas and
+video plans sync across devices with Workspace cloud sync in Content Studio
+(Supabase). Google Drive sync and Drive exports were removed in November 2026.
 
 Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at
 **https://chiefcrackt.github.io/inmotion-video/**

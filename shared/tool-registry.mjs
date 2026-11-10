@@ -86,9 +86,9 @@ export const TOOLS = Object.freeze([
     id: 'idea-vault',
     name: 'Idea Vault',
     href: 'idea-vault/',
-    description: 'Capture ideas, plan videos, track production and link your Google Docs outlines.',
+    description: 'Capture ideas, plan videos and track production, with due dates and checklists.',
     workspaces: ['plan'],
-    keywords: ['ideas', 'planning', 'outline', 'google drive', 'production', 'notes', 'youtube'],
+    keywords: ['ideas', 'planning', 'outline', 'production', 'notes', 'youtube', 'checklist', 'due date'],
     icon: 'idea',
     quick: true,
     quickLabel: 'New Idea',
@@ -402,14 +402,14 @@ export function featuredTool() {
 export const STUDIO_NAME = 'T.IM Studio';
 
 // Pages that are not tools or studio groups, keyed by directory.
-const OTHER_PAGES = Object.freeze({ 'dashboard-preview/': 'Dashboard preview' });
+const OTHER_PAGES = Object.freeze({ 'dashboard-preview/': 'Dashboard preview', 'spot-it/': 'Spot It prototype' });
 
 /** Display name for a page directory such as 'title-maker/', or null. */
 export function pageName(dir) {
   const tool = TOOLS.find((t) => t.href === dir);
   if (tool) return tool.name;
   const group = DASHBOARD_GROUPS.find((g) => g.href === dir);
-  if (group) return group.id === 'content-studio' ? group.name : group.name + ' preview';
+  if (group) return group.name;
   return OTHER_PAGES[dir] || null;
 }
 

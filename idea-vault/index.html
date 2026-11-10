@@ -277,91 +277,6 @@
         border-radius: 8px;
         padding: 12px;
       }
-      .doc-section {
-        display: grid;
-        gap: 10px;
-        padding: 14px;
-        background: #10213a;
-      }
-      .doc-section .actions button {
-        min-height: 44px;
-      }
-      .doc-status {
-        font-size: 14px;
-        color: #e8c96a;
-        min-height: 20px;
-        margin: 0;
-      }
-      .doc-viewer {
-        max-height: 60vh;
-        overflow: auto;
-        -webkit-overflow-scrolling: touch;
-        background: #0e1a2e;
-        border: 1px solid #263d57;
-        border-radius: 8px;
-        padding: 14px;
-        font-size: 17px;
-        line-height: 1.5;
-        overflow-wrap: anywhere;
-        color: #f6f4ef;
-      }
-      .doc-viewer h3,
-      .doc-viewer h4,
-      .doc-viewer h5 {
-        margin: 14px 0 6px;
-        line-height: 1.2;
-      }
-      .doc-viewer h3 {
-        font-size: 22px;
-      }
-      .doc-viewer h4 {
-        font-size: 20px;
-      }
-      .doc-viewer h5 {
-        font-size: 18px;
-      }
-      .doc-title {
-        font-size: 24px;
-        margin-bottom: 8px;
-      }
-      .doc-p {
-        margin: 0 0 10px;
-      }
-      .doc-item {
-        display: flex;
-        gap: 8px;
-        margin: 0 0 6px;
-      }
-      .doc-marker {
-        min-width: 1.6em;
-        flex: none;
-        color: #e8c96a;
-      }
-      .doc-item.done .doc-item-text {
-        text-decoration: line-through;
-        color: #9fb0c8;
-      }
-      .doc-table-wrap {
-        overflow-x: auto;
-        margin: 10px 0;
-      }
-      .doc-table {
-        border-collapse: collapse;
-        font-size: 15px;
-      }
-      .doc-table td {
-        border: 1px solid #34506c;
-        padding: 6px 8px;
-        vertical-align: top;
-      }
-      .doc-viewer a {
-        color: #7fd4e0;
-      }
-      .doc-viewer hr {
-        border: 0;
-        border-top: 1px solid #34506c;
-        margin: 14px 0;
-      }
       @media (max-width: 750px) {
         .panel-grid {
           grid-template-columns: 1fr;
@@ -379,13 +294,12 @@
         ><div
           ><div class="eyebrow">T.IM / CREATOR WORKSPACE</div><h1>IDEA VAULT</h1
           ><p class="muted">Capture → Develop → Create</p></div
-        ><div class="top-actions"
-          ><button id="connect">Connect Google Drive</button
-          ><button id="sync">Sync now</button></div
+        ><a class="top-actions" style="align-items: center; min-height: 44px" href="../content-studio/#ideas"
+          >Sync in Content Studio</a
         ></header
       >
       <p id="cloudstatus" role="status"
-        >Local draft mode · Google Drive not connected</p
+        >Saved on this device</p
       ><p id="message" role="status" aria-live="polite"></p>
       <div class="panel-grid"
         ><section
@@ -412,8 +326,8 @@
               ></label
             ><button class="primary" type="submit">+ Save Idea</button></form
           ><p id="idea-save-hint" class="hint" style="margin-top: 12px"
-            >Your ideas save on this device instantly. Connect Google for cloud
-            sync.</p
+            >Your ideas save on this device instantly. Use Workspace cloud sync
+            in Content Studio to sync devices.</p
           ></section
         >
         <div
@@ -427,27 +341,6 @@
                   id="importfile"
                   type="file"
                   accept="application/json,.json" /></label></div
-            ><div
-              id="drive-import-controls"
-              style="
-                display: grid;
-                grid-template-columns: 1fr auto;
-                gap: 9px;
-                margin: 12px 0;
-              "
-            >
-              <label
-                >Google Drive outlines folder URL or ID<input
-                  id="folder-input"
-                  placeholder="Paste your YouTube Outlines folder link"
-                  autocomplete="off"
-              /></label>
-              <button id="import-drive" type="button" style="align-self: end"
-                >Import / Refresh from Drive</button
-              > </div
-            ><p id="drive-import-hint" class="hint"
-              >Imports Google Docs as linked idea cards without changing the
-              originals. Google will request read-only metadata permission.</p
             ><p class="stats" id="stats"></p
             ><div class="filters"
               ><input
@@ -471,8 +364,8 @@
             ><div id="results"></div></section></div
       ></div>
       <footer id="idea-footer"
-        >Ideas remain private in your Google Drive app data once connected.
-        Existing documents are never modified.</footer
+        >Ideas stay on this device unless you turn on Workspace cloud sync in
+        Content Studio.</footer
       >
     </main>
     <div id="editor" role="dialog" aria-modal="true" aria-labelledby="editTitle"
@@ -530,36 +423,11 @@
           ><button id="e-step-defaults" type="button" hidden
             >Use default steps</button
           ></section
-        ><section
-          id="doc-section"
-          class="doc-section"
-          hidden
-          aria-labelledby="doc-heading"
-          ><div
-            ><h3 id="doc-heading">Imported Google Doc · read-only</h3
-            ><p class="hint"
-              >This shows the document's content for reading. It is kept
-              separate from your production notes above, and the document itself
-              is never changed.</p
-            ></div
-          ><div class="actions"
-            ><button id="doc-refresh" type="button">Show document</button></div
-          ><p
-            id="doc-status"
-            class="doc-status"
-            role="status"
-            aria-live="polite"
-          ></p
-          ><article
-            id="doc-viewer"
-            class="doc-viewer"
-            aria-label="Imported Google Doc content"
-            aria-busy="false"
-          ></article></section
         ><div
           id="resolve"
           class="resolve"
-          hiddenrole="group"
+          hidden
+          role="group"
           aria-label="Resolve conflict"
           ><p class="hint"
             >This is a conflict copy. Both versions were kept. Choose which one
@@ -579,6 +447,5 @@
         ></div
       ></div
     >
-    <script src="./config.js"></script
-    ><script type="module" src="./app.js"></script></body
+    <script type="module" src="./app.js"></script></body
 ></html>

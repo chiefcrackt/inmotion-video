@@ -375,7 +375,6 @@ $('scrub').oninput = () => {
   draw(position);
 };
 function download(blob, name) {
-  if(window.TimDriveExport?.route(blob,name)) return;
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

@@ -73,7 +73,8 @@ try {
               ),
               contentType: 'text/html',
             })
-          : new URL(r.request().url()).pathname.startsWith('/shared/')
+          : new URL(r.request().url()).pathname.startsWith('/shared/') &&
+              fs.existsSync(path.join(root, new URL(r.request().url()).pathname.slice(1)))
             ? r.fulfill({
                 body: fs.readFileSync(
                   path.join(root, new URL(r.request().url()).pathname.slice(1)),

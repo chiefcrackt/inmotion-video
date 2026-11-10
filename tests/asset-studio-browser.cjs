@@ -26,9 +26,8 @@ const path = require('node:path');
       }, String(value));
     const ready = () =>
       page.waitForFunction(() => window.__assetStudio?.ready());
-    await page.goto(base);
-    await page.locator('#q').fill('standalone');
-    await page.locator('a[href="asset-studio/"]').click();
+    // Homepage navigation is covered by tests/hub.mjs.
+    await page.goto(base + '/asset-studio/');
     await ready();
     const counts = await page.evaluate(async () => {
       const { catalog } = await import('/asset-studio/catalog.mjs');

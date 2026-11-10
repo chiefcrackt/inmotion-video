@@ -38,6 +38,8 @@ export function renderDashboard() {
   <meta name="theme-color" content="#0e1a2e">
   <title>${escape(pageTitle(pageName('dashboard-preview/')))}</title>
   <link rel="icon" href="../favicon.svg">
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
   <link rel="stylesheet" href="../shared/fonts.css">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.mjs"></script>
@@ -68,7 +70,7 @@ export function renderDashboard() {
     .join('')}
   </section>
   <details id="originals"><summary>Original tools &amp; asset packs · ${TOOLS.length}</summary><p>Every original editor and collection is still available.</p><ul>${TOOLS.map((tool) => `<li><a href="../${escape(tool.href)}">${escape(tool.name)}</a></li>`).join('')}</ul></details>
-  <footer><a href="../docs/hosted-validation.md">Sharing &amp; Drive validation status</a><p>Original projects and links remain available. This preview does not replace the current dashboard.</p></footer>
+  <footer><p>Original projects and links remain available. This preview does not replace the current dashboard.</p></footer>
 </main>
 </body>
 </html>

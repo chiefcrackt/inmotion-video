@@ -37,13 +37,11 @@ Run `npm run test:content-studio:browser` for capture/promotion, duplicate
 prevention, two-way stage/date updates, checklist/take-note retention, editor and
 filming guards, original-format backup transfer, malformed-store protection,
 desktop/mobile layout and no-JavaScript fallback. Also run `npm test`,
-`npm run test:planner`, `npm run test:drive`, `node tests/idea-vault-browser.cjs`,
+`npm run test:planner`, `node tests/idea-vault-browser.cjs`,
 `node tests/idea-vault-due-browser.cjs`, and `npm run build`.
 
-Drive browser tests use simulated Google services. Real Google consent, Picker,
-Docs viewing and cross-device sync in the embedded workspace require manual
-verification on the hosted origin before replacing the dashboard's original
-planning entries.
+Cross-device sync is Workspace cloud sync (Supabase). Google Drive sync, Drive
+exports and the Google Docs viewer were removed in November 2026.
 
 Rollback: remove this directory and its test/package/static-check entries, then
 remove the `TimPlanningEditor` bridges. The live-picker fix can remain in the

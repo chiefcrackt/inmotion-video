@@ -405,7 +405,7 @@
         background: var(--teal);
       }
     </style>
-  <link rel="stylesheet" href="../shared/responsive.css" /><script type="module" src="../shared/drive-export.mjs"></script><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
+  <link rel="stylesheet" href="../shared/responsive.css" /><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
   <body><tim-studio-bar></tim-studio-bar>
     <div class="wrap">
       <header>
@@ -626,15 +626,15 @@
               <p class="note">Tag sits above the kicker (EP. 12, PART 2). The date or location line goes under the subtitle.</p>
             </div>
             <div class="row">
-              <span class="lab">Kicker</span>
+              <label class="lab" for="kicker">Kicker</label>
               <input type="text" id="kicker" maxlength="40" />
             </div>
             <div class="row">
-              <span class="lab">Title</span>
+              <label class="lab" for="title">Title</label>
               <textarea id="title" rows="2" maxlength="80"></textarea>
             </div>
             <div class="row">
-              <span class="lab">Subtitle</span>
+              <label class="lab" for="subtitle">Subtitle</label>
               <input type="text" id="subtitle" maxlength="60" />
             </div>
             <div class="row">
@@ -2858,7 +2858,6 @@
           anchor();
         }
         function saveFile(name, blob, note) {
-          if(window.TimDriveExport?.route(blob,name)) return;
           if (!downloads) return fallbackSave(name, blob, note);
           downloads
             .save({ filename: name, data: blob })
