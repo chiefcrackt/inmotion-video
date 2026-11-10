@@ -11,9 +11,9 @@
       content="Turn local FIT, GPX and TCX activity exports into branded running graphics and route animations."
     /><meta name="theme-color" content="#0E1A2E" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="studio.css" /><script
+    <link rel="stylesheet" href="studio.css?v=recap-1" /><script
       type="module"
-      src="app.mjs?v=brand-label-2"
+      src="app.mjs?v=recap-1"
     ></script
     ><link rel="stylesheet" href="../shared/fonts.css" />
     <link
@@ -54,12 +54,156 @@
               <label
                 >Graphic<select id="template"
                   ><option value="summary">Run summary</option
+                  ><option value="recap">Run recap card</option
                   ><option value="route">Route reveal</option
                   ><option value="dashboard">Performance dashboard</option
                   ><option value="elevation">Elevation profile</option
                   ><option value="splits">Recorded laps</option></select
                 ></label
               >
+              <div id="recapBox" class="recap" hidden>
+                <h3>Recap card</h3>
+                <label
+                  >Journey tag<input
+                    id="recapTag"
+                    type="text"
+                    maxlength="60"
+                    placeholder="WEEK 12 · ROAD TO [RACE]"
+                /></label>
+                <p class="note"
+                  >The gold line above the title. Leave it blank to hide it. The
+                  line under the title is your caption, or the run date.</p
+                >
+                <h3>Stats</h3>
+                <p class="note"
+                  >Tick what shows. Type over any value to change it; a plain
+                  number gets the unit added (48 → 48°F). Leave a box empty to
+                  use the value from your file. Typed values aren't saved in
+                  presets.</p
+                >
+                <div id="recapStatsBox" class="recap-stats">
+                  <div class="recap-row"
+                    ><label class="toggle"
+                      ><input type="checkbox" data-stat="distance" checked /> Distance</label
+                    ><input
+                      type="text"
+                      data-override="distance"
+                      maxlength="24"
+                      inputmode="text"
+                      autocomplete="off"
+                      aria-label="Distance shown on the card"
+                  /></div>
+                  <div class="recap-row"
+                    ><label class="toggle"
+                      ><input type="checkbox" data-stat="pace" checked /> Pace</label
+                    ><input
+                      type="text"
+                      data-override="pace"
+                      maxlength="24"
+                      inputmode="text"
+                      autocomplete="off"
+                      aria-label="Pace shown on the card"
+                  /></div>
+                  <div class="recap-row"
+                    ><label class="toggle"
+                      ><input type="checkbox" data-stat="ascent" checked /> Elevation gain</label
+                    ><input
+                      type="text"
+                      data-override="ascent"
+                      maxlength="24"
+                      inputmode="text"
+                      autocomplete="off"
+                      aria-label="Elevation gain shown on the card"
+                  /></div>
+                  <div class="recap-row"
+                    ><label class="toggle"
+                      ><input type="checkbox" data-stat="moving" checked /> Time</label
+                    ><input
+                      type="text"
+                      data-override="moving"
+                      maxlength="24"
+                      inputmode="text"
+                      autocomplete="off"
+                      aria-label="Time shown on the card"
+                  /></div>
+                  <div class="recap-row"
+                    ><label class="toggle"
+                      ><input type="checkbox" data-stat="heartRate" checked /> Avg heart rate</label
+                    ><input
+                      type="text"
+                      data-override="heartRate"
+                      maxlength="24"
+                      inputmode="text"
+                      autocomplete="off"
+                      aria-label="Avg heart rate shown on the card"
+                  /></div>
+                  <div class="recap-row"
+                    ><label class="toggle"
+                      ><input type="checkbox" data-stat="temp" checked /> Temperature</label
+                    ><input
+                      type="text"
+                      data-override="temp"
+                      maxlength="24"
+                      inputmode="text"
+                      autocomplete="off"
+                      aria-label="Temperature shown on the card"
+                  /></div>
+                </div>
+                <div class="toggles"
+                  ><label class="toggle"
+                    ><input id="recapElev" type="checkbox" checked /> Elevation
+                    profile</label
+                  ><label class="toggle"
+                    ><input id="recapSplits" type="checkbox" checked /> Split
+                    bars</label
+                  ></div
+                >
+                <h3>Background</h3>
+                <div class="pair"
+                  ><label
+                    >Behind the card<select id="recapBg"
+                      ><option value="grid">Navy grid</option
+                      ><option value="photo">My photo</option></select
+                    ></label
+                  ><label id="recapDimRow" hidden
+                    >Photo dim<input
+                      id="recapDim"
+                      type="range"
+                      min="0"
+                      max="90"
+                      step="5"
+                      value="55" /></label
+                ></div>
+                <label class="drop" id="recapPhotoDrop" hidden
+                  >Choose a run photo<input
+                    id="recapPhoto"
+                    type="file"
+                    accept="image/*" /><small
+                    >Stays on this device · not saved in presets</small
+                  ></label
+                >
+                <label class="toggle"
+                  ><input id="recapSpecks" type="checkbox" checked /> Floating
+                  specks</label
+                >
+                <div class="pair"
+                  ><label
+                    >Handle<input
+                      id="recapHandle"
+                      type="text"
+                      maxlength="40"
+                      value="TRISTAN.INMOTION" /></label
+                  ><label class="toggle"
+                    ><input id="recapShowHandle" type="checkbox" checked /> Show
+                    handle</label
+                  ></div
+                >
+                <p class="note"
+                  >The route, colours, units, intro and draw styles below all
+                  work on this card too. On 9:16 the text stays clear of the top
+                  250 px and bottom 400 px.</p
+                >
+              </div>
               <div class="pair"
                 ><label
                   >Canvas<select id="size"
