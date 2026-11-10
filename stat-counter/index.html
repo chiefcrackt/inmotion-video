@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="../shared/responsive.css" />
 <link rel="stylesheet" href="../shared/studio-bar.css" />
 <script type="module" src="../shared/studio-bar.mjs"></script>
-<script type="module" src="../shared/drive-export.mjs"></script>
+
 <style>
   :root {
     --navy: #0e1a2e;
@@ -883,7 +883,6 @@
     anchor();
   }
   function saveFile(name, data, note) {
-    if (window.TimDriveExport && window.TimDriveExport.route && window.TimDriveExport.route(data, name)) return;
     if (!downloads) { fallbackSave(name, data, note); return; }
     downloads.save({ filename: name, data: data }).then(function (r) {
       note.textContent = r && r.status === 'saved' ? 'Saved ' + name + '.' : 'Sent ' + name + '.';

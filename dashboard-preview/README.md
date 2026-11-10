@@ -31,8 +31,7 @@ Browser Use was unavailable during this preview's implementation. Before
 publishing or promoting this page, visually review desktop/phone widths, test
 keyboard and screen-reader navigation, verify search/filter operation in a real
 browser, and visit every studio/mode/original link with and without JavaScript.
-The live Drive and actual-device sharing checks in
-`docs/hosted-validation.md` remain incomplete. Treat dashboard promotion as a
+Actual-device sharing checks remain to be done. Treat dashboard promotion as a
 separate rollout step, preserving the fallback links.
 
 Rollback: remove this directory and its registry grouping exports, test and

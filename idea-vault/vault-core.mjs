@@ -14,7 +14,6 @@
 //  - Never silently discard an idea. Unparseable entries pass through merges.
 //  - Repeated merges must not create duplicate conflict copies.
 
-export const WORKSPACE_FILE = 'tim-idea-vault-v1.json';
 export const WORKSPACE_VERSION = 1;
 
 export function isWorkspace(value) {
@@ -79,24 +78,6 @@ export function stableStringify(value) {
 
 export function sameContent(a, b) {
   return stableStringify(a) === stableStringify(b);
-}
-
-export function workspaceListQuery(name = WORKSPACE_FILE) {
-  const escaped = String(name).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  return `name = '${escaped}'`;
-}
-
-// Returns the single workspace file, null when none exists, and throws when
-// duplicates exist. Duplicates are never auto-picked: choosing one would
-// silently hide the other's data.
-export function pickWorkspaceFile(files, name = WORKSPACE_FILE) {
-  const matches = (files || []).filter((file) => file && file.name === name);
-  if (matches.length > 1) {
-    throw new Error(
-      'Multiple Idea Vault cloud files were found. Nothing was changed. Export a backup before resolving the duplicates.',
-    );
-  }
-  return matches[0] || null;
 }
 
 // Record a local edit: bump the revision and the informational timestamp.
@@ -302,92 +283,6 @@ export function discardCopy(ideas, copyId, timestamp) {
   copy.archived = true;
   touch(copy, timestamp);
   return ideas;
-}
-
-export function isGoogleDoc(file) {
-  return file?.mimeType === 'application/vnd.google-apps.document';
-}
-
-export function folderIdFrom(input) {
-  const value = String(input || '').trim();
-  const match = value.match(
-    /https:\/\/drive\.google\.com\/drive\/folders\/([a-zA-Z0-9_-]{15,})/,
-  );
-  if (match) return match[1];
-  if (/^[a-zA-Z0-9_-]{15,}$/.test(value)) return value;
-  throw new Error(
-    'Paste a Google Drive folder URL (drive.google.com/drive/folders/…) or folder ID.',
-  );
-}
-
-export function inferCategory(name) {
-  if (/gear|flask|shoe|review|product/i.test(name)) return 'Gear';
-  if (/race|ultra|run|2026|2027|DNF|oil creek/i.test(name)) return 'Running';
-  if (/vlog|week|personal|life/i.test(name)) return 'Lifestyle';
-  return 'General';
-}
-
-export function inferPlatform(name) {
-  return /tiktok/i.test(name) ? 'TikTok' : 'YouTube';
-}
-
-export function isReference(name) {
-  return /segment idea bank|intro and outro questions/i.test(name);
-}
-
-/**
- * Plan an additive Drive import. Never removes or edits existing ideas.
- * Dedupes against existing ideas (including archived ones, so an archived
- * idea is never resurrected), against docUrl, and within the batch itself
- * (Drive pagination can repeat a file if the folder changes mid-scan).
- */
-export function planImport(existing, docs, makeId, timestamp) {
-  const knownSources = new Set();
-  for (const idea of existing || []) {
-    if (idea?.sourceId) knownSources.add(idea.sourceId);
-    const match =
-      idea?.docUrl && String(idea.docUrl).match(/\/d\/([a-zA-Z0-9_-]+)\//);
-    if (match) knownSources.add(match[1]);
-  }
-
-  const additions = [];
-  let existingCount = 0;
-  let invalid = 0;
-  for (const doc of docs || []) {
-    if (
-      !doc ||
-      typeof doc.id !== 'string' ||
-      !/^[a-zA-Z0-9_-]+$/.test(doc.id)
-    ) {
-      invalid++;
-      continue;
-    }
-    if (knownSources.has(doc.id)) {
-      existingCount++;
-      continue;
-    }
-    knownSources.add(doc.id);
-    const reference = isReference(doc.name);
-    additions.push({
-      id: makeId(),
-      sourceId: doc.id,
-      title: doc.name,
-      notes: '',
-      platform: reference ? 'Reference' : inferPlatform(doc.name),
-      category: reference ? 'Reference' : inferCategory(doc.name),
-      kind: reference ? 'reference' : 'project',
-      status: reference ? 'Inbox' : 'Developing',
-      priority: 'Normal',
-      docUrl:
-        doc.webViewLink ||
-        'https://docs.google.com/document/d/' + doc.id + '/edit',
-      createdAt: doc.createdTime || timestamp,
-      updatedAt: timestamp,
-      revision: makeId(),
-      archived: false,
-    });
-  }
-  return { additions, existingCount, invalid };
 }
 
 // ---- Due dates and checklists ----------------------------------------------

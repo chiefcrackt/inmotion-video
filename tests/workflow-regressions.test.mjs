@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { reconcileLinked } from '../shared/pipeline-link.mjs';
-import { baseOf } from '../idea-vault/vault-core.mjs';
 
 const source = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 // Run the production event handlers with controlled browser/network events.
@@ -13,49 +12,6 @@ function between(text, start, end) {
   assert.ok(from >= 0 && to > from, 'Production handler exists');
   return text.slice(from, to);
 }
-function storage(initial = {}) {
-  const data = new Map(Object.entries(initial));
-  return {
-    getItem: (key) => data.get(key) ?? null,
-    setItem: (key, value) => data.set(key, value),
-  };
-}
-
-test('planner writes durably mark linked ideas pending without losing sync preferences', () => {
-  const localStorage = storage({
-    'tim-idea-vault-sync-v1': JSON.stringify({ connected: true, pending: false, base: { a: 'r1' } }),
-  });
-  const context = { localStorage, IDEA_KEY: 'tim-idea-vault-v1' };
-  vm.createContext(context);
-  vm.runInContext(between(source('content-planner/app.mjs'), 'function writeIdeas(', '\nfunction save()'), context);
-  vm.runInContext('writeIdeas([{id:"a",status:"Ready to Film"}])', context);
-  const sync = JSON.parse(localStorage.getItem('tim-idea-vault-sync-v1'));
-  assert.equal(sync.pending, true);
-  assert.equal(sync.connected, true);
-  assert.deepEqual(sync.base, { a: 'r1' });
-  assert.equal(JSON.parse(localStorage.getItem('tim-idea-vault-v1')).ideas[0].status, 'Ready to Film');
-});
-
-test('an open vault queues an externally reconciled planner edit for upload', () => {
-  let handler, uploads = 0, loads = 0;
-  const context = {
-    window: { addEventListener: (_, fn) => { handler = fn; } },
-    KEY: 'ideas', PLANNER_KEY: 'plans', items: [], now: () => '',
-    load: () => loads++, plannerProjects: () => [], reconcileLinked: () => false,
-    persist: () => assert.fail('No reconciliation needed'), render() {}, renderSyncState() {},
-    hasPendingChanges: () => true, isConnected: () => true,
-    syncer: { requestSync: () => uploads++ },
-  };
-  const app = source('idea-vault/app.js');
-  vm.createContext(context);
-  vm.runInContext(between(app.slice(app.lastIndexOf("window.addEventListener('storage'")), "window.addEventListener('storage'", '\nrender();'), context);
-  handler({ key: 'ideas' });
-  assert.equal(loads, 1);
-  assert.equal(uploads, 1);
-  handler({ key: 'unrelated' });
-  assert.equal(uploads, 1);
-});
-
 test('dragging a linked project advances its stage after a newer notes-only idea edit', () => {
   const project = { id: 'idea:a', stage: 'Outline', publishDate: '', updated: 1000 };
   const idea = { id: 'a', status: 'Developing', dueDate: '', updatedAt: new Date(2000).toISOString() };
@@ -69,77 +25,6 @@ test('dragging a linked project advances its stage after a newer notes-only idea
   col.ondrop({ preventDefault() {}, dataTransfer: { getData: () => project.id } });
   assert.equal(project.stage, 'Film');
   assert.equal(idea.status, 'Ready to Film');
-});
-
-test('a planner edit arriving during an upload remains pending for the follow-up sync', async () => {
-  const before = { id: 'a', status: 'Developing', revision: 'r1' };
-  const after = { ...before, status: 'Ready to Film', revision: 'r2' };
-  const serialize = (ideas) => JSON.stringify({ version: 1, ideas });
-  const localStorage = storage({ ideas: serialize([before]) });
-  let sync = { pending: true }, uploads = 0;
-  const context = {
-    KEY: 'ideas', localStorage, items: [before], remote: { id: 'cloud', version: '1' },
-    pickWorkspaceFile: (files) => files[0], listWorkspaceFiles: async () => [{ id: 'cloud', version: '1' }],
-    sameVersion: (a, b) => a === b, hasPendingChanges: () => sync.pending,
-    reconcileWith: () => assert.fail('Cloud version did not change'),
-    conflictNote: () => '', now: () => '2026-11-02T20:00:00Z', render() {}, baseOf,
-    writeSync: (patch) => { sync = { ...sync, ...patch }; },
-    updateWorkspace: async (_, payload) => {
-      uploads++;
-      if (uploads === 1) {
-        assert.equal(JSON.parse(payload).ideas[0].revision, 'r1');
-        context.items = [after];
-        localStorage.setItem('ideas', serialize([after]));
-      } else assert.equal(JSON.parse(payload).ideas[0].revision, 'r2');
-      return { id: 'cloud', version: '1' };
-    },
-  };
-  vm.createContext(context);
-  vm.runInContext(between(source('idea-vault/app.js'), 'async function syncOnce()', '\n// Maps any failure'), context);
-  await vm.runInContext('syncOnce()', context);
-  assert.equal(sync.pending, true);
-  assert.equal(sync.base.a, 'r1');
-  await vm.runInContext('syncOnce()', context);
-  assert.equal(uploads, 2);
-  assert.equal(sync.pending, false);
-  assert.equal(sync.base.a, 'r2');
-});
-
-function uploadHarness(responses) {
-  let attempts = 0, updates = 0;
-  const context = {
-    Blob, URL, UPLOAD: 'https://www.googleapis.com/upload/drive/v3/', connectedAccount: 'account',
-    SyncError: class extends Error {}, requireToken() {}, serial: (_, fn) => fn(),
-    ensureFolder: async () => ({ id: 'folder' }), readProjects: () => [{ id: 'p', driveAssets: [] }],
-    request: async (url) => {
-      if (url.includes('uploadType=resumable'))
-        return { headers: { get: () => 'https://www.googleapis.com/session' } };
-      assert.ok(++attempts <= 15, 'Upload must stop when no progress is made');
-      const response = responses(attempts);
-      return { status: response.status, headers: { get: () => response.range || null }, json: async () => ({ id: 'asset' }) };
-    },
-    json: async () => ({ id: 'asset', name: 'test.txt', parents: ['folder'], size: '10' }),
-    updateProject: (_, fn) => { fn({ driveAssets: [] }); updates++; },
-    startSync: () => ({ requestSync() {} }),
-  };
-  vm.createContext(context);
-  const handler = between(source('shared/project-drive.mjs'), 'export async function uploadAsset(', '\nfunction safeWeb(').replace('export async function', 'async function');
-  vm.runInContext(handler + ';globalThis.upload = uploadAsset;', context);
-  return { run: () => context.upload('p', new Blob(['0123456789']), 'test.txt'), attempts: () => attempts, updates: () => updates };
-}
-
-test('Drive uploads stop after four responses accepting no bytes', async () => {
-  const h = uploadHarness(() => ({ status: 308 }));
-  await assert.rejects(h.run(), /Upload stalled/);
-  assert.equal(h.attempts(), 4);
-  assert.equal(h.updates(), 0);
-});
-
-test('Drive upload progress resets the stall limit and permits completion', async () => {
-  const h = uploadHarness((n) => n === 9 ? { status: 200 } : { status: 308, range: n >= 5 ? 'bytes=0-3' : n >= 1 ? 'bytes=0-1' : null });
-  await h.run();
-  assert.equal(h.attempts(), 9);
-  assert.equal(h.updates(), 1);
 });
 
 function recordingHarness({ startFails = false, constructFails = false } = {}) {

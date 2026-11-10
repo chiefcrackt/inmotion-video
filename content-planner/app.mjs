@@ -1,6 +1,4 @@
 import { saveProjects, readProjects } from '../shared/project-store.mjs';
-import * as drive from '../shared/project-drive.mjs';
-import { mountDriveControls } from '../shared/drive-controls.mjs';
 import {
   STAGES,
   KINDS,
@@ -61,13 +59,6 @@ function readIdeas() {
   }
 }
 function writeIdeas(ideas) {
-  // Mark pending before writing: the open vault receives the ideas storage event.
-  const syncKey = 'tim-idea-vault-sync-v1';
-  let sync = {};
-  try {
-    sync = JSON.parse(localStorage.getItem(syncKey) || '{}') || {};
-  } catch {}
-  localStorage.setItem(syncKey, JSON.stringify({ ...sync, pending: true }));
   localStorage.setItem(IDEA_KEY, JSON.stringify({ version: 1, ideas }));
 }
 function save() {
@@ -697,13 +688,6 @@ window.addEventListener('storage', (e) => {
   if (current) open(current.id);
 });
 
-if (drive.usesSupabaseWorkspace()) {
-  $('drive-folder').hidden = true;
-  $('planner-save-hint').textContent =
-    'Plans save on this device. Use Workspace cloud sync to sync across devices.';
-} else {
-  mountDriveControls($('drive-panel'));
-}
 function refreshFromStorage() {
   const prior = current;
   const selected = current?.id;
@@ -748,64 +732,28 @@ window.addEventListener('tim-projects-changed', () => {
   if (!saving && localStorage.getItem(KEY) !== lastSaved)
     queueMicrotask(refreshFromStorage);
 });
+// Google Drive was removed. Links saved by earlier versions stay visible so
+// nothing already uploaded is lost; no Google sign-in is needed to open them.
 function renderDriveAssets() {
   if (!current) return;
   const host = $('cloud-assets');
   host.replaceChildren();
-  if (current.driveFolder?.id) {
-    const a = link(
-      'Open project folder',
-      drive.folderLink(current.driveFolder.id),
-    );
-    a.target = '_blank';
-    a.rel = 'noopener';
-    host.append(a);
-  }
-  for (const asset of current.driveAssets || []) {
+  const rows = [];
+  if (current.driveFolder?.id)
+    rows.push(['Earlier Drive folder', 'https://drive.google.com/drive/folders/' + encodeURIComponent(current.driveFolder.id)]);
+  for (const asset of current.driveAssets || []) rows.push([asset.name, safeUrl(asset.url)]);
+  $('earlier-drive').hidden = !rows.length;
+  for (const [name, url] of rows) {
     const row = node('div', undefined, 'attachment');
-    const url = safeUrl(asset.url);
     if (url) {
-      const a = link(asset.name, url);
+      const a = link(name, url);
       a.target = '_blank';
       a.rel = 'noopener';
       row.append(a);
-    } else row.append(node('span', asset.name));
-    const tool = getTool(asset.tool);
-    if (
-      !drive.usesSupabaseWorkspace() &&
-      tool &&
-      asset.name.endsWith('.project.json')
-    )
-      row.append(
-        link(
-          'Edit saved setup',
-          '../' +
-            tool.href +
-            '?videoProject=' +
-            encodeURIComponent(current.id) +
-            '&driveSnapshot=' +
-            encodeURIComponent(asset.id),
-        ),
-      );
+    } else row.append(node('span', name));
     host.append(row);
   }
 }
-$('drive-folder').onclick = async () => {
-  if (!current) return;
-  const id = current.id;
-  $('drive-folder').disabled = true;
-  try {
-    await drive.connect();
-    await drive.ensureFolder(id);
-    refreshFromStorage();
-    await drive.syncNow();
-    say('Project folder is ready.');
-  } catch (e) {
-    say(e.message);
-  } finally {
-    $('drive-folder').disabled = false;
-  }
-};
 
 // The planning host uses one planner instance for Videos and Shoot views.
 // Switching views reads existing data; it never creates or migrates a project.

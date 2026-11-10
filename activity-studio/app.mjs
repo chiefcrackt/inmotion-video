@@ -425,7 +425,6 @@ canvas.addEventListener('pointermove', (e) => {
 for (const name of ['pointerup', 'pointercancel'])
   canvas.addEventListener(name, () => (drag = null));
 async function save(blob, name) {
-  if(window.TimDriveExport?.route(blob,name)) return;
   const file = new File([blob], name, { type: blob.type });
   // share sheet on phones and tablets only; computers download directly
   const phone =

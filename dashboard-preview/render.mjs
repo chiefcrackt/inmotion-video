@@ -68,7 +68,7 @@ export function renderDashboard() {
     .join('')}
   </section>
   <details id="originals"><summary>Original tools &amp; asset packs · ${TOOLS.length}</summary><p>Every original editor and collection is still available.</p><ul>${TOOLS.map((tool) => `<li><a href="../${escape(tool.href)}">${escape(tool.name)}</a></li>`).join('')}</ul></details>
-  <footer><a href="../docs/hosted-validation.md">Sharing &amp; Drive validation status</a><p>Original projects and links remain available. This preview does not replace the current dashboard.</p></footer>
+  <footer><p>Original projects and links remain available. This preview does not replace the current dashboard.</p></footer>
 </main>
 </body>
 </html>

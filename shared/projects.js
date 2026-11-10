@@ -322,27 +322,6 @@
       back.textContent = '← Back to video project';
       section.before(back);
     }
-    const cloudSnapshotId = new URLSearchParams(location.search).get(
-      'driveSnapshot',
-    );
-    if (cloudSnapshotId) {
-      section.open = true;
-      const load = document.createElement('button');
-      load.type = 'button';
-      load.textContent = 'Load Drive setup';
-      load.onclick = run(async () => {
-        const drive = await import('./project-drive.mjs');
-        await drive.connect();
-        const doc = validate(await drive.downloadSetup(cloudSnapshotId), tool);
-        if (!confirm('Replace the current setup with ' + doc.name + '?'))
-          return;
-        await set(clone(doc.payload));
-        $('name').value = doc.name;
-        syncLook();
-        status('Loaded ' + doc.name + ' from Drive.');
-      });
-      section.querySelector('.tim-project-body').prepend(load);
-    }
     const snapshotId = new URLSearchParams(location.search).get('snapshot');
     if (snapshotId) {
       section.open = true;
