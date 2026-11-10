@@ -6,6 +6,13 @@ import {
   units,
   duration,
 } from './model.mjs?v=0c775036';
+import {
+  makeRecap,
+  recapLayout,
+  recapStats,
+  computeSplits,
+  scaleText,
+} from './recap.mjs?v=6a143b6e';
 export const presets = {
   cyber: {
     background: '#0e1a2e',
@@ -28,6 +35,7 @@ export const presets = {
 };
 export const templates = {
   summary: { name: 'Run summary' },
+  recap: { name: 'Run recap card' },
   route: { name: 'Route reveal', requires: 'gps' },
   dashboard: { name: 'Performance dashboard' },
   elevation: { name: 'Elevation profile', requires: 'elevation' },
@@ -150,7 +158,11 @@ export function render(
     W = canvas.width,
     H = canvas.height;
   ctx.clearRect(0, 0, W, H);
-  if (!settings.transparent) {
+  const recap = settings.template === 'recap';
+  // specks drift with the wall clock while something is playing; stills stay put
+  const clock =
+    animated || intro != null ? performance.now() / 1000 : 0;
+  if (!settings.transparent && !recap) {
     ctx.fillStyle = settings.background;
     ctx.fillRect(0, 0, W, H);
   }
@@ -161,6 +173,8 @@ export function render(
     { sans: 'Arial, sans-serif', serif: 'Georgia, serif', mono: 'monospace' }[
       settings.font
     ] || '"Barlow Condensed", "Arial Narrow", Arial, sans-serif';
+  const R = recap ? makeRecap(ctx, W, H, settings, font) : null;
+  if (R && !settings.transparent) R.background(clock);
   const text = (
     str,
     x,
@@ -174,7 +188,7 @@ export function render(
     ctx.font = `${weight} ${size * scale * settings.fontSize}px ${font}`;
     ctx.fillText(String(str), x, y, max);
   };
-  if (settings.preset === 'cyber' && !settings.transparent) {
+  if (settings.preset === 'cyber' && !settings.transparent && !recap) {
     ctx.strokeStyle = settings.route + '24';
     ctx.lineWidth = scale;
     for (let x = pad; x < W; x += 90 * scale) {
@@ -226,7 +240,7 @@ export function render(
     fn();
     ctx.restore();
   };
-  if (settings.brandLabel !== false && settings.brandText) {
+  if (!recap && settings.brandLabel !== false && settings.brandText) {
     const align = ['center', 'right'].includes(settings.brandAlign)
       ? settings.brandAlign
       : 'left';
@@ -266,9 +280,10 @@ export function render(
   ox = offsetX;
   oy = offsetY;
   ctx.globalAlpha = settings.opacity;
-  cardPart(() =>
-    text(settings.title || activity.metadata.name, pad, 160 * scale, 62),
-  );
+  if (!recap)
+    cardPart(() =>
+      text(settings.title || activity.metadata.name, pad, 160 * scale, 62),
+    );
   const date = activity.metadata.date
     ? new Date(activity.metadata.date).toLocaleDateString(undefined, {
         year: 'numeric',
@@ -276,9 +291,10 @@ export function render(
         day: 'numeric',
       })
     : '';
-  cardPart(() =>
-    text(date.toUpperCase(), pad, 204 * scale, 24, settings.accent),
-  );
+  if (!recap)
+    cardPart(() =>
+      text(date.toUpperCase(), pad, 204 * scale, 24, settings.accent),
+    );
   const point = animated ? atTime(activity, progress) : null;
   const selectedKeys = settings.metrics
     .filter((k) => activity.summary[k] != null)
@@ -304,6 +320,11 @@ export function render(
     w: box.w * settings.scale,
     h: box.h * settings.scale,
   };
+  if (recap) {
+    drawRecap();
+    ctx.restore();
+    return;
+  }
   const cardRoute =
     settings.template !== 'elevation' &&
     settings.template !== 'splits' &&
@@ -347,6 +368,79 @@ export function render(
       text(settings.caption, pad, H - 35 * scale, 24, settings.text, 500),
     );
   ctx.restore();
+  function drawRecap() {
+    const k = R.k,
+      list = settings.showMetrics ? recapStats(activity, settings) : [],
+      splitList =
+        settings.recapSplits !== false
+          ? computeSplits(activity, settings.imperial)
+          : [],
+      elevOn =
+        settings.recapElev !== false && activity.availability.elevation,
+      routeOn = settings.showRoute && activity.availability.gps,
+      L = recapLayout(W, H, {
+        stats: list.length,
+        elevation: elevOn,
+        splits: splitList.length > 0,
+        route: routeOn,
+      });
+    const endD = activity.points.at(-1)?.distanceM || 0,
+      share =
+        point && endD > 0 && finite(point.distanceM)
+          ? point.distanceM / endD
+          : 1;
+    cardPart(() =>
+      R.header(
+        L.header,
+        settings.title || activity.metadata.name,
+        settings.caption || date,
+        L.align,
+        L.fs,
+      ),
+    );
+    if (L.route) {
+      const w = L.route;
+      cardPart(() => R.windowFrame(w));
+      const inner = {
+        x: w.x + 50 * k,
+        y: w.y + 76 * k,
+        w: w.w - 100 * k,
+        h: w.h - 126 * k,
+      };
+      const c = { x: inner.x + inner.w / 2, y: inner.y + inner.h / 2 };
+      box = {
+        x: c.x - (inner.w * settings.scale) / 2,
+        y: c.y - (inner.h * settings.scale) / 2,
+        w: inner.w * settings.scale,
+        h: inner.h * settings.scale,
+      };
+      drawRoute();
+    } else if (iv && activity.availability.gps && iv.move < 1) drawRoute(true);
+    const counting = ['distance', 'ascent', 'moving'];
+    cardPart(() =>
+      R.statGrid(
+        L.stats,
+        list,
+        L.cols,
+        L.align,
+        L.fs,
+        point && share < 1
+          ? (s) =>
+              counting.includes(s.key) ? scaleText(s.value, share) : s.value
+          : null,
+      ),
+    );
+    const charts = [...(L.charts || [])];
+    if (elevOn && charts.length) {
+      const b = charts.shift();
+      cardPart(() => R.elevation(b, activity, point, L.fs));
+    }
+    if (splitList.length && charts.length) {
+      const b = charts.shift();
+      cardPart(() => R.splitBars(b, splitList, point, L.fs));
+    }
+    cardPart(() => R.handle(L.handle, L.align, L.fs));
+  }
   function drawRoute(vanish = false) {
     const key = JSON.stringify([box, settings.trim, settings.rotation]);
     let cache = routeCache.get(activity);

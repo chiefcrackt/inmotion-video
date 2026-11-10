@@ -202,6 +202,22 @@ button:disabled {
 .metrics label {
   font-size: 13px;
 }
+.recap-stats {
+  display: grid;
+  gap: 6px;
+}
+.recap-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 10px;
+  align-items: center;
+}
+.recap-row input[type='text'] {
+  min-width: 0;
+}
+.recap-row .toggle {
+  margin-bottom: 0;
+}
 .drop {
   border: 1px dashed var(--teal);
   background: var(--navy);

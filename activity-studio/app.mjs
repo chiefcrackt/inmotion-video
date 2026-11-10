@@ -1,4 +1,10 @@
-import { render, presets, templates, metric } from './render.mjs?v=90dede58';
+import { render, presets, templates, metric } from './render.mjs?v=47ff6129';
+import {
+  recapInputs,
+  recapDefaults,
+  photoGeometry,
+  RECAP_STATS,
+} from './recap.mjs?v=6a143b6e';
 import { duration, atTime } from './model.mjs?v=0c775036';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas');
@@ -31,6 +37,10 @@ const numeric = [
   'introLen',
   'introHold',
   'brandSize',
+  'recapDim',
+  'recapPhotoZoom',
+  'recapPhotoX',
+  'recapPhotoY',
 ];
 const checks = [
   'transparent',
@@ -40,6 +50,11 @@ const checks = [
   'intro',
   'brandLabel',
   'brandAccent',
+  'recapSpecks',
+  'recapElev',
+  'recapSplits',
+  'recapShowHandle',
+  'recapDragPhoto',
 ];
 const settings = {
   preset: 'cyber',
@@ -81,7 +96,53 @@ const settings = {
   brandAlign: 'left',
   brandAccent: true,
   brandColor: '#e8c96a',
+  // run recap card (Video Framer look). Typed stat values and the photo are kept
+  // in recapInputs instead, so saved presets never hold run data.
+  recapTag: '',
+  recapStats: [...RECAP_STATS],
+  recapElev: true,
+  recapSplits: true,
+  recapBg: 'grid',
+  recapDim: 55,
+  recapPhotoFit: 'fill',
+  recapPhotoZoom: 1,
+  recapPhotoX: 0,
+  recapPhotoY: 0,
+  recapDragPhoto: true,
+  recapSpecks: true,
+  recapHandle: 'TRISTAN.INMOTION',
+  recapShowHandle: true,
 };
+const fileBase = () =>
+  settings.template === 'recap' ? 'tim-run-recap' : 'tim-activity';
+function recapPlaceholders() {
+  const defaults = activity ? recapDefaults(activity, settings) : {};
+  for (const el of document.querySelectorAll('[data-override]')) {
+    const key = el.dataset.override;
+    el.placeholder =
+      defaults[key] || (key === 'temp' ? 'e.g. 48' : 'Type a value');
+  }
+}
+function syncRecap() {
+  $('recapBox').hidden = settings.template !== 'recap';
+  for (const el of document.querySelectorAll('[data-stat]'))
+    el.checked = settings.recapStats.includes(el.dataset.stat);
+  $('recapPhotoBox').hidden = settings.recapBg !== 'photo';
+}
+const movingPhoto = () =>
+  settings.template === 'recap' &&
+  settings.recapBg === 'photo' &&
+  !!recapInputs.photo &&
+  settings.recapDragPhoto !== false;
+function setPhotoPosition(x, y) {
+  for (const [k, v] of [
+    ['recapPhotoX', x],
+    ['recapPhotoY', y],
+  ]) {
+    settings[k] = Math.round(Math.max(-100, Math.min(100, v)));
+    $(k).value = settings[k];
+  }
+}
 function say(id, message, error = false) {
   $(id).textContent = message;
   $(id).classList.toggle('error', error);
@@ -235,6 +296,9 @@ function configure() {
     $('lapPage').append(o);
   }
   settings.lapPage = 0;
+  recapInputs.overrides = {};
+  for (const el of document.querySelectorAll('[data-override]')) el.value = '';
+  recapPlaceholders();
   updateSummary();
   progress = 1;
   paint(false);
@@ -362,6 +426,7 @@ $('editor').addEventListener('input', (e) => {
   } else if (id === 'units') {
     settings.imperial = e.target.value === 'imperial';
     updateSummary();
+    recapPlaceholders();
   } else if (id === 'preset') {
     Object.assign(settings, presets[e.target.value]);
     settings.preset = e.target.value;
@@ -387,6 +452,7 @@ function syncBrand() {
 }
 function syncMotion() {
   syncBrand();
+  syncRecap();
   $('introBox').hidden = !settings.intro;
   $('trailRow').hidden = settings.drawStyle !== 'comet';
   if (activity) {
@@ -401,6 +467,21 @@ let drag = null;
 canvas.addEventListener('pointerdown', (e) => {
   if (!activity || recording) return;
   const r = canvas.getBoundingClientRect();
+  if (movingPhoto()) {
+    const g = photoGeometry(recapInputs.photo, canvas.width, canvas.height, settings);
+    drag = {
+      photo: true,
+      px: e.clientX,
+      py: e.clientY,
+      x: settings.recapPhotoX,
+      y: settings.recapPhotoY,
+      // screen pixels → slider units
+      kx: g.rangeX ? (canvas.width / r.width / g.rangeX) * 100 : 0,
+      ky: g.rangeY ? (canvas.height / r.height / g.rangeY) * 100 : 0,
+    };
+    canvas.setPointerCapture(e.pointerId);
+    return;
+  }
   drag = {
     px: e.clientX,
     py: e.clientY,
@@ -413,6 +494,14 @@ canvas.addEventListener('pointerdown', (e) => {
 });
 canvas.addEventListener('pointermove', (e) => {
   if (!drag) return;
+  if (drag.photo) {
+    setPhotoPosition(
+      drag.x + (e.clientX - drag.px) * drag.kx,
+      drag.y + (e.clientY - drag.py) * drag.ky,
+    );
+    paint();
+    return;
+  }
   for (const [k, v] of [
     ['x', drag.x + ((e.clientX - drag.px) / drag.w) * 100],
     ['y', drag.y + ((e.clientY - drag.py) / drag.h) * 100],
@@ -455,7 +544,7 @@ $('png').onclick = async () => {
       return;
     }
     try {
-      await save(blob, 'tim-activity.png');
+      await save(blob, fileBase() + '.png');
       say(
         'exportStatus',
         `PNG ready · ${canvas.width} × ${canvas.height}${settings.transparent ? ' · transparent' : ''}.`,
@@ -516,7 +605,7 @@ async function recordTransparent() {
       say('exportStatus', `Encoding transparent video ${Math.round(f * 100)}% · keep this tab in front`);
     });
     videoBlob = blob;
-    videoName = 'tim-activity-transparent.webm';
+    videoName = fileBase() + '-transparent.webm';
     $('saveVideo').hidden = false;
     say(
       'exportStatus',
@@ -613,7 +702,7 @@ $('video').onclick = async () => {
     }
     const mime = (mr.mimeType || type).split(';')[0];
     videoBlob = new Blob(chunks, { type: mime });
-    videoName = 'tim-activity.' + (mime.includes('mp4') ? 'mp4' : 'webm');
+    videoName = fileBase() + '.' + (mime.includes('mp4') ? 'mp4' : 'webm');
     $('saveVideo').hidden = false;
     say(
       'exportStatus',
@@ -654,6 +743,41 @@ document.addEventListener('visibilitychange', () => {
     if (recording) cancelRecording?.();
   }
 });
+$('recapStatsBox').addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.dataset.override) recapInputs.overrides[t.dataset.override] = t.value;
+  if (t.dataset.stat)
+    settings.recapStats = RECAP_STATS.filter((k) =>
+      $('recapStatsBox').querySelector(`[data-stat="${k}"]`).checked,
+    );
+  paint();
+});
+$('recapPhoto').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file),
+    img = new Image();
+  img.src = url;
+  try {
+    await img.decode();
+    recapInputs.photo = img;
+    settings.recapPhotoZoom = 1;
+    $('recapPhotoZoom').value = 1;
+    setPhotoPosition(0, 0);
+    settings.recapBg = 'photo';
+    $('recapBg').value = 'photo';
+    syncRecap();
+    say('previewNote', 'Photo added. It stays on this device.');
+  } catch {
+    URL.revokeObjectURL(url);
+    say('previewNote', 'That photo could not be opened. Try a JPEG or PNG.', true);
+  }
+  paint();
+});
+$('recapPhotoCenter').onclick = () => {
+  setPhotoPosition(0, 0);
+  paint();
+};
 document.fonts.ready.then(() => paint());
 syncMotion();
 paint();
@@ -703,6 +827,7 @@ window.TimProjects.mount({
     }
     $('units').value = settings.imperial ? 'imperial' : 'metric';
     syncMotion();
+    recapPlaceholders();
     for (const id of ['size', 'seconds', 'style']) $(id).value = data[id];
     [canvas.width, canvas.height] = data.size.split(',').map(Number);
     $('dimensions').textContent = canvas.width + ' × ' + canvas.height;
