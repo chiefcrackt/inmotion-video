@@ -9,3 +9,5 @@ local-transcriber/data/
 local-voice/data/
 local-voice/models/
 __pycache__/
+motion-studio/render/node_modules/
+motion-studio/render/out/

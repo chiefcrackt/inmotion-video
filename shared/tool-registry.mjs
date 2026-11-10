@@ -86,9 +86,9 @@ export const TOOLS = Object.freeze([
     id: 'idea-vault',
     name: 'Idea Vault',
     href: 'idea-vault/',
-    description: 'Capture ideas, plan videos, track production and keep outlines.',
+    description: 'Capture ideas, plan videos and track production, with due dates and checklists.',
     workspaces: ['plan'],
-    keywords: ['ideas', 'planning', 'outline', 'production', 'notes', 'youtube'],
+    keywords: ['ideas', 'planning', 'outline', 'production', 'notes', 'youtube', 'checklist', 'due date'],
     icon: 'idea',
     quick: true,
     quickLabel: 'New Idea',
@@ -102,6 +102,33 @@ export const TOOLS = Object.freeze([
     keywords: ['title', 'lower third', 'chapter', 'typography', 'intro'],
     icon: 'title',
     quick: true,
+  },
+  {
+    id: 'stat-counter',
+    name: 'Stat Counter',
+    href: 'stat-counter/',
+    description: 'A big number counts up to your figure with a unit, eyebrow and sub line, with HUD brackets, a glitch on the hit and sound. Customise every value; 16:9 or 9:16, navy or green screen; video, PNG still.',
+    workspaces: ['graphics', 'running'],
+    keywords: ['stat', 'stats', 'number', 'counter', 'count up', 'big number', 'callout', 'data', 'climb', 'distance', 'intro', 'overlay'],
+    icon: 'title',
+  },
+  {
+    id: 'goals-maker',
+    name: 'Goals Maker',
+    href: 'goals-maker/',
+    description: 'A goals graphic with 5 to 7 goals: checklist, numbered or route layouts, optional photo or logo per goal, a runner, and an animated video with sound. 9:16, 1:1 or 16:9; navy, paper or green screen.',
+    workspaces: ['graphics', 'publishing'],
+    keywords: ['goals', 'goal', 'new year', 'annual', 'plan', 'checklist', 'roadmap', 'year', 'graphic', 'logo', 'race', 'animation'],
+    icon: 'title',
+  },
+  {
+    id: 'caption-maker',
+    name: 'Caption Maker',
+    href: 'caption-maker/',
+    description: 'Word-by-word captions in seven T.im styles from Transcribe Video’s Word JSON (or SRT/VTT), as a transparent overlay.',
+    workspaces: ['graphics'],
+    keywords: ['captions', 'subtitles', 'words', 'karaoke', 'highlight', 'overlay', 'transcript', 'srt', 'vtt', 'json'],
+    icon: 'text-motion',
   },
   {
     id: 'text-motion',
@@ -138,6 +165,15 @@ export const TOOLS = Object.freeze([
     workspaces: ['graphics', 'publishing'],
     keywords: ['ranking', 'tier', 'list', 'rank'],
     icon: 'tier-list',
+  },
+  {
+    id: 'motion-studio',
+    name: 'Motion Studio 2',
+    href: 'motion-studio/',
+    description: 'Build a title card or lower third with the T.im brand, preview it, then export a spec and render it on your computer.',
+    workspaces: ['graphics'],
+    keywords: ['motion', 'title card', 'lower third', 'animation', 'render', 'spec', 'remotion', 'brand'],
+    icon: 'motion',
   },
   {
     id: 'start-line',
@@ -297,7 +333,7 @@ export const TOOLS = Object.freeze([
 // projects, exports, saved setups and the current homepage.
 export const DASHBOARD_GROUPS = Object.freeze([
   { id: 'content-studio', name: 'Content Studio', href: 'content-studio/', description: 'Capture ideas, plan videos and take your checklist filming.', members: ['content-planner', 'idea-vault', 'shoot-planner'] },
-  { id: 'text-and-titles', name: 'Text & Titles', href: 'text-and-titles/', description: 'Animate words or create title cards, lower thirds and chapters with sound.', members: ['text-motion', 'title-maker'], modes: ['text', 'titles'] },
+  { id: 'text-and-titles', name: 'Text & Titles', href: 'text-and-titles/', description: 'Animate words or create title cards, lower thirds and chapters with sound.', members: ['text-motion', 'title-maker', 'caption-maker'], modes: ['text', 'titles', 'captions'] },
   { id: 'celebration-studio', name: 'Celebration Studio', href: 'celebration-studio/', description: 'Celebrate with runners, name cards, cakes, race bibs and medals.', members: ['special-post', 'celebrate'], modes: ['runners', 'cards'] },
   { id: 'publishing-studio', name: 'Publishing Studio', href: 'publishing-studio/', description: 'Make covers, announce a video or customize a brand template.', members: ['cover-maker', 'promo-maker', 'brand-assets'], modes: ['covers', 'promos', 'brand'] },
   { id: 'runner-animator', name: 'Runner Animator', href: 'runner-animator/', description: 'Count down to a race start or build a running scene.', members: ['start-line', 'river-run'], modes: ['start', 'run'] },
@@ -366,14 +402,14 @@ export function featuredTool() {
 export const STUDIO_NAME = 'T.IM Studio';
 
 // Pages that are not tools or studio groups, keyed by directory.
-const OTHER_PAGES = Object.freeze({ 'dashboard-preview/': 'Dashboard preview' });
+const OTHER_PAGES = Object.freeze({ 'dashboard-preview/': 'Dashboard preview', 'spot-it/': 'Spot It prototype' });
 
 /** Display name for a page directory such as 'title-maker/', or null. */
 export function pageName(dir) {
   const tool = TOOLS.find((t) => t.href === dir);
   if (tool) return tool.name;
   const group = DASHBOARD_GROUPS.find((g) => g.href === dir);
-  if (group) return group.id === 'content-studio' ? group.name : group.name + ' preview';
+  if (group) return group.name;
   return OTHER_PAGES[dir] || null;
 }
 

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "type": "title-card",
+  "aspect": "16:9",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "duration": 5,
+  "frames": 150,
+  "bpm": 120,
+  "background": "navy",
+  "events": [
+    {
+      "at": 0.5,
+      "type": "hit"
+    },
+    {
+      "at": 3.7,
+      "type": "glitch"
+    },
+    {
+      "at": 4.55,
+      "type": "crt-off"
+    }
+  ],
+  "scene": {
+    "eyebrow": "Part 1 · T.im",
+    "headline": "Where I Started",
+    "sub": "Sample spec for the render check"
+  },
+  "brand": {
+    "enabled": true,
+    "navy": "#0E1A2E",
+    "gold": "#E8C96A",
+    "teal": "#2E9BAD",
+    "paper": "#F6F4EF",
+    "font": "Barlow Condensed",
+    "headlineWeight": 900,
+    "eyebrowWeight": 700,
+    "safeZone": {
+      "top": 0,
+      "bottom": 0
+    }
+  }
+}

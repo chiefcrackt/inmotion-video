@@ -7,6 +7,7 @@
   <title>Caption Maker · T.IM Studio</title>
   <link rel="icon" href="../favicon.svg">
   <link rel="stylesheet" href="../shared/fonts.css">
+  <link rel="stylesheet" href="../shared/responsive.css">
   <link rel="stylesheet" href="../shared/studio-bar.css">
   <script type="module" src="../shared/studio-bar.mjs"></script>
   <script src="../text-motion/alpha-video.js" defer></script>
@@ -25,6 +26,7 @@
     label.lbl{display:block;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin:14px 0 6px}
     textarea{width:100%;min-height:150px;background:#0e1a2e;color:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.5 ui-monospace,Consolas,monospace}
     input[type=file]{color:var(--muted)}
+    select{width:100%;background:#0e1a2e;color:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}
     .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
     button{font:700 14px system-ui;background:var(--gold);color:#102033;border:0;border-radius:9px;padding:11px 16px;cursor:pointer}
     button.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold)}
@@ -34,6 +36,8 @@
     .styles input{margin-top:4px;accent-color:var(--gold)}
     .styles strong{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:900;text-transform:uppercase;font-size:18px;color:var(--paper)}
     .styles span{display:block;color:var(--muted);font-size:14px;line-height:1.45}
+    .fade-in{display:flex;gap:10px;align-items:center;margin:14px 0 4px;color:var(--paper);cursor:pointer}
+    .fade-in input{accent-color:var(--gold);width:18px;height:18px}
     input[type=range]{width:100%;accent-color:var(--gold)}
     .stage{position:relative;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:
       repeating-conic-gradient(#1b2d47 0% 25%,#13223a 0% 50%) 0 0/24px 24px}
@@ -56,15 +60,27 @@
     <div>
       <section>
         <h2>1. Captions</h2>
-        <label class="lbl" for="file">Upload SRT or VTT</label>
-        <input id="file" type="file" accept=".srt,.vtt,.txt">
+        <label class="lbl" for="file">Upload Word JSON, SRT or VTT</label>
+        <input id="file" type="file" accept=".json,.srt,.vtt,.txt">
         <label class="lbl" for="input">Or paste it here</label>
         <textarea id="input" spellcheck="false" placeholder="1&#10;00:00:00,000 --&gt; 00:00:02,000&#10;Your first caption line"></textarea>
         <div class="row" style="margin-top:12px">
           <button id="apply" type="button">Use these captions</button>
           <button id="sample" type="button" class="ghost">Load sample</button>
         </div>
-        <p class="note">Word highlighting spreads each caption's words evenly across its time. Exact word timings from the Transcribe tool can replace this later.</p>
+        <div id="grouping" hidden>
+          <label class="lbl" for="perCaption">Words per caption</label>
+          <select id="perCaption">
+            <option value="1">1 word</option>
+            <option value="2">Up to 2 words</option>
+            <option value="3" selected>Up to 3 words</option>
+            <option value="4">Up to 4 words</option>
+            <option value="6">Up to 6 words</option>
+            <option value="8">Up to 8 words</option>
+            <option value="sentence">Whole sentence</option>
+          </select>
+        </div>
+        <p class="note" id="timingNote">Best: <strong>Word JSON</strong> from Transcribe Video, with <strong>Precise word timing</strong> ticked. Each word lights up when you say it, and captions break at pauses and punctuation. SRT and VTT spread each caption's words evenly across its time instead.</p>
       </section>
 
       <section>
@@ -84,7 +100,27 @@
             <div><strong>Slam</strong><span>The current word drops in from above and lands with a punch.</span></div></label>
           <label><input type="radio" name="style" value="glitch">
             <div><strong>Glitch</strong><span>The current word gets a teal and gold colour split that jitters, from the T.im video kit.</span></div></label>
+          <label><input type="radio" name="style" value="grow">
+            <div><strong>Underline grow</strong><span>A gold bar grows under the word as you say it, like a progress bar for long words.</span></div></label>
+          <label><input type="radio" name="style" value="dim">
+            <div><strong>Colour pop + dim</strong><span>The spoken word turns gold; words still to come wait at 40%. Easy to follow on busy footage.</span></div></label>
+          <label><input type="radio" name="style" value="bounce">
+            <div><strong>Bounce</strong><span>The spoken word hops up a little and settles. Playful, quieter than Slam.</span></div></label>
+          <label><input type="radio" name="style" value="pill">
+            <div><strong>Teal pill</strong><span>A rounded teal pill slides from word to word.</span></div></label>
+          <label><input type="radio" name="style" value="zoom">
+            <div><strong>Zoom punch</strong><span>The spoken word grows to 1.3× and the line makes room for it. Good for hooks.</span></div></label>
+          <label><input type="radio" name="style" value="shake">
+            <div><strong>Shake</strong><span>A short gold jitter on the word. For “insane” and “blasted” moments.</span></div></label>
+          <label><input type="radio" name="style" value="outline">
+            <div><strong>Outline to fill</strong><span>Words wait as gold outlines and fill in solid as they're said.</span></div></label>
+          <label><input type="radio" name="style" value="pace">
+            <div><strong>Pace bar</strong><span>A thin teal line under the caption keeps pace with your speech; the spoken word is gold.</span></div></label>
+          <label><input type="radio" name="style" value="stride">
+            <div><strong>Stride</strong><span>Words step in from the right one at a time as you say them.</span></div></label>
         </div>
+        <label class="fade-in"><input type="checkbox" id="fadeIn"> Fade and rise each caption in, with any style</label>
+        <p class="note">For a whole line with the spoken word styled, pick a longer <strong>Words per caption</strong> (up to 8, or Whole sentence) and any style but Full line.</p>
       </section>
 
       <section>
@@ -115,7 +151,7 @@
         </div>
         <div class="transport">
           <button id="play" type="button" class="ghost">Play</button>
-          <input id="scrub" type="range" min="0" max="10" step="0.01" value="0">
+          <input id="scrub" type="range" min="0" max="10" step="0.01" value="0" aria-label="Scrub through the clip">
           <span class="time" id="time">0.00 / 0.00 s</span>
         </div>
       </section>
@@ -172,11 +208,91 @@ Train the downhills as hard as the climbs`;
     return out;
   }
 
+  // Word JSON from Transcribe Video: every word with its own start and end.
+  let sourceWords = null, precise = false;
+
+  function cleanWord(w) {
+    // Captions drop trailing full stops and commas; ? and ! stay.
+    return w.trim().replace(/[.,;:]+$/, '').toUpperCase();
+  }
+
+  function parseWordJSON(raw) {
+    const data = JSON.parse(raw);
+    const list = Array.isArray(data) ? data : data.original_words || data.words;
+    if (!Array.isArray(list)) throw Error('This JSON has no word list. Use the Word JSON download from Transcribe Video.');
+    const words = list
+      .map((w) => ({ word: String(w.word ?? w.text ?? ''), start: +w.start, end: +w.end }))
+      .filter((w) => cleanWord(w.word) && isFinite(w.start) && isFinite(w.end) && w.end >= w.start)
+      .sort((a, b) => a.start - b.start);
+    // Older matching-JSON downloads have no word_timing field, but aligned words carry a score.
+    const precise = data.word_timing === 'aligned' || list.some((w) => w && 'alignment' in w);
+    return { words, precise };
+  }
+
+  function groupWords(words, setting) {
+    // A caption ends at the word limit, a pause, or the end of a sentence (or a comma once it has a few words).
+    // Longer captions hold through short breaths; a whole sentence stops at 14 words so it can't fill the screen.
+    const max = setting === 'sentence' ? 14 : +setting;
+    const pause = max >= 6 ? 0.8 : 0.45;
+    const commaAfter = max >= 6 ? 5 : 2;
+    const groups = [];
+    let current = [];
+    words.forEach((w, i) => {
+      current.push(w);
+      const next = words[i + 1];
+      const gap = next ? next.start - w.end : Infinity;
+      const raw = w.word.trim();
+      if (current.length >= max || gap > pause || /[.?!]$/.test(raw) || (/[,;:]$/.test(raw) && current.length >= commaAfter)) {
+        groups.push(current);
+        current = [];
+      }
+    });
+    if (current.length) groups.push(current);
+    return groups.map((g, i) => {
+      const start = g[0].start;
+      const lastEnd = g[g.length - 1].end;
+      const nextStart = groups[i + 1] ? groups[i + 1][0].start : Infinity;
+      // Hold the caption until the next one starts, but no more than 0.4 s after its last word.
+      const end = Math.max(start + 0.05, Math.min(nextStart, lastEnd + 0.4));
+      return { start, end, words: g.map((w) => cleanWord(w.word)), times: g.map((w) => w.start), ends: g.map((w) => w.end) };
+    });
+  }
+
+  function load(text) {
+    const trimmed = text.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        ({ words: sourceWords, precise } = parseWordJSON(trimmed));
+      } catch (error) {
+        sourceWords = null;
+        $('grouping').hidden = true;
+        setCues([]);
+        $('status').textContent = error instanceof SyntaxError ? 'This JSON could not be read.' : error.message;
+        return;
+      }
+      $('grouping').hidden = false;
+      regroup();
+      return;
+    }
+    sourceWords = null;
+    $('grouping').hidden = true;
+    setCues(parseSubs(text));
+  }
+
+  function regroup() {
+    if (!sourceWords) return;
+    setCues(groupWords(sourceWords, $('perCaption').value));
+    if (cues.length)
+      $('status').textContent = `${cues.length} captions from ${sourceWords.length} words, ` +
+        (precise ? 'with precise word timing.' : 'with Whisper’s word timing. Tick Precise word timing in Transcribe Video for tighter highlights.');
+  }
+
   function setCues(list) {
     cues = list;
     duration = cues.length ? cues[cues.length - 1].end + 0.6 : 0;
     $('scrub').max = duration.toFixed(2);
-    t = 0;
+    // Start on the first caption: speech rarely starts at 0 s, and an empty preview looks broken.
+    t = cues.length ? Math.min(duration, cues[0].start + 0.05) : 0;
     $('status').textContent = cues.length ? `${cues.length} captions loaded.` : 'No captions found. Check the format (SRT or VTT).';
     draw();
     updateTime();
@@ -219,10 +335,28 @@ Train the downhills as hard as the climbs`;
     const lh = size * 1.04;
     const n = cue.words.length;
     const dur = cue.end - cue.start;
-    const pos = (time - cue.start) / dur;                 // 0..1 through the cue
-    const active = Math.min(n - 1, Math.floor(pos * n));  // index of word being spoken
-    const wordStart = cue.start + (active / n) * dur;
+    let active, wordStart, wordEnd, speechEnd;
+    if (cue.times) {
+      // Word JSON: the word being spoken is the last one that has started.
+      active = 0;
+      for (let k = 1; k < n; k++) if (time >= cue.times[k]) active = k;
+      wordStart = cue.times[active];
+      wordEnd = cue.ends[active];
+      speechEnd = cue.ends[n - 1];
+    } else {
+      // SRT or VTT: no word times, so spread the words evenly across the caption.
+      const pos = (time - cue.start) / dur;
+      active = Math.min(n - 1, Math.floor(pos * n));
+      wordStart = cue.start + (active / n) * dur;
+      wordEnd = cue.start + ((active + 1) / n) * dur;
+      speechEnd = cue.end;
+    }
     const age = time - wordStart;
+    const clamp = (v) => Math.max(0, Math.min(1, v));
+    const ease = (v) => 1 - Math.pow(1 - clamp(v), 3);
+    // How far through the spoken word (and the whole caption's speech) we are.
+    const said = clamp(age / Math.max(0.12, wordEnd - wordStart));
+    const spoken = clamp((time - cue.start) / Math.max(0.2, speechEnd - cue.start));
 
     c.save();
     c.font = `900 ${size}px ${FONT}`;
@@ -233,7 +367,7 @@ Train the downhills as hard as the climbs`;
     c.shadowOffsetY = 6;
 
     let rise = 0, alpha = 1;
-    if (style === 'line') {
+    if (style === 'line' || $('fadeIn').checked) {
       const k = Math.min(1, (time - cue.start) / 0.18);
       alpha = k;
       rise = (1 - k) * 28;
@@ -241,21 +375,53 @@ Train the downhills as hard as the climbs`;
     c.globalAlpha = alpha;
 
     const top = cy - (lines.length * lh) / 2 + lh / 2 + rise;
+    const gap = size * 0.22;
+    // Zoom punch makes room for the big word, so its neighbours move aside instead of overlapping it.
+    const zoom = style === 'zoom' ? 1 + 0.3 * ease(age / 0.12) : 1;
+    // Lay every word out first: the pill slides between words and the pace bar spans the caption.
+    const placed = [];
     let index = 0;
     lines.forEach((line, li) => {
-      const widths = line.map((w) => c.measureText(w).width);
-      const gap = size * 0.22;
+      const widths = line.map((w, wi) => c.measureText(w).width * (index + wi === active ? zoom : 1));
       const total = widths.reduce((a, b) => a + b, 0) + gap * (line.length - 1);
       let x = W / 2 - total / 2;
-      const y = top + li * lh;
       line.forEach((w, wi) => {
-        const wx = x, ww = widths[wi];
-        if (style === 'type' && index > active) {
-          x += ww + gap;
-          index++;
-          return;
-        }
-        let color = PAPER, s = 1, dy = 0, box = false, glitch = false;
+        placed.push({ w, x, y: top + li * lh, ww: widths[wi], line: li, index: index++ });
+        x += widths[wi] + gap;
+      });
+    });
+    const now = placed[active];
+
+    if (style === 'pill' && now) {
+      // A teal pill that slides from the last word to this one.
+      const before = placed[active - 1];
+      const k = before && before.line === now.line ? ease(age / 0.14) : 1;
+      const from = k < 1 ? before : now;
+      const px = from.x + (now.x - from.x) * k, pw = from.ww + (now.ww - from.ww) * k;
+      c.save();
+      c.shadowColor = 'transparent';
+      c.fillStyle = TEAL;
+      roundRect(c, px - size * 0.16, now.y - size * 0.5, pw + size * 0.32, size, size * 0.5);
+      c.fill();
+      c.restore();
+    }
+    if (style === 'pace' && placed.length) {
+      // A thin teal line under the whole caption, running at the pace of the speech.
+      const last = placed.filter((p) => p.line === lines.length - 1);
+      const left = Math.min(...placed.map((p) => p.x)), right = Math.max(...placed.map((p) => p.x + p.ww));
+      c.save();
+      c.shadowColor = 'transparent';
+      c.fillStyle = 'rgba(46,155,173,0.3)';
+      c.fillRect(left, last[0].y + size * 0.62, right - left, Math.max(6, size * 0.07));
+      c.fillStyle = TEAL;
+      c.fillRect(left, last[0].y + size * 0.62, (right - left) * spoken, Math.max(6, size * 0.07));
+      c.restore();
+    }
+
+    for (const { w, x: wx, y, ww, index } of placed) {
+      {
+        if ((style === 'type' || style === 'stride') && index > active) continue;
+        let color = PAPER, s = 1, dx = 0, dy = 0, box = false, glitch = false, wordAlpha = 1, outline = false, fill = 1;
         if (style === 'pop') {
           if (index === active) {
             color = GOLD;
@@ -275,6 +441,38 @@ Train the downhills as hard as the climbs`;
           }
         } else if (style === 'glitch') {
           if (index === active) { glitch = true; color = PAPER; }
+        } else if (style === 'grow' || style === 'pace') {
+          if (index === active) color = GOLD;
+        } else if (style === 'dim') {
+          if (index === active) color = GOLD;
+          else if (index > active) wordAlpha = 0.4;
+        } else if (style === 'bounce') {
+          if (index === active) {
+            color = GOLD;
+            dy = -Math.sin(Math.PI * clamp(age / 0.28)) * size * 0.22;
+          }
+        } else if (style === 'pill') {
+          if (index === active) color = NAVY;
+        } else if (style === 'zoom') {
+          if (index === active) { color = GOLD; s = zoom; }
+        } else if (style === 'shake') {
+          if (index === active) {
+            color = GOLD;
+            const k = 1 - clamp(age / 0.3), f = Math.floor(time * 30);
+            dx = Math.sin(f * 12.9898) * size * 0.05 * k;
+            dy = Math.cos(f * 78.233) * size * 0.04 * k;
+          }
+        } else if (style === 'outline') {
+          // Gold outlines that fill in solid as each word is said.
+          if (index > active) { outline = true; fill = 0; }
+          else if (index === active) { outline = true; fill = said; }
+        } else if (style === 'stride') {
+          if (index === active) {
+            const k = ease(age / 0.22);
+            dx = (1 - k) * size * 0.7;
+            wordAlpha = k;
+            color = GOLD;
+          }
         }
         if (box) {
           c.save();
@@ -285,20 +483,39 @@ Train the downhills as hard as the climbs`;
           c.restore();
         }
         c.save();
-        c.translate(wx + ww / 2, y + dy);
+        c.globalAlpha = alpha * wordAlpha;
+        // A zoomed word was laid out at its zoomed width; draw it from its normal-size centre.
+        c.translate(wx + ww / 2 + dx, y + dy);
         c.scale(s, s);
+        const tw = ww / (index === active ? zoom : 1);
+        if (outline) {
+          c.shadowColor = 'transparent';
+          c.lineWidth = Math.max(3, size * 0.045);
+          c.lineJoin = 'round';
+          c.strokeStyle = GOLD;
+          c.strokeText(w, -tw / 2, 0);
+          if (fill > 0) {
+            c.beginPath();
+            c.rect(-tw / 2 - size * 0.1, -size, (tw + size * 0.2) * fill, size * 2);
+            c.clip();
+            c.fillStyle = PAPER;
+            c.fillText(w, -tw / 2, 0);
+          }
+          c.restore();
+          continue;
+        }
         if (glitch) {
           // Teal and gold colour split, jittering on each frame, as in the T.im video kit
           const f = Math.floor(time * 24);
           const off = (f % 3 === 0 ? 1.4 : 0.6) * size * 0.035;
           c.shadowBlur = 0;
           c.fillStyle = TEAL;
-          c.fillText(w, -ww / 2 - off, 0);
+          c.fillText(w, -tw / 2 - off, 0);
           c.fillStyle = GOLD;
-          c.fillText(w, -ww / 2 + off, 0);
+          c.fillText(w, -tw / 2 + off, 0);
         }
         c.fillStyle = color;
-        c.fillText(w, -ww / 2, 0);
+        c.fillText(w, -tw / 2, 0);
         c.restore();
         if (style === 'sweep' && index === active) {
           c.save();
@@ -307,10 +524,16 @@ Train the downhills as hard as the climbs`;
           c.fillRect(wx, y + size * 0.5, ww, Math.max(6, size * 0.06));
           c.restore();
         }
-        x += ww + gap;
-        index++;
-      });
-    });
+        if (style === 'grow' && index === active) {
+          // A gold bar that grows under the word over the time it takes to say it.
+          c.save();
+          c.shadowBlur = 0;
+          c.fillStyle = GOLD;
+          c.fillRect(wx, y + size * 0.5, ww * Math.max(0.08, said), Math.max(6, size * 0.07));
+          c.restore();
+        }
+      }
+    }
     c.restore();
   }
 
@@ -341,16 +564,18 @@ Train the downhills as hard as the climbs`;
   };
   $('scrub').oninput = (e) => { t = +e.target.value; playing = false; $('play').textContent = 'Play'; draw(); updateTime(); };
   document.querySelectorAll('input[name=style]').forEach((el) => el.onchange = draw);
+  $('fadeIn').onchange = draw;
   $('size').oninput = () => { $('sizeVal').textContent = `(${$('size').value})`; draw(); };
   $('pos').oninput = () => { $('posVal').textContent = `(${$('pos').value}% down)`; draw(); };
-  $('apply').onclick = () => setCues(parseSubs($('input').value));
-  $('sample').onclick = () => { $('input').value = SAMPLE; setCues(parseSubs(SAMPLE)); };
+  $('apply').onclick = () => load($('input').value);
+  $('sample').onclick = () => { $('input').value = SAMPLE; load(SAMPLE); };
+  $('perCaption').onchange = regroup;
   $('file').onchange = async (e) => {
     const f = e.target.files[0];
     if (!f) return;
     const text = await f.text();
     $('input').value = text;
-    setCues(parseSubs(text));
+    load(text);
   };
 
   function download(blob, name) {

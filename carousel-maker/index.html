@@ -2,7 +2,7 @@
 <html lang="en"
   ><meta charset="utf-8" /><meta
     name="viewport"
-    content="width=device-width,initial-scale=1" /><title
+    content="width=device-width,initial-scale=1" /><meta name="theme-color" content="#0E1A2E" /><title
     >Carousel Post Maker · T.IM Studio</title
   ><link rel="stylesheet" href="style.css" /><link
     rel="stylesheet"
@@ -108,11 +108,11 @@
           ><legend>Text size & fit</legend
           ><label
             >Headline size <output id="titleSizeValue"></output
-            ><input id="titleSize" type="range" min="56" max="130" step="1"
+            ><input id="titleSize" aria-label="Headline size" type="range" min="56" max="130" step="1"
           /></label
           ><label
             >Description size <output id="bodySizeValue"></output
-            ><input id="bodySize" type="range" min="26" max="48" step="1"
+            ><input id="bodySize" aria-label="Description size" type="range" min="26" max="48" step="1"
           /></label
           ><div class="actionRow"
             ><button id="fitText" type="button">Fit text</button
@@ -148,7 +148,7 @@
           ><label
             >Background tint <output id="photoTintValue"></output
             ><input
-              id="photoTint"
+              id="photoTint" aria-label="Background tint"
               type="range"
               min="0"
               max="85"
@@ -163,7 +163,7 @@
           ><label
             >Gradient strength <output id="photoGradientStrengthValue"></output
             ><input
-              id="photoGradientStrength"
+              id="photoGradientStrength" aria-label="Gradient strength"
               type="range"
               min="0"
               max="100"
@@ -185,7 +185,7 @@
           ><label
             >Zoom <output id="photoZoomValue"></output
             ><input
-              id="photoZoom"
+              id="photoZoom" aria-label="Zoom"
               type="range"
               min="1"
               max="3"
@@ -193,7 +193,7 @@
           ><label
             >Horizontal position <output id="photoXValue"></output
             ><input
-              id="photoX"
+              id="photoX" aria-label="Horizontal position"
               type="range"
               min="0"
               max="100"
@@ -201,7 +201,7 @@
           ><label
             >Vertical position <output id="photoYValue"></output
             ><input
-              id="photoY"
+              id="photoY" aria-label="Vertical position"
               type="range"
               min="0"
               max="100"
@@ -210,7 +210,7 @@
             >Photo height (cover / text slides)
             <output id="photoFrameValue"></output
             ><input
-              id="photoFrame"
+              id="photoFrame" aria-label="Photo height (cover / text slides)"
               type="range"
               min="20"
               max="75"
@@ -219,7 +219,7 @@
             >Text panel opacity (photo layout)
             <output id="photoOverlayValue"></output
             ><input
-              id="photoOverlay"
+              id="photoOverlay" aria-label="Text panel opacity (photo layout)"
               type="range"
               min="0"
               max="100"

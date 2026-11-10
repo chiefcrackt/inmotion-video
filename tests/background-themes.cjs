@@ -50,7 +50,13 @@ const { launchBrowser, server } = require('./browser-utils.cjs');
             s.value = value;
             s.dispatchEvent(new Event('change', { bubbles: true }));
           }, ['tim', 'minimal', 'broadcast'][i]);
-        else await page.locator('#palettes button').nth(i).click();
+        else {
+          // Palettes sit in a collapsible control group; open it first.
+          await page.locator('#palettes').evaluate((el) => {
+            for (let d = el.closest('details'); d; d = d.parentElement?.closest('details')) d.open = true;
+          });
+          await page.locator('#palettes button').nth(i).click();
+        }
         if (i > 0)
           await page.waitForFunction(
             ({ selector, before }) =>

@@ -36,6 +36,8 @@ CLEAN_CHOICES = {'off': None, 'light': ('denoise', 'light'), 'medium': ('denoise
                  'strong': ('denoise', 'strong'), 'isolate': ('isolate', 'medium')}
 CLEANED_TYPES = {'cleaned.mp4': 'video/mp4', 'cleaned.mkv': 'video/x-matroska', 'cleaned.wav': 'audio/wav'}
 CLEAN_SHARE = 30  # Progress bar share for cleaning.
+ALIGNER = ROOT / 'align.py'  # Precise word timing, also in Clean Voice's environment (it needs PyTorch).
+ALIGN_SHARE = 8
 
 
 def stamp(seconds, separator=','):
@@ -73,8 +75,13 @@ def export(job, segments):
     folder = DATA / job['id']
     # Word alignment refers to recognized speech, not manually revised text.
     result = {k: job.get(k) for k in ['id', 'filename', 'language', 'duration', 'device', 'model', 'warnings']}
+    note = ('Word times pinned to the audio by forced alignment (wav2vec2, about 20 ms steps); whisper_start and '
+            'whisper_end keep the recognizer\'s estimates. Words without an alignment score (numbers, symbols) are '
+            'placed between their aligned neighbours.' if job.get('word_timing') == 'aligned'
+            else 'Original recognition timings (Whisper estimates).')
     result.update(segments=segments, original_segments=job.get('original_segments', []), original_words=job.get('words', []),
-                  word_timing_note='Original recognition timings; text edits do not realign words.')
+                  word_timing=job.get('word_timing', 'whisper'),
+                  word_timing_note=note + ' Text edits do not realign words.')
     (folder / 'transcript.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
     (folder / 'transcript.txt').write_text('\n'.join(s['text'] for s in segments), encoding='utf-8')
     (folder / 'transcript.srt').write_text(subtitles(segments), encoding='utf-8')
@@ -112,9 +119,127 @@ def clean_voice(job, options):
     return folder / 'cleaned.wav'
 
 
+def align_words(job, source, groups, options):
+    """Pin Whisper's words to the audio: forced alignment gets their starts within tens of
+    milliseconds where Whisper can be a second early after a pause."""
+    folder = DATA / job['id']
+    job.update(status='aligning', message='Pinning each word to the audio…')
+    payload = [{'start': segment['start'], 'end': segment['end'], 'words': [job['words'][n]['word'] for n in members]}
+               for segment, members in zip(job['segments'], groups)]
+    (folder / 'align-in.json').write_text(json.dumps({'groups': payload}), encoding='utf-8')
+    command = [str(CLEANER_PYTHON), str(ALIGNER), str(source), str(folder / 'align-in.json'), str(folder / 'align-out.json'),
+               '--device', options['device']]
+    log = (folder / 'align.log').open('w', encoding='utf-8')
+    with log, subprocess.Popen(command, stdout=subprocess.PIPE, stderr=log, text=True, encoding='utf-8',
+                               creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0)) as process:
+        for line in process.stdout:
+            try:
+                state = json.loads(line)
+            except ValueError:
+                continue
+            if 'done' in state:
+                job['progress'] = min(99, 100 - ALIGN_SHARE + round(ALIGN_SHARE * state['done'] / max(state['total'], 1)))
+            if state.get('warning'): log.write('note: ' + state['warning'] + '\n')
+    if process.returncode != 0 or not (folder / 'align-out.json').exists():
+        raise RuntimeError('see local-transcriber/data/' + job['id'] + '/align.log')
+    result = json.loads((folder / 'align-out.json').read_text(encoding='utf-8'))['groups']
+    words = job['words']
+    for members, times in zip(groups, result):
+        for n, pinned in zip(members, times):
+            word = words[n]
+            word['whisper_start'], word['whisper_end'] = word['start'], word['end']
+            if pinned: word.update(start=pinned['start'], end=pinned['end'], alignment=pinned['score'])
+    # Words the model can't spell (numbers, symbols) go in the gap between their aligned neighbours.
+    for n, word in enumerate(words):
+        if 'alignment' in word: continue
+        before = next((w['end'] for w in reversed(words[:n]) if 'alignment' in w), None)
+        after = next((w['start'] for w in words[n + 1:] if 'alignment' in w), None)
+        low = before if before is not None else word['start']
+        high = after if after is not None else word['end']
+        start, end = max(word['start'], low), min(word['end'], high)
+        if end - start < 0.05: start, end = low, max(high, low + 0.05)
+        word.update(start=round(start, 3), end=round(end, 3))
+    # Sentence edges follow their first and last words.
+    for segment, members in zip(job['segments'], groups):
+        if members:
+            segment['start'] = min(words[n]['start'] for n in members)
+            segment['end'] = max(segment['start'] + 0.05, max(words[n]['end'] for n in members))
+    aligned = sum('alignment' in w for w in words)
+    job['word_timing'] = 'aligned'
+    job['message'] = f'Pinned {aligned} of {len(words)} words to the audio.'
+
+
+def split_at(pairs, gap_start, gap_end):
+    """End the sentences around a filled gap at its edges, so alignment doesn't smear their words over it."""
+    result = []
+    for segment, members in pairs:
+        if any(w.get('recovered') for w in members) or segment['end'] <= gap_start or segment['start'] >= gap_end:
+            result.append((segment, members))
+            continue
+        before = [w for w in members if w['start'] < gap_start]
+        after = [w for w in members if w['start'] >= gap_start]
+        for w in before:
+            w['end'] = min(w['end'], max(w['start'] + 0.05, gap_start))  # The word stretched over the gap.
+        for part, start, end in ((before, segment['start'], gap_start), (after, gap_end, segment['end'])):
+            if part:
+                text = segment['text'] if len(part) == len(members) else ''.join(w['word'] for w in part).strip()
+                result.append(({'start': max(start, min(w['start'] for w in part) if start == gap_end else start),
+                                'end': max(end, max(w['end'] for w in part)) if part is after else max(min(end, segment['end']), part[-1]['end']),
+                                'text': text}, part))
+    return result
+
+
+def fill_skipped(job, model, source, options, groups):
+    """Whisper sometimes skips speech after a pause (the medium model dropped two phrases of a
+    4-minute run video) or stretches one word over it. Find stretches where the voice detector
+    hears speech but no word covers it, transcribe just those again without carry-over, and
+    put the words in. Returns the times it filled."""
+    from faster_whisper.audio import decode_audio
+    from faster_whisper.vad import VadOptions, get_speech_timestamps
+    rate = 16000
+    audio = decode_audio(str(source), sampling_rate=rate)
+    speech = [(s['start'] / rate, s['end'] / rate) for s in get_speech_timestamps(audio, VadOptions(min_silence_duration_ms=300))]
+    words = job['words']
+    # A word covers at most 1 s: one stretched over several seconds hides what was said there.
+    edges = [(0.0, 0.0)] + [(w['start'], min(w['end'], w['start'] + 1.0)) for w in words] + [(len(audio) / rate, len(audio) / rate)]
+    pairs = [(segment, [words[n] for n in members]) for segment, members in zip(job['segments'], groups)]
+    filled = []
+    for (_, gap_start), (gap_end, _) in zip(edges, edges[1:]):
+        if gap_end - gap_start < 1.5: continue
+        heard = sum(max(0.0, min(b, gap_end - 0.2) - max(a, gap_start + 0.2)) for a, b in speech)
+        if heard < 1.0: continue
+        clip = audio[int(gap_start * rate):int(gap_end * rate)]
+        # No vocabulary hint here: on a short clip Whisper tends to repeat it instead of listening.
+        segments, _ = model.transcribe(clip, language='en' if options['language'] == 'en' else None, word_timestamps=True,
+                                       vad_filter=False, condition_on_previous_text=False)
+        gap_added = False
+        for segment in segments:
+            found = [w for w in (segment.words or []) if w.word.strip()]
+            # Whisper invents "Thank you." over noise: keep only confident speech.
+            if not found or segment.no_speech_prob > 0.6 or sum(w.probability for w in found) / len(found) < 0.5:
+                continue
+            new_words = [{'start': gap_start + w.start, 'end': gap_start + w.end, 'word': w.word,
+                          'probability': w.probability, 'recovered': True} for w in found]
+            pairs.append(({'start': new_words[0]['start'], 'end': new_words[-1]['end'], 'text': segment.text.strip()}, new_words))
+            filled.append(gap_start)
+            gap_added = True
+        if gap_added:
+            pairs = split_at(pairs, gap_start, gap_end)
+    if filled:
+        pairs.sort(key=lambda pair: pair[0]['start'])
+        job['segments'], job['words'], groups[:] = [], [], []
+        for segment, members in pairs:
+            job['segments'].append(segment)
+            groups.append(list(range(len(job['words']), len(job['words']) + len(members))))
+            job['words'].extend(members)
+    return sorted(set(round(t) for t in filled))
+
+
 def transcribe(job, options):
     try:
         source, base = DATA / job['id'] / 'media', 0
+        top = 100 - ALIGN_SHARE if options['align'] else 100
+        groups = []  # Word indexes per segment, for alignment.
         if options['clean'] != 'off':
             source, base = clean_voice(job, options), CLEAN_SHARE
         from faster_whisper import WhisperModel
@@ -135,10 +260,19 @@ def transcribe(job, options):
                 language='en' if options['language'] == 'en' else None,
                 word_timestamps=True, vad_filter=True, initial_prompt=options['vocabulary'] or None)
             job.update(status='transcribing', language=info.language, duration=info.duration, segments=[], words=[])
+            groups.clear()
             for segment in stream:
                 job['segments'].append({'start': segment.start, 'end': segment.end, 'text': segment.text.strip()})
+                first = len(job['words'])
                 job['words'].extend({'start': w.start, 'end': w.end, 'word': w.word, 'probability': w.probability} for w in (segment.words or []))
-                job['progress'] = min(99, base + round(segment.end / max(info.duration, 1) * (100 - base)))
+                groups.append(list(range(first, len(job['words']))))
+                job['progress'] = min(99, base + round(segment.end / max(info.duration, 1) * (top - base)))
+            if job['words']:
+                job['message'] = 'Checking for skipped speech…'
+                filled = fill_skipped(job, MODELS[key], source, options, groups)
+                if filled:
+                    job['warnings'].append('Whisper skipped speech here, so it was transcribed again and added (check these): '
+                                           + ', '.join(f'{t // 60}:{t % 60:02d}' for t in filled))
         try:
             recognize(device)
         except RuntimeError as error:
@@ -148,9 +282,21 @@ def transcribe(job, options):
                 recognize('cpu')
             else:
                 raise
+        done = 'Transcript ready.' if job['segments'] else 'No speech detected.'
+        if options['align'] and job['words']:
+            if not CLEANER_PYTHON.exists():
+                job['warnings'].append('Precise word timing needs Clean Voice installed (run local-voice/Start Clean Voice.cmd once); kept Whisper\'s word times.')
+            elif job.get('language') != 'en':
+                job['warnings'].append('Precise word timing works for English only; kept Whisper\'s word times.')
+            else:
+                try:
+                    align_words(job, source, groups, options)
+                    done = 'Transcript ready. ' + job['message']
+                except Exception as error:
+                    job['warnings'].append('Precise word timing failed, so Whisper\'s word times are kept: ' + str(error)[:300])
         job['original_segments'] = [dict(segment) for segment in job['segments']]
         export(job, job['segments'])
-        job.update(status='complete', progress=100, message='Transcript ready.' if job['segments'] else 'No speech detected.')
+        job.update(status='complete', progress=100, message=done)
     except Exception as error:
         job.update(status='error', message=str(error)[:1000])
     finally:
@@ -236,6 +382,7 @@ class Handler(BaseHTTPRequestHandler):
                     if options.get('quality') not in ['fast', 'quality'] or options.get('device') not in ['auto', 'cpu', 'cuda'] or options.get('language') not in ['en', 'auto']:
                         raise ValueError('Invalid transcription options')
                     options['vocabulary'] = str(options.get('vocabulary', ''))[:1000]
+                    options['align'] = bool(options.get('align', False))
                     options['clean'] = options.get('clean', 'off')
                     if options['clean'] not in CLEAN_CHOICES:
                         raise ValueError('Invalid clean voice option')

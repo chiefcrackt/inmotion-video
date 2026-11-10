@@ -47,7 +47,7 @@ export function rev(idea) {
     : null;
 }
 
-// Versions may arrive as strings. Compare as strings so a number and a
+// Drive returns `version` as a string. Compare as strings so a number and a
 // string for the same revision are treated as equal (no false conflicts).
 export function sameVersion(a, b) {
   return (
@@ -80,6 +80,7 @@ export function sameContent(a, b) {
   return stableStringify(a) === stableStringify(b);
 }
 
+// Record a local edit: bump the revision and the informational timestamp.
 export function touch(idea, timestamp) {
   idea.revision = newRevision();
   idea.updatedAt = timestamp;
@@ -211,7 +212,7 @@ export function mergeIdeas(local, cloud, base = {}, makeId = defaultId) {
     synced[c.id] = rev(c);
   }
 
-  // Legacy duplicate imports of one linked document under different ids.
+  // Legacy duplicate imports of one Google Doc under different ids.
   // Identical copies collapse to one. Different copies are both kept, the later
   // one marked as a conflict copy, so no edit is dropped.
   const bySource = new Map();

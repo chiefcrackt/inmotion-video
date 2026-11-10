@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="../shared/fonts.css">
   <link rel="stylesheet" href="../shared/studio-bar.css">
   <script type="module" src="../shared/studio-bar.mjs"></script>
+  <script type="module" src="../shared/local-launch.mjs"></script>
   <style>
     :root{color-scheme:dark;font:16px system-ui;background:#0e1a2e;color:#f6f4ef}*{box-sizing:border-box}body{margin:0}main{max-width:850px;margin:auto;padding:48px 24px}a{color:#e8c96a}.eyebrow{color:#e8c96a;font-weight:700;font-size:12px;letter-spacing:.14em}h1{font-size:clamp(36px,7vw,56px);margin:12px 0}p,li{line-height:1.7;color:#bccddd}section{background:#15253c;border:1px solid #31445d;border-radius:18px;padding:28px;margin:24px 0}.button{display:inline-block;background:#e8c96a;color:#102033;text-decoration:none;font-weight:700;padding:15px 22px;border-radius:9px}.tag{display:inline-block;color:#9dd8d8;font-size:14px}code{overflow-wrap:anywhere}li{margin:12px 0}a:focus-visible{outline:3px solid #2e9bad;outline-offset:4px}
     .computer-warning{border:1px solid #e8c96a;border-left:5px solid #e8c96a;border-radius:10px;background:#2b2b24;padding:18px 20px;margin:24px 0}.computer-warning strong{color:#e8c96a}.computer-warning p{margin:8px 0 0;color:#f6f4ef}
@@ -33,7 +34,7 @@
       <li>It runs in the background, with no window to keep open. Open the studio below; its Stop button at the bottom ends it.</li>
       <li>Choose a recording, pick a mode, compare before and after, and download the cleaned video or WAV.</li>
     </ol>
-    <p><a class="button" href="http://127.0.0.1:8766/" target="_blank" rel="noopener noreferrer">Open Clean Voice ↗</a></p>
+    <p><a class="button" href="http://127.0.0.1:8766/" target="_blank" rel="noopener noreferrer" data-local-launch="voice">Open Clean Voice ↗</a></p>
     <p>If the page cannot connect, start the launcher first. The address opens a service on the device you are using. Your phone cannot use the engine on your PC.</p>
   </section>
   <h2>Modes</h2>

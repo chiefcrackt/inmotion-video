@@ -31,8 +31,13 @@
             Math.abs(segment.end - originals[i].end) > 0.00051,
         ),
       original_words: job.words || [],
+      word_timing: job.word_timing || 'whisper',
       word_timing_note:
-        'All times are seconds on the ORIGINAL recording. Current segments may be user-edited. Original word timings and confidence belong to recognition and were not realigned to text edits.',
+        'All times are seconds on the ORIGINAL recording. Current segments may be user-edited. ' +
+        (job.word_timing === 'aligned'
+          ? 'Word times were pinned to the audio by forced alignment (whisper_start/whisper_end keep the recognizer estimates; alignment is a 0-1 score, low where a word may be misplaced). '
+          : 'Word times are the recognizer estimates. ') +
+        'Word timings and confidence belong to recognition and were not realigned to text edits.',
     };
   }
   function buildPrompt(context, payload, includeJSON = true) {

@@ -180,4 +180,26 @@ footer p {
   .finder {
     padding: 14px;
   }
+  header {
+    padding-bottom: 12px;
+  }
+  /* One swipeable row of filters, so a studio card shows on the first screen. */
+  .filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 12px -14px;
+    padding: 0 14px 4px;
+    scroll-padding-inline: 14px;
+  }
+  .filters::-webkit-scrollbar {
+    display: none;
+  }
+  .filters button {
+    flex: none;
+    white-space: nowrap;
+  }
+  #count {
+    margin: 12px 0;
+  }
 }

@@ -13,13 +13,13 @@
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="studio.css" /><script
       type="module"
-      src="app.mjs"
+      src="app.mjs?v=brand-label-2"
     ></script
     ><link rel="stylesheet" href="../shared/fonts.css" />
     <link
       rel="stylesheet"
       href="../shared/projects.css"
-    /><script src="../shared/projects.js"></script>
+    /><script src="../shared/projects.js"></script><script src="../text-motion/alpha-video.js" defer></script>
   <link rel="stylesheet" href="../shared/responsive.css" /><link rel="stylesheet" href="../shared/studio-bar.css" /><script type="module" src="../shared/studio-bar.mjs"></script></head>
   <body
     ><tim-studio-bar></tim-studio-bar><div class="wrap"
@@ -120,6 +120,40 @@
                 ><input type="checkbox" id="transparent" /> Transparent PNG
                 background</label
               >
+              <label class="toggle"
+                ><input type="checkbox" id="brandLabel" checked /> Brand label on
+                the card</label
+              >
+              <div class="pair" id="brandBox"
+                ><label
+                  >Label text<input
+                    id="brandText"
+                    type="text"
+                    value="T.IM  /  ACTIVITY STUDIO"
+                    maxlength="40" /></label
+                ><label
+                  >Label size<input
+                    id="brandSize"
+                    type="range"
+                    min="0.5"
+                    max="2"
+                    step="0.05"
+                    value="1" /></label
+              ></div>
+              <div class="pair" id="brandBox2"
+                ><label
+                  >Label align<select id="brandAlign"
+                    ><option value="left">Left</option
+                    ><option value="center">Centre</option
+                    ><option value="right">Right</option></select
+                  ></label
+                ><label class="toggle"
+                  ><input type="checkbox" id="brandAccent" checked /> Match
+                  accent colour</label
+              ></div>
+              <label id="brandColorRow"
+                >Label colour<input type="color" id="brandColor" value="#e8c96a"
+              /></label>
               <div class="pair"
                 ><label
                   >Typography<select id="font"
@@ -368,9 +402,11 @@
               ><button id="saveVideo" type="button" hidden>Save video</button
               ><p class="note" id="playNote"></p
               ><p class="note"
-                >Video records in real time with an opaque background. MP4 where
-                supported; otherwise WebM. Keep this tab visible while
-                recording.</p
+                >With Transparent background off, video records in real time as
+                MP4 where supported, otherwise WebM. Keep this tab visible while
+                recording. With Transparent background on, Record encodes a WebM
+                with an alpha channel instead. That takes longer than the clip
+                and needs Chrome or Edge.</p
               ></fieldset
             ></section
           >

@@ -226,9 +226,27 @@ export function render(
     fn();
     ctx.restore();
   };
-  cardPart(() =>
-    text('T.IM  /  ACTIVITY STUDIO', pad, 70 * scale, 24, settings.accent),
-  );
+  if (settings.brandLabel !== false && settings.brandText) {
+    const align = ['center', 'right'].includes(settings.brandAlign)
+      ? settings.brandAlign
+      : 'left';
+    const bx = align === 'center' ? W / 2 : align === 'right' ? W - pad : pad;
+    const color =
+      settings.brandAccent === false
+        ? settings.brandColor || settings.accent
+        : settings.accent;
+    ctx.textAlign = align;
+    cardPart(() =>
+      text(
+        settings.brandText,
+        bx,
+        70 * scale,
+        24 * (Number(settings.brandSize) || 1),
+        color,
+      ),
+    );
+    ctx.textAlign = 'left';
+  }
   if (!activity) {
     text('YOUR NEXT STORY', pad, H * 0.44, 76);
     text('STARTS WITH A RUN.', pad, H * 0.44 + 85 * scale, 76);

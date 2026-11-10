@@ -12,34 +12,38 @@ page; the Python engine runs only on the computer where the launcher is started.
 `http://127.0.0.1:8766/`. It removes background noise or isolates the voice on
 the NVIDIA GPU, then evens out the volume. See [setup and usage](local-voice/README.md).
 
-Celebration Studio is available for review at `/celebration-studio/`, combining
+Celebration Studio is at `/celebration-studio/`, combining
 Special Post and Celebration as two modes while retaining both original editors
 and dashboard links. See [preview behavior and validation](celebration-studio/README.md).
 
-Text & Titles has a local preview at `/text-and-titles/` with Animated text and
+Text & Titles is at `/text-and-titles/` with Animated text and
 Titles & lower thirds modes. Original projects and export paths are preserved.
 See [compatibility and validation](text-and-titles/README.md).
 
-Unified Content Planner has a local preview at `/content-studio/`, with Ideas,
+Content Studio is at `/content-studio/`, with Ideas,
 Videos and Shoot views retaining their existing data and sync systems. See
 [workflow, compatibility and validation](content-studio/README.md).
 
-Publishing Studio has a local preview at `/publishing-studio/`, grouping Covers,
+Publishing Studio is at `/publishing-studio/`, grouping Covers,
 Promo clips and Brand templates with the original saved-project formats. See
 [preview behavior and validation](publishing-studio/README.md).
 
-Runner Animator has a local preview at `/runner-animator/`, grouping Start Line
+Runner Animator is at `/runner-animator/`, grouping Start Line
 and Running scenes while preserving their renderers, sound and project formats.
 See [compatibility and validation](runner-animator/README.md).
 
-Social Post Studio has a local preview at `/social-post-studio/`, grouping
+Social Post Studio is at `/social-post-studio/`, grouping
 Carousels, Rankings and Before & After with their original editors and formats.
 See [preview behavior and validation](social-post-studio/README.md).
 
-The homepage now uses the consolidated studio dashboard.
-It groups the studios into 14 main choices while retaining all 27 original
-destinations. `/dashboard-preview/` remains available for comparison. See
+The homepage is the consolidated studio dashboard, built from
+`shared/tool-registry.mjs` by `npm run build`. It shows the studios first and
+keeps every original tool under "Original tools & asset packs". `/dashboard-preview/` remains available for comparison. See
 [preview behavior and validation](dashboard-preview/README.md).
+
+**Saving and sync.** Every tool saves on the device you use it on. Ideas and
+video plans sync across devices with Workspace cloud sync in Content Studio
+(Supabase). Google Drive sync and Drive exports were removed in November 2026.
 
 Recording tools for tristan.inmotion (T.im) videos, published with GitHub Pages at
 **https://chiefcrackt.github.io/inmotion-video/**
@@ -70,10 +74,12 @@ The home page groups tools by task and offers search and category filters. All t
 | Clean Voice         | `/clean-voice/`     | Computer only, with the local launcher: GPU noise removal (MossFormer2) or voice isolation (Demucs), loudness to −16 LUFS; cleaned MP4 with the original picture, or WAV                                                                                                                                                                                                                                                                             |
 | Title Maker         | `/title-maker/`     | Cyber-kit title cards, lower thirds, word tags and chapter cards with sound; optional exits (reverse, fade, wipe, slide, drop, shrink, pop, glitch, cut) with length, easing, direction and end hold, or each card’s original ending |
 | Promo Maker         | `/promo-maker/`     | An "Out now" clip from a video's thumbnail and title                                                                                                                                                                                                                                                       |
+| Goals Maker         | `/goals-maker/`     | A goals graphic for 5–7 goals: checklist, numbered or route layouts; optional photo or logo per goal; an optional runner; animated video with sound (16:9 for YouTube, 9:16, 1:1) or PNG; navy, paper or green screen |
 | Cover Maker         | `/cover-maker/`     | YouTube thumbnails, Reel covers and highlight covers as PNGs                                                                                                                                                                                                                                               |
 | Video Framer        | `/video-framer/`    | Two directions: a branded 16:9 frame with windows for 9:16 clips, or a 9:16 frame (1080×1920) with a YouTube clip full width, title above, stats/description/call to action below, all clear of TikTok’s UI. In 16:9: centered, side or two-clip layouts, 9:16/4:5/1:1 windows, standard/phone/polaroid/offset/viewfinder styles, facecam window, end-screen version; stats or a description, series tag, icons and mi/km, GPX/FIT/TCX route and elevation (local, ends hidden), ticker, jogging runner, T.im badge, River Run scenes or your own photo, grain/scanlines; seamless loops or static, plus an intro with sound that ends on the loop’s first frame; transparent PNG, green-screen MP4 or transparent WebM for CapCut |
 | Start Line Recorder | `/start-line/`      | The runner walks to the line, gets set, countdown, takes off                                                                                                                                                                                                                                               |
 | River Run Recorder  | `/river-run/`       | The link-page night scene: the runner jogs along the river under a gold sun, with jumps, rim light and footstrike ripples; green screen and navy for overlays                                                                                                                                              |
+| Stat Counter        | `/stat-counter/`    | A big number counts up to your figure, with a unit, eyebrow, sub line, HUD brackets, a glitch on the hit and Cyber/Soft/Minimal/None sound; every value editable; 16:9 or 9:16; navy or green screen; video (MP4/WebM) and PNG still |
 | Mile Marker Maker   | `/mile-marker/`     | A trail-sign pop-up for any distance, with a climbing ding                                                                                                                                                                                                                                                 |
 | Special Post Maker  | `/special-post/`    | Birthday, congrats, race-day and thank-you posts: 1–3 runners (pick whole runners or mix any pieces) jog in and finish with a jump, high-five or arms up; show/hide every piece; add-ins: Hooper, fireworks, streamers, sparkles, number balloons, stat card, zoom punch; video with sound, still PNG, WAV |
 | Celebration Maker   | `/celebrate/`       | Shout-out posts without runners: name card, cake + candles, race bib or finisher medal, with confetti, balloons, number balloons, fireworks, streamers and sparkles; video with sound, still PNG, WAV                                                                                                      |

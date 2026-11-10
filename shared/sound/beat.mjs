@@ -2,7 +2,10 @@
 // bedEvents() is pure (a timeline of notes, easy to test); makeKit() and
 // playEvents() turn that timeline into Web Audio on a live or offline context.
 
+import { loadSampleSet, pickNote, midiToFreq } from './samples.mjs';
+
 // Each style has a default mood, a 'good for' hint and two or three grooves.
+// A style with `samples` plays recorded notes from shared/sound/samples/<name>/.
 export const STYLES = {
   cyber: {
     name: "Cyber",
@@ -121,6 +124,7 @@ export const STYLES = {
     mood: 'bright',
     bassWave: 'triangle',
     filter: 9000,
+    samples: 'steel-guitar',
     use: "Trail and nature vlogs",
     desc: "Plucked guitar, shaker and an open, warm feel.",
     grooves: [["pick", "Fingerpick"], ["strum", "Strum"]],
@@ -154,9 +158,73 @@ export const STYLES = {
     mood: 'bright',
     bassWave: 'triangle',
     filter: 12000,
+    samples: 'steel-guitar',
     use: "Run club promos",
     desc: "Upbeat indie: claps, tambourine and bright chords.",
     grooves: [["indie", "Indie"], ["clap", "Clap-along"]],
+  },
+  mountain: {
+    name: "Mountain",
+    bpm: 84,
+    swing: 0,
+    mood: 'bright',
+    bassWave: 'sine',
+    filter: 7000,
+    samples: 'steel-guitar',
+    use: "Summits, big views, sunrise",
+    desc: "Slow fingerpicked guitar over a long open drone, with soft hand drums.",
+    grooves: [["roll", "Rolling picks"], ["open", "Open strums"]],
+  },
+  openroad: {
+    name: "Open Road",
+    bpm: 104,
+    swing: 0.12,
+    mood: 'adventure',
+    bassWave: 'triangle',
+    filter: 10000,
+    samples: 'steel-guitar',
+    use: "Travel vlogs, road trips, inspo montages",
+    desc: "Banjo rolls, claps and a harmonica lead. A hopeful road-trip feel.",
+    grooves: [["shuffle", "Shuffle"], ["ballad", "Ballad"]],
+  },
+  acoustic: {
+    name: "Acoustic Adventure",
+    bpm: 100,
+    swing: 0.08,
+    mood: 'adventure',
+    bassWave: 'triangle',
+    filter: 16000,
+    samples: 'steel-guitar',
+    realGuitar: true,
+    use: "Adventure vlogs, trail days, travel",
+    desc: "A real recorded steel-string guitar, strummed or fingerpicked, with brushes and shaker.",
+    grooves: [["strum", "Travel strum"], ["finger", "Fingerstyle"], ["wide", "Wide open"]],
+  },
+  campfire: {
+    name: "Campfire",
+    bpm: 66,
+    swing: 0,
+    mood: 'dreamy',
+    bassWave: 'sine',
+    filter: 14000,
+    samples: 'steel-guitar',
+    realGuitar: true,
+    use: "Recaps, DNF stories, quiet reflection",
+    desc: "Real guitar in a slow 6/8 sway, strummed or picked. Warm and unhurried.",
+    grooves: [["sway", "Sway strum"], ["pick", "Arpeggio"]],
+  },
+  folk: {
+    name: "Folk Anthem",
+    bpm: 120,
+    swing: 0,
+    mood: 'bright',
+    bassWave: 'triangle',
+    filter: 16000,
+    samples: 'steel-guitar',
+    realGuitar: true,
+    use: "Race day, run club promos, finish lines",
+    desc: "Driving real-guitar strum with stomps, claps and tambourine.",
+    grooves: [["stomp", "Stomp & clap"], ["gallop", "Gallop"]],
   },
 };
 
@@ -164,6 +232,7 @@ export const MOODS = [
   ['dark', 'Dark'],
   ['bright', 'Bright'],
   ['dreamy', 'Dreamy'],
+  ['adventure', 'Country adventure'],
 ];
 
 // Minor keys; value is the bass root (octave 2) in Hz.
@@ -244,6 +313,13 @@ const PROGS = {
     { bass: -3, chord: [9, 12, 16, 19] },
     { bass: -7, chord: [9, 12, 16, 17] },
     { bass: -5, chord: [11, 14, 19, 21] },
+  ],
+  // I – bVII – IV – I (open major with a flattened seventh, the wide western-cinematic feel)
+  adventure: [
+    { bass: 0, chord: [12, 16, 19] },
+    { bass: -2, chord: [10, 14, 17] },
+    { bass: -7, chord: [17, 21, 24] },
+    { bass: 0, chord: [12, 16, 19] },
   ],
 };
 const st = (f, s) => f * Math.pow(2, s / 12);
@@ -342,6 +418,11 @@ export function bedEvents(o = {}) {
       };
       const lastOfBuild = useArr && sec.type === 'build' && k === sec.bars - 1;
       GEN[style]({ t0, b, beat, bar, bf, tones, P, push, pos, g: groove, lastOfBuild, first: k === 0 });
+      // Country adventure: a strummed acoustic guitar on top of any style's chords.
+      if (mood === 'adventure' && P.chords && !def.realGuitar)
+        [0, 1.5, 2, 3.5].forEach((q, i) =>
+          tones.slice(0, 3).forEach((f, j) => push(t0 + q * beat + j * 0.018, 'guitar', 'chords', { f: f * 2, v: i % 2 ? 0.022 : 0.03 })),
+        );
       if (lastOfBuild && P.drums)
         for (let s = 0; s < 16; s++)
           push(t0 + (s * beat) / 4, 'snare', 'drums', { v: 0.08 + (s / 16) * 0.22 });
@@ -366,6 +447,40 @@ export function bedEvents(o = {}) {
 }
 
 // One generator per style. Each pushes one bar of notes; `g` is the groove.
+// Shared by the real-guitar styles: a six-string voicing for the bar's chord,
+// plus note/strum helpers with slight, repeatable human timing and level.
+function guitarHelpers({ t0, b, beat, bf, tones, push, pos }) {
+  const rnd = (i) => {
+    const x = Math.sin(b * 12.9898 + i * 78.233) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  let n = 0;
+  const human = (t, v) => [t + (rnd(n++) - 0.5) * 0.012, v * (0.9 + rnd(n++) * 0.2)];
+  let low = bf;
+  while (low < 73) low *= 2;
+  while (low >= 147) low /= 2;
+  const upper = tones
+    .slice(0, 3)
+    .map((f) => {
+      while (f < low * 2.05) f *= 2;
+      while (f >= low * 4.1) f /= 2;
+      return f;
+    })
+    .sort((x, y) => x - y);
+  const strings = [low, low * 1.5, low * 2, ...upper];
+  const note = (t, s, v) => {
+    const [tt, vv] = human(t, v);
+    push(Math.max(0, tt), 'acoustic', 'chords', { f: strings[s], v: +vv.toFixed(4), s });
+  };
+  const strum = (t, v, dir = 'down', spread = 0.012, from = 0) => {
+    const order = dir === 'down' ? [0, 1, 2, 3, 4, 5].slice(from) : [5, 4, 3, 2];
+    order.forEach((s, k) => note(t + k * spread, s, v * (dir === 'down' ? 1 - k * 0.04 : 1 - k * 0.1)));
+  };
+  const eighth = (e) => t0 + Math.floor(e / 2) * beat + pos((e % 2) * 2);
+  const triplet = (i) => t0 + (i * beat) / 3; // 12 per bar: a 12/8 (6/8) sway
+  return { strings, note, strum, eighth, triplet, low, upper };
+}
+
 const GEN = {
   cyber({ t0, b, beat, bar, bf, tones, P, push, pos, g }) {
     for (let q = 0; q < 4; q++) {
@@ -663,6 +778,155 @@ const GEN = {
       if (b % 2 === 0) push(t0, 'pad', 'chords', { fs: tones, d: bar * 2, v: 0.012, a: 0.4, cut: 2400, wave: 'triangle' });
     }
   },
+  mountain({ t0, beat, bar, bf, tones, P, push, pos, g }) {
+    // Rolling picks carry hand drums and shaker; open strums add one soft kick per bar.
+    if (P.drums && g === 'open') push(t0, 'kick', 'drums', { v: 0.3, soft: true });
+    if (P.drums && g === 'roll') {
+      push(t0, 'kick', 'drums', { v: 0.34, soft: true });
+      push(t0 + 2 * beat, 'kick', 'drums', { v: 0.3, soft: true });
+      push(t0 + 3 * beat, 'rim', 'drums', { v: 0.07 });
+    }
+    if (P.hats && g === 'roll') for (let s = 0; s < 8; s++) push(t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'shaker', 'hats', { v: s % 2 ? 0.018 : 0.026 });
+    if (P.bass) push(t0, 'bass', 'bass', { f: bf, d: bar * 0.95, v: 0.16, cut: 500, wave: 'sine' });
+    if (P.chords) {
+      // Long drone under everything: root and fifth, slow swell.
+      push(t0, 'pad', 'chords', { fs: [tones[0], tones[0] * 1.5], d: bar * 1.05, v: 0.018, a: 0.6, cut: 1400, wave: 'sine' });
+      if (g === 'open') {
+        // Open strums on beats 1 and 3, the way a slow ballad is played.
+        [0, 2].forEach((q, i) =>
+          tones.slice(0, 3).forEach((f, j) => push(t0 + q * beat + j * 0.02, 'guitar', 'chords', { f: f * 2, v: i ? 0.02 : 0.026 })),
+        );
+      }
+      if (g === 'roll') {
+        // Fingerpicked pattern, one note per eighth, like the Trail pick but slower.
+        const pick = [0, 2, 1, 2, 0, 2, 1, 2];
+        pick.forEach((k, s) => push(t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'guitar', 'chords', { f: (k ? tones[k] : tones[0]) * (k ? 2 : 1), v: 0.024 }));
+      }
+    }
+  },
+  openroad({ t0, b, beat, bar, bf, tones, P, push, pos, g }) {
+    if (g === 'shuffle') {
+      // Backbeat with claps and shaker, a swung eighth feel from the style's swing.
+      if (P.drums) {
+        push(t0, 'kick', 'drums', { v: 0.5 });
+        push(t0 + 2 * beat, 'kick', 'drums', { v: 0.45 });
+        [1, 3].forEach((q) => {
+          push(t0 + q * beat, 'snare', 'drums', { v: 0.2 });
+          push(t0 + q * beat + 0.01, 'clap', 'drums', { v: 0.14 });
+        });
+      }
+      if (P.hats) for (let s = 0; s < 8; s++) push(t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'shaker', 'hats', { v: s % 2 ? 0.018 : 0.028 });
+      if (P.bass) [0, 2].forEach((q) => push(t0 + q * beat, 'bass', 'bass', { f: bf, d: beat * 0.8, v: 0.16, cut: 700, wave: 'triangle' }));
+      if (P.chords) {
+        // Banjo roll on the eighths: root, fifth, third, fifth.
+        const roll = [0, 1, 2, 1, 0, 1, 2, 1];
+        roll.forEach((k, s) => push(t0 + Math.floor(s / 2) * beat + pos((s % 2) * 2), 'banjo', 'chords', { f: tones[k] * 2, v: s % 2 ? 0.022 : 0.03 }));
+        // Harmonica answer on every other bar.
+        if (b % 2 === 0) push(t0 + 2 * beat, 'harmonica', 'chords', { f: tones[2] * 2, d: beat * 1.6, v: 0.035 });
+      }
+    } else {
+      // Ballad: soft kick on the downbeat, strums on 1 and 3, and a long harmonica line.
+      if (P.drums) push(t0, 'kick', 'drums', { v: 0.3, soft: true });
+      if (P.bass) push(t0, 'bass', 'bass', { f: bf, d: bar * 0.9, v: 0.14, cut: 600, wave: 'triangle' });
+      if (P.chords) {
+        [0, 2].forEach((q, i) =>
+          tones.slice(0, 3).forEach((f, j) => push(t0 + q * beat + j * 0.02, 'guitar', 'chords', { f: f * 2, v: i ? 0.02 : 0.026 })),
+        );
+        push(t0, 'harmonica', 'chords', { f: tones[2] * 2, d: bar * 0.9, v: 0.03 });
+      }
+    }
+  },
+  acoustic({ t0, b, beat, bar, bf, tones, P, push, pos, g }) {
+    const { strings, note, strum, eighth, low, upper } = guitarHelpers({ t0, b, beat, bf, tones, push, pos });
+
+    if (P.chords) {
+      if (g === 'strum') {
+        // D . D U . U D U
+        strum(eighth(0), 0.034, 'down');
+        strum(eighth(2), 0.028, 'down', 0.011, 1);
+        strum(eighth(3), 0.017, 'up', 0.009);
+        strum(eighth(5), 0.018, 'up', 0.009);
+        strum(eighth(6), 0.027, 'down', 0.011, 1);
+        strum(eighth(7), 0.016, 'up', 0.009);
+      } else if (g === 'finger') {
+        // Travis picking: thumb alternates bass strings, fingers fill the off-beats.
+        const pattern = [[0, 5], [3], [2], [4], [0], [3], [1], [4]];
+        pattern.forEach((ss, e) => ss.forEach((s) => note(eighth(e), s, s < 3 ? 0.03 : 0.024)));
+      } else {
+        // Wide open: one slow, ringing strum, then a few single notes.
+        strum(t0, 0.036, 'down', 0.028);
+        note(t0 + 2.5 * beat, 4, 0.02);
+        note(t0 + 3 * beat, 5, 0.022);
+        note(t0 + 3.5 * beat, 3, 0.018);
+      }
+    }
+    if (P.drums) {
+      if (g === 'strum') {
+        push(t0, 'kick', 'drums', { v: 0.36, soft: true });
+        push(t0 + 2 * beat, 'kick', 'drums', { v: 0.32, soft: true });
+        [1, 3].forEach((q) => push(t0 + q * beat, 'brush', 'drums', { v: 0.08 }));
+      } else {
+        push(t0, 'kick', 'drums', { v: g === 'wide' ? 0.4 : 0.3, soft: true });
+        if (g === 'finger') push(t0 + 2 * beat, 'kick', 'drums', { v: 0.24, soft: true });
+      }
+    }
+    if (P.hats && g !== 'wide')
+      for (let s = 0; s < 8; s++) push(eighth(s), 'shaker', 'hats', { v: s % 2 ? 0.016 : 0.024 });
+    if (P.bass) {
+      push(t0, 'bass', 'bass', { f: bf, d: beat * 1.8, v: 0.14, cut: 500, wave: 'triangle' });
+      if (g !== 'wide') push(t0 + 2 * beat, 'bass', 'bass', { f: bf, d: beat * 1.6, v: 0.11, cut: 500, wave: 'triangle' });
+    }
+    if (P.chords && g === 'wide') push(t0, 'pad', 'chords', { fs: [low * 2, upper[1]], d: bar * 1.05, v: 0.006, a: 0.8, cut: 1200, wave: 'sine' });
+  },
+  campfire({ t0, b, beat, bar, bf, tones, P, push, pos, g }) {
+    const { note, strum, triplet } = guitarHelpers({ t0, b, beat, bf, tones, push, pos });
+    if (P.chords) {
+      if (g === 'sway') {
+        // Two big sways per bar: strong down, light down, light up on each dotted beat.
+        [0, 6].forEach((i, k) => {
+          strum(triplet(i), k ? 0.028 : 0.033, 'down', 0.016);
+          strum(triplet(i + 2), 0.014, 'up', 0.011);
+          strum(triplet(i + 3), 0.02, 'down', 0.013, 2);
+          strum(triplet(i + 5), 0.013, 'up', 0.011);
+        });
+      } else {
+        // Rolling arpeggio, up and back down across the strings.
+        const order = [0, 2, 3, 4, 5, 4, 1, 2, 3, 4, 5, 3];
+        order.forEach((s, i) => note(triplet(i), s, s < 2 ? 0.028 : 0.021));
+      }
+    }
+    if (P.drums) push(t0, 'kick', 'drums', { v: 0.26, soft: true });
+    if (P.hats && g === 'sway') for (let i = 0; i < 12; i++) push(triplet(i), 'shaker', 'hats', { v: i % 3 ? 0.011 : 0.018 });
+    if (P.bass) push(t0, 'bass', 'bass', { f: bf, d: bar * 0.95, v: 0.13, cut: 450, wave: 'sine' });
+  },
+  folk({ t0, b, beat, bar, bf, tones, P, push, pos, g }) {
+    const { strum, eighth } = guitarHelpers({ t0, b, beat, bf, tones, push, pos });
+    if (P.chords) {
+      if (g === 'stomp') {
+        // Constant down-up eighths, accents on the beat.
+        for (let e = 0; e < 8; e++)
+          strum(eighth(e), e % 2 ? 0.016 : e % 4 ? 0.026 : 0.032, e % 2 ? 'up' : 'down', e % 2 ? 0.008 : 0.01, e % 2 ? 0 : e % 4 ? 1 : 0);
+      } else {
+        // Gallop: a down on the beat, then a quick down-up on the last two sixteenths.
+        for (let q = 0; q < 4; q++) {
+          const t = t0 + q * beat;
+          strum(t, q % 2 ? 0.026 : 0.032, 'down', 0.009);
+          strum(t + beat * 0.5, 0.019, 'down', 0.008, 2);
+          strum(t + beat * 0.75, 0.015, 'up', 0.007);
+        }
+      }
+    }
+    if (P.drums) {
+      [0, 2].forEach((q) => push(t0 + q * beat, 'kick', 'drums', { v: 0.58 }));
+      [1, 3].forEach((q) => {
+        push(t0 + q * beat, 'clap', 'drums', { v: 0.2 });
+        push(t0 + q * beat, 'snare', 'drums', { v: 0.14, soft: true });
+      });
+    }
+    if (P.hats) for (let e = 0; e < 8; e++) push(eighth(e), 'tamb', 'hats', { v: e % 2 ? 0.016 : 0.026 });
+    if (P.bass)
+      for (let e = 0; e < 8; e += 2) push(eighth(e), 'bass', 'bass', { f: e === 4 ? bf * 1.5 : bf, d: beat * 0.8, v: 0.14, cut: 700, wave: 'triangle' });
+  },
 };
 
 // Deterministic noise so the same settings always render the same file.
@@ -806,6 +1070,8 @@ export function makeKit(ctx, dest, opts = {}) {
   }
   shaper.connect(bus.bass);
   let bassWave = 'auto';
+  const samples = opts.samples || {};
+  const ringing = [];
   const k = {
     ctx,
     master,
@@ -921,8 +1187,55 @@ export function makeKit(ctx, dest, opts = {}) {
       osc(t, f * 2, 'sine', v * 0.4, d * 0.4, 5000, out, 0.002);
       osc(t, f * 3, 'sine', v * 0.12, d * 0.2, 6000, out, 0.002);
     },
+    // banjo: bright, short pluck with a sharp finger transient and a ringing octave
+    banjo(t, f, v = 0.03, out = bus.chords) {
+      osc(t, f, 'sawtooth', v, 0.28, 4200, out, 0.001);
+      osc(t, f * 2, 'square', v * 0.3, 0.12, 5000, out, 0.001);
+      nz(t, 'highpass', 5000, v * 0.5, 0.02, out);
+    },
+    // harmonica: reedy sawtooth through a bandpass, with a slow vibrato on the pitch
+    harmonica(t, f, d = 0.5, v = 0.04, out = bus.chords) {
+      const o = ctx.createOscillator(),
+        g = ctx.createGain(),
+        bp = ctx.createBiquadFilter(),
+        lfo = ctx.createOscillator(),
+        lfoGain = ctx.createGain();
+      o.type = 'sawtooth';
+      o.frequency.value = f;
+      bp.type = 'bandpass';
+      bp.frequency.value = 1600;
+      bp.Q.value = 2.5;
+      lfo.frequency.value = 5.5;
+      lfoGain.gain.value = f * 0.006;
+      lfo.connect(lfoGain).connect(o.frequency);
+      env(g, t, 0.04, v, d);
+      o.connect(bp).connect(g).connect(out);
+      o.start(t);
+      lfo.start(t);
+      o.stop(t + d + 0.1);
+      lfo.stop(t + d + 0.1);
+    },
+    // recorded acoustic guitar (falls back to the synth guitar if samples aren't loaded).
+    // Each string chokes its previous note, like a real guitar.
+    acoustic(t, f, v = 0.03, out = bus.chords, string = 0) {
+      const set = samples['steel-guitar'];
+      if (!set) return k.guitar(t, f, v, out);
+      const n = pickNote(set, f);
+      const src = ctx.createBufferSource(),
+        g = ctx.createGain();
+      src.buffer = n.buffer;
+      src.playbackRate.value = f / midiToFreq(n.root);
+      g.gain.setValueAtTime(v * 1.5, t);
+      src.connect(g).connect(out);
+      src.start(t);
+      const prev = ringing[string];
+      if (prev && prev.t < t) prev.g.gain.setTargetAtTime(0, t, 0.015);
+      ringing[string] = { g, t };
+    },
     // plucked string: saw through a filter that closes quickly
     guitar(t, f, v = 0.03, out = bus.chords) {
+      // Real guitar when the samples are loaded; notes in the same register damp each other.
+      if (samples['steel-guitar']) return k.acoustic(t, f, v, out, 6 + Math.max(0, Math.min(5, Math.floor(Math.log2(f / 73) * 2.5))));
       const o = ctx.createOscillator(),
         g = ctx.createGain(),
         fl = ctx.createBiquadFilter();
@@ -1095,6 +1408,15 @@ export function playEvents(kit, t0, bed) {
       case 'guitar':
         kit.guitar(t, e.f, e.v, out);
         break;
+      case 'acoustic':
+        kit.acoustic(t, e.f, e.v, out, e.s);
+        break;
+      case 'banjo':
+        kit.banjo(t, e.f, e.v, out);
+        break;
+      case 'harmonica':
+        kit.harmonica(t, e.f, e.d, e.v, out);
+        break;
       case 'pizz':
         kit.pizz(t, e.f, e.v, out);
         break;
@@ -1147,8 +1469,22 @@ export async function renderBed(opts, sampleRate = 48000) {
     volume: 0.5,
     music: opts.voiceRoom ? 0.5 : 1,
     seed: 7,
+    samples: await loadStyleSamples(ctx, bed.style, undefined, bed.mood),
   });
   kit.shape(opts.shaping, bed.style, bed.bpm);
   playEvents(kit, 0, bed);
   return { buffer: await ctx.startRendering(), bed };
+}
+
+// Recorded samples a style needs, decoded for `ctx`. Resolves to {} (synth
+// fallback) when the style has none or they can't be loaded.
+// The Country adventure mood adds guitar to any style, so it loads them too.
+export async function loadStyleSamples(ctx, style, fetchImpl = globalThis.fetch, mood) {
+  const name = STYLES[style]?.samples || (mood === 'adventure' ? 'steel-guitar' : null);
+  if (!name || !fetchImpl) return {};
+  try {
+    return { [name]: await loadSampleSet(ctx, name, fetchImpl) };
+  } catch {
+    return {};
+  }
 }

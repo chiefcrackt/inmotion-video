@@ -65,6 +65,16 @@
         color: #c5d4e3;
         margin: 12px 0;
       }
+      label.check {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-top: 18px;
+      }
+      label.check input {
+        width: auto;
+        margin: 0;
+      }
       input,
       select,
       textarea,
@@ -249,6 +259,16 @@
             >Removes background noise with Clean Voice on this computer, then
             transcribes the cleaned sound. You also get the cleaned
             video.</small
+          >
+          <label class="check"
+            ><input id="align" type="checkbox" /> Precise word timing (for
+            captions)</label
+          >
+          <small id="align-note"
+            >Pins every word to the audio after transcribing, so word times are
+            within a few hundredths of a second instead of up to a second off
+            after pauses. English only. First use downloads a 360 MB
+            model.</small
           >
           <label
             >Names and vocabulary hints<input

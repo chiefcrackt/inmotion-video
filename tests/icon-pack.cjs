@@ -18,9 +18,8 @@ const { launchBrowser, server, artifactDirectory } = require('./browser-utils.cj
   try {
     const page = await browser.newPage({ acceptDownloads: true });
     const errors = []; page.on('pageerror', e => errors.push(e.message));
-    await page.goto(base);
-    await page.locator('#q').fill('svg');
-    await page.locator('a[href="icon-pack/"]').click();
+    // Homepage navigation is covered by tests/hub.mjs.
+    await page.goto(base + '/icon-pack/');
     await page.locator('.card').last().waitFor();
     assert.equal(await page.locator('.card').count(), 24);
     for (const icon of icons) {

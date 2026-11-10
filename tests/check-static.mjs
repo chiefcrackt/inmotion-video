@@ -53,6 +53,9 @@ const files = [
   'shared/sound/storage.mjs',
   'shared/sound/picker.mjs',
   'title-maker/index.html',
+  'motion-studio/index.html',
+  'motion-studio/app.mjs',
+  'motion-studio/model.mjs',
   'video-framer/index.html',
 ];
 for (const file of files) {
