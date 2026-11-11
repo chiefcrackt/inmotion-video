@@ -16,7 +16,8 @@
     if (/\.wav$/i.test(name)) return 'audio/wav';
     if (/\.zip$/i.test(name)) return 'application/zip';
     if (/\.mp4$/i.test(name)) return 'video/mp4';
-    return 'video/webm';
+    if (/\.webm$/i.test(name)) return 'video/webm';
+    return 'application/octet-stream';
   }
 
   var downloads = null;

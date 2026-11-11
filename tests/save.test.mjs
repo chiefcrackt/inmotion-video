@@ -49,7 +49,7 @@ const blob = () => new Blob(['x'], { type: 'video/mp4' });
 
 test('file types by extension', () => {
   const { S } = harness();
-  assert.deepEqual(['a.png', 'a.WAV', 'a.zip', 'a.mp4', 'a.webm'].map(S.typeFor), ['image/png', 'audio/wav', 'application/zip', 'video/mp4', 'video/webm']);
+  assert.deepEqual(['a.png', 'a.WAV', 'a.zip', 'a.mp4', 'a.webm', 'a.bin'].map(S.typeFor), ['image/png', 'audio/wav', 'application/zip', 'video/mp4', 'video/webm', 'application/octet-stream']);
 });
 
 test('iPhone: the share sheet gets a typed File, straight from the tap', async () => {
