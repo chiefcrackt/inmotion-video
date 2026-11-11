@@ -1,7 +1,21 @@
 import { create, validate, dimensions, LAYERS, PRESETS } from './model.mjs?v=7067edd4';
 import { render } from './render.mjs?v=7aff5ebc';
 import { soundtrack } from './audio.mjs?v=47819d6b';
-import { encodeWav, download } from '../shared/sound/wav.mjs?v=58bdfa19';
+import { encodeWav } from '../shared/sound/wav.mjs?v=58bdfa19';
+// Saving goes through shared/save.js: downloads capability, then the share sheet
+// on phones and tablets, then a download link.
+const { TimRecorder, TimSave } = window;
+TimSave.ready();
+function download(data, name) {
+  return TimSave.save(name, data, { revokeMs: 30000 });
+}
+// WebM first, as this tool has always asked for; MP4 where WebM isn't recordable (iPhone).
+const RECORD_TYPES = [
+  'video/webm;codecs=vp9,opus',
+  'video/webm;codecs=vp8,opus',
+  'video/webm',
+  'video/mp4',
+];
 const $ = (id) => document.getElementById(id),
   cv = $('preview'),
   ctx = cv.getContext('2d');
@@ -250,7 +264,7 @@ $('png').onclick = () =>
     render(out.getContext('2d'), state);
     const blob = await new Promise((r) => out.toBlob(r, 'image/png'));
     if (!blob) throw Error('PNG export failed.');
-    download(blob, `tim-${state.preset}.png`, 'image/png');
+    download(blob, `tim-${state.preset}.png`);
     status('PNG saved at ' + dimensions(state).join(' × ') + '.');
   });
 $('audition').onclick = () =>
@@ -276,11 +290,7 @@ $('audition').onclick = () =>
 $('wav').onclick = () =>
   guarded(async () => {
     const buffer = await soundtrack(state);
-    download(
-      encodeWav(buffer),
-      `tim-${state.preset}-${state.sound}.wav`,
-      'audio/wav',
-    );
+    download(encodeWav(buffer), `tim-${state.preset}-${state.sound}.wav`);
     status('WAV saved.');
   });
 $('record').onclick = () =>
@@ -290,20 +300,12 @@ $('record').onclick = () =>
         'Video export is unavailable in this browser. Use Chrome or Edge, or save a PNG.',
       );
     await closeAudio();
-    const mime = [
-      'video/webm;codecs=vp9,opus',
-      'video/webm;codecs=vp8,opus',
-      'video/webm',
-      'video/mp4',
-    ].find((t) => MediaRecorder.isTypeSupported(t));
-    if (!mime)
+    if (!TimRecorder.pickType(RECORD_TYPES))
       throw Error(
         'No supported recording format. Save PNG or try Chrome / Edge.',
       );
     await loadFonts();
-    let stream,
-      frame,
-      wasCancelled = false;
+    let frame;
     try {
       let buffer;
       if (state.sound !== 'none') {
@@ -316,66 +318,62 @@ $('record').onclick = () =>
       time = 0;
       videoMode = true;
       paint();
-      stream = cv.captureStream(30);
-      if (buffer) {
-        const dest = audio.createMediaStreamDestination();
-        source = audio.createBufferSource();
-        source.buffer = buffer;
-        source.connect(dest);
-        dest.stream.getAudioTracks().forEach((track) => stream.addTrack(track));
-      }
-      recorder = new MediaRecorder(stream, {
-        mimeType: mime,
-        videoBitsPerSecond: 12000000,
+      // Resolves with the file, or null when the recording was cancelled.
+      const result = await new Promise((resolve, reject) => {
+        const session = TimRecorder.start({
+          canvas: cv,
+          mimeTypes: RECORD_TYPES,
+          allowDefaultType: false,
+          videoBitsPerSecond: 12000000,
+          stream: 'capture',
+          audioTracks: () => {
+            if (!buffer) return [];
+            const dest = audio.createMediaStreamDestination();
+            source = audio.createBufferSource();
+            source.buffer = buffer;
+            source.connect(dest);
+            return dest.stream.getAudioTracks();
+          },
+          onDone: resolve,
+          onCancel: () => resolve(null),
+          onError: (e) =>
+            reject(
+              (e.code !== 'recorder' && e.error) ||
+                Error('Recording failed. Please try again.'),
+            ),
+        });
+        if (!session) return;
+        recorder = session;
+        $('cancel').onclick = () => session.cancel();
+        if (source) source.start();
+        const began = performance.now();
+        function tick(now) {
+          if (!session.active) return;
+          time = Math.min(state.duration, (now - began) / 1000);
+          paint();
+          status(
+            'Recording ' + time.toFixed(1) + ' / ' + state.duration + ' seconds…',
+          );
+          if (time < state.duration) frame = requestAnimationFrame(tick);
+          else session.stop();
+        }
+        frame = requestAnimationFrame(tick);
       });
-      const chunks = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size) chunks.push(e.data);
-      };
-      const ended = new Promise((resolve, reject) => {
-        recorder.onstop = resolve;
-        recorder.onerror = () =>
-          reject(Error('Recording failed. Please try again.'));
-      });
-      $('cancel').onclick = () => {
-        wasCancelled = true;
-        if (recorder.state !== 'inactive') recorder.stop();
-      };
-      recorder.start();
-      if (source) source.start();
-      const began = performance.now();
-      function tick(now) {
-        if (recorder.state === 'inactive') return;
-        time = Math.min(state.duration, (now - began) / 1000);
-        paint();
-        status(
-          'Recording ' + time.toFixed(1) + ' / ' + state.duration + ' seconds…',
-        );
-        if (time < state.duration) frame = requestAnimationFrame(tick);
-        else recorder.stop();
-      }
-      frame = requestAnimationFrame(tick);
-      await ended;
-      if (wasCancelled) {
+      if (!result) {
         status('Recording cancelled.');
         return;
       }
-      const blob = new Blob(chunks, { type: mime });
+      const blob = result.blob;
       if (resultUrl) URL.revokeObjectURL(resultUrl);
       resultUrl = URL.createObjectURL(blob);
       $('result').src = resultUrl;
       $('result').hidden = false;
-      download(
-        blob,
-        `tim-${state.preset}.${mime.startsWith('video/mp4') ? 'mp4' : 'webm'}`,
-        mime,
-      );
+      download(blob, `tim-${state.preset}.${result.ext}`);
       status(
         'Video saved' + (buffer ? ' with ' + state.sound : ' (silent)') + '.',
       );
     } finally {
       cancelAnimationFrame(frame);
-      stream?.getTracks().forEach((track) => track.stop());
       recording = false;
       recorder = null;
       await closeAudio();
@@ -386,7 +384,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     stop();
     closeAudio();
-    if (recorder?.state === 'recording') $('cancel').click();
+    if (recorder?.active) $('cancel').click();
   }
 });
 window.TimPublishingEditor = Object.freeze({

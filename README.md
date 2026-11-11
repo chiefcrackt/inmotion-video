@@ -93,6 +93,8 @@ The home page groups tools by task and offers search and category filters. All t
 
 Each tool is a single self-contained HTML page. It draws on a canvas, synthesizes its sounds with the Web Audio API, and records the result with MediaRecorder (MP4 on Safari, WebM where MP4 isn't available). Recordings save through the share sheet on iPhone, iPad and Android ("Save Video" puts them in Photos) and as a normal download on a computer, including Windows, where Chrome and Edge would otherwise open the Windows share panel. Run `npm run test:desktop-save` to check every tool on a simulated Windows desktop.
 
+Recording and saving are shared: `shared/recorder.js` (`TimRecorder`) picks the format, runs MediaRecorder, stops on a hidden tab and releases tracks, timers and listeners on every outcome; `shared/save.js` (`TimSave`) tries the host's downloads capability, then the phone share sheet, then a download link, for videos, PNGs, WAVs and ZIPs. A tool still draws its own frames, schedules its own sound and sets its own pre-roll and tail with `session.after()`. Load both as plain scripts (`<script src="../shared/recorder.js"></script><script src="../shared/save.js"></script>`) and don't copy recorder or save code into a new tool. Run `node --test tests/recorder.test.mjs tests/save.test.mjs`.
+
 Beat Bed's engine is `shared/sound/beat.mjs`: `bedEvents()` builds a testable note timeline and `makeKit()`/`playEvents()` play it, so other tools can put the same bed and hits under their videos. Run `node --test tests/beat.test.mjs`.
 
 Sound Forge uses reusable modules in `shared/sound/` for offline rendering, a

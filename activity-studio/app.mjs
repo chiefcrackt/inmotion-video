@@ -513,26 +513,12 @@ canvas.addEventListener('pointermove', (e) => {
 });
 for (const name of ['pointerup', 'pointercancel'])
   canvas.addEventListener(name, () => (drag = null));
-async function save(blob, name) {
-  const file = new File([blob], name, { type: blob.type });
-  // share sheet on phones and tablets only; computers download directly
-  const phone =
-    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-    (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
-  if (phone && navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file] });
-      return;
-    } catch (e) {
-      if (e.name === 'AbortError') return;
-    }
-  }
-  const url = URL.createObjectURL(blob),
-    a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+// Saving goes through shared/save.js: downloads capability, then the share sheet
+// on phones and tablets, then a download link.
+const { TimRecorder, TimSave } = window;
+TimSave.ready();
+function save(blob, name) {
+  return TimSave.save(name, blob, { revokeMs: 60000 });
 }
 $('png').onclick = async () => {
   stop();
@@ -554,18 +540,14 @@ $('png').onclick = async () => {
     }
   }, 'image/png');
 };
-function pickType() {
-  if (!window.MediaRecorder) return null;
-  return (
-    [
-      'video/mp4;codecs=avc1.42E01E',
-      'video/mp4',
-      'video/webm;codecs=vp9',
-      'video/webm;codecs=vp8',
-      'video/webm',
-    ].find((t) => MediaRecorder.isTypeSupported(t)) || null
-  );
-}
+// MP4 first for iPhone and CapCut. No sound here, so video-only formats.
+const VIDEO_TYPES = [
+  'video/mp4;codecs=avc1.42E01E',
+  'video/mp4',
+  'video/webm;codecs=vp9',
+  'video/webm;codecs=vp8',
+  'video/webm',
+];
 function lock(value) {
   $('editor').disabled = value;
   $('file').disabled = value;
@@ -621,8 +603,7 @@ async function recordTransparent() {
 $('video').onclick = async () => {
   if (importing || recording) return;
   if (settings.transparent) return recordTransparent();
-  const type = pickType();
-  if (!type || !canvas.captureStream) {
+  if (!TimRecorder.pickType(VIDEO_TYPES) || !canvas.captureStream) {
     say(
       'exportStatus',
       'Canvas video recording is unavailable in this browser. PNG export is still available.',
@@ -644,81 +625,67 @@ $('video').onclick = async () => {
   progress = 0;
   if (useIntro) introFrame(0);
   else paint(true);
-  let stream, mr;
-  try {
-    stream = canvas.captureStream(30);
-    mr = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 8e6 });
-  } catch (e) {
-    stream?.getTracks().forEach((t) => t.stop());
-    settings.transparent = originalTransparent;
-    paint();
-    say('exportStatus', 'Recording could not start: ' + e.message, true);
-    return;
-  }
-  lock(true);
-  let chunks = [],
-    bytes = 0,
-    canceled = false,
-    raf = 0,
-    watchdog;
-  const finish = () => {
+  let raf = 0,
+    locked = false;
+  // Every ending comes through here: the editor is unlocked and the still restored.
+  const ended = () => {
     cancelAnimationFrame(raf);
-    clearTimeout(watchdog);
-    if (mr.state !== 'inactive') mr.stop();
-  };
-  cancelRecording = () => {
-    canceled = true;
-    finish();
-  };
-  mr.ondataavailable = (e) => {
-    if (e.data.size) {
-      bytes += e.data.size;
-      if (bytes > 128 * 1024 * 1024) {
-        canceled = true;
-        finish();
-      } else chunks.push(e.data);
-    }
-  };
-  mr.onerror = () => {
-    canceled = true;
-    finish();
-  };
-  mr.onstop = () => {
-    stream.getTracks().forEach((t) => t.stop());
-    lock(false);
+    cancelRecording = null;
     settings.transparent = originalTransparent;
+    if (!locked) return paint();
+    lock(false);
     progress = 1;
     introAt = null;
     paint(false);
-    cancelRecording = null;
-    chunks = canceled ? [] : chunks;
-    if (canceled) {
+  };
+  const session = TimRecorder.start({
+    canvas,
+    mimeTypes: VIDEO_TYPES,
+    allowDefaultType: false,
+    videoBitsPerSecond: 8e6,
+    timeslice: 1000,
+    stream: 'capture',
+    maxBytes: 128 * 1024 * 1024,
+    watchdogMs: (durationS + 15) * 1000,
+    beforeStart: () => {
+      lock(true);
+      locked = true;
+    },
+    onDone: (r) => {
+      ended();
+      videoBlob = r.blob;
+      videoName = fileBase() + '.' + r.ext;
+      $('saveVideo').hidden = false;
+      say(
+        'exportStatus',
+        `${videoName} ready · ${(videoBlob.size / 1048576).toFixed(1)} MB. Tap Save video to download or share.`,
+      );
+    },
+    onCancel: () => {
+      ended();
       say(
         'exportStatus',
         'Recording canceled or interrupted. Keep the tab visible and try a shorter export.',
         true,
       );
-      return;
-    }
-    const mime = (mr.mimeType || type).split(';')[0];
-    videoBlob = new Blob(chunks, { type: mime });
-    videoName = fileBase() + '.' + (mime.includes('mp4') ? 'mp4' : 'webm');
-    $('saveVideo').hidden = false;
-    say(
-      'exportStatus',
-      `${videoName} ready · ${(videoBlob.size / 1048576).toFixed(1)} MB. Tap Save video to download or share.`,
-    );
-  };
-  mr.start(1000);
-  const start = performance.now();
-  watchdog = setTimeout(
-    () => {
-      canceled = true;
-      finish();
     },
-    (durationS + 15) * 1000,
-  );
+    onError: (e) => {
+      const started = locked;
+      ended();
+      say(
+        'exportStatus',
+        started && e.code !== 'start'
+          ? 'Recording canceled or interrupted. Keep the tab visible and try a shorter export.'
+          : 'Recording could not start: ' + ((e.error && e.error.message) || 'no supported format'),
+        true,
+      );
+    },
+  });
+  if (!session) return;
+  cancelRecording = () => session.cancel();
+  const start = performance.now();
   const tick = (now) => {
+    if (!session.active) return;
     const t = Math.min(1, (now - start) / (durationS * 1000));
     if (useIntro) introFrame(t * durationS);
     else {
@@ -731,7 +698,7 @@ $('video').onclick = async () => {
       `Recording ${Math.round(t * 100)}% · keep this tab visible`,
     );
     if (t < 1) raf = requestAnimationFrame(tick);
-    else finish();
+    else session.stop();
   };
   raf = requestAnimationFrame(tick);
 };
