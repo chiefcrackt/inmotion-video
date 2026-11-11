@@ -44,7 +44,7 @@
     <meta name="claude:viewport-fit-sides" content="cover" />
     <link rel="stylesheet" href="../shared/fonts.css?v=70017a07" /><link
       rel="stylesheet"
-      href="../shared/projects.css?v=6be12135" /><script src="../shared/projects.js?v=8da29cf0"></script><link rel="stylesheet" href="../shared/responsive.css?v=bb296b12" /><link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" /><script type="module" src="../shared/studio-bar.mjs?v=3e15f76e"></script></head><body
+      href="../shared/projects.css?v=6be12135" /><script src="../shared/projects.js?v=8da29cf0"></script><script src="../shared/recorder.js?v=2f05f4fb"></script><script src="../shared/save.js?v=43fefb01"></script><link rel="stylesheet" href="../shared/responsive.css?v=bb296b12" /><link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" /><script type="module" src="../shared/studio-bar.mjs?v=3e15f76e"></script></head><body
     ><tim-studio-bar></tim-studio-bar><style>
       /* Layout: two-column studio. Live preview of the runner on the left, grouped controls on the right; one column on phones.
    Single dark look on purpose: T.im navy is the brand ground. */
@@ -1502,23 +1502,6 @@
         }
 
         // ---------- recording
-        function pickType() {
-          if (!window.MediaRecorder) return null;
-          var c = [
-            'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-            'video/mp4;codecs=avc1,mp4a',
-            'video/mp4',
-            'video/webm;codecs=vp9,opus',
-            'video/webm;codecs=vp8,opus',
-            'video/webm',
-          ];
-          for (var i = 0; i < c.length; i++) {
-            try {
-              if (MediaRecorder.isTypeSupported(c[i])) return c[i];
-            } catch (e) {}
-          }
-          return '';
-        }
         var lastBlob = null,
           lastName = '',
           lastURL = null;
@@ -1532,82 +1515,62 @@
             (S.bg === 'green' ? 'greenscreen' : 'navy')
           );
         }
+        var session = null;
         function record() {
-          if (playing) return;
-          var type = pickType();
-          if (type === null || !cv.captureStream) {
-            say(
-              'This browser can’t record video. Try Safari on iPhone or Chrome on a computer.',
-              true,
-            );
-            return;
-          }
-          var A = audio();
-          if (A && A.state === 'suspended') A.resume();
-          var stream = cv.captureStream(30),
-            tracks = stream.getVideoTracks().slice();
-          if (A) {
-            if (!recDest) {
-              recDest = A.createMediaStreamDestination();
-              comp.connect(recDest);
-            }
-            recDest.stream.getAudioTracks().forEach(function (tr) {
-              tracks.push(tr);
-            });
-          }
-          var mr;
-          try {
-            mr = new MediaRecorder(
-              new MediaStream(tracks),
-              type
-                ? {
-                    mimeType: type,
-                    videoBitsPerSecond: 12e6,
-                    audioBitsPerSecond: 192e3,
-                  }
-                : { videoBitsPerSecond: 12e6 },
-            );
-          } catch (e) {
-            say(
-              'Recording couldn’t start in this browser (' + e.name + ').',
-              true,
-            );
-            return;
-          }
-          var chunks = [];
-          mr.ondataavailable = function (e) {
-            if (e.data && e.data.size) chunks.push(e.data);
-          };
-          mr.onstop = function () {
-            stream.getVideoTracks().forEach(function (tr) {
-              tr.stop();
-            });
-            var mt = (mr.mimeType || type || 'video/webm').split(';')[0],
-              ext = mt.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
-            lastBlob = new Blob(chunks, { type: mt });
-            lastName = stem() + '.' + ext;
-            if (lastURL) URL.revokeObjectURL(lastURL);
-            lastURL = URL.createObjectURL(lastBlob);
-            $('vid').src = lastURL;
-            $('result').hidden = false;
-            $('savenote').textContent =
-              lastName + ' · ' + (lastBlob.size / 1048576).toFixed(1) + ' MB';
-            setRec(false);
-            say('Recorded. Check it, then save it.');
-          };
-          setRec(true);
-          say('');
-          paint(0);
-          mr.start();
-          setTimeout(function () {
+          if (playing || session) return;
+          var rec = TimRecorder.start({
+            canvas: cv,
+            videoBitsPerSecond: 12e6,
+            audioBitsPerSecond: 192e3,
+            audioTracks: function () {
+              var A = audio();
+              if (!A) return [];
+              if (A.state === 'suspended') A.resume();
+              if (!recDest) {
+                recDest = A.createMediaStreamDestination();
+                comp.connect(recDest);
+              }
+              return recDest.stream.getAudioTracks();
+            },
+            beforeStart: function () {
+              setRec(true);
+              say('');
+              paint(0);
+            },
+            onDone: function (r) {
+              session = null;
+              lastBlob = r.blob;
+              lastName = stem() + '.' + r.ext;
+              if (lastURL) URL.revokeObjectURL(lastURL);
+              lastURL = URL.createObjectURL(lastBlob);
+              $('vid').src = lastURL;
+              $('result').hidden = false;
+              $('savenote').textContent = lastName + ' · ' + (lastBlob.size / 1048576).toFixed(1) + ' MB';
+              setRec(false);
+              say('Recorded. Check it, then save it.');
+            },
+            onCancel: function (reason) {
+              recordingEnded(TimRecorder.cancelMessage(reason));
+            },
+            onError: function (e) {
+              recordingEnded(TimRecorder.errorMessage(e));
+            },
+          });
+          if (!rec) return;
+          session = rec;
+          // short pre-roll so the first frame is already in the file, then the animation and its sounds together
+          rec.after(250, function () {
             run(function () {
-              setTimeout(function () {
-                try {
-                  mr.stop();
-                } catch (e) {}
-              }, 250);
+              rec.after(250, rec.stop);
             }, 0.05);
-          }, 250);
+          });
+        }
+        // A recording that was cancelled or failed: stop the animation and unlock the controls.
+        function recordingEnded(message) {
+          session = null;
+          playing = null;
+          setRec(false);
+          say(message, true);
         }
         function setRec(on) {
           var b = $('rec');
@@ -1618,85 +1581,12 @@
             ? '<span class="dot"></span>Recording…'
             : '● Record video';
         }
-        var downloads = null;
-        if (window.claude && claude.use) {
-          claude
-            .use('downloads')
-            .then(function (d) {
-              downloads = d;
-              if (!d) $('save').hidden = true;
-            })
-            .catch(function () {});
-        }
-        function fallbackSave(name, data, note) {
-          var blob = data instanceof Blob ? data : new Blob([data]),
-            type =
-              blob.type ||
-              (/\.png$/.test(name)
-                ? 'image/png'
-                : /\.mp4$/.test(name)
-                  ? 'video/mp4'
-                  : 'video/webm'),
-            file = null;
-          try {
-            file = new File([blob], name, { type: type });
-          } catch (e) {}
-          function anchor() {
-            var u = URL.createObjectURL(blob),
-              a = document.createElement('a');
-            a.href = u;
-            a.download = name;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            setTimeout(function () {
-              URL.revokeObjectURL(u);
-            }, 5000);
-            note.textContent = 'Downloaded ' + name + '.';
-          }
-          if (
-            file &&
-            // share sheet on phones and tablets only (Save Video → Photos); computers download directly
-            (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)) &&
-            navigator.canShare &&
-            navigator.canShare({ files: [file] })
-          ) {
-            navigator
-              .share({ files: [file] })
-              .then(function () {
-                note.textContent =
-                  'Done. If you picked Save Video, it’s in Photos.';
-              })
-              .catch(function (e) {
-                if (e && e.name === 'AbortError')
-                  note.textContent = 'Not saved.';
-                else anchor();
-              });
-            return;
-          }
-          anchor();
-        }
+        // Saving goes through shared/save.js: downloads capability, then the phone share sheet, then a download link.
+        TimSave.ready().then(function (r) {
+          if (r.host && !r.failed && !r.downloads) $('save').hidden = true;
+        });
         $('save').onclick = function () {
-          if (!lastBlob) return;
-          var note = $('savenote');
-          if (!downloads) {
-            fallbackSave(lastName, lastBlob, note);
-            return;
-          }
-          downloads
-            .save({ filename: lastName, data: lastBlob })
-            .then(function () {
-              note.textContent = 'Saved ' + lastName + '.';
-            })
-            .catch(function (e) {
-              var c = e && e.code;
-              note.textContent =
-                c === 'declined'
-                  ? 'Not saved.'
-                  : c === 'rate_limited'
-                    ? 'A save is already open. Finish that one first.'
-                    : 'Couldn’t save the file here.';
-            });
+          if (lastBlob) TimSave.saveTo(lastName, lastBlob, $('savenote'));
         };
         $('again').onclick = function () {
           $('result').hidden = true;

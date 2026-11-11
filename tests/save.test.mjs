@@ -143,6 +143,8 @@ test('status wording, with per-tool overrides', async () => {
   assert.equal(S.describe({ via: 'downloads', status: 'error', code: 'too_large' }, 'a.mp4'), 'That file is too large to save here.');
   assert.equal(S.describe({ via: 'downloads', status: 'error', code: 'failed' }, 'a.mp4'), 'Couldn’t save the file here.');
   assert.equal(S.describe({ via: 'share', status: 'shared' }, 'a.mp4'), 'Done. If you picked Save Video, it’s in Photos.');
+  assert.equal(S.describe({ via: 'share', status: 'shared' }, 'a.png'), 'Done. If you picked Save Image, it’s in Photos.');
+  assert.equal(S.describe({ via: 'share', status: 'shared' }, 'a.wav'), 'Done. If you picked Save to Files, it’s in Files.');
   assert.equal(S.describe({ via: 'share', status: 'aborted' }, 'a.mp4'), 'Not saved.');
   assert.equal(S.describe({ via: 'download', status: 'downloaded' }, 'a.mp4'), 'Downloaded a.mp4.');
   assert.equal(S.describe({ via: 'share', status: 'shared' }, 'a.mp4', { shared: 'Shared a.mp4.' }), 'Shared a.mp4.');

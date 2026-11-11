@@ -147,7 +147,11 @@
       case 'failed':
         return 'Couldn’t save the file here.';
       case 'shared':
-        return 'Done. If you picked Save Video, it’s in Photos.';
+        return /\.(mp4|webm|mov)$/i.test(name)
+          ? 'Done. If you picked Save Video, it’s in Photos.'
+          : /\.png$/i.test(name)
+            ? 'Done. If you picked Save Image, it’s in Photos.'
+            : 'Done. If you picked Save to Files, it’s in Files.';
       default:
         return 'Downloaded ' + name + '.';
     }
