@@ -93,7 +93,7 @@
       #canvas.busy { cursor: progress; }
       .hint { font-size: 15px; color: var(--muted); text-align: center; margin: 0; }
     </style>
-  <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" /><script type="module" src="../shared/studio-bar.mjs?v=3e15f76e"></script></head>
+  <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" /><script type="module" src="../shared/studio-bar.mjs?v=3e15f76e"></script><script src="../shared/recorder.js?v=2f05f4fb"></script><script src="../shared/save.js?v=39954a84"></script></head>
   <body><tim-studio-bar></tim-studio-bar>
     <div class="wrap">
       <header>
@@ -612,26 +612,10 @@
       canvas.addEventListener('pointerup', endDrag);
       canvas.addEventListener('pointercancel', endDrag);
 
-      // Delivery: the iPad share sheet when it can take a file, otherwise a normal download.
+      // Delivery goes through shared/save.js: the share sheet on phones and tablets, otherwise a normal download.
       async function deliver(blob, name) {
-        const file = new File([blob], name, { type: blob.type });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ files: [file], title: name });
-            return 'Shared ' + name + '.';
-          } catch (e) {
-            if (e.name === 'AbortError') return 'Not saved.';
-          }
-        }
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = name;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 2000);
-        return 'Downloaded ' + name + '.';
+        const result = await TimSave.save(name, blob, { shareTitle: name });
+        return TimSave.describe(result, name, { shared: 'Shared ' + name + '.' });
       }
 
       function stem() {
@@ -646,19 +630,6 @@
           say(await deliver(blob, stem() + '.png'));
         }, 'image/png');
       };
-
-      function pickType() {
-        if (!window.MediaRecorder) return null;
-        const list = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
-        for (const type of list) {
-          try {
-            if (MediaRecorder.isTypeSupported(type)) return type;
-          } catch {
-            /* keep looking */
-          }
-        }
-        return '';
-      }
 
       // The animation ends on After alone, or with both photos side by side, each in its own half.
       function animationFrame(t) {
@@ -688,79 +659,56 @@
       };
 
       $('clip').onclick = () => {
-        if (!(photos.before && photos.after)) return;
-        const type = pickType();
-        if (type === null || !canvas.captureStream) return say('This browser cannot record video. Save the PNG instead, or open this page in a newer Safari or in Chrome on a computer.', true);
-        let mr, stream, raf = 0;
-        const cleanup = () => {
+        if (recording || !(photos.before && photos.after)) return;
+        // MP4 first for iPhone and CapCut. No sound in this tool, so video-only formats.
+        const CLIP_TYPES = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+        let raf = 0;
+        const ended = (message) => {
           cancelAnimationFrame(raf);
-          stream?.getTracks().forEach((track) => track.stop());
+          recording = false;
+          refresh();
+          if (message) say(message, true);
         };
-        const chunks = [];
-        try {
-          stream = canvas.captureStream(30);
-          mr = new MediaRecorder(stream, type ? { mimeType: type, videoBitsPerSecond: 8e6 } : { videoBitsPerSecond: 8e6 });
-        } catch (e) {
-          cleanup();
-          return say('Recording could not start (' + e.name + ').', true);
-        }
-        recording = true;
-        activeRecorder = mr;
-        interrupted = false;
-        syncControls();
+        const session = TimRecorder.start({
+          canvas,
+          mimeTypes: CLIP_TYPES,
+          videoBitsPerSecond: 8e6,
+          timeslice: 500,
+          stream: 'capture',
+          rejectEmpty: true,
+          beforeStart: () => {
+            recording = true;
+            syncControls();
+          },
+          onDone: async (r) => {
+            ended();
+            say('Saving the animation…');
+            say(await deliver(r.blob, stem() + '.' + r.ext));
+          },
+          // On iPhone, switching apps can break a recording, so it is stopped cleanly and the reason shown.
+          onCancel: (reason) => ended(reason === 'hidden' ? 'Recording stopped because Safari went to the background. Keep this page open while recording.' : TimRecorder.cancelMessage(reason)),
+          onError: (e) =>
+            ended(
+              e.code === 'unsupported' || e.code === 'no-format'
+                ? 'This browser cannot record video. Save the PNG instead, or open this page in a newer Safari or in Chrome on a computer.'
+                : e.code === 'construct' || e.code === 'start'
+                  ? 'Recording could not start (' + ((e.error && e.error.name) || 'Error') + ').'
+                  : TimRecorder.errorMessage(e),
+            ),
+        });
+        if (!session) return;
         const total = timelineTimes(opt.length).total;
         const start = performance.now();
+        say('Recording ' + total.toFixed(1) + ' s. Keep this page open with the screen on.');
         const step = () => {
-          if (mr.state === 'inactive') return;
+          if (!session.active) return;
           const t = (performance.now() - start) / 1000;
           animationFrame(t);
           if (t < total) raf = requestAnimationFrame(step);
-          else if (mr.state !== 'inactive') mr.stop();
+          else session.stop();
         };
-        mr.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
-        let failure = '', finished = false;
-        const finish = async () => {
-          if (finished) return;
-          finished = true;
-          cleanup();
-          recording = false;
-          activeRecorder = null;
-          refresh();
-          if (failure) return say(failure, true);
-          if (interrupted) return say('Recording stopped because Safari went to the background. Keep this page open while recording.', true);
-          const size = chunks.reduce((n, c) => n + c.size, 0);
-          if (!size) return say('The recording came out empty. Try again.', true);
-          const mt = (mr.mimeType || type || 'video/webm').split(';')[0];
-          const ext = mt.includes('mp4') ? 'mp4' : 'webm';
-          say('Saving the animation…');
-          say(await deliver(new Blob(chunks, { type: mt }), stem() + '.' + ext));
-        };
-        mr.onstop = finish;
-        mr.onerror = () => {
-          failure = 'Recording was interrupted. Try again with this page open.';
-          if (mr.state !== 'inactive') mr.stop();
-          else finish();
-        };
-        try {
-          mr.start(500);
-          say('Recording ' + total.toFixed(1) + ' s. Keep this page open with the screen on.');
-          step();
-        } catch (e) {
-          failure = 'Recording could not start (' + e.name + ').';
-          if (mr.state !== 'inactive') mr.stop();
-          else finish();
-        }
+        step();
       };
-
-      // On iPhone, switching apps can break a recording, so stop it cleanly and say why.
-      let activeRecorder = null;
-      let interrupted = false;
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden && activeRecorder && activeRecorder.state !== 'inactive') {
-          interrupted = true;
-          activeRecorder.stop();
-        }
-      });
 
       refresh();
     </script>

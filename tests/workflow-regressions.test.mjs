@@ -26,6 +26,7 @@ function recordingHarness({ startFails = false, constructFails = false } = {}) {
   let next = 0, stoppedTracks = 0, draws = 0, delivered = 0, now = 0;
   const $ = (id) => { if (!elements.has(id)) elements.set(id, {}); return elements.get(id); };
   class MediaRecorder {
+    static isTypeSupported() { return true; }
     constructor() {
       if (constructFails) throw Error('constructor failed');
       this.state = 'inactive'; this.mimeType = 'video/mp4'; recorders.push(this);
@@ -34,20 +35,21 @@ function recordingHarness({ startFails = false, constructFails = false } = {}) {
     stop() { this.state = 'inactive'; this.onstop?.(); }
   }
   const context = {
-    $, photos: { before: {}, after: {} }, pickType: () => 'video/mp4', MediaRecorder,
+    $, photos: { before: {}, after: {} }, MediaRecorder, setTimeout, clearTimeout,
     canvas: { captureStream: () => ({ getTracks: () => [{ stop: () => stoppedTracks++ }] }) },
     say() {}, syncControls() {}, refresh() {}, timelineTimes: () => ({ total: 5 }), opt: { length: 5 },
     recording: false, performance: { now: () => now }, animationFrame: () => draws++,
     requestAnimationFrame: (fn) => { queued.set(++next, fn); return next; },
     cancelAnimationFrame: (id) => queued.delete(id),
-    document: { hidden: false, addEventListener: (key, fn) => { listeners[key] = fn; } },
+    document: { hidden: false, addEventListener: (key, fn) => { listeners[key] = fn; }, removeEventListener: (key, fn) => { if (listeners[key] === fn) delete listeners[key]; } },
     Blob, deliver: async () => { delivered++; return ''; }, stem: () => 'test',
   };
   vm.createContext(context);
+  vm.runInContext(source('shared/recorder.js'), context);
   vm.runInContext(between(source('before-after/index.html'), "      $('clip').onclick =", '\n      refresh();\n    </script>'), context);
   return {
     start: () => $('clip').onclick(), context, recorders, queued,
-    hide: () => { context.document.hidden = true; listeners.visibilitychange(); },
+    hide: () => { context.document.hidden = true; listeners.visibilitychange?.(); },
     advance: (ms) => { now = ms; const callbacks = [...queued.values()]; queued.clear(); callbacks.forEach((fn) => fn()); },
     stoppedTracks: () => stoppedTracks, draws: () => draws, delivered: () => delivered,
   };

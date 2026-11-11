@@ -475,13 +475,12 @@ for (const event of ['pointerup', 'pointercancel'])
       persist();
     }
   });
+// Saving goes through shared/save.js: downloads capability, then the share sheet
+// on phones and tablets (Save Video / Save Image → Photos), then a download link.
+const { TimRecorder, TimSave } = window;
+TimSave.ready();
 function download(blob, name) {
-  const url = URL.createObjectURL(blob),
-    a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return TimSave.save(name, blob, { revokeMs: 60000 });
 }
 function png(c) {
   return new Promise((resolve, reject) =>
@@ -517,91 +516,74 @@ $('png').onclick = () =>
     say('Transparent PNG ready. Add it as an overlay in your editor.');
   });
 function greenVideo(snapshot, c) {
-  if (!window.MediaRecorder || !c.captureStream)
-    throw Error(
-      'Video recording is unavailable. Save a PNG or try another browser.',
-    );
-  const type = [
-    'video/mp4;codecs=avc1.42E01E',
-    'video/mp4',
-    'video/webm;codecs=vp9',
-    'video/webm',
-  ].find((t) => MediaRecorder.isTypeSupported(t));
-  if (!type) throw Error('No supported recording format. Save a PNG instead.');
   return new Promise((resolve, reject) => {
-    let mr,
-      stream,
-      raf = 0,
-      watchdog = 0,
-      failure = null,
-      done = false;
-    const chunks = [];
-    const close = () => {
-      if (done) return;
-      done = true;
+    let raf = 0;
+    const fail = (error) => {
       cancelAnimationFrame(raf);
-      clearTimeout(watchdog);
-      stream?.getTracks().forEach((t) => t.stop());
       cancelRecording = null;
-      if (failure) reject(failure);
-      else if (!chunks.length)
-        reject(Error('The recording was empty. Try again.'));
-      else
-        resolve(
-          new Blob(chunks, { type: (mr.mimeType || type).split(';')[0] }),
-        );
+      reject(error);
     };
-    const finish = () => {
-      if (mr && mr.state !== 'inactive') mr.stop();
-      else close();
-    };
-    try {
-      render(c, snapshot, 0, { green: true });
-      stream = c.captureStream(30);
-      mr = new MediaRecorder(stream, {
-        mimeType: type,
-        videoBitsPerSecond: 8e6,
-      });
-      mr.ondataavailable = (e) => {
-        if (e.data.size) chunks.push(e.data);
-      };
-      mr.onstop = close;
-      mr.onerror = () => {
-        failure = Error('Recording was interrupted. Try a shorter animation.');
-        finish();
-      };
-      cancelRecording = () => {
-        failure = Error('Recording canceled.');
-        finish();
-      };
-      sync();
-      mr.start(250);
-      const start = performance.now();
-      watchdog = setTimeout(
-        () => {
-          failure = Error(
-            'Recording timed out. Keep the tab visible and try again.',
-          );
-          finish();
-        },
-        (snapshot.duration + 15) * 1000,
+    render(c, snapshot, 0, { green: true });
+    const session = TimRecorder.start({
+      canvas: c,
+      // MP4 first for iPhone and CapCut. No sound here, so video-only formats.
+      mimeTypes: [
+        'video/mp4;codecs=avc1.42E01E',
+        'video/mp4',
+        'video/webm;codecs=vp9',
+        'video/webm',
+      ],
+      allowDefaultType: false,
+      videoBitsPerSecond: 8e6,
+      timeslice: 250,
+      stream: 'capture',
+      rejectEmpty: true,
+      watchdogMs: (snapshot.duration + 15) * 1000,
+      onDone: (r) => {
+        cancelAnimationFrame(raf);
+        cancelRecording = null;
+        resolve(r.blob);
+      },
+      onCancel: (reason) =>
+        fail(
+          Error(
+            reason === 'watchdog'
+              ? 'Recording timed out. Keep the tab visible and try again.'
+              : 'Recording canceled.',
+          ),
+        ),
+      onError: (e) =>
+        fail(
+          e.code === 'unsupported'
+            ? Error(
+                'Video recording is unavailable. Save a PNG or try another browser.',
+              )
+            : e.code === 'no-format'
+              ? Error('No supported recording format. Save a PNG instead.')
+              : e.code === 'empty'
+                ? Error('The recording was empty. Try again.')
+                : e.code === 'recorder'
+                  ? Error('Recording was interrupted. Try a shorter animation.')
+                  : e.error || Error('Recording could not start.'),
+        ),
+    });
+    if (!session) return;
+    cancelRecording = () => session.cancel();
+    sync();
+    const start = performance.now();
+    const frame = (now) => {
+      if (!session.active) return;
+      const t = Math.min(snapshot.duration, (now - start) / 1000);
+      render(c, snapshot, t, { green: true });
+      say(
+        'Recording ' +
+          Math.round((t / snapshot.duration) * 100) +
+          '% · keep this tab visible',
       );
-      const frame = (now) => {
-        const t = Math.min(snapshot.duration, (now - start) / 1000);
-        render(c, snapshot, t, { green: true });
-        say(
-          'Recording ' +
-            Math.round((t / snapshot.duration) * 100) +
-            '% · keep this tab visible',
-        );
-        if (t < snapshot.duration) raf = requestAnimationFrame(frame);
-        else finish();
-      };
-      raf = requestAnimationFrame(frame);
-    } catch (e) {
-      failure = e;
-      close();
-    }
+      if (t < snapshot.duration) raf = requestAnimationFrame(frame);
+      else session.stop();
+    };
+    raf = requestAnimationFrame(frame);
   });
 }
 $('export').onclick = () =>

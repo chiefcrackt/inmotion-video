@@ -15,7 +15,7 @@ Feature 4 was dropped and is intentionally not listed.
 | 3 | [#5 Activity trim and checkpoints](#5-activity-trim-and-checkpoints) | Activity Studio | todo |
 | 4 | [#2 Multi-select, grouping and distribution](#2-multi-select-grouping-and-distribution) | Carousel Maker | todo |
 | 5 | [#6 Shared brand kits across visual tools](#6-shared-brand-kits-across-visual-tools) | Shared | todo |
-| 6 | [#7 Shared recording lifecycle](#7-shared-recording-lifecycle) | Shared (Title Maker first) | todo |
+| 6 | [#7 Shared recording lifecycle](#7-shared-recording-lifecycle) | `shared/recorder.js`, `shared/save.js`, 16 tools | done (PR `refactor/shared-recording-lifecycle`; iPhone checks open) |
 | 7 | [#8 Tier List Maker](#8-tier-list-maker) | New tool `/tier-list/` | done |
 | 8 | [#9 Beat Bed](#9-beat-bed) | New tool `/beat-bed/` + `shared/sound/beat.mjs` | done |
 | 9 | [#10 Data-kit hit presets](#10-data-kit-hit-presets) | Sound Forge (`shared/sound/presets.mjs`) | done |
@@ -232,6 +232,30 @@ handle hidden-tab recording explicitly and support repeat exports.
 exercise cancel, unsupported codecs, recorder failure and recording
 again after each outcome. Keep browser workarounds until real-device
 evidence supports removal; emulation cannot verify iPhone sharing.
+
+**Done (2026-11-10):** `shared/recorder.js` (`TimRecorder`) and
+`shared/save.js` (`TimSave`), plain scripts. Migrated: Title Maker, Promo
+Maker, Start Line, Mile Marker, River Run, Celebrate, Special Post, Goals
+Maker, Stat Counter, Tier List, Video Framer, Before/After, Activity Studio,
+Asset Studio, Brand Assets, Text Motion. Each keeps its codec order,
+bitrates, chunking, pre-roll, tail and filenames. Sound Forge and
+`shared/sound/` are untouched. The earlier branch
+`refactor/shared-recorder-save` is superseded and can be deleted.
+
+Behaviour that changed on purpose: (1) tools that ignored a hidden tab or a
+recorder error now stop with a message instead of saving a frozen file;
+(2) a failed recorder start no longer leaves the canvas capture running;
+(3) Asset Studio, Brand Assets and Text Motion save through the share sheet
+on phones instead of a download link only, and Before/After's share sheet is
+limited to phones and tablets like the other tools; (4) save status wording
+is the same everywhere (Save Image for PNGs, Save to Files for WAV/ZIP).
+
+Still open: real-iPhone checks (emulation cannot prove sharing). Brand
+Assets, Text Motion and Before/After save automatically when a recording
+ends, which is not a tap, so iPhone may refuse the share sheet there and
+fall back to the download link, as before; a Save button would fix that.
+Save-only tools (Cover Maker, Carousel Maker, Caption Maker, Beat Bed, Spot
+It, Weird Motion, Motion Studio) still carry their own save code.
 
 ## #8 Tier List Maker
 

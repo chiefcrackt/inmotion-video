@@ -374,14 +374,19 @@ $('scrub').oninput = () => {
   playLabel();
   draw(position);
 };
+// Saving goes through shared/save.js: downloads capability, then the share sheet
+// on phones and tablets, then a download link.
+window.TimSave.ready();
 function download(blob, name) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return window.TimSave.save(name, blob, { revokeMs: 10000 });
 }
+// WebM first, as this tool has always asked for; MP4 where WebM isn't recordable (iPhone).
+const VIDEO_TYPES = [
+  'video/webm;codecs=vp9',
+  'video/webm;codecs=vp8',
+  'video/webm',
+  'video/mp4',
+];
 $('png').onclick = () =>
   canvas.toBlob((blob) => {
     if (blob) download(blob, 'tim-text-motion.png');
@@ -433,74 +438,70 @@ $('video').onclick = async () => {
       'Video export is unavailable in this browser. You can still save a PNG frame.';
     return;
   }
-  const mime = [
-    'video/webm;codecs=vp9',
-    'video/webm;codecs=vp8',
-    'video/webm',
-    'video/mp4',
-  ].find((type) => MediaRecorder.isTypeSupported(type));
-  if (!mime) {
+  if (!window.TimRecorder.pickType(VIDEO_TYPES)) {
     $('status').textContent =
       'No supported video format. Try Chrome or Edge, or save a PNG.';
     return;
   }
   await document.fonts.ready;
-  const stream = canvas.captureStream(30),
-    chunks = [];
   const wasPlaying = playing;
-  playing = false;
-  recording = true;
-  document
-    .querySelectorAll('button,input,select,textarea')
-    .forEach((el) => (el.disabled = true));
-  let recorder;
+  const lockAll = (value) =>
+    document
+      .querySelectorAll('button,input,select,textarea')
+      .forEach((el) => (el.disabled = value));
   const finish = (message) => {
     recording = false;
     playing = wasPlaying;
     previous = 0;
-    stream.getTracks().forEach((track) => track.stop());
-    document
-      .querySelectorAll('button,input,select,textarea')
-      .forEach((el) => (el.disabled = false));
+    lockAll(false);
     $('background').disabled = $('transparent').checked;
     $('video').disabled = false;
     $('status').textContent = message;
     playLabel();
   };
-  try {
-    recorder = new MediaRecorder(stream, {
-      mimeType: mime,
-      videoBitsPerSecond: 8000000,
-    });
-    recorder.ondataavailable = (e) => {
-      if (e.data.size) chunks.push(e.data);
-    };
-    recorder.onstop = () => {
-      if (chunks.length) {
-        download(
-          new Blob(chunks, { type: mime }),
-          `tim-text-motion.${mime.includes('mp4') ? 'mp4' : 'webm'}`,
-        );
-        finish('Video ready. Your download has started.');
-      } else finish('Could not export video. Try again.');
-    };
-    recorder.onerror = () => finish('Could not export video. Try again.');
-    draw(0);
-    recorder.start();
-    const start = performance.now();
-    function record(now) {
-      if (!recording) return;
-      const t = Math.min(duration(), (now - start) / 1000);
-      draw(t);
-      $('status').textContent =
-        `Exporting… ${Math.round((t / duration()) * 100)}%`;
-      if (t < duration()) requestAnimationFrame(record);
-      else recorder.stop();
-    }
-    requestAnimationFrame(record);
-  } catch {
-    finish('Could not start video export. Try another browser or save a PNG.');
+  const session = window.TimRecorder.start({
+    canvas,
+    mimeTypes: VIDEO_TYPES,
+    allowDefaultType: false,
+    videoBitsPerSecond: 8000000,
+    stream: 'capture',
+    rejectEmpty: true,
+    beforeStart: () => {
+      playing = false;
+      recording = true;
+      lockAll(true);
+      draw(0);
+    },
+    onDone: (r) => {
+      const name = `tim-text-motion.${r.ext}`;
+      finish('Video ready.');
+      download(r.blob, name).then((result) => {
+        $('status').textContent =
+          result.via === 'download'
+            ? 'Video ready. Your download has started.'
+            : 'Video ready. ' + window.TimSave.describe(result, name);
+      });
+    },
+    onCancel: (reason) => finish(window.TimRecorder.cancelMessage(reason)),
+    onError: (e) =>
+      finish(
+        e.code === 'construct' || e.code === 'start'
+          ? 'Could not start video export. Try another browser or save a PNG.'
+          : 'Could not export video. Try again.',
+      ),
+  });
+  if (!session) return;
+  const start = performance.now();
+  function record(now) {
+    if (!session.active) return;
+    const t = Math.min(duration(), (now - start) / 1000);
+    draw(t);
+    $('status').textContent =
+      `Exporting… ${Math.round((t / duration()) * 100)}%`;
+    if (t < duration()) requestAnimationFrame(record);
+    else session.stop();
   }
+  requestAnimationFrame(record);
 };
 function tick(now) {
   if (previous && playing && !recording)

@@ -12,7 +12,7 @@
     <title>Video Framer · T.IM Studio</title>
     <link rel="stylesheet" href="../shared/fonts.css?v=70017a07" />
     <link rel="stylesheet" href="../shared/projects.css?v=6be12135" />
-    <script src="../shared/projects.js?v=8da29cf0"></script>
+    <script src="../shared/projects.js?v=8da29cf0"></script><script src="../shared/recorder.js?v=2f05f4fb"></script><script src="../shared/save.js?v=39954a84"></script>
     <script src="../text-motion/alpha-video.js?v=b3481acd"></script>
     <script src="../shared/background-pack.js?v=0e101bbf"></script>
     <script>
@@ -2814,60 +2814,10 @@
           $('msg').textContent = s;
           $('msg').classList.toggle('err', !!err);
         }
-        var downloads = null;
-        if (window.claude && window.claude.use) {
-          window.claude
-            .use('downloads')
-            .then(function (d) {
-              downloads = d;
-            })
-            .catch(function () {});
-        }
-        function fallbackSave(name, blob, note) {
-          var file = null;
-          try {
-            file = new File([blob], name, { type: blob.type });
-          } catch (e) {}
-          function anchor() {
-            var u = URL.createObjectURL(blob),
-              a = document.createElement('a');
-            a.href = u;
-            a.download = name;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            setTimeout(function () {
-              URL.revokeObjectURL(u);
-            }, 5000);
-            note.textContent = 'Downloaded ' + name + '.';
-          }
-          if (file && // share sheet on phones and tablets only (Save Video → Photos); computers download directly
-            (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)) &&
-            navigator.canShare && navigator.canShare({ files: [file] })) {
-            navigator
-              .share({ files: [file] })
-              .then(function () {
-                note.textContent = 'Done. If you picked Save Image or Save Video, it’s in Photos.';
-              })
-              .catch(function (e) {
-                if (e && e.name === 'AbortError') note.textContent = 'Not saved.';
-                else anchor();
-              });
-            return;
-          }
-          anchor();
-        }
+        // Saving goes through shared/save.js: downloads capability, then the phone share sheet, then a download link.
+        TimSave.ready();
         function saveFile(name, blob, note) {
-          if (!downloads) return fallbackSave(name, blob, note);
-          downloads
-            .save({ filename: name, data: blob })
-            .then(function (r) {
-              note.textContent = r && r.status === 'saved' ? 'Saved ' + name + '.' : 'Sent ' + name + '.';
-            })
-            .catch(function (e) {
-              var c = e && e.code;
-              note.textContent = c === 'declined' ? 'Not saved.' : c === 'too_large' ? 'That file is too large to save here.' : 'Couldn’t save the file here.';
-            });
+          TimSave.saveTo(name, blob, note);
         }
         function stem(extra) {
           var slug = (S.title.split('\n').join(' ') || 'frame')
@@ -2908,18 +2858,8 @@
         $('close').onclick = function () {
           $('result').hidden = true;
         };
-        function pickType(withAudio) {
-          if (!window.MediaRecorder) return null;
-          var list = withAudio
-            ? ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
-            : ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
-          for (var i = 0; i < list.length; i++) {
-            try {
-              if (MediaRecorder.isTypeSupported(list[i])) return list[i];
-            } catch (e) {}
-          }
-          return '';
-        }
+        // Silent recordings ask for video-only formats; with sound, the shared MP4-then-WebM list.
+        var VIDEO_ONLY_TYPES = ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
         function setBusy(on) {
           ['png', 'clip', 'reset', 'resetText', 'introPlay'].forEach(function (id) {
             $(id).disabled = on;
@@ -2931,61 +2871,64 @@
         // Records the canvas in real time. frameAt(seconds since start) draws a frame; sound(ac, out, at) schedules audio.
         function recordGreen(kind, seconds, frameAt, sound, name) {
           var withAudio = !!sound && S.introSound !== 'none',
-            type = pickType(withAudio);
-          if (type === null || !cv.captureStream) return say('This browser can’t record video. Try Safari on iPhone or Chrome on a computer.', true);
-          var stream = cv.captureStream(30),
-            tracks = stream.getVideoTracks().slice(),
             ac = null,
-            dest = null;
-          if (withAudio && (ac = audio())) {
-            dest = ac.createMediaStreamDestination();
-            dest.stream.getAudioTracks().forEach(function (tr) {
-              tracks.push(tr);
-            });
-          }
-          var mr;
-          try {
-            mr = new MediaRecorder(new MediaStream(tracks), type ? { mimeType: type, videoBitsPerSecond: 12e6 } : { videoBitsPerSecond: 12e6 });
-          } catch (e) {
-            return say('Recording couldn’t start in this browser (' + e.name + ').', true);
-          }
-          var chunks = [],
+            dest = null,
             start = null;
-          rec = {
-            kind: kind,
-            paint: function () {
-              frameAt(start === null ? 0 : (performance.now() - start) / 1000);
-            },
-          };
-          mr.ondataavailable = function (e) {
-            if (e.data && e.data.size) chunks.push(e.data);
-          };
-          mr.onstop = function () {
-            tracks.forEach(function (tr) {
-              tr.stop();
-            });
-            var mt = (mr.mimeType || type || 'video/webm').split(';')[0];
+          function ended(message) {
             rec = null;
             setBusy(false);
             draw();
-            showResult(new Blob(chunks, { type: mt }), name + '.' + (mt.indexOf('mp4') >= 0 ? 'mp4' : 'webm'));
-            say('Done. Check it, then save it.');
-          };
-          setBusy(true);
-          say('Recording ' + seconds + 's in real time. Keep this tab open.');
-          rec.paint();
-          mr.start(1000);
+            say(message, true);
+          }
+          var session = TimRecorder.start({
+            canvas: cv,
+            mimeTypes: withAudio ? TimRecorder.STANDARD_TYPES : VIDEO_ONLY_TYPES,
+            videoBitsPerSecond: 12e6,
+            timeslice: 1000,
+            stopAudioTracks: true,
+            audioTracks: function () {
+              if (withAudio && (ac = audio())) {
+                dest = ac.createMediaStreamDestination();
+                return dest.stream.getAudioTracks();
+              }
+              return [];
+            },
+            beforeStart: function () {
+              rec = {
+                kind: kind,
+                paint: function () {
+                  frameAt(start === null ? 0 : (performance.now() - start) / 1000);
+                },
+              };
+              setBusy(true);
+              say('Recording ' + seconds + 's in real time. Keep this tab open.');
+              rec.paint();
+            },
+            onDone: function (r) {
+              rec = null;
+              setBusy(false);
+              draw();
+              showResult(r.blob, name + '.' + r.ext);
+              say('Done. Check it, then save it.');
+            },
+            onCancel: function (reason) {
+              ended(TimRecorder.cancelMessage(reason));
+            },
+            onError: function (e) {
+              if (rec) ended(TimRecorder.errorMessage(e));
+              else say(TimRecorder.errorMessage(e), true);
+            },
+          });
+          if (!session) return;
           // start the clock with the recorder (its start event isn't reliable with an audio track)
           start = performance.now();
           if (dest) sound(ac, dest, ac.currentTime);
           (function watch() {
-            if (start !== null && (performance.now() - start) / 1000 >= seconds) {
-              try {
-                mr.stop();
-              } catch (e) {}
+            if ((performance.now() - start) / 1000 >= seconds) {
+              session.stop();
               return;
             }
-            setTimeout(watch, 15);
+            session.after(15, watch);
           })();
         }
         function makeAlpha(kind, seconds, frameAt, name) {

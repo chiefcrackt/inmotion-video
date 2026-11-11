@@ -23,6 +23,10 @@ const TOOLS = [
   ['river-run', ['#rec', 'wait:#result', '#save']],
   ['downloads', ['button.dl:not([data-ext="zip"])']],
   ['activity-studio', ['gpx', '#png']],
+  ['goals-maker', ['#png']],
+  ['stat-counter', ['#png']],
+  ['text-motion', ['#png']],
+  ['brand-assets', ['#png']],
 ];
 function gpx() {
   let pts = '';
@@ -82,7 +86,7 @@ function gpx() {
     }
     for (const [tool, steps] of TOOLS) await run(WINDOWS, tool, steps, false);
     // phones keep the share sheet (Save Video / Save Image → Photos)
-    for (const [tool, steps] of TOOLS.filter((t) => ['video-framer', 'title-maker', 'activity-studio'].includes(t[0])))
+    for (const [tool, steps] of TOOLS.filter((t) => ['video-framer', 'title-maker', 'activity-studio', 'stat-counter', 'text-motion', 'brand-assets'].includes(t[0])))
       await run(IPHONE, tool, steps, true);
     console.log('Desktop save passed: every tool downloads on a Windows computer; phones still get the share sheet.');
   } finally {
