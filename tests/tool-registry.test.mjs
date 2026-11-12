@@ -29,7 +29,7 @@ const EXPECTED_HREFS = [
   'motion-stats/', 'motion-studio/', 'product-spotlight/', 'promo-maker/', 'river-run/',
   'shoot-planner/', 'sound-forge/', 'special-post/', 'start-line/', 'stat-counter/',
   'teleprompter/', 'text-motion/', 'tier-list/', 'title-maker/', 'transcribe-video/',
-  'video-framer/', 'weird-motion/',
+  'video-framer/', 'voiceover/', 'weird-motion/',
 ];
 
 test('the registry contains exactly the existing tools, each with one canonical href', () => {
@@ -66,7 +66,7 @@ test('every tool belongs to at least one known workspace, and workspace ids reso
 test('the spec placements hold: Running Studio and Publishing Studio contents', () => {
   const ids = (ws) => toolsInWorkspace(ws).map((t) => t.id).sort();
   assert.deepEqual(ids('running'), ['activity-studio', 'mile-marker', 'river-run', 'start-line', 'stat-counter']);
-  assert.deepEqual(ids('audio'), ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video']);
+  assert.deepEqual(ids('audio'), ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video', 'voiceover']);
   assert.deepEqual(ids('publishing'), ['before-after', 'brand-assets', 'carousel-maker', 'content-planner', 'cover-maker', 'goals-maker', 'promo-maker', 'tier-list', 'transcribe-video']);
   assert.deepEqual(ids('library'), ['asset-studio', 'brand-assets', 'downloads', 'icon-pack', 'motion-stats', 'product-spotlight', 'weird-motion']);
   assert.deepEqual(ids('plan'), ['content-planner', 'idea-vault', 'shoot-planner', 'teleprompter', 'transcribe-video']);
@@ -95,7 +95,7 @@ test('search matches names, keywords and workspace names, case-insensitively', (
 
 test('search can be limited to one workspace', () => {
   const hits = searchTools('', { workspace: 'audio' }).map((t) => t.id).sort();
-  assert.deepEqual(hits, ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video']);
+  assert.deepEqual(hits, ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video', 'voiceover']);
   assert.deepEqual(searchTools('sound forge', { workspace: 'publishing' }), []);
 });
 

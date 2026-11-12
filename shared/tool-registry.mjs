@@ -35,6 +35,15 @@ export const TOOLS = Object.freeze([
     icon: 'waveform',
   },
   {
+    id: 'voiceover',
+    name: 'Voiceover',
+    href: 'voiceover/',
+    description: 'Computer only — requires the local Windows launcher. Turn a script into a voiceover with Kokoro text-to-speech: voices, blends, speakers, WAV and word timing for captions. Not available on phones or tablets.',
+    workspaces: ['audio'],
+    keywords: ['voiceover', 'voice over', 'narration', 'text to speech', 'tts', 'kokoro', 'speech', 'script', 'local', 'captions'],
+    icon: 'waveform',
+  },
+  {
     id: 'brand-assets',
     name: 'Brand Assets',
     href: 'brand-assets/',

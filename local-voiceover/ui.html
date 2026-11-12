@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="local-token" content="__TOKEN__" />
+    <title>Voiceover · T.im</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font: 16px system-ui;
+        background: #0e1a2e;
+        color: #f6f4ef;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      main {
+        max-width: 1200px;
+        margin: auto;
+        padding: 36px 24px;
+      }
+      header {
+        margin-bottom: 28px;
+      }
+      .eyebrow {
+        color: #e8c96a;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        font-size: 12px;
+      }
+      h1 {
+        font-size: clamp(30px, 5vw, 48px);
+        margin: 8px 0;
+      }
+      h2 {
+        margin: 0 0 6px;
+        font-size: 20px;
+      }
+      p {
+        color: #b7c6d8;
+        line-height: 1.6;
+      }
+      section {
+        background: #15253c;
+        border: 1px solid #2c4059;
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 20px;
+        min-width: 0;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      .column {
+        min-width: 0;
+      }
+      .options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        color: #c5d4e3;
+        margin: 12px 0;
+      }
+      .check {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .check input {
+        width: auto;
+        margin: 0;
+      }
+      input,
+      select,
+      button,
+      textarea {
+        font: inherit;
+        border-radius: 8px;
+      }
+      input,
+      select,
+      textarea {
+        background: #0c1728;
+        color: #f6f4ef;
+        border: 1px solid #435771;
+        padding: 10px;
+        width: 100%;
+        margin-top: 6px;
+        min-width: 0;
+      }
+      textarea {
+        min-height: 260px;
+        resize: vertical;
+        line-height: 1.5;
+      }
+      input[type='range'] {
+        padding: 0;
+        accent-color: #2e9bad;
+      }
+      button,
+      .download {
+        display: inline-block;
+        background: #e8c96a;
+        color: #102033;
+        border: 0;
+        padding: 12px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        min-height: 44px;
+      }
+      button.quiet {
+        background: #293f59;
+        color: #f6f4ef;
+        font-weight: 600;
+      }
+      button.small {
+        padding: 8px 12px;
+        min-height: 40px;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: wait;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: end;
+        flex-wrap: wrap;
+      }
+      .row > label {
+        flex: 1 1 140px;
+        margin: 8px 0;
+      }
+      .row > button {
+        margin: 8px 0;
+      }
+      audio {
+        width: 100%;
+        margin-top: 12px;
+      }
+      progress {
+        width: 100%;
+        accent-color: #2e9bad;
+        margin: 12px 0;
+      }
+      #status {
+        margin: 12px 0;
+        min-height: 24px;
+      }
+      .downloads {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 16px 0;
+      }
+      .download {
+        background: #2d5262;
+        color: white;
+      }
+      .hidden {
+        display: none;
+      }
+      small,
+      .hint {
+        color: #a9bdd0;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      code {
+        color: #9dd8d8;
+        overflow-wrap: anywhere;
+      }
+      .lines {
+        list-style: none;
+        margin: 16px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 8px;
+      }
+      .lines li {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 4px 12px;
+        background: #0c1728;
+        border: 1px solid #2c4059;
+        border-radius: 10px;
+        padding: 10px;
+      }
+      .lines li.playing {
+        border-color: #2e9bad;
+      }
+      .lines .text {
+        overflow-wrap: anywhere;
+      }
+      .lines .meta {
+        color: #9dd8d8;
+        font-size: 13px;
+      }
+      .lines .tweaks {
+        grid-column: 2;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .lines .tweaks label {
+        margin: 0;
+        font-size: 13px;
+        flex: 0 1 130px;
+      }
+      .lines .tweaks select,
+      .lines .tweaks input {
+        padding: 6px;
+        margin-top: 2px;
+      }
+      .lines .pause {
+        grid-column: 1 / -1;
+        color: #a9bdd0;
+        font-size: 14px;
+      }
+      .mixer .part {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+      .mixer .part output {
+        min-width: 3.5em;
+        text-align: right;
+        color: #9dd8d8;
+      }
+      .saved {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 0;
+        display: grid;
+        gap: 6px;
+      }
+      .saved li {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+        background: #0c1728;
+        border-radius: 8px;
+        padding: 6px 6px 6px 12px;
+        overflow-wrap: anywhere;
+      }
+      .saved li span {
+        min-width: 0;
+      }
+      .pron {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 8px;
+        align-items: center;
+        margin-top: 8px;
+      }
+      .pron input {
+        margin: 0;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible {
+        outline: 3px solid #2e9bad;
+        outline-offset: 3px;
+      }
+      @media (max-width: 860px) {
+        /* One column: script, voice and speakers, the result, then blends and pronunciation. */
+        .layout {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+        .column {
+          display: contents;
+        }
+        #script-section {
+          order: -2;
+        }
+        #voice-section,
+        #speakers-section {
+          order: -1;
+        }
+        .layout,
+        .options {
+          grid-template-columns: 1fr;
+        }
+        main {
+          padding: 24px 14px;
+        }
+        section {
+          padding: 18px;
+        }
+        .mixer .part {
+          grid-template-columns: 1fr auto;
+        }
+        .mixer .part select {
+          grid-column: 1 / -1;
+        }
+        .pron {
+          grid-template-columns: 1fr auto;
+        }
+        .pron input:first-child {
+          grid-column: 1 / -1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="eyebrow">T.IM / LOCAL STUDIO</div>
+        <h1>Voiceover</h1>
+        <p>
+          Turn a script into a voiceover with Kokoro, an open text-to-speech
+          model. You get a WAV for CapCut and word timing for Caption Maker.
+          Everything stays on this computer. <span id="engine-note"></span>
+        </p>
+      </header>
+      <div class="layout">
+        <div class="column">
+          <section id="script-section">
+            <h2>Script</h2>
+            <label
+              >Paste your script. Each line is spoken separately.<textarea
+                id="script"
+                spellcheck="true"
+                placeholder="Today we're running ten miles along the river.&#10;&#10;Coach: Keep the first mile easy.&#10;[pause 1]&#10;And that's the plan."
+              ></textarea>
+            </label>
+            <p class="hint">
+              Start a line with a name and a colon, like
+              <code>Coach:</code>, to give that speaker their own voice. A line
+              of <code>[pause 1.5]</code> adds 1.5 seconds of silence.
+              <span id="line-count"></span>
+            </p>
+            <label
+              >File name<input id="filename" value="voiceover" maxlength="80"
+            /></label>
+          </section>
+          <section id="result-section">
+            <h2>Voiceover</h2>
+            <p><button id="generate" type="button">Make voiceover</button></p>
+            <div id="status" role="status" aria-live="polite"
+              >Paste a script to begin.</div
+            >
+            <progress
+              id="progress"
+              value="0"
+              max="100"
+              aria-label="Voiceover progress"
+            ></progress>
+            <audio id="player" controls preload="auto" class="hidden"></audio>
+            <div id="downloads" class="downloads"></div>
+            <ol id="lines" class="lines" aria-label="Lines"></ol>
+          </section>
+        </div>
+        <div class="column">
+          <section id="voice-section">
+            <h2>Voice</h2>
+            <div class="row">
+              <label>Voice<select id="voice"></select></label>
+              <button id="preview-voice" type="button" class="quiet small">
+                ▶ Preview
+              </button>
+            </div>
+            <div class="options">
+              <label
+                >Speed <output id="speed-out">1.00×</output
+                ><input
+                  id="speed"
+                  type="range"
+                  min="0.7"
+                  max="1.3"
+                  step="0.05"
+                  value="1"
+              /></label>
+              <label
+                >Pause between lines <output id="pause-out">0.4 s</output
+                ><input
+                  id="pause"
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  value="0.4"
+              /></label>
+              <label class="check"
+                ><input id="loudness" type="checkbox" checked /> Even out the
+                volume (−16 LUFS)</label
+              >
+            </div>
+            <p class="hint">
+              T.im narrator (60% Puck + 40% Michael) is the default. Grades are
+              from Kokoro's own voice list; Heart and Bella are the most natural
+              stock voices.
+            </p>
+          </section>
+          <section id="speakers-section" class="hidden">
+            <h2>Speakers</h2>
+            <p class="hint">Lines without a name use the voice above.</p>
+            <div id="speakers"></div>
+          </section>
+          <section class="mixer">
+            <h2>Blend voices</h2>
+            <p class="hint">
+              Mix two or three voices into a new one. It stays the same on every
+              line.
+            </p>
+            <div id="mix-parts"></div>
+            <div class="row">
+              <label
+                >Blend name<input
+                  id="mix-name"
+                  maxlength="40"
+                  placeholder="My blend"
+              /></label>
+              <button id="mix-preview" type="button" class="quiet small"
+                >▶ Preview</button
+              >
+              <button id="mix-save" type="button" class="small"
+                >Save blend</button
+              >
+            </div>
+            <ul id="saved-mixes" class="saved" aria-label="Saved blends"></ul>
+          </section>
+          <section>
+            <h2>Pronunciation</h2>
+            <p class="hint">
+              Words the voice says wrong: write how it should sound, like
+              <code>Tim</code>, or exact phonemes between slashes, like
+              <code>/kˈOkəɹO/</code>. Captions still show the word as written.
+            </p>
+            <div id="prons"></div>
+            <p>
+              <button id="pron-add" type="button" class="quiet small">
+                + Add a word
+              </button>
+            </p>
+          </section>
+        </div>
+      </div>
+      <p>
+        <small
+          >Results are stored in local-voiceover/data on this computer, with a
+          cache of every line spoken so unchanged lines are reused. Remove old
+          folders there when you no longer need them.</small
+        >
+      </p>
+      <p>
+        <button id="quit" type="button" class="quiet">Stop Voiceover</button>
+        <small id="quit-note"
+          >It runs in the background with no window. Stop it when you're done;
+          Start Voiceover.cmd starts it again.</small
+        >
+      </p>
+    </main>
+    <audio id="preview-player" preload="auto"></audio>
+    <script src="/app.js"></script>
+  </body>
+</html>

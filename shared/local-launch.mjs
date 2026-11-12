@@ -1,4 +1,4 @@
-// "Open" buttons for the local tools (Transcribe Video, Clean Voice). They run on this
+// "Open" buttons for the local tools (Transcribe Video, Clean Voice, Voiceover). They run on this
 // computer, so the page can't start them: when one isn't running, show the command that does.
 // Use: <a href="http://127.0.0.1:8765/" data-local-launch="transcribe">…</a>
 
@@ -12,6 +12,11 @@ const TOOLS = {
     name: 'Clean Voice',
     folder: 'local-voice',
     launcher: 'Start Clean Voice.cmd',
+  },
+  voiceover: {
+    name: 'Voiceover',
+    folder: 'local-voiceover',
+    launcher: 'Start Voiceover.cmd',
   },
 };
 const FOLDER_KEY = 'tim-local-tools-folder';
@@ -38,7 +43,7 @@ function cleanFolder(raw) {
     .trim()
     .replace(/^["']|["']$/g, '')
     .replace(/[\\/]+$/, '')
-    .replace(/[\\/](local-transcriber|local-voice)$/i, '');
+    .replace(/[\\/](local-transcriber|local-voiceover|local-voice)$/i, '');
 }
 
 export function command(tool, folder, shell) {

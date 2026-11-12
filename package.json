@@ -49,7 +49,9 @@
     "test:idea-vault:due": "node --test tests/idea-vault-due.test.mjs",
     "test:planner": "node --test tests/content-planner.test.mjs",
     "test:motion-studio": "node --test tests/motion-studio.test.mjs",
-    "stamp": "node tools/stamp-assets.mjs"
+    "stamp": "node tools/stamp-assets.mjs",
+    "test:voiceover": "python -m unittest discover -s local-voiceover/tests",
+    "test:voiceover:browser": "node local-voiceover/check-browser.cjs"
   },
   "repository": {
     "type": "git",

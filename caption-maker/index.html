@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../shared/fonts.css?v=70017a07">
   <link rel="stylesheet" href="../shared/responsive.css?v=bb296b12">
   <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d">
-  <script type="module" src="../shared/studio-bar.mjs?v=3e15f76e"></script>
+  <script type="module" src="../shared/studio-bar.mjs?v=986f8dc3"></script>
   <script src="../text-motion/alpha-video.js?v=b3481acd" defer></script>
   <style>
     :root{color-scheme:dark;background:#0e1a2e;color:#f6f4ef;font:16px system-ui;--navy:#0e1a2e;--panel:#15253c;--line:#31445d;--gold:#e8c96a;--teal:#2e9bad;--paper:#f6f4ef;--muted:#bccddd}
@@ -80,7 +80,7 @@
             <option value="sentence">Whole sentence</option>
           </select>
         </div>
-        <p class="note" id="timingNote">Best: <strong>Word JSON</strong> from Transcribe Video, with <strong>Precise word timing</strong> ticked. Each word lights up when you say it, and captions break at pauses and punctuation. SRT and VTT spread each caption's words evenly across its time instead.</p>
+        <p class="note" id="timingNote">Best: <strong>Word JSON</strong> from Voiceover, or from Transcribe Video with <strong>Precise word timing</strong> ticked. Each word lights up when you say it, and captions break at pauses and punctuation. SRT and VTT spread each caption's words evenly across its time instead.</p>
       </section>
 
       <section>
@@ -225,7 +225,7 @@ Train the downhills as hard as the climbs`;
       .filter((w) => cleanWord(w.word) && isFinite(w.start) && isFinite(w.end) && w.end >= w.start)
       .sort((a, b) => a.start - b.start);
     // Older matching-JSON downloads have no word_timing field, but aligned words carry a score.
-    const precise = data.word_timing === 'aligned' || list.some((w) => w && 'alignment' in w);
+    const precise = data.word_timing === 'aligned' || data.word_timing === 'kokoro' || list.some((w) => w && 'alignment' in w);
     return { words, precise };
   }
 

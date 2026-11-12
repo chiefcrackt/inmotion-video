@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0e1a2e">
+  <title>Voiceover · T.IM Studio</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="stylesheet" href="../shared/fonts.css?v=70017a07">
+  <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d">
+  <script type="module" src="../shared/studio-bar.mjs?v=986f8dc3"></script>
+  <script type="module" src="../shared/local-launch.mjs?v=74b4b70e"></script>
+  <style>
+    :root{color-scheme:dark;font:16px system-ui;background:#0e1a2e;color:#f6f4ef}*{box-sizing:border-box}body{margin:0}main{max-width:850px;margin:auto;padding:48px 24px}a{color:#e8c96a}.eyebrow{color:#e8c96a;font-weight:700;font-size:12px;letter-spacing:.14em}h1{font-size:clamp(36px,7vw,56px);margin:12px 0}p,li{line-height:1.7;color:#bccddd}section{background:#15253c;border:1px solid #31445d;border-radius:18px;padding:28px;margin:24px 0}.button{display:inline-block;background:#e8c96a;color:#102033;text-decoration:none;font-weight:700;padding:15px 22px;border-radius:9px}.tag{display:inline-block;color:#9dd8d8;font-size:14px}code{overflow-wrap:anywhere}li{margin:12px 0}a:focus-visible{outline:3px solid #2e9bad;outline-offset:4px}
+    .computer-warning{border:1px solid #e8c96a;border-left:5px solid #e8c96a;border-radius:10px;background:#2b2b24;padding:18px 20px;margin:24px 0}.computer-warning strong{color:#e8c96a}.computer-warning p{margin:8px 0 0;color:#f6f4ef}
+    dl{margin:0}dt{font-weight:700;color:#f6f4ef;margin-top:14px}dd{margin:4px 0 0;color:#bccddd;line-height:1.6}
+  </style>
+</head>
+<body><tim-studio-bar></tim-studio-bar><main>
+  <div class="eyebrow">AUDIO / LOCAL TOOL</div>
+  <h1>Voiceover</h1>
+  <p>Turn a script into a voiceover with Kokoro, a free, open text-to-speech model, on your computer. You get a WAV for CapCut plus word timing that Caption Maker reads.</p>
+  <aside class="computer-warning" role="note" aria-label="Computer only">
+    <strong>Computer only — local launcher required</strong>
+    <p>This tool does not work on phones or tablets yet. Open it on the Windows computer running the Voiceover launcher, then AirDrop or sync the WAV to your phone.</p>
+  </aside>
+  <section>
+    <span class="tag">Computer only</span>
+    <h2>Open your local studio</h2>
+    <ol>
+      <li>On your Windows computer, open the repo’s <code>local-voiceover</code> folder and double-click <strong>Start Voiceover.cmd</strong>. The first start installs the engine (a few minutes), and the first voiceover downloads the voice model (about 350 MB).</li>
+      <li>It runs in the background, with no window to keep open. Open the studio below; its Stop button at the bottom ends it.</li>
+      <li>Paste a script, pick a voice or blend, press Make voiceover, and download the WAV, word timing and captions.</li>
+    </ol>
+    <p><a class="button" href="http://127.0.0.1:8767/" target="_blank" rel="noopener noreferrer" data-local-launch="voiceover">Open Voiceover ↗</a></p>
+    <p>If the page cannot connect, start the launcher first. The address opens a service on the device you are using. Your phone cannot use the engine on your PC.</p>
+  </section>
+  <h2>What it does</h2>
+  <dl>
+    <dt>Voices and blends</dt>
+    <dd>28 English voices (American and British), each with a preview. Blend two or three into a voice of your own; T.im narrator (60% Puck, 40% Michael) is the default.</dd>
+    <dt>Speakers</dt>
+    <dd>Start a line with a name and a colon, like <code>Coach:</code>, and give each speaker their own voice. A <code>[pause 1.5]</code> line adds silence.</dd>
+    <dt>Pronunciation</dt>
+    <dd>A saved list of words and how to say them, such as T.im as “Tim”. Captions still show the word as written.</dd>
+    <dt>Lines</dt>
+    <dd>Each line can be played and given its own speed or pause. Making it again only speaks the lines that changed.</dd>
+    <dt>Downloads</dt>
+    <dd>A 48 kHz WAV at −16 LUFS, Word JSON for Caption Maker (words light up as they are spoken), and SRT and VTT captions.</dd>
+  </dl>
+  <p>Kokoro’s model and voices are Apache-2.0 licensed, so voiceovers can be used commercially. Scripts stay on your computer; after the first download it works offline.</p>
+  <p><a href="https://github.com/chiefcrackt/inmotion-video/tree/main/local-voiceover">Setup instructions and local tool files</a></p>
+</main></body>
+</html>
