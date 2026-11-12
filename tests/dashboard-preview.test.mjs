@@ -88,7 +88,7 @@ test('search finds studios by original names and supports workspace filtering wi
     searchDashboard('', { workspace: 'audio' })
       .map((entry) => entry.id)
       .sort(),
-    ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video'],
+    ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video', 'voiceover'],
   );
   assert.deepEqual(
     searchDashboard('sound forge', { workspace: 'running' }),
@@ -174,6 +174,6 @@ test('actual dashboard handler filters cards, exposes empty results and resets a
       .filter((card) => !card.hidden)
       .map((card) => card.dataset.entry)
       .sort(),
-    ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video'],
+    ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video', 'voiceover'],
   );
 });

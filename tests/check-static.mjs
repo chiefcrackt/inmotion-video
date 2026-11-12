@@ -3,6 +3,7 @@ import { resolve, dirname } from 'node:path';
 const files = [
   'transcribe-video/index.html',
   'clean-voice/index.html',
+  'voiceover/index.html',
   'dashboard-preview/index.html',
   'dashboard-preview/app.mjs',
   'social-post-studio/index.html',

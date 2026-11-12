@@ -12,6 +12,12 @@ page; the Python engine runs only on the computer where the launcher is started.
 `http://127.0.0.1:8766/`. It removes background noise or isolates the voice on
 the NVIDIA GPU, then evens out the volume. See [setup and usage](local-voice/README.md).
 
+**Voiceover** is available from the tools hub at `/voiceover/`. Start
+`local-voiceover/Start Voiceover.cmd` on Windows; the studio opens at
+`http://127.0.0.1:8767/`. It turns a script into a voiceover with Kokoro text-to-speech
+(voices, blends, speakers, pronunciation fixes) and writes a WAV plus word timing for
+Caption Maker. See [setup and usage](local-voiceover/README.md).
+
 Celebration Studio is at `/celebration-studio/`, combining
 Special Post and Celebration as two modes while retaining both original editors
 and dashboard links. See [preview behavior and validation](celebration-studio/README.md).
@@ -78,6 +84,7 @@ The home page groups tools by task and offers search and category filters. All t
 | Sound Forge         | `/sound-forge/`     | Four-layer sound effects studio: 35 procedural presets (incl. the data-kit hits), samples, effects, shared local library, stereo WAV and stems                                                                                                                                                                                       |
 | Beat Bed            | `/beat-bed/`        | Music beds in 14 styles (Cyber, Soft, Minimal, Drive, Lo-fi, Synthwave, Cinematic, Trap, Anthem, Reflective, Trail, Heartbeat, Playful, Sunny), each with 2–3 grooves and a Dark/Bright/Dreamy mood: tempo, swing, key, sections (intro, build, drop, verse, breakdown, outro) or one length, intros and endings, a five-part mixer with mute/solo, bass sound, brightness, reverb and echo; live preview and 48 kHz stereo WAV that ends on the bar |
 | Clean Voice         | `/clean-voice/`     | Computer only, with the local launcher: GPU noise removal (MossFormer2) or voice isolation (Demucs), loudness to −16 LUFS; cleaned MP4 with the original picture, or WAV                                                                                                                                                                                                                                                                             |
+| Voiceover           | `/voiceover/`       | Computer only, with the local launcher: Kokoro text-to-speech from a pasted script; 28 voices, blends, per-speaker voices, pronunciation list; 48 kHz WAV at −16 LUFS, Word JSON for Caption Maker, SRT and VTT                                                                                                                                                                                                                                      |
 | Title Maker         | `/title-maker/`     | Cyber-kit title cards, lower thirds, word tags and chapter cards with sound; optional exits (reverse, fade, wipe, slide, drop, shrink, pop, glitch, cut) with length, easing, direction and end hold, or each card’s original ending |
 | Promo Maker         | `/promo-maker/`     | An "Out now" clip from a video's thumbnail and title                                                                                                                                                                                                                                                       |
 | Goals Maker         | `/goals-maker/`     | A goals graphic for 5–7 goals: checklist, numbered or route layouts; optional photo or logo per goal; an optional runner; animated video with sound (16:9 for YouTube, 9:16, 1:1) or PNG; navy, paper or green screen |

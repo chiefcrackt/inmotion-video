@@ -1,0 +1,15 @@
+# Kokoro v1.0 through ONNX Runtime (CPU); no PyTorch.
+kokoro-onnx==0.6.1
+onnxruntime==1.31.1
+onnx==1.23.2
+# misaki's English G2P without its [en] extra, which pulls in PyTorch for a model Voiceover doesn't use.
+misaki==0.9.4
+spacy==3.8.18
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+num2words==0.5.14
+phonemizer==3.6.0
+espeakng-loader==0.2.4
+numpy==2.5.4
+scipy==1.18.1
+soundfile==0.14.0
+pyloudnorm==0.2.0
