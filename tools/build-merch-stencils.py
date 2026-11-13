@@ -195,6 +195,14 @@ def main():
     # Front
     wordmark('inmotion-center-chest-9in.svg', '.inmotion — center chest', 'front',
              'Bold, 9" wide. The easiest one to bleach cleanly.', ['.inmotion'], 'Bold', 9.0, 0.04)
+    # .inmotion over the waves (center chest lockup)
+    lw = 9.0
+    d_w, bb_w, em_w = text_block(['.inmotion'], 'Bold', 0.04, width_in=lw, x0=M * U, y0=M * U)
+    wv, wsize = fit_polys(logo_waves(), lw * 0.9, M * U + lw * 0.05 * U, bb_w[3] + 0.35 * U)
+    add('inmotion-waves-lockup-9in.svg', '.inmotion + waves lockup', 'front',
+        '.inmotion over the two waves, 9" wide. Center chest, like the splatter shirt.',
+        d_w + ' ' + poly_d(wv), (M * U, M * U, M * U + lw * U, bb_w[3] + 0.35 * U + wsize[1]), thin=round(STEM['Bold'] * em_w, 2))
+
     wordmark('inmotion-left-chest-4in.svg', '.inmotion — left chest', 'front',
              'Black weight, 4" wide, so the lines stay thick at the small size.', ['.inmotion'], 'Black', 4.0, 0.05)
     wordmark('tim-mark-3in.svg', 'T.im short mark', 'small',
@@ -202,15 +210,15 @@ def main():
 
     # Back: outline waves + STAY IN MOTION
     stroke = 0.2
-    polys, _ = fit_polys(logo_waves(), 11.6, (M + stroke) * U, (M + stroke) * U)
+    polys, _ = fit_polys(logo_waves(), 10.6, (M + stroke) * U, (M + stroke) * U)  # 11" with the outline: fits an 11.5" cut width
     ring = outside_outline(polys, stroke)
     rx0 = min(p[:, 0].min() for p in ring); rx1 = max(p[:, 0].max() for p in ring)
     ry1 = max(p[:, 1].max() for p in ring)
-    tw = 10.0
+    tw = 9.2
     d_txt, bb_txt, _ = text_block(['STAY IN MOTION'], 'Black', 0.06, width_in=tw,
                                   x0=(rx0 + rx1) / 2 - tw * U / 2, y0=ry1 + 0.7 * U)
-    add('back-waves-stay-in-motion-12in.svg', 'Outline waves + STAY IN MOTION', 'back',
-        '12" wide. Waves traced from your logo with a 0.2" outline.',
+    add('back-waves-stay-in-motion-11in.svg', 'Outline waves + STAY IN MOTION', 'back',
+        '11" wide. Waves traced from your logo with a 0.2" outline.',
         poly_d(ring) + ' ' + d_txt, (M * U, M * U, max(rx1, bb_txt[2]), bb_txt[3]), evenodd=True, thin=stroke)
 
     # Back: mottos

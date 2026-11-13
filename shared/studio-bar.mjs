@@ -13,7 +13,7 @@
 // The bar draws inside a shadow root, so a tool's own link and button styles
 // can't change it. studio-bar.css only reserves its space before this runs.
 
-import { pageName, STUDIO_NAME } from './tool-registry.mjs?v=19f35799';
+import { pageName, STUDIO_NAME } from './tool-registry.mjs?v=49a5725d';
 
 // The studio home is the folder above shared/, which also works under the
 // GitHub Pages project path (/inmotion-video/).

@@ -33,7 +33,7 @@ import {
   importBackup,
   dueDatesCsv,
 } from './store.mjs?v=58c69001';
-import { TOOLS, getTool } from '../shared/tool-registry.mjs?v=19f35799';
+import { TOOLS, getTool } from '../shared/tool-registry.mjs?v=49a5725d';
 import { localDay } from '../idea-vault/vault-core.mjs?v=079d4676';
 import { IDEA_KEY, PLANNER_KEY } from '../shared/pipeline-link.mjs?v=4d6d1145';
 

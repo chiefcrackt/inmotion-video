@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="../shared/fonts.css?v=70017a07" />
     <link rel="stylesheet" href="../shared/responsive.css?v=bb296b12" />
     <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" />
-    <script type="module" src="../shared/studio-bar.mjs?v=720c3b72"></script>
+    <script type="module" src="../shared/studio-bar.mjs?v=a3c25134"></script>
     <script src="../shared/save.js?v=39954a84"></script>
     <style>
       :root {
@@ -84,6 +84,19 @@
       .filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
       .filebtn:focus-within { outline: 3px solid var(--paper); outline-offset: 3px; }
 
+      .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      .cutbar fieldset { gap: 8px; }
+      .warnText { color: var(--warn) !important; }
+      .tabs { margin-bottom: 10px; }
+      .tee { background: #e9e6df; border-radius: 12px; padding: 10px; touch-action: none; user-select: none; -webkit-user-select: none; }
+      .tee svg { display: block; width: 100%; height: auto; max-height: 78vh; }
+      .tee .piece { cursor: grab; }
+      .tee .piece:active { cursor: grabbing; }
+      .chips button { flex: 0 0 auto; min-height: 36px; font-size: 14px; }
+      .nudge { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+      .nudge button { min-width: 44px; }
+      .file .row button { flex: 0 0 auto; }
+
       /* Library */
       .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
       .files { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
@@ -120,6 +133,21 @@
           size and is cut from adhesive vinyl, so don't mirror it.
         </p>
       </header>
+
+
+      <section aria-labelledby="cut-h" class="cutbar">
+        <h2 id="cut-h" class="sr">Cut settings</h2>
+        <fieldset>
+          <legend>Cut settings</legend>
+          <div class="seg" id="mat" role="group" aria-label="Mat">
+            <button type="button" data-mat="12x12" aria-pressed="true">12×12 mat</button>
+            <button type="button" data-mat="12x24" aria-pressed="false">12×24 mat</button>
+            <button type="button" data-mat="smart" aria-pressed="false">Smart Materials (13" roll)</button>
+          </div>
+          <label class="check"><input id="mirror" type="checkbox" /> Mirror for iron-on vinyl (leave off for bleach stencils)</label>
+          <p class="small muted" style="margin:0">Every save and size warning uses these. A standard mat cuts about 11.5" wide.</p>
+        </fieldset>
+      </section>
 
       <section aria-labelledby="maker-h">
         <h2 id="maker-h">Name maker</h2>
@@ -164,6 +192,7 @@
             </fieldset>
             <div class="row" style="margin-top:0">
               <button class="primary" id="save" type="button">Save SVG</button>
+              <button id="addName" type="button">Add to shirt</button>
               <span class="small muted" id="saveNote" aria-live="polite"></span>
             </div>
           </div>
@@ -221,8 +250,82 @@
             </fieldset>
             <div class="row" style="margin-top:0">
               <button class="primary" id="rSave" type="button">Save SVG</button>
+              <button id="addRoute" type="button">Add to shirt</button>
               <span class="small muted" id="rSaveNote" aria-live="polite"></span>
             </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section aria-labelledby="shirt-h">
+        <h2 id="shirt-h">Shirt builder</h2>
+        <p class="muted">Place stencils on an oversized tee at real scale, then save one side as a single aligned transfer, or every piece packed onto one sheet with weed boxes. Add pieces with the “Add to shirt” buttons.</p>
+        <div class="studio">
+          <div>
+            <div class="seg tabs" id="side" role="group" aria-label="Side">
+              <button type="button" data-side="front" aria-pressed="true">Front</button>
+              <button type="button" data-side="back" aria-pressed="false">Back</button>
+            </div>
+            <div class="tee" id="tee"></div>
+            <div class="stats" id="selStats"></div>
+            <p class="note" id="bNote" aria-live="polite"></p>
+          </div>
+          <div class="controls">
+            <fieldset>
+              <legend>Shirt</legend>
+              <div class="seg" id="color" role="group" aria-label="Shirt color">
+                <button type="button" data-color="splatter" aria-pressed="true">Black splatter</button>
+                <button type="button" data-color="charcoal" aria-pressed="false">Charcoal acid</button>
+                <button type="button" data-color="denim" aria-pressed="false">Denim acid</button>
+                <button type="button" data-color="black" aria-pressed="false">Black</button>
+                <button type="button" data-color="navy" aria-pressed="false">Navy</button>
+              </div>
+              <div class="seg" id="tsize" role="group" aria-label="Shirt size">
+                <button type="button" data-size="S" aria-pressed="false">S</button>
+                <button type="button" data-size="M" aria-pressed="false">M</button>
+                <button type="button" data-size="L" aria-pressed="true">L</button>
+                <button type="button" data-size="XL" aria-pressed="false">XL</button>
+                <button type="button" data-size="2XL" aria-pressed="false">2XL</button>
+              </div>
+              <label class="check"><input id="grid" type="checkbox" /> 1" grid</label>
+            </fieldset>
+            <fieldset>
+              <legend>Look</legend>
+              <div class="seg" id="blook" role="group" aria-label="Look">
+                <button type="button" data-look="light" aria-pressed="true">Bleach, light design</button>
+                <button type="button" data-look="dark" aria-pressed="false">Bleach, dark design</button>
+                <button type="button" data-look="vinyl" aria-pressed="false">Iron-on vinyl</button>
+              </div>
+              <div class="seg" id="vinyl" role="group" aria-label="Vinyl color">
+                <button type="button" data-vinyl="white" aria-pressed="true">White</button>
+                <button type="button" data-vinyl="cream" aria-pressed="false">Cream</button>
+                <button type="button" data-vinyl="gold" aria-pressed="false">Gold</button>
+              </div>
+            </fieldset>
+            <fieldset id="selBox">
+              <legend>Selected piece</legend>
+              <div class="chips" id="pieces"></div>
+              <div id="selCtl">
+                <label class="field">Width (inches)
+                  <input id="pWidth" type="number" min="1" max="14" step="0.25" inputmode="decimal" />
+                </label>
+                <div class="nudge">
+                  <button type="button" data-nudge="up" aria-label="Move up">↑</button>
+                  <button type="button" data-nudge="down" aria-label="Move down">↓</button>
+                  <button type="button" data-nudge="left" aria-label="Move left">←</button>
+                  <button type="button" data-nudge="right" aria-label="Move right">→</button>
+                  <button type="button" id="pCenter">Center</button>
+                  <button type="button" id="pRemove">Remove</button>
+                </div>
+                <p class="small muted" style="margin:6px 0 0">Drag on the shirt, or nudge ¼" at a time.</p>
+              </div>
+            </fieldset>
+            <div class="row" style="margin-top:0">
+              <button class="primary" id="bPlaced" type="button">Save this side</button>
+              <button id="bPacked" type="button">Save all pieces packed</button>
+            </div>
+            <span class="small muted" id="bSaveNote" aria-live="polite"></span>
           </div>
         </div>
       </section>
@@ -285,6 +388,16 @@
             <li>Soak in water with a splash of hydrogen peroxide, or use the neutralizer as directed. Then wash the shirt on its own.</li>
           </ol>
           <p class="muted small">Never mix bleach with vinegar, ammonia or other cleaners. Test on an old shirt first: every shirt bleaches to a different color.</p>
+        </details>
+        <details>
+          <summary>Splatter shirt with a bleached design</summary>
+          <p>The rust-burst look with a bleached logo is two rounds of bleach on a black cotton tee:</p>
+          <ol>
+            <li><b>Splatter first.</b> Crumple the dry shirt into a tight, lumpy pile (or scrunch and rubber-band it), then spray bleach over the top until you see bursts start. Flip and do the back. Wait 5–15 minutes, rinse, neutralize, wash and dry.</li>
+            <li><b>Then the design.</b> Cut the stencil for the light design: weed out the letters and keep the surrounding sheet. Burnish it onto the flat shirt and cover the rest of the shirt with paper.</li>
+            <li>Mist bleach through the letters (or dab gel bleach for crisper edges) until they match the bursts. Peel, rinse, neutralize and wash.</li>
+          </ol>
+          <p class="muted small">Splattering second would lift the vinyl, which is why the order matters.</p>
         </details>
         <details>
           <summary>Line thickness</summary>
@@ -394,6 +507,8 @@
           n.className = 'note warn';
           n.textContent = 'Workable but tight. Burnish the edges well and mist lightly.';
         } else { n.className = 'note'; n.textContent = 'Line weight is comfortable for bleach.'; }
+        const mi = matIssue(state.width, r.inkH);
+        if (mi) { n.className = 'note warn'; n.textContent += ' ' + mi; }
         remember();
       }
 
@@ -429,9 +544,50 @@
         state.look = b.dataset.look; press($('look'), 'look', state.look); render();
       });
 
+
+      // ---------- Cut settings: mat size check and mirroring for iron-on
+      const MATS = { '12x12': { w: 11.5, h: 11.5, label: '12×12 mat' }, '12x24': { w: 11.5, h: 23.5, label: '12×24 mat' }, smart: { w: 13, h: 144, label: 'Smart Materials roll' } };
+      const WEED = 0.25, FRAME = 0.1; // weed-box gap and frame width, inches
+      const CUT = { mat: '12x12', mirror: false };
+      try { Object.assign(CUT, JSON.parse(localStorage.getItem(STORE + '-cut') || '{}')); } catch (e) {}
+      if (!MATS[CUT.mat]) CUT.mat = '12x12';
+      function matIssue(wIn, hIn) {
+        const m = MATS[CUT.mat], w = wIn + 2 * WEED, h = hIn + 2 * WEED;
+        const fitsTurned = Math.min(w, h) <= m.w && Math.max(w, h) <= m.h;
+        if (w <= m.w && h <= m.h) return '';
+        if (fitsTurned) return `Turn it 90° in Design Space to fit the ${m.label}.`;
+        return `Too big for the ${m.label} (cuts about ${m.w}" × ${m.h > 100 ? '12 ft' : m.h + '"'}). Make it smaller${CUT.mat === 'smart' ? '' : ' or use a bigger mat'}.`;
+      }
+      // Affine on absolute path data (M L H V Q C Z only): x' = ax*x + bx, y' = ay*y + by
+      function xformD(d, ax, bx, ay, by) {
+        const toks = d.match(/[MLHVQCZ]|-?\d*\.?\d+(?:e-?\d+)?/gi) || [];
+        const out = []; let cmd = '', i = 0;
+        while (i < toks.length) {
+          const t = toks[i];
+          if (/^[A-Za-z]$/.test(t)) { cmd = t.toUpperCase(); out.push(cmd); i++; continue; }
+          if (cmd === 'H') { out.push(num(+t * ax + bx)); i++; }
+          else if (cmd === 'V') { out.push(num(+t * ay + by)); i++; }
+          else { out.push(num(+toks[i] * ax + bx) + ',' + num(+toks[i + 1] * ay + by)); i += 2; }
+        }
+        return out.join(' ');
+      }
+      function mirrorSvg(text) {
+        const vb = text.match(/viewBox="0 0 ([\d.]+) [\d.]+"/);
+        if (!vb) return text;
+        const W = +vb[1];
+        return text.replace(/ d="([^"]+)"/g, (m, d) => ` d="${xformD(d, -1, W, 1, 0)}"`).replace('</title>', ' (mirrored)</title>');
+      }
+      function syncCut() {
+        press($('mat'), 'mat', CUT.mat); $('mirror').checked = CUT.mirror;
+        try { localStorage.setItem(STORE + '-cut', JSON.stringify(CUT)); } catch (e) {}
+      }
+      $('mat').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; CUT.mat = b.dataset.mat; syncCut(); refreshAll(); });
+      $('mirror').addEventListener('change', (e) => { CUT.mirror = e.target.checked; syncCut(); });
+
       // Saving: the shared TimSave on the site, the host's downloads capability in a Claude artifact.
       let hostDownloads = null;
       async function saveSvg(name, text, note) {
+        if (CUT.mirror) { text = mirrorSvg(text); name = name.replace(/\.svg$/, '-mirrored.svg'); }
         if (window.TimSave) return TimSave.saveTo(name, new Blob([text], { type: 'image/svg+xml' }), note);
         if (hostDownloads) {
           try { const r = await hostDownloads.save({ filename: name, data: text }); note.textContent = r.status === 'saved' ? 'Saved ' + name + '.' : ''; }
@@ -459,10 +615,14 @@
           const thumb = f.svg.replace(/<\?xml[^>]*>\s*/, '').replace(/ width="[^"]*in" height="[^"]*in"/, '');
           el.innerHTML = `<div class="thumb">${thumb}</div><h3></h3><p></p>
             <div class="meta">Size <b>${num(f.size[0])}" × ${num(f.size[1])}"</b>${f.thin ? ` · Thinnest line <b>${f.thin.toFixed(2)}"</b>` : ''}</div>
-            <div class="row"><button type="button">Save SVG</button><span class="status" aria-live="polite"></span></div>`;
+            <div class="meta mat"></div>
+            <div class="row"><button type="button" class="save">Save SVG</button><button type="button" class="add">Add to shirt</button><span class="status" aria-live="polite"></span></div>`;
           el.querySelector('h3').textContent = f.title;
           el.querySelector('p').textContent = f.desc;
-          el.querySelector('button').addEventListener('click', () => saveSvg(f.file, f.svg, el.querySelector('.status')));
+          el.querySelector('.save').addEventListener('click', () => saveSvg(f.file, f.svg, el.querySelector('.status')));
+          el.querySelector('.add').addEventListener('click', () => addToShirt(pieceFromSvg(f.svg, f.title, f.thin), el.querySelector('.status')));
+          const mw = matIssue(f.size[0], f.size[1]); const mm = el.querySelector('.mat');
+          if (mw) { mm.textContent = mw; mm.classList.add('warnText'); } else mm.remove();
           box.appendChild(el);
         });
       }
@@ -624,6 +784,8 @@
         if (thin < 0.12) { n.className = 'note warn'; n.textContent = 'Some lines are too thin for spraying. Make it bigger, raise the line weight or shorten the text.'; }
         else if (thin < 0.16) { n.className = 'note warn'; n.textContent = 'Workable but tight. Burnish the edges well and mist lightly.'; }
         else { n.className = 'note'; n.textContent = 'Line weight is comfortable for bleach.'; }
+        const rmi = matIssue(Wd - 2 * MARGIN, Hd - 2 * MARGIN);
+        if (rmi) { n.className = 'note warn'; n.textContent += ' ' + rmi; }
         try { localStorage.setItem(STORE + '-route', JSON.stringify({ size: R.size, line: R.line, look: R.look, showDetail: R.showDetail })); } catch (e) {}
       }
       function routeSvgDoc(c, title) {
@@ -722,8 +884,274 @@
       });
       syncRoute(); renderRoute();
 
+
+      // ---------- Shirt builder
+      // Oversized drop-shoulder tee, laid flat. Inches: chest = pit-to-pit width, length from the high shoulder point.
+      const TEE = { S: [21, 27], M: [22.5, 28], L: [24, 29], XL: [25.5, 30], '2XL': [27, 31] };
+      const SHIRTS = {
+        splatter: { base: '#1c1c1f', splat: '#cf874c', bleach: '#d68d50', label: 'Black splatter' },
+        charcoal: { base: '#3b3b3e', vein: '#a3a3a6', veins: 0.55, bleach: '#8d7d6f', label: 'Charcoal acid' },
+        denim: { base: '#3d6395', vein: '#a9c0de', veins: 0.6, bleach: '#b8c8dc', label: 'Denim acid' },
+        black: { base: '#1b1b1d', vein: null, bleach: '#b2643a', label: 'Black' },
+        navy: { base: '#1f2a43', vein: null, bleach: '#c49a8b', label: 'Navy' },
+      };
+      const VINYL = { white: '#f5f3ee', cream: '#ece0c2', gold: '#d8b75c' };
+      const COLLAR = { front: 3.5, back: 1.0 }; // neckline drop below the shoulder point
+      const B = { side: 'front', color: 'splatter', size: 'L', look: 'light', vinyl: 'white', grid: false, items: [], sel: null };
+      try { const sv = JSON.parse(localStorage.getItem(STORE + '-shirt') || '{}'); Object.assign(B, sv); } catch (e) {}
+      if (!SHIRTS[B.color]) B.color = 'splatter'; if (!TEE[B.size]) B.size = 'L';
+      let nextId = B.items.reduce((m, it) => Math.max(m, it.id), 0) + 1;
+      function saveShirt() { try { localStorage.setItem(STORE + '-shirt', JSON.stringify(B)); } catch (e) {} }
+
+      function pieceFromSvg(text, label, thin) {
+        const wi = +text.match(/width="([\d.]+)in"/)[1], hi = +text.match(/height="([\d.]+)in"/)[1];
+        const paths = [];
+        text.replace(/<path ([^>]*?)\/>/g, (m, attrs) => {
+          const d = (attrs.match(/ ?d="([^"]+)"/) || [])[1];
+          if (d) paths.push({ d, eo: /fill-rule="evenodd"/.test(attrs) });
+          return m;
+        });
+        return { label, paths, W: wi, H: hi, thin: thin || null };
+      }
+      const inkW = (p) => p.W - 2 * MARGIN, inkH = (p) => p.H - 2 * MARGIN;
+
+      function addToShirt(piece, note) {
+        const [chest] = TEE[B.size];
+        let sc = 1; const maxW = chest - 3;
+        if (inkW(piece) > maxW) sc = maxW / inkW(piece);
+        const it = { id: nextId++, side: B.side, piece, s: sc, x: (-inkW(piece) * sc) / 2, y: COLLAR[B.side] + (B.side === 'front' ? 3 : 3.5) };
+        B.items.push(it); B.sel = it.id; saveShirt(); renderTee();
+        if (note) note.textContent = `Added to the ${B.side}${sc < 1 ? ', scaled to fit' : ''}.`;
+        $('shirt-h').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function teeD(side, size) {
+        const [chest, len] = TEE[size], c = chest / 2, u = (v) => num(v * U);
+        const drop = COLLAR[side], nw = 3.9;
+        const P = [[nw, 0], [c + 1.3, 1.4], [c + 7.6, 7.4], [c + 4.4, 12.9], [c, 11.2], [c, len]];
+        const right = P.map(([x, y]) => `L${u(x)},${u(y)}`).join(' ');
+        const left = P.slice().reverse().map(([x, y]) => `L${u(-x)},${u(y)}`).join(' ');
+        return `M${u(-nw)},0 Q${u(-nw * 0.55)},${u(drop * 1.05)} 0,${u(drop)} Q${u(nw * 0.55)},${u(drop * 1.05)} ${u(nw)},0 ${right} ${left.replace(/^L/, 'L')} Z`;
+      }
+      function itemsOn(side) { return B.items.filter((it) => it.side === side); }
+      function placedTransform(it) {
+        const p = it.piece, tx = it.x * U - MARGIN * U * it.s, ty = it.y * U - MARGIN * U * it.s;
+        return { s: it.s, tx, ty, attr: `translate(${num(tx)} ${num(ty)}) scale(${it.s.toFixed(5)})` };
+      }
+
+      let teeSvg = null;
+      function renderTee() {
+        const [chest, len] = TEE[B.size], c = chest / 2, sh = SHIRTS[B.color];
+        const vb = [-(c + 9) * U, -1 * U, (2 * c + 18) * U, (len + 2) * U].map(num).join(' ');
+        const items = itemsOn(B.side);
+        const outline = teeD(B.side, B.size);
+        let defs = `<clipPath id="tc"><path d="${outline}"/></clipPath>`;
+        defs += `<filter id="veins" x="0" y="0" width="1" height="1"><feTurbulence type="turbulence" baseFrequency="0.009 0.012" numOctaves="5" seed="11"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -6 0 0 0 1.05"/></filter>`;
+        defs += `<filter id="cloud" x="0" y="0" width="1" height="1"><feTurbulence type="fractalNoise" baseFrequency="0.0025" numOctaves="3" seed="4"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 2.2 0 0 0 -1.1"/></filter>`;
+        defs += `<filter id="splat" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.0022" numOctaves="4" seed="21" result="c0"/>` +
+          `<feColorMatrix in="c0" type="matrix" values="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1" result="cl"/><feTurbulence type="turbulence" baseFrequency="0.015" numOctaves="4" seed="8" result="s0"/>` +
+          `<feColorMatrix in="s0" type="matrix" values="-1 0 0 0 1 -1 0 0 0 1 -1 0 0 0 1 0 0 0 0 1" result="sp"/><feComposite in="cl" in2="sp" operator="arithmetic" k1="0" k2="5" k3="2.5" k4="-4.55" result="mx"/>` +
+          `<feColorMatrix in="mx" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0" result="m"/><feFlood flood-color="${sh.splat || '#cf874c'}"/><feComposite in2="m" operator="in"/></filter>`;
+        defs += `<filter id="halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${0.8 * U}"/></filter>`;
+        const R_ = `x="${-(c + 9) * U}" y="${-U}" width="${(2 * c + 18) * U}" height="${(len + 2) * U}"`;
+        const base = () => `<rect ${R_} fill="${sh.base}"/>`;
+        const wash = () => sh.vein ? `<rect ${R_} fill="${sh.vein}" opacity="0.25" filter="url(#cloud)"/><rect ${R_} fill="${sh.vein}" opacity="0.45" filter="url(#veins)"/>`
+          : sh.splat ? `<rect ${R_} fill="#fff" filter="url(#splat)"/>` : '';
+        const tex = () => base() + wash();
+        // clipPath can't hold <g>, so each path carries its own transform
+        const designPaths = (it, fill) => {
+          const t = placedTransform(it);
+          return it.piece.paths.map((pp) => `<path transform="${t.attr}" d="${pp.d}"${pp.eo ? ' fill-rule="evenodd" clip-rule="evenodd"' : ''}${fill ? ` fill="${fill}"` : ''}/>`).join('');
+        };
+        let body = `<g clip-path="url(#tc)">${base()}`;
+        const washLater = !(B.look === 'dark' && items.length && !sh.splat);
+        if (washLater) body += wash();
+        if (B.look === 'dark' && items.length && sh.splat) {
+          // Stencil on first, then splatter: the design stays plain black
+          defs += `<clipPath id="dc">${items.map((it) => designPaths(it)).join('')}</clipPath>`;
+          body += `<g clip-path="url(#dc)">${base()}</g>`;
+        } else if (B.look === 'dark' && items.length) {
+          let seed = 5; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+          let halo = '', dots = '';
+          items.forEach((it) => {
+            const w = inkW(it.piece) * it.s, h = inkH(it.piece) * it.s, pad = 1.3;
+            halo += `<ellipse cx="${num((it.x + w / 2) * U)}" cy="${num((it.y + h / 2) * U)}" rx="${num((w / 2 + pad) * U)}" ry="${num((h / 2 + pad) * U)}"/>`;
+            for (let i = 0; i < 70 * Math.max(1, (w * h) / 20); i++) {
+              dots += `<circle cx="${num((it.x - pad - 1 + rnd() * (w + 2 * pad + 2)) * U)}" cy="${num((it.y - pad - 1 + rnd() * (h + 2 * pad + 2)) * U)}" r="${num((0.04 + rnd() * 0.18) * U)}" opacity="${(0.3 + rnd() * 0.6).toFixed(2)}"/>`;
+            }
+          });
+          defs += `<clipPath id="dc">${items.map((it) => designPaths(it)).join('')}</clipPath>`;
+          body += `<g fill="${sh.bleach}"><g opacity=".85" filter="url(#halo)">${halo}</g>${dots}</g>${wash()}<g clip-path="url(#dc)">${tex()}</g>`;
+        } else if (items.length) {
+          const fill = B.look === 'vinyl' ? VINYL[B.vinyl] : sh.bleach;
+          body += items.map((it) => designPaths(it, fill)).join('');
+        }
+        body += '</g>';
+        let grid = '';
+        if (B.grid) {
+          for (let x = -Math.floor(c + 8); x <= c + 8; x++) grid += `<line x1="${x * U}" y1="${-U}" x2="${x * U}" y2="${(len + 1) * U}"/>`;
+          for (let y = 0; y <= len + 1; y++) grid += `<line x1="${-(c + 9) * U}" y1="${y * U}" x2="${(c + 9) * U}" y2="${y * U}"/>`;
+          grid = `<g stroke="#0e1a2e" stroke-opacity=".18" stroke-width="2">${grid}</g>`;
+        }
+        // Interaction layer: hit boxes and the selection frame
+        const hits = items.map((it) => {
+          const w = inkW(it.piece) * it.s, h = inkH(it.piece) * it.s, on = it.id === B.sel;
+          return `<rect class="piece" data-id="${it.id}" x="${num(it.x * U)}" y="${num(it.y * U)}" width="${num(w * U)}" height="${num(h * U)}" fill="transparent"` +
+            (on ? ` stroke="#e8c96a" stroke-width="5" stroke-dasharray="14 10"` : '') + '/>';
+        }).join('');
+        $('tee').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" role="img" aria-label="${sh.label} ${B.size} tee, ${B.side}"><defs>${defs}</defs>` +
+          `<path d="${outline}" fill="#000" opacity=".12" transform="translate(12 16)"/>${body}` +
+          `<path d="${outline}" fill="none" stroke="#0e1a2e" stroke-opacity=".35" stroke-width="4"/>${grid}${hits}</svg>`;
+        teeSvg = $('tee').querySelector('svg');
+        renderSelection();
+      }
+
+      function renderSelection() {
+        const items = itemsOn(B.side);
+        if (!items.some((it) => it.id === B.sel)) B.sel = items.length ? items[items.length - 1].id : null;
+        $('pieces').innerHTML = '';
+        items.forEach((it) => {
+          const b = document.createElement('button'); b.type = 'button'; b.textContent = it.piece.label;
+          b.setAttribute('aria-pressed', String(it.id === B.sel));
+          b.addEventListener('click', () => { B.sel = it.id; renderTee(); });
+          $('pieces').appendChild(b);
+        });
+        const it = B.items.find((i) => i.id === B.sel);
+        $('selCtl').hidden = !it;
+        if (!items.length) $('pieces').innerHTML = '<span class="small muted">Nothing on the ' + B.side + ' yet.</span>';
+        const st = $('selStats'), n = $('bNote');
+        if (!it) { st.innerHTML = ''; n.textContent = ''; return; }
+        const w = inkW(it.piece) * it.s, h = inkH(it.piece) * it.s;
+        $('pWidth').value = w.toFixed(2);
+        const below = it.y - COLLAR[it.side], center = it.x + w / 2;
+        st.innerHTML = `<span>Size <b>${w.toFixed(2)}" × ${h.toFixed(2)}"</b></span><span>Below collar <b>${below.toFixed(2)}"</b></span>` +
+          `<span>Off center <b>${Math.abs(center) < 0.05 ? 'centered' : center.toFixed(2) + '"'}</b></span>` +
+          (it.piece.thin ? `<span>Thinnest line <b>${(it.piece.thin * it.s).toFixed(2)}"</b></span>` : '');
+        const warn = [];
+        if (it.piece.thin && it.piece.thin * it.s < 0.12) warn.push('Lines are too thin for bleach at this size.');
+        const mi = matIssue(w, h); if (mi) warn.push(mi);
+        n.className = warn.length ? 'note warn' : 'note';
+        n.textContent = warn.join(' ');
+        saveShirt();
+      }
+
+      // Dragging (pointer events; the shirt area doesn't scroll the page)
+      let drag = null;
+      function svgPoint(e) {
+        const pt = teeSvg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+        return pt.matrixTransform(teeSvg.getScreenCTM().inverse());
+      }
+      $('tee').addEventListener('pointerdown', (e) => {
+        const r = e.target.closest('.piece'); if (!r) return;
+        const it = B.items.find((i) => i.id === +r.dataset.id); if (!it) return;
+        e.preventDefault();
+        const p = svgPoint(e);
+        drag = { it, dx: p.x / U - it.x, dy: p.y / U - it.y, moved: false };
+        if (B.sel !== it.id) { B.sel = it.id; renderTee(); }
+        $('tee').setPointerCapture(e.pointerId);
+      });
+      $('tee').addEventListener('pointermove', (e) => {
+        if (!drag) return;
+        const p = svgPoint(e), snap = (v) => Math.round(v * 8) / 8;
+        drag.it.x = snap(p.x / U - drag.dx); drag.it.y = snap(p.y / U - drag.dy);
+        const w = inkW(drag.it.piece) * drag.it.s;
+        if (Math.abs(drag.it.x + w / 2) < 0.2) drag.it.x = -w / 2; // snap to center
+        drag.moved = true; renderTee();
+      });
+      const endDrag = () => { drag = null; };
+      $('tee').addEventListener('pointerup', endDrag); $('tee').addEventListener('pointercancel', endDrag);
+
+      const selItem = () => B.items.find((i) => i.id === B.sel);
+      $('pWidth').addEventListener('change', (e) => {
+        const it = selItem(), v = parseFloat(e.target.value); if (!it || !(v >= 1 && v <= 14)) return;
+        const cx = it.x + (inkW(it.piece) * it.s) / 2;
+        it.s = v / inkW(it.piece); it.x = cx - v / 2; renderTee();
+      });
+      document.querySelector('.nudge').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-nudge]'); const it = selItem(); if (!b || !it) return;
+        const d = { up: [0, -0.25], down: [0, 0.25], left: [-0.25, 0], right: [0.25, 0] }[b.dataset.nudge];
+        it.x += d[0]; it.y += d[1]; renderTee();
+      });
+      $('pCenter').addEventListener('click', () => { const it = selItem(); if (!it) return; it.x = (-inkW(it.piece) * it.s) / 2; renderTee(); });
+      $('pRemove').addEventListener('click', () => { B.items = B.items.filter((i) => i.id !== B.sel); B.sel = null; renderTee(); });
+      $('side').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.side = b.dataset.side; B.sel = null; syncShirt(); renderTee(); });
+      $('color').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.color = b.dataset.color; syncShirt(); renderTee(); });
+      $('tsize').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.size = b.dataset.size; syncShirt(); renderTee(); });
+      $('blook').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.look = b.dataset.look; syncShirt(); renderTee(); });
+      $('vinyl').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.vinyl = b.dataset.vinyl; syncShirt(); renderTee(); });
+      $('grid').addEventListener('change', (e) => { B.grid = e.target.checked; renderTee(); });
+      function syncShirt() {
+        press($('side'), 'side', B.side); press($('color'), 'color', B.color); press($('tsize'), 'size', B.size);
+        press($('blook'), 'look', B.look); press($('vinyl'), 'vinyl', B.vinyl); $('vinyl').hidden = B.look !== 'vinyl'; $('grid').checked = B.grid;
+      }
+      $('addName').addEventListener('click', () => { if (current) addToShirt(pieceFromSvg(svgDoc(current.r, current.title), current.title, current.r.stem), $('saveNote')); });
+      $('addRoute').addEventListener('click', () => { if (rCurrent) addToShirt(pieceFromSvg(routeSvgDoc(rCurrent, R.name || 'Route'), R.name ? R.name.toLowerCase().replace(/(^|\s)\S/g, (m) => m.toUpperCase()) + ' route' : 'Route', rCurrent.thin), $('rSaveNote')); });
+
+      // ---------- Combined exports
+      const FR = (x0, y0, x1, y1) => { // weed frame: outer rect minus inner rect (evenodd), units
+        const f = FRAME * U;
+        return `M${num(x0)},${num(y0)} H${num(x1)} V${num(y1)} H${num(x0)} Z M${num(x0 + f)},${num(y0 + f)} V${num(y1 - f)} H${num(x1 - f)} V${num(y0 + f)} Z`;
+      };
+      function placedPaths(it, ox, oy) { // paths moved so the piece's ink top-left lands at (ox, oy) units
+        const s = it.s, bx = ox - MARGIN * U * s, by = oy - MARGIN * U * s;
+        return it.piece.paths.map((pp) => ({ d: xformD(pp.d, s, bx, s, by), eo: pp.eo }));
+      }
+      function sheetDoc(Wi, Hi, paths, frames, title) {
+        const body = paths.map((pp) => `<path fill="#000"${pp.eo ? ' fill-rule="evenodd"' : ''} d="${pp.d}"/>`).join('\n') +
+          (frames.length ? `\n<path fill="#000" fill-rule="evenodd" d="${frames.join(' ')}"/>` : '');
+        return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${Wi.toFixed(3)}in" height="${Hi.toFixed(3)}in" viewBox="0 0 ${num(Wi * U)} ${num(Hi * U)}">\n<title>${title}</title>\n${body}\n</svg>\n`;
+      }
+      function exportPlaced() {
+        const items = itemsOn(B.side);
+        if (!items.length) return { error: 'Add something to the ' + B.side + ' first.' };
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        items.forEach((it) => { x0 = Math.min(x0, it.x); y0 = Math.min(y0, it.y); x1 = Math.max(x1, it.x + inkW(it.piece) * it.s); y1 = Math.max(y1, it.y + inkH(it.piece) * it.s); });
+        const pad = MARGIN + WEED + FRAME, paths = [];
+        items.forEach((it) => paths.push(...placedPaths(it, (it.x - x0 + pad) * U, (it.y - y0 + pad) * U)));
+        const fx0 = MARGIN * U, fy0 = MARGIN * U, fx1 = (x1 - x0 + 2 * (WEED + FRAME) + MARGIN) * U, fy1 = (y1 - y0 + 2 * (WEED + FRAME) + MARGIN) * U;
+        const Wi = x1 - x0 + 2 * pad, Hi = y1 - y0 + 2 * pad;
+        return { text: sheetDoc(Wi, Hi, paths, [FR(fx0, fy0, fx1, fy1)], `${B.side} transfer`), w: x1 - x0, h: y1 - y0 };
+      }
+      function exportPacked() {
+        if (!B.items.length) return { error: 'Add some pieces first.' };
+        const m = MATS[CUT.mat], gap = 0.2, box = WEED + FRAME;
+        const blocks = B.items.map((it) => ({ it, w: inkW(it.piece) * it.s + 2 * box, h: inkH(it.piece) * it.s + 2 * box }))
+          .sort((a, b) => b.h - a.h);
+        const rows = []; let row = null;
+        blocks.forEach((bk) => {
+          if (!row || row.w + gap + bk.w > m.w) { row = { w: 0, h: 0, items: [] }; rows.push(row); }
+          row.items.push({ bk, x: row.w ? row.w + gap : 0 }); row.w = (row.w ? row.w + gap : 0) + bk.w; row.h = Math.max(row.h, bk.h);
+        });
+        const paths = [], frames = []; let y = 0, W = 0;
+        rows.forEach((r) => {
+          r.items.forEach(({ bk, x }) => {
+            const ox = MARGIN + x, oy = MARGIN + y;
+            frames.push(FR(ox * U, oy * U, (ox + bk.w) * U, (oy + bk.h) * U));
+            paths.push(...placedPaths(bk.it, (ox + box) * U, (oy + box) * U));
+          });
+          W = Math.max(W, r.w); y += r.h + gap;
+        });
+        const H = y - gap, tooWide = blocks.some((bk) => bk.w > m.w);
+        return { text: sheetDoc(W + 2 * MARGIN, H + 2 * MARGIN, paths, frames, 'all pieces'), w: W, h: H, tooWide, tooLong: H > m.h };
+      }
+      $('bPlaced').addEventListener('click', () => {
+        const r = exportPlaced(), note = $('bSaveNote');
+        if (r.error) { note.textContent = r.error; return; }
+        const mi = matIssue(r.w, r.h);
+        saveSvg(`shirt-${B.side}-transfer.svg`, r.text, note).then(() => { if (mi) note.textContent += ' ' + mi; });
+      });
+      $('bPacked').addEventListener('click', () => {
+        const r = exportPacked(), note = $('bSaveNote');
+        if (r.error) { note.textContent = r.error; return; }
+        const m = MATS[CUT.mat];
+        const extra = r.tooWide ? ` One piece is wider than the ${m.label}.` : r.tooLong ? ` The sheet is ${r.h.toFixed(1)}" long, longer than the ${m.label}.` : '';
+        saveSvg('shirt-all-pieces-packed.svg', r.text, note).then(() => { if (extra) note.textContent += extra; });
+      });
+      function refreshAll() { render(); renderRoute(); renderFiles(); renderTee(); }
+
       if (!PLACES[state.place]) state.place = 'center';
-      syncControls(); render(); renderFiles();
+      syncCut(); syncControls(); render(); renderFiles(); syncShirt(); renderTee();
       if (window.TimSave) TimSave.ready();
       else if (window.claude && window.claude.use) window.claude.use('downloads').then((d) => { hostDownloads = d || null; }, () => {});
     </script>
