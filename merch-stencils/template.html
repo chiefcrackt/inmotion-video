@@ -258,6 +258,52 @@
       </section>
 
 
+
+      <section aria-labelledby="ms-h">
+        <h2 id="ms-h">Milestone drop maker</h2>
+        <p class="muted">For limited drops tied to a real moment: a small top line, a big milestone, and a date or race underneath.</p>
+        <div class="studio">
+          <div>
+            <div class="shirt" id="mShirt" aria-label="Milestone preview"></div>
+            <div class="stats">
+              <span>Size <b id="mSz">–</b></span>
+              <span>Thinnest line <b id="mStem">–</b></span>
+            </div>
+            <p class="note" id="mNote"></p>
+          </div>
+          <div class="controls">
+            <fieldset>
+              <legend>Text</legend>
+              <label class="field">Top line (optional)
+                <input id="mTop" type="text" autocomplete="off" maxlength="28" />
+              </label>
+              <label class="field">Milestone
+                <input id="mBig" type="text" autocomplete="off" maxlength="14" />
+              </label>
+              <label class="field">Bottom line (optional)
+                <input id="mBottom" type="text" autocomplete="off" maxlength="40" />
+              </label>
+              <label class="check"><input id="mWaves" type="checkbox" /> Waves under the milestone</label>
+            </fieldset>
+            <fieldset>
+              <legend>Size</legend>
+              <label class="field">Width (inches)
+                <input id="mWidth" type="number" min="3" max="13" step="0.25" inputmode="decimal" />
+              </label>
+              <div class="seg" id="mLook" role="group" aria-label="Look">
+                <button type="button" data-look="dark" aria-pressed="true">Dark design</button>
+                <button type="button" data-look="light" aria-pressed="false">Light design</button>
+              </div>
+            </fieldset>
+            <div class="row" style="margin-top:0">
+              <button class="primary" id="mSave" type="button">Save SVG</button>
+              <button id="addMs" type="button">Add to shirt</button>
+              <span class="small muted" id="mSaveNote" aria-live="polite"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section aria-labelledby="shirt-h">
         <h2 id="shirt-h">Shirt builder</h2>
         <p class="muted">Place stencils on an oversized tee at real scale, then save one side as a single aligned transfer, or every piece packed onto one sheet with weed boxes. Add pieces with the “Add to shirt” buttons.</p>
@@ -280,6 +326,7 @@
                 <button type="button" data-color="denim" aria-pressed="false">Denim acid</button>
                 <button type="button" data-color="black" aria-pressed="false">Black</button>
                 <button type="button" data-color="navy" aria-pressed="false">Navy</button>
+                <button type="button" data-color="photo" aria-pressed="false">My photo</button>
               </div>
               <div class="seg" id="tsize" role="group" aria-label="Shirt size">
                 <button type="button" data-size="S" aria-pressed="false">S</button>
@@ -289,6 +336,24 @@
                 <button type="button" data-size="2XL" aria-pressed="false">2XL</button>
               </div>
               <label class="check"><input id="grid" type="checkbox" /> 1" grid</label>
+            </fieldset>
+            <fieldset id="photoBox" hidden>
+              <legend>My photo</legend>
+              <div class="row" style="margin-top:0">
+                <label class="filebtn"><input id="phFile" type="file" accept="image/*" /><span>Load <span id="phSide">front</span> photo</span></label>
+                <button type="button" id="phCal">Mark the shirt</button>
+                <button type="button" id="phClear">Remove</button>
+              </div>
+              <label class="field">Pit-to-pit width you measured (inches)
+                <input id="phChest" type="number" min="14" max="36" step="0.25" inputmode="decimal" />
+              </label>
+              <div class="seg" id="phBleach" role="group" aria-label="Bleach color">
+                <button type="button" data-bleach="rust" aria-pressed="true">Rust bleach</button>
+                <button type="button" data-bleach="pale" aria-pressed="false">Pale bleach</button>
+                <button type="button" data-bleach="pink" aria-pressed="false">Pink bleach</button>
+              </div>
+              <p class="small muted" id="phHelp" style="margin:0"></p>
+              <p class="small muted" id="phNote" aria-live="polite" style="margin:0"></p>
             </fieldset>
             <fieldset>
               <legend>Look</legend>
@@ -885,6 +950,62 @@
       syncRoute(); renderRoute();
 
 
+
+      // ---------- Milestone drop maker
+      const WAVES = /*__WAVES__*/null;
+      const MS = { top: 'FIRST', big: '100K', bottom: 'PAIN IN MORAINE · SEP 2026', waves: true, width: 9, look: 'dark' };
+      try { Object.assign(MS, JSON.parse(localStorage.getItem(STORE + '-ms') || '{}')); } catch (e) {}
+      let mCurrent = null;
+      function fitEm(text, wIn, track) { const w1 = placeLine(text, 1, track, 0, 0).w; return w1 ? (wIn * U) / w1 : 1; }
+      function renderMs() {
+        const t = GLYPHS.Black, capR = t.cap / t.upm, W = MS.width, cx = (MARGIN + W / 2) * U;
+        const big = MS.big || '100K';
+        const emB = Math.min(fitEm(big, W, 0.03), 3 / capR); // big line at most 3" tall
+        let emT = emB * 0.3, emL = emB * 0.24;
+        if (MS.top) emT = Math.min(emT, fitEm(MS.top, W, 0.2));
+        if (MS.bottom) emL = Math.min(emL, fitEm(MS.bottom, W, 0.1));
+        let y = MARGIN * U; const ds = []; let thin = Infinity;
+        if (MS.top) { const l = placeLine(MS.top, emT, 0.2, cx, y); ds.push(l.d); y = l.y1 + 0.35 * capR * emT * U; thin = Math.min(thin, t.stem * emT); }
+        const lb = placeLine(big, emB, 0.03, cx, y); ds.push(lb.d); y = lb.y1; thin = Math.min(thin, t.stem * emB);
+        if (MS.waves) {
+          const ww = Math.min(W, lb.w / U) * 0.85, x0 = cx - (ww * U) / 2, y0 = y + 0.14 * capR * emB * U;
+          let wb = 0;
+          ds.push(WAVES.map((poly) => 'M' + poly.map(([x, yy]) => { wb = Math.max(wb, yy); return num(x0 + x * ww * U) + ',' + num(y0 + yy * ww * U); }).join(' L') + ' Z').join(' '));
+          y = y0 + wb * ww * U;
+        }
+        if (MS.bottom) { const l = placeLine(MS.bottom, emL, 0.1, cx, y + 0.2 * capR * emB * U); ds.push(l.d); y = l.y1; thin = Math.min(thin, t.stem * emL); }
+        const r = { d: ds.join(' '), W: W + 2 * MARGIN, H: y / U + MARGIN };
+        // a short milestone can end up narrower than the width box: trim the sides
+        let x0 = Infinity, x1 = -Infinity;
+        r.d.replace(/(-?\d*\.?\d+),(-?\d*\.?\d+)/g, (m, a) => { x0 = Math.min(x0, +a); x1 = Math.max(x1, +a); return m; });
+        if (isFinite(x0) && x0 - MARGIN * U > 1) {
+          const shift = MARGIN * U - x0; r.d = xformD(r.d, 1, shift, 1, 0); r.W = (x1 - x0) / U + 2 * MARGIN;
+        }
+        mCurrent = { r, thin, title: [MS.top, big].filter(Boolean).join(' ') };
+        $('mShirt').innerHTML = shirtSvg(r, MS.look);
+        $('mSz').textContent = `${(r.W - 2 * MARGIN).toFixed(2)}" × ${(r.H - 2 * MARGIN).toFixed(2)}"`;
+        $('mStem').textContent = `${thin.toFixed(2)}"`;
+        const n = $('mNote');
+        if (thin < 0.12) { n.className = 'note warn'; n.textContent = 'The small lines are too thin for spraying. Make it wider, shorten them, or brush on gel bleach.'; }
+        else if (thin < 0.16) { n.className = 'note warn'; n.textContent = 'Workable but tight. Burnish the edges well and mist lightly.'; }
+        else { n.className = 'note'; n.textContent = 'Line weight is comfortable for bleach.'; }
+        const mi = matIssue(r.W - 2 * MARGIN, r.H - 2 * MARGIN); if (mi) { n.className = 'note warn'; n.textContent += ' ' + mi; }
+        try { localStorage.setItem(STORE + '-ms', JSON.stringify(MS)); } catch (e) {}
+      }
+      function syncMs() { $('mTop').value = MS.top; $('mBig').value = MS.big; $('mBottom').value = MS.bottom; $('mWaves').checked = MS.waves; $('mWidth').value = MS.width; press($('mLook'), 'look', MS.look); }
+      [['mTop', 'top'], ['mBig', 'big'], ['mBottom', 'bottom']].forEach(([id, k]) => $(id).addEventListener('input', (e) => {
+        const c = capsText(e.target.value); if (c !== e.target.value) e.target.value = c; MS[k] = c; renderMs();
+      }));
+      $('mWaves').addEventListener('change', (e) => { MS.waves = e.target.checked; renderMs(); });
+      $('mWidth').addEventListener('input', (e) => { const v = parseFloat(e.target.value); if (v >= 3 && v <= 13) { MS.width = v; renderMs(); } });
+      $('mLook').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; MS.look = b.dataset.look; press($('mLook'), 'look', MS.look); renderMs(); });
+      $('mSave').addEventListener('click', () => {
+        if (!mCurrent) return;
+        const base = [MS.top, MS.big].filter(Boolean).join('-').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'milestone';
+        saveSvg(`milestone-${base}-${String(MS.width).replace('.', '_')}in.svg`, svgDoc(mCurrent.r, mCurrent.title), $('mSaveNote'));
+      });
+      syncMs(); renderMs();
+
       // ---------- Shirt builder
       // Oversized drop-shoulder tee, laid flat. Inches: chest = pit-to-pit width, length from the high shoulder point.
       const TEE = { S: [21, 27], M: [22.5, 28], L: [24, 29], XL: [25.5, 30], '2XL': [27, 31] };
@@ -899,7 +1020,7 @@
       const COLLAR = { front: 3.5, back: 1.0 }; // neckline drop below the shoulder point
       const B = { side: 'front', color: 'splatter', size: 'L', look: 'light', vinyl: 'white', grid: false, items: [], sel: null };
       try { const sv = JSON.parse(localStorage.getItem(STORE + '-shirt') || '{}'); Object.assign(B, sv); } catch (e) {}
-      if (!SHIRTS[B.color]) B.color = 'splatter'; if (!TEE[B.size]) B.size = 'L';
+      if (!SHIRTS[B.color] && B.color !== 'photo') B.color = 'splatter'; if (!TEE[B.size]) B.size = 'L';
       let nextId = B.items.reduce((m, it) => Math.max(m, it.id), 0) + 1;
       function saveShirt() { try { localStorage.setItem(STORE + '-shirt', JSON.stringify(B)); } catch (e) {} }
 
@@ -939,12 +1060,84 @@
         return { s: it.s, tx, ty, attr: `translate(${num(tx)} ${num(ty)}) scale(${it.s.toFixed(5)})` };
       }
 
+
+      // ---------- Your own shirt photo (kept on this device)
+      const IMG_SRC = 'href'; // photos are data: URLs (written this way so tests/check-static.mjs doesn't read them as file links)
+      const PH_BLEACH = { rust: '#d68d50', pale: '#cfc8bc', pink: '#c99a8c' };
+      const PHOTO = { front: null, back: null, chest: 24, bleach: 'rust' };
+      try { Object.assign(PHOTO, JSON.parse(localStorage.getItem(STORE + '-photo') || '{}')); } catch (e) {}
+      let calibrating = false;
+      function savePhoto() {
+        try { localStorage.setItem(STORE + '-photo', JSON.stringify(PHOTO)); return true; }
+        catch (e) { return false; }
+      }
+      function renderPhotoCtl() {
+        const on = B.color === 'photo';
+        $('photoBox').hidden = !on;
+        if (!on) return;
+        const ph = PHOTO[B.side];
+        $('phSide').textContent = B.side;
+        $('phCal').hidden = !ph; $('phCal').textContent = calibrating ? 'Done marking' : 'Mark the shirt';
+        $('phCal').classList.toggle('primary', calibrating);
+        $('phChest').value = PHOTO.chest; press($('phBleach'), 'bleach', PHOTO.bleach);
+        $('phHelp').textContent = !ph ? `Load a straight-on photo of the ${B.side}, laid flat.` :
+          calibrating ? 'Drag the two gold lines to the armpit seams and the teal line to the bottom of the collar, then tap Done marking.' :
+          'Set the pit-to-pit width you measured, and mark the shirt if the scale looks off.';
+      }
+      function renderCalibration(ph) {
+        const lw = Math.max(4, ph.w / 160);
+        const line = (cls, x1, y1, x2, y2, col) =>
+          `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${lw}"/>` +
+          `<rect class="cal" data-cal="${cls}" x="${x1 === x2 ? x1 - lw * 6 : 0}" y="${y1 === y2 ? y1 - lw * 6 : 0}" width="${x1 === x2 ? lw * 12 : ph.w}" height="${y1 === y2 ? lw * 12 : ph.h}" fill="transparent"/>`;
+        $('tee').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ph.w} ${ph.h}" role="img" aria-label="Mark the shirt">` +
+          `<image ${IMG_SRC}="${ph.src}" x="0" y="0" width="${ph.w}" height="${ph.h}"/>` +
+          line('l', ph.lx, 0, ph.lx, ph.h, '#e8c96a') + line('r', ph.rx, 0, ph.rx, ph.h, '#e8c96a') + line('c', 0, ph.cy, ph.w, ph.cy, '#2e9bad') + '</svg>';
+        teeSvg = $('tee').querySelector('svg');
+        $('selStats').innerHTML = ''; $('bNote').textContent = '';
+      }
+      $('phFile').addEventListener('change', (e) => {
+        const f = e.target.files && e.target.files[0]; e.target.value = '';
+        if (!f) return;
+        const url = URL.createObjectURL(f), img = new Image();
+        img.onload = () => {
+          const k = Math.min(1, 1400 / Math.max(img.width, img.height));
+          const cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+          const g2 = cv.getContext('2d'); g2.fillStyle = '#fff'; g2.fillRect(0, 0, cv.width, cv.height); // transparent PNGs get a white backdrop
+          g2.drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(url);
+          PHOTO[B.side] = { src: cv.toDataURL('image/jpeg', 0.85), w: cv.width, h: cv.height, lx: cv.width * 0.2, rx: cv.width * 0.8, cy: cv.height * 0.13 };
+          if (!PHOTO.front && !PHOTO.back) PHOTO.chest = TEE[B.size][0];
+          calibrating = true;
+          $('phNote').textContent = savePhoto() ? 'Saved on this device only.' : 'This photo is too large to remember after you leave, but it works for now.';
+          renderTee();
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); $('phNote').textContent = 'Couldn’t open that image.'; };
+        img.src = url;
+      });
+      $('phCal').addEventListener('click', () => { calibrating = !calibrating; savePhoto(); renderTee(); });
+      $('phChest').addEventListener('change', (e) => { const v = parseFloat(e.target.value); if (v >= 14 && v <= 36) { PHOTO.chest = v; savePhoto(); renderTee(); } });
+      $('phBleach').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; PHOTO.bleach = b.dataset.bleach; savePhoto(); renderTee(); });
+      $('phClear').addEventListener('click', () => { PHOTO[B.side] = null; calibrating = false; savePhoto(); renderTee(); });
+
       let teeSvg = null;
       function renderTee() {
-        const [chest, len] = TEE[B.size], c = chest / 2, sh = SHIRTS[B.color];
-        const vb = [-(c + 9) * U, -1 * U, (2 * c + 18) * U, (len + 2) * U].map(num).join(' ');
+        renderPhotoCtl();
+        const ph = B.color === 'photo' ? PHOTO[B.side] : null;
+        if (ph && calibrating) return renderCalibration(ph);
+        const [chest, len] = TEE[B.size], c = chest / 2;
+        const sh = B.color === 'photo' ? { base: '#1b1b1d', bleach: PH_BLEACH[PHOTO.bleach] || PH_BLEACH.rust, label: 'Your photo' } : SHIRTS[B.color];
+        let vb = [-(c + 9) * U, -1 * U, (2 * c + 18) * U, (len + 2) * U].map(num).join(' ');
         const items = itemsOn(B.side);
-        const outline = teeD(B.side, B.size);
+        let outline = teeD(B.side, B.size);
+        let R_ = `x="${-(c + 9) * U}" y="${-U}" width="${(2 * c + 18) * U}" height="${(len + 2) * U}"`;
+        let photoImg = '';
+        if (ph) { // real-scale photo: pit-to-pit marks set the scale, the collar mark sets the height
+          const k = (PHOTO.chest * U) / Math.max(1, ph.rx - ph.lx), ix = -((ph.lx + ph.rx) / 2) * k, iy = COLLAR[B.side] * U - ph.cy * k;
+          const iw = ph.w * k, ih = ph.h * k;
+          vb = [ix, iy, iw, ih].map(num).join(' ');
+          R_ = `x="${num(ix)}" y="${num(iy)}" width="${num(iw)}" height="${num(ih)}"`;
+          outline = `M${num(ix)},${num(iy)} h${num(iw)} v${num(ih)} h${num(-iw)} Z`;
+          photoImg = `<image ${IMG_SRC}="${ph.src}" ${R_} preserveAspectRatio="none"/>`;
+        }
         let defs = `<clipPath id="tc"><path d="${outline}"/></clipPath>`;
         defs += `<filter id="veins" x="0" y="0" width="1" height="1"><feTurbulence type="turbulence" baseFrequency="0.009 0.012" numOctaves="5" seed="11"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -6 0 0 0 1.05"/></filter>`;
         defs += `<filter id="cloud" x="0" y="0" width="1" height="1"><feTurbulence type="fractalNoise" baseFrequency="0.0025" numOctaves="3" seed="4"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 2.2 0 0 0 -1.1"/></filter>`;
@@ -953,9 +1146,8 @@
           `<feColorMatrix in="s0" type="matrix" values="-1 0 0 0 1 -1 0 0 0 1 -1 0 0 0 1 0 0 0 0 1" result="sp"/><feComposite in="cl" in2="sp" operator="arithmetic" k1="0" k2="5" k3="2.5" k4="-4.55" result="mx"/>` +
           `<feColorMatrix in="mx" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0" result="m"/><feFlood flood-color="${sh.splat || '#cf874c'}"/><feComposite in2="m" operator="in"/></filter>`;
         defs += `<filter id="halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${0.8 * U}"/></filter>`;
-        const R_ = `x="${-(c + 9) * U}" y="${-U}" width="${(2 * c + 18) * U}" height="${(len + 2) * U}"`;
-        const base = () => `<rect ${R_} fill="${sh.base}"/>`;
-        const wash = () => sh.vein ? `<rect ${R_} fill="${sh.vein}" opacity="0.25" filter="url(#cloud)"/><rect ${R_} fill="${sh.vein}" opacity="0.45" filter="url(#veins)"/>`
+        const base = () => photoImg || `<rect ${R_} fill="${sh.base}"/>`;
+        const wash = () => photoImg ? '' : sh.vein ? `<rect ${R_} fill="${sh.vein}" opacity="0.25" filter="url(#cloud)"/><rect ${R_} fill="${sh.vein}" opacity="0.45" filter="url(#veins)"/>`
           : sh.splat ? `<rect ${R_} fill="#fff" filter="url(#splat)"/>` : '';
         const tex = () => base() + wash();
         // clipPath can't hold <g>, so each path carries its own transform
@@ -1000,8 +1192,8 @@
             (on ? ` stroke="#e8c96a" stroke-width="5" stroke-dasharray="14 10"` : '') + '/>';
         }).join('');
         $('tee').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" role="img" aria-label="${sh.label} ${B.size} tee, ${B.side}"><defs>${defs}</defs>` +
-          `<path d="${outline}" fill="#000" opacity=".12" transform="translate(12 16)"/>${body}` +
-          `<path d="${outline}" fill="none" stroke="#0e1a2e" stroke-opacity=".35" stroke-width="4"/>${grid}${hits}</svg>`;
+          (photoImg ? body : `<path d="${outline}" fill="#000" opacity=".12" transform="translate(12 16)"/>${body}` +
+          `<path d="${outline}" fill="none" stroke="#0e1a2e" stroke-opacity=".35" stroke-width="4"/>`) + `${grid}${hits}</svg>`;
         teeSvg = $('tee').querySelector('svg');
         renderSelection();
       }
@@ -1041,7 +1233,10 @@
         const pt = teeSvg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
         return pt.matrixTransform(teeSvg.getScreenCTM().inverse());
       }
+      let calDrag = null;
       $('tee').addEventListener('pointerdown', (e) => {
+        const cl = e.target.closest('.cal');
+        if (cl) { e.preventDefault(); calDrag = cl.dataset.cal; $('tee').setPointerCapture(e.pointerId); return; }
         const r = e.target.closest('.piece'); if (!r) return;
         const it = B.items.find((i) => i.id === +r.dataset.id); if (!it) return;
         e.preventDefault();
@@ -1051,6 +1246,13 @@
         $('tee').setPointerCapture(e.pointerId);
       });
       $('tee').addEventListener('pointermove', (e) => {
+        if (calDrag) {
+          const ph = PHOTO[B.side], p = svgPoint(e);
+          if (calDrag === 'l') ph.lx = Math.max(0, Math.min(p.x, ph.rx - 20));
+          else if (calDrag === 'r') ph.rx = Math.min(ph.w, Math.max(p.x, ph.lx + 20));
+          else ph.cy = Math.max(0, Math.min(p.y, ph.h));
+          renderCalibration(ph); return;
+        }
         if (!drag) return;
         const p = svgPoint(e), snap = (v) => Math.round(v * 8) / 8;
         drag.it.x = snap(p.x / U - drag.dx); drag.it.y = snap(p.y / U - drag.dy);
@@ -1058,7 +1260,7 @@
         if (Math.abs(drag.it.x + w / 2) < 0.2) drag.it.x = -w / 2; // snap to center
         drag.moved = true; renderTee();
       });
-      const endDrag = () => { drag = null; };
+      const endDrag = () => { drag = null; if (calDrag) { calDrag = null; savePhoto(); } };
       $('tee').addEventListener('pointerup', endDrag); $('tee').addEventListener('pointercancel', endDrag);
 
       const selItem = () => B.items.find((i) => i.id === B.sel);
@@ -1074,8 +1276,8 @@
       });
       $('pCenter').addEventListener('click', () => { const it = selItem(); if (!it) return; it.x = (-inkW(it.piece) * it.s) / 2; renderTee(); });
       $('pRemove').addEventListener('click', () => { B.items = B.items.filter((i) => i.id !== B.sel); B.sel = null; renderTee(); });
-      $('side').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.side = b.dataset.side; B.sel = null; syncShirt(); renderTee(); });
-      $('color').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.color = b.dataset.color; syncShirt(); renderTee(); });
+      $('side').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.side = b.dataset.side; B.sel = null; calibrating = false; syncShirt(); renderTee(); });
+      $('color').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.color = b.dataset.color; calibrating = false; syncShirt(); renderTee(); });
       $('tsize').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.size = b.dataset.size; syncShirt(); renderTee(); });
       $('blook').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.look = b.dataset.look; syncShirt(); renderTee(); });
       $('vinyl').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; B.vinyl = b.dataset.vinyl; syncShirt(); renderTee(); });
@@ -1148,7 +1350,8 @@
         const extra = r.tooWide ? ` One piece is wider than the ${m.label}.` : r.tooLong ? ` The sheet is ${r.h.toFixed(1)}" long, longer than the ${m.label}.` : '';
         saveSvg('shirt-all-pieces-packed.svg', r.text, note).then(() => { if (extra) note.textContent += extra; });
       });
-      function refreshAll() { render(); renderRoute(); renderFiles(); renderTee(); }
+      $('addMs').addEventListener('click', () => { if (mCurrent) addToShirt(pieceFromSvg(svgDoc(mCurrent.r, mCurrent.title), mCurrent.title || 'Milestone', mCurrent.thin), $('mSaveNote')); });
+      function refreshAll() { render(); renderRoute(); renderMs(); renderFiles(); renderTee(); }
 
       if (!PLACES[state.place]) state.place = 'center';
       syncCut(); syncControls(); render(); renderFiles(); syncShirt(); renderTee();

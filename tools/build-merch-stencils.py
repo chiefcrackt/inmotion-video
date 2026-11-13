@@ -89,6 +89,11 @@ def logo_waves():
         polys.append(np.array(pts))
     return polys  # logo units; badge circle centre (588.5, 592), ring r 577.5
 
+def waves_norm():
+    """Logo waves scaled to width 1 (top-left at 0,0), rounded, for the page."""
+    polys = logo_waves(); a = np.vstack(polys); mn = a.min(0); k = 1 / (a.max(0)[0] - mn[0])
+    return [[[round((x - mn[0]) * k, 4), round((y - mn[1]) * k, 4)] for x, y in p] for p in polys]
+
 def fit_polys(polys, width_in, x0, y0):
     a = np.vstack(polys); mn = a.min(0); mx = a.max(0); k = width_in * U / (mx[0] - mn[0])
     return [(p - mn) * k + (x0, y0) for p in polys], (mx - mn) * k
@@ -275,6 +280,7 @@ def main():
     tpl = open(os.path.join(TOOL, 'template.html')).read()
     page = (tpl.replace('/*__GLYPHS__*/null', json.dumps(glyphs, separators=(',', ':')))
                .replace('/*__FILES__*/[]', json.dumps(FILES, ensure_ascii=False, separators=(',', ':')))
+               .replace('/*__WAVES__*/null', json.dumps(waves_norm(), separators=(',', ':')))
                .replace('/*__ROUTE__*/null', json.dumps({**ROUTE, 'preset': {'name': 'PAIN IN MORAINE', 'detail': '100K · SEP 2026', 'points': pim}}, ensure_ascii=False, separators=(',', ':'))))
     open(os.path.join(TOOL, 'index.html'), 'w').write(page)
     for f in FILES: print(f"{f['file']:42s} {f['size'][0]:5.2f} x {f['size'][1]:5.2f} in  thin {f['thin']}")
