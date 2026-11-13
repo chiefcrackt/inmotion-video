@@ -8,6 +8,7 @@ local-transcriber/data/
 .venv-clean-voice/
 local-voice/data/
 local-voice/models/
+local-tagger/data/
 __pycache__/
 motion-studio/render/node_modules/
 motion-studio/render/out/

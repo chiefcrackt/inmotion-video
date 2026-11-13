@@ -3,6 +3,8 @@ import { resolve, dirname } from 'node:path';
 const files = [
   'transcribe-video/index.html',
   'clean-voice/index.html',
+  'video-tagger/index.html',
+  'shared/local-launch.mjs',
   'dashboard-preview/index.html',
   'dashboard-preview/app.mjs',
   'social-post-studio/index.html',

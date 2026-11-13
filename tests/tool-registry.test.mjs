@@ -28,7 +28,7 @@ const EXPECTED_HREFS = [
   'cover-maker/', 'downloads/', 'goals-maker/', 'icon-pack/', 'idea-vault/', 'mile-marker/',
   'motion-stats/', 'motion-studio/', 'product-spotlight/', 'promo-maker/', 'river-run/',
   'shoot-planner/', 'sound-forge/', 'special-post/', 'start-line/', 'stat-counter/',
-  'teleprompter/', 'text-motion/', 'tier-list/', 'title-maker/', 'transcribe-video/',
+  'teleprompter/', 'text-motion/', 'tier-list/', 'title-maker/', 'transcribe-video/', 'video-tagger/',
   'video-framer/', 'weird-motion/',
 ];
 
@@ -68,8 +68,8 @@ test('the spec placements hold: Running Studio and Publishing Studio contents', 
   assert.deepEqual(ids('running'), ['activity-studio', 'mile-marker', 'river-run', 'start-line', 'stat-counter']);
   assert.deepEqual(ids('audio'), ['beat-bed', 'clean-voice', 'sound-forge', 'transcribe-video']);
   assert.deepEqual(ids('publishing'), ['before-after', 'brand-assets', 'carousel-maker', 'content-planner', 'cover-maker', 'goals-maker', 'promo-maker', 'tier-list', 'transcribe-video']);
-  assert.deepEqual(ids('library'), ['asset-studio', 'brand-assets', 'downloads', 'icon-pack', 'motion-stats', 'product-spotlight', 'weird-motion']);
-  assert.deepEqual(ids('plan'), ['content-planner', 'idea-vault', 'shoot-planner', 'teleprompter', 'transcribe-video']);
+  assert.deepEqual(ids('library'), ['asset-studio', 'brand-assets', 'downloads', 'icon-pack', 'motion-stats', 'product-spotlight', 'video-tagger', 'weird-motion']);
+  assert.deepEqual(ids('plan'), ['content-planner', 'idea-vault', 'shoot-planner', 'teleprompter', 'transcribe-video', 'video-tagger']);
 });
 
 test('counts are derived from the registry, and every tool appears in some workspace', () => {
