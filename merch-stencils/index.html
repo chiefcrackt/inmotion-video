@@ -1177,6 +1177,10 @@
         } else if (items.length) {
           const fill = B.look === 'vinyl' ? VINYL[B.vinyl] : sh.bleach;
           body += items.map((it) => designPaths(it, fill)).join('');
+          if (photoImg) { // let the shirt's own texture show through the print
+            defs += `<clipPath id="dp">${items.map((it) => designPaths(it)).join('')}</clipPath>`;
+            body += `<g clip-path="url(#dp)" style="mix-blend-mode:multiply" opacity="${B.look === 'vinyl' ? 0.35 : 0.55}">${photoImg}</g>`;
+          }
         }
         body += '</g>';
         let grid = '';
