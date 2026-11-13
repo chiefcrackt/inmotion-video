@@ -203,6 +203,15 @@ def clock(seconds):
     return f'{h}:{rest // 60:02}:{rest % 60:02}' if h else f'{rest // 60}:{rest % 60:02}'
 
 
+NOISE_PHRASES = {'thank you', 'thank you very much', 'thanks', 'thanks for watching', 'thank you for watching',
+                 'thank you so much for watching', 'bye', 'you', 'please subscribe', 'subscribe'}
+
+
+def noise_phrase(text):
+    """A line Whisper commonly invents over noise or silence."""
+    return re.sub(r'[^a-z ]+', '', text.lower()).strip() in NOISE_PHRASES
+
+
 def transcribe(engine, config, path, vid, meta, show):
     """Run Transcribe Video's transcribe() on the video's audio track; copy its TXT/SRT/JSON out."""
     job_id = 'tagger-' + vid
@@ -247,6 +256,10 @@ def transcribe(engine, config, path, vid, meta, show):
     coverage = spoken / meta['duration_seconds'] if meta['duration_seconds'] else 0
     speech = 'none' if len(words) <= 3 else ('little' if len(words) < 25 or coverage < 0.15 else 'lots')
     text = ' '.join(s['text'] for s in job['segments']).strip()
+    if text and all(noise_phrase(s['text']) for s in job['segments']):
+        # Whisper "hears" stock phrases in wind and footsteps: nothing was really said.
+        job['warnings'].append(f'Only "{text[:60]}" was heard, which Whisper often invents over noise; treated as no speech.')
+        speech, text = 'none', ''
     shutil.rmtree(folder, ignore_errors=True)  # Its working copy of the audio.
     return {'speech': speech, 'transcript': files, 'transcript_text': text, 'word_count': len(words),
             'language': job.get('language'), 'transcribed_on': job.get('device'), 'whisper_model': job.get('model'),
@@ -336,6 +349,15 @@ def tag(config, tags, hints, path, entry, images):
         elif t not in tags:  # Not in tags.json: it becomes "other".
             other_note = other_note or str(t)
             if 'other' not in chosen: chosen.append('other')
+    # The model sometimes writes one of the allowed tags as its "other" label ("race recap" for
+    # "race recap / DNF"): use that tag instead.
+    note = re.sub(r'[^a-z0-9/& ]+', '', other_note.lower()).strip(' /')
+    match = next((t for t in tags if t != 'other' and note and
+                  (note == t.lower() or t.lower().startswith(note + ' ') or note.startswith(t.lower()))), None)
+    if match:
+        if match not in chosen: chosen.append(match)
+        other_note = ''
+        if 'other' in chosen: chosen.remove('other')
     if other_note and 'other' not in chosen: chosen.append('other')
     if entry['speech'] == 'none' and 'B-roll' in tags and 'B-roll' not in chosen:
         chosen.append('B-roll')  # No speech at all: B-roll by definition.
@@ -363,6 +385,17 @@ def tag(config, tags, hints, path, entry, images):
 
 # ---------- run ----------
 
+def transcribed_from(entry, fp):
+    """A library entry turned back into a step-1 result, for --retag."""
+    text = '' if entry['speech'] == 'none' else Path(entry['transcript']['txt']).read_text(encoding='utf-8').strip()
+    reasons = entry.get('review_reasons') or []
+    keep = ('duration', 'duration_seconds', 'orientation', 'aspect_ratio', 'resolution', 'fps', 'recorded_date',
+            'recorded_date_source', 'speech', 'transcript', 'word_count', 'language')
+    return {**fp, **{k: entry.get(k) for k in keep}, 'transcript_text': text,
+            'transcribed_on': 'cpu' if any('CPU' in r for r in reasons) else 'cuda',
+            'transcript_warnings': [r for r in reasons if 'skipped speech' in r]}
+
+
 def pick_folder():
     import tkinter
     from tkinter import filedialog
@@ -378,6 +411,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('folder', nargs='?', help='folder of videos (subfolders included)')
     parser.add_argument('--home', default=str(DEFAULT_HOME), help=f'data folder (default {DEFAULT_HOME})')
+    parser.add_argument('--retag', action='store_true',
+                        help='tag and describe videos already in the library again (after editing tags.json), '
+                             'using their saved transcripts')
     args = parser.parse_args()
     set_home(args.home)
     HOME.mkdir(parents=True, exist_ok=True)
@@ -405,11 +441,18 @@ def main():
     by_path = {v['full_path']: v for v in library['videos']}
     state = read_json(STATE, {})
     todo, skipped = [], 0
+    retagging = 0
     for path in videos:
         fp = fingerprint(path.resolve())
-        if fp['full_path'] in by_path and same(by_path[fp['full_path']], fp): skipped += 1
+        entry = by_path.get(fp['full_path'])
+        if entry and same(entry, fp) and args.retag and Path(entry['transcript']['txt']).exists():
+            # Tag again from the saved transcript: step 1 sees it as already transcribed.
+            state[fp['full_path']] = transcribed_from(entry, fp)
+            todo.append((path.resolve(), fp)); retagging += 1
+        elif entry and same(entry, fp): skipped += 1
         else: todo.append((path.resolve(), fp))
-    say(f'{len(videos)} videos found: {len(todo)} new or changed, {skipped} already done and unchanged.')
+    say(f'{len(videos)} videos found: {len(todo) - retagging} new or changed, '
+        + (f'{retagging} to tag again, ' if args.retag else '') + f'{skipped} already done and unchanged.')
     failed, reviewed, done = [], 0, 0
     if not todo:
         return summary(done, skipped, failed, reviewed)
@@ -507,6 +550,7 @@ def write_ai_file():
             text = Path(v['transcript']['txt']).read_text(encoding='utf-8').strip()
         except (OSError, KeyError, TypeError):
             text = v.get('transcript_excerpt', '')
+        if v.get('speech') == 'none': text = ''  # Includes noise Whisper wrote down as "Thank you."
         tags = ', '.join(v.get('tags') or []) + (f" (other: {v['other_note']})" if v.get('other_note') else '')
         out += [f"## {n}. {v['file_name']}", '',
                 f"- Recorded: {(v.get('recorded_date') or '')[:10]}",

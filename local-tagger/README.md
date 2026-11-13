@@ -68,14 +68,28 @@ Edit `tags.json` in the data folder (`D:\VideoTagger\tags.json`). It's a plain l
 
 The model may only use these tags. Anything that doesn't fit becomes `"other"`,
 with a short suggested label in `other_note`, which is a good hint for a tag to add.
-A tag can carry a hint to help the model:
+A tag can carry a hint saying what it means. Use one for any tag the model
+can't guess from its name; new tags are often ignored without one:
 
 ```json
-[{"tag": "Hooper", "hint": "describe who or what Hooper is here"}, "race", "other"]
+[{"tag": "race recap / DNF", "hint": "talks about how a past race went: the result, a DNF, or what went wrong"}, "race", "other"]
 ```
 
-Existing entries keep their old tags. To re-tag a video, remove its entry from
-`library.json` (or delete `library.json` to redo everything) and run again.
+If the model writes one of your tags as its "other" label, the video gets that
+tag instead.
+
+Existing entries keep their old tags. After editing `tags.json`, tag them again
+from their saved transcripts (no new transcription, about 3 seconds a video):
+
+```
+"local-tagger\Start Video Tagger.cmd" "D:\VIDEO CONTENT" --retag
+```
+
+To transcribe a video again too (for example after changing `vocabulary`),
+remove its entry from `library.json` and run normally.
+
+When a video's only "speech" is a phrase Whisper tends to invent over wind or
+footsteps ("Thank you.", "Thanks for watching!"), its speech level is `none`.
 
 ## Settings (`config.json` in the data folder)
 
@@ -86,7 +100,7 @@ Existing entries keep their old tags. To re-tag a video, remove its entry from
 | `device` | `auto` | `auto` (GPU, CPU if it fails), `cuda` or `cpu` |
 | `clean_voice` | `off` | `off`, `light`, `medium`, `strong`, `isolate` (Clean Voice first: slower) |
 | `precise_word_timing` | `true` | Pin word times to the audio (needs Clean Voice installed) |
-| `vocabulary` | `Hooper, RRC` | Spelling hint for Whisper |
+| `vocabulary` | `Hooper, RRC` | Spelling hint for Whisper: names it should spell your way (races, people, places) |
 | `ollama_model` | `qwen2.5vl:7b` | Local model for tags and descriptions |
 | `frames_for_low_speech` | `5` | Frames shown to the model for videos with little or no speech (0 = none) |
 | `frames_for_speech` | `3` | Frames shown to the model for videos with lots of speech (0 = transcript only) |
