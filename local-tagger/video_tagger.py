@@ -491,12 +491,47 @@ def main():
     summary(done, skipped, failed, reviewed)
 
 
+def write_ai_file():
+    """library-for-ai.md: every video's details, tags, description and full transcript in one
+    file to paste into or attach to ChatGPT or Claude. Rebuilt from library.json each run."""
+    videos = read_json(LIBRARY, {'videos': []})['videos']
+    if not videos: return None
+    total = sum(v.get('duration_seconds') or 0 for v in videos)
+    out = [f'# Video library ({len(videos)} videos, {clock(total)} in total)', '',
+           'Each video below has its file name, details, tags, a short description and the full transcript. '
+           'Tags come from a fixed list; "other" means none fit, with a suggested label. '
+           'Videos marked "(no speech)" are B-roll or footage without talking.', '']
+    for n, v in enumerate(videos, 1):
+        text = ''
+        try:
+            text = Path(v['transcript']['txt']).read_text(encoding='utf-8').strip()
+        except (OSError, KeyError, TypeError):
+            text = v.get('transcript_excerpt', '')
+        tags = ', '.join(v.get('tags') or []) + (f" (other: {v['other_note']})" if v.get('other_note') else '')
+        out += [f"## {n}. {v['file_name']}", '',
+                f"- Recorded: {(v.get('recorded_date') or '')[:10]}",
+                f"- Length: {v.get('duration')}, {v.get('orientation')} ({v.get('aspect_ratio')})",
+                f"- Folder: {v.get('folder')}",
+                f"- Speech: {v.get('speech')}",
+                f'- Tags: {tags}',
+                f"- Description: {v.get('description')}"]
+        if v.get('needs_review'): out.append('- Needs review: ' + '; '.join(v.get('review_reasons') or []))
+        out += ['', '### Transcript', '', text if text else '(no speech)', '']
+    path = HOME / 'library-for-ai.md'
+    temp = path.with_name(path.name + '.tmp')
+    temp.write_text('\n'.join(out), encoding='utf-8')
+    os.replace(temp, path)
+    return path
+
+
 def summary(done, skipped, failed, reviewed):
+    ai_file = write_ai_file()
     say(f'\nFinished {now()}: {done} done, {skipped} skipped (unchanged), {len(failed)} failed, {reviewed} need review.')
     for name, why in failed:
         say(f'  failed: {name} – {why}')
     if failed: say('Run it again to retry the failed videos; finished ones are kept.')
     say(f'Library: {LIBRARY}')
+    if ai_file: say(f'For AI (titles, tags, descriptions, full transcripts in one file): {ai_file}')
 
 
 if __name__ == '__main__':

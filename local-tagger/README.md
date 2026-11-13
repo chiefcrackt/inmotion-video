@@ -91,6 +91,17 @@ Existing entries keep their old tags. To re-tag a video, remove its entry from
 | `frames_for_low_speech` | `5` | Frames shown to the model for videos with little or no speech (0 = none) |
 | `frames_for_speech` | `3` | Frames shown to the model for videos with lots of speech (0 = transcript only) |
 
+## One file for AI: library-for-ai.md
+
+After every run, Video Tagger also writes `library-for-ai.md` in the data folder:
+every video in the library, oldest first, with its file name, recorded date,
+length, orientation, folder, speech level, tags, description and **full
+transcript**, in one Markdown file. Paste it into ChatGPT or Claude, or attach
+it, and ask things like "which clips talk about Oil Creek?" or "plan a video
+from these takes". It's rebuilt from `library.json` each time, so don't edit it
+by hand. Spoken words run about 150 a minute, so 40 five-minute videos come to
+roughly 30,000 words.
+
 ## library.json fields
 
 `library.json` is `{"version": 1, "generated": <date>, "videos": [...]}`, with
@@ -136,6 +147,7 @@ after that, edit the copies in the data folder. Settings missing from your
 `config.json` use the defaults.
 
 - `library.json`: the results
+- `library-for-ai.md`: every video's details, tags, description and full transcript in one file for AI
 - `tags.json`, `config.json`: your tags and settings
 - `transcripts\`: transcript files
 - `work\`: temporary audio and frames, plus `state.json` (videos transcribed but

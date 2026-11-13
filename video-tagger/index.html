@@ -22,7 +22,7 @@
 <body><tim-studio-bar></tim-studio-bar><main>
   <div class="eyebrow">PLAN / LOCAL TOOL</div>
   <h1>Video Tagger</h1>
-  <p>Go through a whole folder of footage on your PC: transcribe every video, tag it and describe it, all saved in one <code>library.json</code>.</p>
+  <p>Go through a whole folder of footage on your PC: transcribe every video, tag it and describe it, all saved in one <code>library.json</code>. It also writes <code>library-for-ai.md</code>: every video’s name, tags, description and full transcript in one file to give to ChatGPT or Claude.</p>
   <aside class="computer-warning" role="note" aria-label="Computer only">
     <strong>Computer only — local launcher required</strong>
     <p>This tool does not work on phones or tablets. It runs on the Windows computer with Transcribe Video and Ollama installed.</p>
@@ -47,6 +47,7 @@
       <li><strong>Tags</strong>Only from your tag list. Anything else becomes “other” with a suggested label.</li>
       <li><strong>Description</strong>One or two plain sentences: what’s said, then what’s on screen.</li>
       <li><strong>Needs review</strong>Flagged when the model is unsure, with the reason.</li>
+      <li><strong>One file for AI</strong>Names, tags, descriptions and full transcripts of the whole library in <code>library-for-ai.md</code>.</li>
     </ul>
   </section>
   <section>
