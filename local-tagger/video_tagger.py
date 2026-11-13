@@ -297,7 +297,37 @@ def clip_transcript(text, limit=6000):
     return text[:third] + ' […] ' + text[middle - third // 2:middle + third // 2] + ' […] ' + text[-third:]
 
 
+def ask(config, system, content, images, schema):
+    message = {'role': 'user', 'content': content}
+    if images: message['images'] = images
+    reply = ollama(config, '/api/chat', {'model': config['ollama_model'], 'stream': False,
+                                         'messages': [{'role': 'system', 'content': system}, message],
+                                         'format': schema, 'keep_alive': '10m',
+                                         'options': {'temperature': 0, 'num_ctx': 8192}})
+    try:
+        return json.loads(reply['message']['content'])
+    except (KeyError, ValueError):
+        raise RuntimeError('The model did not return valid tags: ' + str(reply)[:300])
+
+
+def seen_in_frames(config, visual, hints, images):
+    """Second, separate question: which on-screen tags do the frames clearly show? Asked apart
+    from the topic tags so a small model doesn't trade one kind for the other."""
+    # One yes/no per label: asked to pick from a list, a small model names a few obvious things and
+    # skips the rest (a bridge in every frame went untagged).
+    lines = '\n'.join(f'- "{t}": {hints[t][len("on screen:"):].strip()}' for t in visual)
+    system = ("You check frames from a runner's video. Reply with JSON only. For each label, answer true if the "
+              "frames clearly show it, false if they don't or you can't tell. Look at every frame.\n"
+              f"Labels:\n{lines}")
+    answer = ask(config, system, f'{len(images)} frames from across one video, in order.', images,
+                 {'type': 'object', 'properties': {t: {'type': 'boolean'} for t in visual}, 'required': visual})
+    return [t for t in visual if answer.get(t) is True]
+
+
 def tag(config, tags, hints, path, entry, images):
+    # Tags whose hint starts "on screen" are what the frames show; the rest are what the video is about.
+    visual = [t for t in tags if hints.get(t, '').lower().startswith('on screen')]
+    all_tags, tags = tags, [t for t in tags if t not in visual]
     tag_lines = '\n'.join(f'- {t}' + (f': {hints[t]}' if t in hints else '') for t in tags)
     facts = (f"File: {path.name}\nFolder: {path.parent.name}\nLength: {entry['duration']}\n"
              f"Orientation: {entry['orientation']} ({entry['aspect_ratio']})\nSpeech: {entry['speech']}")
@@ -314,8 +344,8 @@ def tag(config, tags, hints, path, entry, images):
         "You catalogue a runner's video library. Reply with JSON only.\n"
         f"Allowed tags:\n{tag_lines}\n\n"
         "Rules:\n"
-        "- tags: the 1 to 4 allowed tags that best fit the video's main content. Do not add a tag just because "
-        "something appears in the background.\n"
+        "- tags: the 1 to 4 allowed tags that best fit what the video is about. Only tag what the transcript "
+        "says or the frames clearly show; don't guess.\n"
         '- Use "other" only when the main content fits none of the allowed tags. Then other_note is a 1-3 word '
         'label for a new tag (for example "drone shot" or "injury update"). Otherwise other_note is "".\n'
         + ('- "talking to camera": use it when someone speaks and the frames show them facing the camera '
@@ -333,16 +363,7 @@ def tag(config, tags, hints, path, entry, images):
         'other_note': {'type': 'string'},
         'confidence': {'type': 'string', 'enum': ['high', 'medium', 'low']}},
         'required': ['topic', 'scene', 'tags', 'other_note', 'confidence']}
-    message = {'role': 'user', 'content': facts}
-    if images: message['images'] = images
-    reply = ollama(config, '/api/chat', {'model': config['ollama_model'], 'stream': False,
-                                         'messages': [{'role': 'system', 'content': rules}, message],
-                                         'format': schema, 'keep_alive': '10m',
-                                         'options': {'temperature': 0, 'num_ctx': 8192}})
-    try:
-        answer = json.loads(reply['message']['content'])
-    except (KeyError, ValueError):
-        raise RuntimeError('The model did not return valid tags: ' + str(reply)[:300])
+    answer = ask(config, rules, facts, images, schema)
     chosen, other_note = [], str(answer.get('other_note', '')).strip()
     for t in answer.get('tags', []):
         if t in tags and t not in chosen: chosen.append(t)
@@ -352,17 +373,20 @@ def tag(config, tags, hints, path, entry, images):
     # The model sometimes writes one of the allowed tags as its "other" label ("race recap" for
     # "race recap / DNF"): use that tag instead.
     note = re.sub(r'[^a-z0-9/& ]+', '', other_note.lower()).strip(' /')
-    match = next((t for t in tags if t != 'other' and note and
+    match = next((t for t in all_tags if t != 'other' and note and
                   (note == t.lower() or t.lower().startswith(note + ' ') or note.startswith(t.lower()))), None)
     if match:
         if match not in chosen: chosen.append(match)
         other_note = ''
         if 'other' in chosen: chosen.remove('other')
     if other_note and 'other' not in chosen: chosen.append('other')
+    chosen = chosen[:5]
     if entry['speech'] == 'none' and 'B-roll' in tags and 'B-roll' not in chosen:
         chosen.append('B-roll')  # No speech at all: B-roll by definition.
     if entry['speech'] == 'none' and 'talking to camera' in chosen:
         chosen.remove('talking to camera')  # Nobody talks in it.
+    if visual and images:
+        chosen += [t for t in seen_in_frames(config, visual, hints, images) if t not in chosen]
     reasons = []
     if 'other' in chosen and not other_note: other_note = 'unlabelled'
     if 'other' not in chosen: other_note = ''

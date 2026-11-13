@@ -78,6 +78,19 @@ can't guess from its name; new tags are often ignored without one:
 If the model writes one of your tags as its "other" label, the video gets that
 tag instead.
 
+**On-screen tags.** Start a tag's hint with `on screen:` for things you'd see
+in B-roll rather than what the video is about (woods, bridge, group run,
+stretching):
+
+```json
+{"tag": "bridge", "hint": "on screen: crossing or standing on a bridge"}
+```
+
+These are checked separately: the model looks at the video's frames and answers
+yes or no for each one, so it doesn't skip any or trade them off against the
+topic tags. A video can have several. The other tags (what it's about) are
+picked from the transcript and frames, up to 5.
+
 Existing entries keep their old tags. After editing `tags.json`, tag them again
 from their saved transcripts (no new transcription, about 3 seconds a video):
 
