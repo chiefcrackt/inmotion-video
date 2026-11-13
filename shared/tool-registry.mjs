@@ -53,6 +53,15 @@ export const TOOLS = Object.freeze([
     icon: 'title',
   },
   {
+    id: 'merch-stencils',
+    name: 'Merch Stencils',
+    href: 'merch-stencils/',
+    description: 'Cricut cut files for bleach-stencil shirts: [name].inmotion maker, mottos, distance ladder, badge and waves. SVGs at true size.',
+    workspaces: ['library'],
+    keywords: ['merch', 'shirt', 'tee', 'stencil', 'bleach', 'cricut', 'svg', 'cut file', 'vinyl', 'inmotion', 'apparel'],
+    icon: 'scissors',
+  },
+  {
     id: 'content-planner',
     featured: true,
     quick: true,

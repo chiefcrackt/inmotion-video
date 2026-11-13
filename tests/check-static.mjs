@@ -59,6 +59,7 @@ const files = [
   'motion-studio/app.mjs',
   'motion-studio/model.mjs',
   'video-framer/index.html',
+  'merch-stencils/index.html',
 ];
 for (const file of files) {
   const text = await readFile(file, 'utf8');

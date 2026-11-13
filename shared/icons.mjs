@@ -48,6 +48,7 @@ const PATHS = {
   search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   library: '<path d="M4 4h4v16H4zM10 4h4v16h-4z"/><path d="M16 6l4 1-3 13-4-1z"/>',
+  scissors: '<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M8.2 14.8L19 3M15.8 14.8L5 3"/>',
 };
 
 export const ICON_NAMES = Object.freeze(Object.keys(PATHS));

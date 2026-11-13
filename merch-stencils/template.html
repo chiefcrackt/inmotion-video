@@ -1,0 +1,413 @@
+<!doctype html>
+<!-- Built by tools/build-merch-stencils.py from merch-stencils/template.html. Edit the template, then rebuild. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="../favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+    <meta name="theme-color" content="#0E1A2E" />
+    <title>Merch Stencils · T.IM Studio</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="../shared/fonts.css?v=70017a07" />
+    <link rel="stylesheet" href="../shared/responsive.css?v=bb296b12" />
+    <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" />
+    <script type="module" src="../shared/studio-bar.mjs?v=9498deac"></script>
+    <script src="../shared/save.js?v=39954a84"></script>
+    <style>
+      :root {
+        --navy: #0e1a2e;
+        --panel: #13233d;
+        --panel-2: #1a2d4b;
+        --line: #25395c;
+        --gold: #e8c96a;
+        --teal: #2e9bad;
+        --paper: #f6f4ef;
+        --muted: #9fb0c8;
+        --warn: #f0a35e;
+        --shirt: #17181b;
+        --bleach: #c06a3a;
+        --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+        --body: 'Barlow', 'Helvetica Neue', Arial, sans-serif;
+        color-scheme: dark;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--navy); color: var(--paper); font: 16px/1.5 var(--body); }
+      [hidden] { display: none !important; }
+      button, input { font: inherit; }
+      button {
+        min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line);
+        background: var(--panel-2); color: var(--paper); font-weight: 700; cursor: pointer;
+      }
+      button.primary { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+      .seg button[aria-pressed='true'] { background: var(--teal); border-color: var(--teal); color: var(--navy); }
+      main { max-width: 1180px; margin: 0 auto; padding: 16px 16px 64px; display: grid; gap: 36px; }
+      h1, h2, h3 { font-family: var(--display); text-transform: uppercase; margin: 0; line-height: 1.05; }
+      h1 { font-weight: 900; font-size: clamp(32px, 7vw, 48px); }
+      h2 { font-weight: 900; font-size: 24px; letter-spacing: .03em; padding-bottom: 8px; border-bottom: 2px solid var(--gold); margin-bottom: 14px; }
+      h3 { font-weight: 700; font-size: 17px; letter-spacing: .08em; color: var(--gold); }
+      .eyebrow { font: 700 14px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); margin: 0 0 6px; }
+      p { margin: 0 0 10px; max-width: 68ch; }
+      .muted { color: var(--muted); }
+      .small { font-size: 14px; }
+
+      /* Name maker: preview left, controls right; one column under 860px */
+      .studio { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; }
+      @media (max-width: 860px) { .studio { grid-template-columns: minmax(0, 1fr); } }
+      .shirt { background: var(--shirt); border-radius: 12px; padding: 22px; display: grid; place-items: center; min-height: 180px; overflow: hidden; }
+      .shirt svg { width: 100%; height: auto; max-height: 56vh; display: block; }
+      .stats { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); margin-top: 10px; }
+      .stats b { color: var(--paper); font-variant-numeric: tabular-nums; }
+      .note { font-size: 14px; color: var(--muted); min-height: 1.4em; margin: 8px 0 0; }
+      .note.warn { color: var(--warn); }
+      .controls { display: grid; gap: 12px; }
+      fieldset { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 12px; margin: 0; display: grid; gap: 10px; min-width: 0; }
+      legend { font: 700 13px var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); padding: 0 6px; }
+      label.field { display: grid; gap: 4px; color: var(--muted); font-size: 14px; }
+      input[type='text'], input[type='number'] {
+        background: var(--navy); color: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+        padding: 8px 12px; font-weight: 600; font-size: 18px; min-height: 46px; width: 100%;
+      }
+      .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+      .seg button { flex: 1 1 auto; }
+      .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+
+      /* Library */
+      .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+      .files { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+      .file { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; }
+      .thumb { background: var(--paper); border-radius: 8px; padding: 14px; display: grid; place-items: center; height: 170px; }
+      .thumb svg { max-width: 100%; max-height: 142px; width: auto; height: auto; }
+      .file h3 { margin: 12px 0 4px; }
+      .file p { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+      .file .meta { font-size: 13px; color: var(--muted); margin-top: auto; }
+      .file .meta b { color: var(--paper); }
+      .file .row { margin-top: 10px; }
+      .file .status { font-size: 13px; color: var(--muted); }
+
+      /* Guide */
+      .looks { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+      .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+      .pick { font: 700 12px var(--display); letter-spacing: .1em; text-transform: uppercase; background: var(--gold); color: var(--navy); padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+      details { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 0 16px; }
+      details + details { margin-top: 10px; }
+      summary { cursor: pointer; font: 700 18px var(--display); letter-spacing: .06em; text-transform: uppercase; min-height: 48px; display: flex; align-items: center; }
+      details[open] { padding-bottom: 14px; }
+      ol, ul { margin: 0; padding-left: 22px; max-width: 68ch; }
+      li { margin: 0 0 8px; }
+    </style>
+  </head>
+  <body>
+    <tim-studio-bar></tim-studio-bar>
+    <main>
+      <header>
+        <p class="eyebrow">T.im / merch</p>
+        <h1>Merch Stencils</h1>
+        <p class="muted" style="margin-top:8px">
+          Cricut cut files for bleach-stencil shirts. Each one imports at true size, uses Barlow Condensed or the traced
+          waves, and is cut from adhesive vinyl, so don't mirror it.
+        </p>
+      </header>
+
+      <section aria-labelledby="maker-h">
+        <h2 id="maker-h">Name maker</h2>
+        <div class="studio">
+          <div>
+            <div class="shirt" id="shirt" aria-label="Shirt preview"></div>
+            <div class="stats">
+              <span>Size <b id="sz">–</b></span>
+              <span>Thinnest line <b id="stem">–</b></span>
+              <span>Weight <b id="wt">–</b></span>
+            </div>
+            <p class="note" id="note"></p>
+          </div>
+          <div class="controls">
+            <fieldset>
+              <legend>Text</legend>
+              <label class="field">Name (leave blank for .inmotion)
+                <input id="name" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="tristan" maxlength="24" />
+              </label>
+              <div class="seg" id="layout" role="group" aria-label="Layout">
+                <button type="button" data-layout="line" aria-pressed="true">One line</button>
+                <button type="button" data-layout="stack" aria-pressed="false">Stacked</button>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Size</legend>
+              <div class="seg" id="place" role="group" aria-label="Placement">
+                <button type="button" data-place="center" aria-pressed="true">Center chest</button>
+                <button type="button" data-place="left" aria-pressed="false">Left chest</button>
+                <button type="button" data-place="back" aria-pressed="false">Full back</button>
+              </div>
+              <label class="field">Width (inches)
+                <input id="width" type="number" min="2" max="14" step="0.25" value="9" inputmode="decimal" />
+              </label>
+            </fieldset>
+            <fieldset>
+              <legend>Preview</legend>
+              <div class="seg" id="look" role="group" aria-label="Look">
+                <button type="button" data-look="dark" aria-pressed="true">Dark design</button>
+                <button type="button" data-look="light" aria-pressed="false">Light design</button>
+              </div>
+            </fieldset>
+            <div class="row" style="margin-top:0">
+              <button class="primary" id="save" type="button">Save SVG</button>
+              <span class="small muted" id="saveNote" aria-live="polite"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="lib-h">
+        <h2 id="lib-h">Stencil library</h2>
+        <div class="chips seg" id="filter" role="group" aria-label="Filter">
+          <button type="button" data-group="all" aria-pressed="true">All</button>
+          <button type="button" data-group="front" aria-pressed="false">Front</button>
+          <button type="button" data-group="back" aria-pressed="false">Back</button>
+          <button type="button" data-group="small" aria-pressed="false">Small marks</button>
+        </div>
+        <div class="files" id="files"></div>
+      </section>
+
+      <section aria-labelledby="guide-h">
+        <h2 id="guide-h">Which look?</h2>
+        <div class="looks">
+          <div class="card">
+            <h3>Dark design <span class="pick">Start here</span></h3>
+            <p style="margin-top:8px">The vinyl covers the design and you bleach around it. The design stays the shirt color inside an acid-wash spray.</p>
+            <ul class="muted small">
+              <li>The splatter is the background, so it pairs with the acid wash look.</li>
+              <li>Forgiving: bleach creeping under an edge only nibbles the letters.</li>
+              <li>Weed away everything except the design.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Light design</h3>
+            <p style="margin-top:8px">The design is cut out of a sheet of vinyl and bleach only reaches the letters, so they come out lighter than the shirt.</p>
+            <ul class="muted small">
+              <li>Cleanest on a solid dark shirt; gets lost on a busy acid wash.</li>
+              <li>Cover everything around the sheet too (paper or plastic).</li>
+              <li>Weed out the design and keep the surrounding sheet.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="muted small" style="margin-top:12px">Same cut file either way. Only the weeding changes.</p>
+
+        <details style="margin-top:18px">
+          <summary>What to get</summary>
+          <ul>
+            <li><b>100% cotton</b> in black, navy or charcoal. Polyester and most blends barely change. Black usually bleaches to rust or orange; navy to pink or tan.</li>
+            <li><b>Permanent adhesive vinyl</b> (like Oracal 651): it grips fabric better than removable vinyl. Plus transfer tape.</li>
+            <li>Regular bleach, a fine-mist spray bottle, and gel bleach (like Clorox gel) for crisp brushed edges.</li>
+            <li>Cardboard to slip inside the shirt, gloves, eye protection.</li>
+            <li>Hydrogen peroxide or a bleach neutralizer (Bleach Stop / anti-chlor).</li>
+          </ul>
+        </details>
+        <details>
+          <summary>How to make one</summary>
+          <ol>
+            <li>Prewash and dry the shirt with no fabric softener.</li>
+            <li>Upload the SVG in Design Space and check the size before cutting. Cut on the vinyl setting, not mirrored.</li>
+            <li>Weed for the look you picked and lift it with transfer tape. The dots and periods come along on the tape.</li>
+            <li>Cardboard inside the shirt. Smooth the vinyl on and burnish every edge hard. Most bleed starts at a lifted edge.</li>
+            <li>Outdoors or with good airflow, mist bleach (about 1 part bleach to 1 part water) from about a foot away, and flick drops off a brush for splatter. Go light: it keeps darkening for a few minutes.</li>
+            <li>When the color looks right (usually 5–15 minutes), peel the vinyl and rinse in cold water right away.</li>
+            <li>Soak in water with a splash of hydrogen peroxide, or use the neutralizer as directed. Then wash the shirt on its own.</li>
+          </ol>
+          <p class="muted small">Never mix bleach with vinegar, ammonia or other cleaners. Test on an old shirt first: every shirt bleaches to a different color.</p>
+        </details>
+        <details>
+          <summary>Line thickness</summary>
+          <p>Bleach wicks a little under the vinyl, so very thin lines blur or fill in. Each file lists its thinnest line. Around 0.16" or more is comfortable; below about 0.12", make it bigger or brush gel bleach on instead of spraying.</p>
+        </details>
+      </section>
+    </main>
+
+    <script>
+      const GLYPHS = /*__GLYPHS__*/null;
+      const FILES = /*__FILES__*/[];
+      const U = 100, MARGIN = 0.25;
+      const PLACES = { center: { w: 9, weight: 'Bold' }, left: { w: 4, weight: 'Black' }, back: { w: 11, weight: 'Bold' } };
+      const STORE = 'tim-merch-stencils';
+      const $ = (id) => document.getElementById(id);
+
+      const state = { name: '', layout: 'line', place: 'center', width: 9, look: 'dark', group: 'all' };
+      try { Object.assign(state, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch (e) {}
+      function remember() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
+
+      const cleanName = (v) => v.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      const num = (n) => (Math.round(n * 100) / 100).toString();
+
+      // Bake a glyph path (font units, y down) into absolute SVG units.
+      function bake(d, s, ox, oy) {
+        const toks = d.match(/[MLHVQCZ]|-?\d*\.?\d+(?:e-?\d+)?/gi) || [];
+        const out = []; let cmd = '', i = 0;
+        while (i < toks.length) {
+          const t = toks[i];
+          if (/^[A-Za-z]$/.test(t)) { cmd = t.toUpperCase(); out.push(cmd); i++; continue; }
+          if (cmd === 'H') { out.push(num(+t * s + ox)); i++; }
+          else if (cmd === 'V') { out.push(num(+t * s + oy)); i++; }
+          else { out.push(num(+toks[i] * s + ox) + ',' + num(+toks[i + 1] * s + oy)); i += 2; }
+        }
+        return out.join(' ');
+      }
+
+      function measureLine(text, table, track) {
+        let x = 0, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+        const parts = [];
+        [...text].forEach((ch, i) => {
+          const g = table.glyphs[ch];
+          if (g.bb) {
+            x0 = Math.min(x0, x + g.bb[0]); x1 = Math.max(x1, x + g.bb[2]);
+            y0 = Math.min(y0, g.bb[1]); y1 = Math.max(y1, g.bb[3]);
+            parts.push([g.d, x]);
+          }
+          x += g.adv + (i < text.length - 1 ? track * table.upm : 0);
+        });
+        return { parts, x0, x1, y0, y1 };
+      }
+
+      // Lines share one em size; the widest line's ink is widthIn wide.
+      function layoutText(lines, weight, widthIn, track, gapEm) {
+        const table = GLYPHS[weight];
+        const ms = lines.map((t) => measureLine(t, table, track));
+        const widest = Math.max(...ms.map((m) => m.x1 - m.x0));
+        const s = (widthIn * U) / widest;
+        let y = MARGIN * U; const ds = [];
+        ms.forEach((m) => {
+          const ox = MARGIN * U - m.x0 * s, oy = y - m.y0 * s;
+          m.parts.forEach(([d, gx]) => ds.push(bake(d, s, ox + gx * s, oy)));
+          y += (m.y1 - m.y0) * s + gapEm * table.upm * s;
+        });
+        y -= gapEm * table.upm * s;
+        const em = (s * table.upm) / U;
+        return { d: ds.join(' '), W: widthIn + 2 * MARGIN, H: y / U + MARGIN, inkH: y / U - MARGIN, em, stem: table.stem * em };
+      }
+
+      function svgDoc(r, title) {
+        return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${r.W.toFixed(3)}in" height="${r.H.toFixed(3)}in" viewBox="0 0 ${num(r.W * U)} ${num(r.H * U)}">\n` +
+          `<title>${title}</title>\n<path fill="#000" d="${r.d}"/>\n</svg>\n`;
+      }
+
+      function shirtSvg(r, look) {
+        const W = r.W * U, H = r.H * U;
+        let bg = '';
+        if (look === 'dark') {
+          let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+          bg = '<rect width="100%" height="100%" style="fill:var(--bleach)" opacity=".55"/>';
+          for (let i = 0; i < 260; i++) {
+            bg += `<circle cx="${(rnd() * W).toFixed(1)}" cy="${(rnd() * H).toFixed(1)}" r="${(2 + rnd() * 14).toFixed(1)}" style="fill:var(--bleach)" opacity="${(0.35 + rnd() * 0.5).toFixed(2)}"/>`;
+          }
+        }
+        const fill = look === 'dark' ? 'var(--shirt)' : 'var(--bleach)';
+        return `<svg viewBox="0 0 ${num(W)} ${num(H)}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${look} design preview">${bg}<path style="fill:${fill}" d="${r.d}"/></svg>`;
+      }
+
+      let current = null;
+      function render() {
+        const weight = PLACES[state.place].weight;
+        const track = weight === 'Black' ? 0.05 : 0.04;
+        const lines = state.layout === 'stack' && state.name ? [state.name, '.inmotion'] : [state.name + '.inmotion'];
+        const r = layoutText(lines, weight, state.width, track, 0.14);
+        current = { r, title: (state.name || '') + '.inmotion' };
+        $('shirt').innerHTML = shirtSvg(r, state.look);
+        $('sz').textContent = `${num(state.width)}" × ${r.inkH.toFixed(2)}"`;
+        $('stem').textContent = `${r.stem.toFixed(2)}"`;
+        $('wt').textContent = weight === 'Black' ? 'Black (900)' : 'Bold (700)';
+        const n = $('note');
+        if (r.stem < 0.12) {
+          n.className = 'note warn';
+          n.textContent = 'Too thin for spraying: bleach will blur these lines. ' +
+            (state.layout === 'line' && state.name ? 'Try Stacked, make it wider, or brush on gel bleach.' : 'Make it wider or brush on gel bleach.');
+        } else if (r.stem < 0.16) {
+          n.className = 'note warn';
+          n.textContent = 'Workable but tight. Burnish the edges well and mist lightly.';
+        } else { n.className = 'note'; n.textContent = 'Line weight is comfortable for bleach.'; }
+        remember();
+      }
+
+      function press(group, attr, value) {
+        group.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset[attr] === value)));
+      }
+      function syncControls() {
+        $('name').value = state.name; $('width').value = state.width;
+        press($('layout'), 'layout', state.layout); press($('place'), 'place', state.place);
+        press($('look'), 'look', state.look); press($('filter'), 'group', state.group);
+      }
+
+      $('name').addEventListener('input', (e) => {
+        const c = cleanName(e.target.value);
+        if (c !== e.target.value) e.target.value = c;
+        state.name = c; render();
+      });
+      $('layout').addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        state.layout = b.dataset.layout; press($('layout'), 'layout', state.layout); render();
+      });
+      $('place').addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        state.place = b.dataset.place; state.width = PLACES[state.place].w;
+        press($('place'), 'place', state.place); $('width').value = state.width; render();
+      });
+      $('width').addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value); if (!(v >= 2 && v <= 14)) return;
+        state.width = v; render();
+      });
+      $('look').addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        state.look = b.dataset.look; press($('look'), 'look', state.look); render();
+      });
+
+      // Saving: the shared TimSave on the site, the host's downloads capability in a Claude artifact.
+      let hostDownloads = null;
+      async function saveSvg(name, text, note) {
+        if (window.TimSave) return TimSave.saveTo(name, new Blob([text], { type: 'image/svg+xml' }), note);
+        if (hostDownloads) {
+          try { const r = await hostDownloads.save({ filename: name, data: text }); note.textContent = r.status === 'saved' ? 'Saved ' + name + '.' : ''; }
+          catch (e) { note.textContent = e && e.code === 'declined' ? 'Not saved.' : 'Couldn’t save the file here.'; }
+          return;
+        }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([text], { type: 'image/svg+xml' })); a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        note.textContent = 'Downloaded ' + name + '.';
+      }
+      $('save').addEventListener('click', () => {
+        if (!current) return;
+        const base = state.name ? state.name + '-inmotion' : 'inmotion';
+        const name = `${base}${state.layout === 'stack' && state.name ? '-stacked' : ''}-${String(state.width).replace('.', '_')}in.svg`;
+        saveSvg(name, svgDoc(current.r, current.title), $('saveNote'));
+      });
+
+      // Library
+      function renderFiles() {
+        const box = $('files'); box.innerHTML = '';
+        FILES.filter((f) => state.group === 'all' || f.group === state.group).forEach((f) => {
+          const el = document.createElement('article');
+          el.className = 'file';
+          const thumb = f.svg.replace(/<\?xml[^>]*>\s*/, '').replace(/ width="[^"]*in" height="[^"]*in"/, '');
+          el.innerHTML = `<div class="thumb">${thumb}</div><h3></h3><p></p>
+            <div class="meta">Size <b>${num(f.size[0])}" × ${num(f.size[1])}"</b>${f.thin ? ` · Thinnest line <b>${f.thin.toFixed(2)}"</b>` : ''}</div>
+            <div class="row"><button type="button">Save SVG</button><span class="status" aria-live="polite"></span></div>`;
+          el.querySelector('h3').textContent = f.title;
+          el.querySelector('p').textContent = f.desc;
+          el.querySelector('button').addEventListener('click', () => saveSvg(f.file, f.svg, el.querySelector('.status')));
+          box.appendChild(el);
+        });
+      }
+      $('filter').addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        state.group = b.dataset.group; press($('filter'), 'group', state.group); renderFiles(); remember();
+      });
+
+      if (!PLACES[state.place]) state.place = 'center';
+      syncControls(); render(); renderFiles();
+      if (window.TimSave) TimSave.ready();
+      else if (window.claude && window.claude.use) window.claude.use('downloads').then((d) => { hostDownloads = d || null; }, () => {});
+    </script>
+  </body>
+</html>
