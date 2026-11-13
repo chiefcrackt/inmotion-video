@@ -1,6 +1,8 @@
 // "Open" buttons for the local tools (Transcribe Video, Clean Voice). They run on this
 // computer, so the page can't start them: when one isn't running, show the command that does.
 // Use: <a href="http://127.0.0.1:8765/" data-local-launch="transcribe">…</a>
+// Console tools (Video Tagger) have no studio page: their button always shows the command.
+// Use: <button type="button" data-local-launch="tagger">…</button>
 
 const TOOLS = {
   transcribe: {
@@ -12,6 +14,12 @@ const TOOLS = {
     name: 'Clean Voice',
     folder: 'local-voice',
     launcher: 'Start Clean Voice.cmd',
+  },
+  tagger: {
+    name: 'Video Tagger',
+    folder: 'local-tagger',
+    launcher: 'Start Video Tagger.cmd',
+    console: true,
   },
 };
 const FOLDER_KEY = 'tim-local-tools-folder';
@@ -38,7 +46,7 @@ function cleanFolder(raw) {
     .trim()
     .replace(/^["']|["']$/g, '')
     .replace(/[\\/]+$/, '')
-    .replace(/[\\/](local-transcriber|local-voice)$/i, '');
+    .replace(/[\\/](local-transcriber|local-voice|local-tagger)$/i, '');
 }
 
 export function command(tool, folder, shell) {
@@ -117,12 +125,18 @@ function dialog(tool, url) {
     </div>`;
   const $ = (s) => back.querySelector(s);
   $('#ll-title').textContent = `Start ${tool.name}`;
-  $('.ll-lead').textContent =
-    `${tool.name} isn't running on this computer. Paste this into a terminal and press Enter; it starts in the background and opens the studio.`;
-  $('.ll-hint').textContent =
-    `Or double-click ${tool.launcher} in the ${tool.folder} folder. It stops when the computer restarts.`;
-  $('.ll-open').href = url;
-  $('.ll-open').textContent = `Open ${tool.name} anyway ↗`;
+  $('.ll-lead').textContent = tool.console
+    ? `Paste this into a terminal on your Windows computer and press Enter. ${tool.name} asks for a folder of videos, then shows its progress in that window.`
+    : `${tool.name} isn't running on this computer. Paste this into a terminal and press Enter; it starts in the background and opens the studio.`;
+  $('.ll-hint').textContent = tool.console
+    ? `Or double-click ${tool.launcher} in the ${tool.folder} folder.`
+    : `Or double-click ${tool.launcher} in the ${tool.folder} folder. It stops when the computer restarts.`;
+  if (url) {
+    $('.ll-open').href = url;
+    $('.ll-open').textContent = `Open ${tool.name} anyway ↗`;
+  } else {
+    $('.ll-open').remove();
+  }
   const folder = $('#ll-folder');
   folder.value = stored(FOLDER_KEY);
   let shell = stored(SHELL_KEY, 'ps');
@@ -177,13 +191,13 @@ function dialog(tool, url) {
   document.addEventListener('keydown', onKey);
   back.addEventListener('click', (e) => e.target === back && close());
   $('.ll-close').addEventListener('click', close);
-  $('.ll-open').addEventListener('click', close);
+  $('.ll-open')?.addEventListener('click', close);
   render();
   document.body.append(back);
   (folder.value ? $('.ll-copy') : folder).focus();
   // Notice when it comes up, so the button can say so.
   (async () => {
-    while (watching) {
+    while (watching && url) {
       await new Promise((r) => setTimeout(r, 1500));
       if (watching && (await running(url))) {
         $('.ll-status').textContent = `${tool.name} is running.`;
@@ -199,6 +213,7 @@ for (const link of document.querySelectorAll('[data-local-launch]')) {
   if (!tool) continue;
   link.addEventListener('click', async (event) => {
     event.preventDefault();
+    if (tool.console) return dialog(tool, null);
     const url = link.href.endsWith('/') ? link.href : link.href + '/';
     if (await running(url)) window.open(url, '_blank', 'noopener');
     else dialog(tool, url);

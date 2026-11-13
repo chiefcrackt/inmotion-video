@@ -10,9 +10,9 @@
   <link rel="apple-touch-icon" href="../apple-touch-icon.png">
   <link rel="stylesheet" href="../shared/fonts.css?v=70017a07">
   <link rel="stylesheet" href="style.css?v=1aa42b3d">
-  <script type="module" src="app.mjs?v=a8e15604"></script>
+  <script type="module" src="app.mjs?v=fa4ff601"></script>
   <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d">
-  <script type="module" src="../shared/studio-bar.mjs?v=3e15f76e"></script>
+  <script type="module" src="../shared/studio-bar.mjs?v=6dddf994"></script>
 </head>
 <body>
 <tim-studio-bar></tim-studio-bar>
@@ -23,7 +23,7 @@
     <div class="filters" role="group" aria-label="Workspace filters"><button type="button" data-workspace="all" aria-pressed="true">All</button><button type="button" data-workspace="plan" aria-pressed="false">Plan &amp; Organize</button><button type="button" data-workspace="graphics" aria-pressed="false">Graphics &amp; Video</button><button type="button" data-workspace="running" aria-pressed="false">Running Studio</button><button type="button" data-workspace="audio" aria-pressed="false">Audio Studio</button><button type="button" data-workspace="publishing" aria-pressed="false">Publishing Studio</button><button type="button" data-workspace="library" aria-pressed="false">Asset Library</button></div>
     <button type="button" id="reset">Clear filters</button>
   </section>
-  <p id="count" role="status" aria-live="polite">19 studios and tools</p>
+  <p id="count" role="status" aria-live="polite">20 studios and tools</p>
   <p id="empty" hidden>No matches. Try another word or clear the filters.</p>
   <section class="cards" aria-label="Studios and tools">
     <article data-entry="content-studio">
@@ -72,6 +72,12 @@
       <p class="category">Audio Studio · Plan &amp; Organize · Publishing Studio</p>
       <h2><a class="primary" href="../transcribe-video/">Transcribe Video <span aria-hidden="true">↗</span></a></h2>
       <p>Computer only — requires the local Windows launcher. Transcribe recordings, edit text and export subtitles and word timings. Not available on phones or tablets.</p>
+      
+    </article>
+    <article data-entry="video-tagger">
+      <p class="category">Plan &amp; Organize · Asset Library</p>
+      <h2><a class="primary" href="../video-tagger/">Video Tagger <span aria-hidden="true">↗</span></a></h2>
+      <p>Computer only — requires the local Windows launcher. Transcribe, tag and describe a whole folder of footage into one library.json. Not available on phones or tablets.</p>
       
     </article>
     <article data-entry="clean-voice">
@@ -141,7 +147,7 @@
       
     </article>
   </section>
-  <details id="originals"><summary>Original tools &amp; asset packs · 33</summary><p>Every original editor and collection is still available.</p><ul><li><a href="../transcribe-video/">Transcribe Video</a></li><li><a href="../clean-voice/">Clean Voice</a></li><li><a href="../brand-assets/">Brand Assets</a></li><li><a href="../content-planner/">Content Planner</a></li><li><a href="../teleprompter/">Teleprompter</a></li><li><a href="../before-after/">Before &amp; After</a></li><li><a href="../shoot-planner/">Shoot Planner</a></li><li><a href="../idea-vault/">Idea Vault</a></li><li><a href="../title-maker/">Title Maker</a></li><li><a href="../stat-counter/">Stat Counter</a></li><li><a href="../goals-maker/">Goals Maker</a></li><li><a href="../caption-maker/">Caption Maker</a></li><li><a href="../text-motion/">Text Motion</a></li><li><a href="../video-framer/">Video Framer</a></li><li><a href="../carousel-maker/">Carousel Post Maker</a></li><li><a href="../tier-list/">Tier List Maker</a></li><li><a href="../motion-studio/">Motion Studio 2</a></li><li><a href="../start-line/">Start Line Recorder</a></li><li><a href="../river-run/">River Run Recorder</a></li><li><a href="../mile-marker/">Mile Marker Maker</a></li><li><a href="../activity-studio/">Activity Studio</a></li><li><a href="../special-post/">Special Post Maker</a></li><li><a href="../celebrate/">Celebration Maker</a></li><li><a href="../sound-forge/">Sound Forge</a></li><li><a href="../beat-bed/">Beat Bed</a></li><li><a href="../cover-maker/">Cover Maker</a></li><li><a href="../promo-maker/">Promo Maker</a></li><li><a href="../downloads/">Animation Downloads</a></li><li><a href="../motion-stats/">Motion + Stats Kit</a></li><li><a href="../asset-studio/">Asset Animator</a></li><li><a href="../weird-motion/">Weird Motion Toys</a></li><li><a href="../product-spotlight/">Product Spotlight Kit</a></li><li><a href="../icon-pack/">Running + Creator Icons</a></li></ul></details>
+  <details id="originals"><summary>Original tools &amp; asset packs · 34</summary><p>Every original editor and collection is still available.</p><ul><li><a href="../transcribe-video/">Transcribe Video</a></li><li><a href="../video-tagger/">Video Tagger</a></li><li><a href="../clean-voice/">Clean Voice</a></li><li><a href="../brand-assets/">Brand Assets</a></li><li><a href="../content-planner/">Content Planner</a></li><li><a href="../teleprompter/">Teleprompter</a></li><li><a href="../before-after/">Before &amp; After</a></li><li><a href="../shoot-planner/">Shoot Planner</a></li><li><a href="../idea-vault/">Idea Vault</a></li><li><a href="../title-maker/">Title Maker</a></li><li><a href="../stat-counter/">Stat Counter</a></li><li><a href="../goals-maker/">Goals Maker</a></li><li><a href="../caption-maker/">Caption Maker</a></li><li><a href="../text-motion/">Text Motion</a></li><li><a href="../video-framer/">Video Framer</a></li><li><a href="../carousel-maker/">Carousel Post Maker</a></li><li><a href="../tier-list/">Tier List Maker</a></li><li><a href="../motion-studio/">Motion Studio 2</a></li><li><a href="../start-line/">Start Line Recorder</a></li><li><a href="../river-run/">River Run Recorder</a></li><li><a href="../mile-marker/">Mile Marker Maker</a></li><li><a href="../activity-studio/">Activity Studio</a></li><li><a href="../special-post/">Special Post Maker</a></li><li><a href="../celebrate/">Celebration Maker</a></li><li><a href="../sound-forge/">Sound Forge</a></li><li><a href="../beat-bed/">Beat Bed</a></li><li><a href="../cover-maker/">Cover Maker</a></li><li><a href="../promo-maker/">Promo Maker</a></li><li><a href="../downloads/">Animation Downloads</a></li><li><a href="../motion-stats/">Motion + Stats Kit</a></li><li><a href="../asset-studio/">Asset Animator</a></li><li><a href="../weird-motion/">Weird Motion Toys</a></li><li><a href="../product-spotlight/">Product Spotlight Kit</a></li><li><a href="../icon-pack/">Running + Creator Icons</a></li></ul></details>
   <footer><p>Original projects and links remain available. This preview does not replace the current dashboard.</p></footer>
 </main>
 </body>

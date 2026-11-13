@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0E1A2E">
+  <title>Video Tagger · T.IM Studio</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="stylesheet" href="../shared/fonts.css?v=70017a07">
+  <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d">
+  <script type="module" src="../shared/studio-bar.mjs?v=6dddf994"></script>
+  <script type="module" src="../shared/local-launch.mjs?v=745082cd"></script>
+  <style>
+    :root{color-scheme:dark;font:16px system-ui;background:#0e1a2e;color:#f6f4ef}*{box-sizing:border-box}body{margin:0}main{max-width:850px;margin:auto;padding:48px 24px}a{color:#e8c96a}.eyebrow{color:#e8c96a;font-weight:700;font-size:12px;letter-spacing:.14em}h1{font-size:clamp(36px,7vw,56px);margin:12px 0}h2{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:900;text-transform:uppercase;font-size:clamp(26px,5vw,34px);margin:0 0 8px}p,li{line-height:1.7;color:#bccddd}section{background:#15253c;border:1px solid #31445d;border-radius:18px;padding:28px;margin:24px 0}.button{display:inline-block;background:#e8c96a;color:#102033;border:0;cursor:pointer;font:700 16px system-ui;text-decoration:none;padding:15px 22px;border-radius:9px}.tag{display:inline-block;color:#9dd8d8;font-size:14px}code{overflow-wrap:anywhere}li{margin:12px 0}a:focus-visible,.button:focus-visible{outline:3px solid #2e9bad;outline-offset:4px}
+    .computer-warning{border:1px solid #e8c96a;border-left:5px solid #e8c96a;border-radius:10px;background:#2b2b24;padding:18px 20px;margin:24px 0}.computer-warning strong{color:#e8c96a}.computer-warning p{margin:8px 0 0;color:#f6f4ef}
+    .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0 0;padding:0;list-style:none}.fields li{margin:0;background:#0e1a2e;border:1px solid #31445d;border-top:4px solid #2e9bad;border-radius:12px;padding:14px 16px;font-size:15px;line-height:1.5}.fields strong{display:block;font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:900;text-transform:uppercase;color:#f6f4ef;font-size:19px;margin-bottom:4px}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0;padding:0;list-style:none}.chips li{margin:0;background:#0e1a2e;border:1px solid #435771;border-radius:999px;padding:4px 12px;font-size:14px;color:#f6f4ef}
+  </style>
+</head>
+<body><tim-studio-bar></tim-studio-bar><main>
+  <div class="eyebrow">PLAN / LOCAL TOOL</div>
+  <h1>Video Tagger</h1>
+  <p>Go through a whole folder of footage on your PC: transcribe every video, tag it and describe it, all saved in one <code>library.json</code>.</p>
+  <aside class="computer-warning" role="note" aria-label="Computer only">
+    <strong>Computer only — local launcher required</strong>
+    <p>This tool does not work on phones or tablets. It runs on the Windows computer with Transcribe Video and Ollama installed.</p>
+  </aside>
+  <section>
+    <span class="tag">Computer only</span>
+    <h2>Start Video Tagger</h2>
+    <ol>
+      <li>On your Windows computer, open the repo’s <code>local-tagger</code> folder and double-click <strong>Start Video Tagger.cmd</strong>, or use the button below to copy the command.</li>
+      <li>Pick a folder of videos. Subfolders are included.</li>
+      <li>Leave the window open while it works. It shows each video and step, then a summary.</li>
+    </ol>
+    <p><button type="button" class="button" data-local-launch="tagger">Start Video Tagger</button></p>
+    <p>Run it again any time: videos already in the library and unchanged are skipped, and a stopped run carries on where it left off.</p>
+  </section>
+  <section>
+    <h2>What you get for each video</h2>
+    <ul class="fields">
+      <li><strong>Details</strong>Length, vertical / horizontal / square, resolution, frame rate and recorded date.</li>
+      <li><strong>Transcript</strong>TXT, SRT and word-timing JSON from the Transcribe Video engine on your GPU.</li>
+      <li><strong>Speech level</strong>None, little or lots, so B-roll and trail footage are easy to find.</li>
+      <li><strong>Tags</strong>Only from your tag list. Anything else becomes “other” with a suggested label.</li>
+      <li><strong>Description</strong>One or two plain sentences: what’s said, then what’s on screen.</li>
+      <li><strong>Needs review</strong>Flagged when the model is unsure, with the reason.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Your tags</h2>
+    <p>Edit <code>D:\VideoTagger\tags.json</code> to change the list. The starting tags:</p>
+    <ul class="chips">
+      <li>trail review</li><li>race</li><li>training run</li><li>long run</li><li>workout</li><li>strength</li><li>gear</li><li>food &amp; fueling</li><li>Hooper</li><li>RRC / run club</li><li>talking to camera</li><li>B-roll</li><li>scenery</li><li>aid station / crew</li><li>travel</li><li>other</li>
+    </ul>
+  </section>
+  <p>Your videos are only read, never changed or moved. Transcription uses the same engine as <a href="../transcribe-video/">Transcribe Video</a>, and tags come from a local Ollama model that looks at the transcript and a few frames. Nothing is uploaded and no paid API is used. Results go to <code>D:\VideoTagger</code>.</p>
+  <p><a href="https://github.com/chiefcrackt/inmotion-video/tree/main/local-tagger">Setup instructions and local tool files</a></p>
+</main></body>
+</html>

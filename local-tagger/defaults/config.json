@@ -1,0 +1,12 @@
+{
+  "quality": "quality",
+  "language": "en",
+  "device": "auto",
+  "clean_voice": "off",
+  "precise_word_timing": true,
+  "vocabulary": "Hooper, RRC",
+  "ollama_url": "http://127.0.0.1:11434",
+  "ollama_model": "qwen2.5vl:7b",
+  "frames_for_low_speech": 5,
+  "frames_for_speech": 3
+}

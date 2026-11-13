@@ -26,6 +26,15 @@ export const TOOLS = Object.freeze([
     icon: 'idea',
   },
   {
+    id: 'video-tagger',
+    name: 'Video Tagger',
+    href: 'video-tagger/',
+    description: 'Computer only — requires the local Windows launcher. Transcribe, tag and describe a whole folder of footage into one library.json. Not available on phones or tablets.',
+    workspaces: ['plan', 'library'],
+    keywords: ['tag', 'tags', 'tagging', 'library', 'footage', 'b-roll', 'catalog', 'organize', 'transcription', 'local', 'ollama', 'folder'],
+    icon: 'clapper',
+  },
+  {
     id: 'clean-voice',
     name: 'Clean Voice',
     href: 'clean-voice/',
