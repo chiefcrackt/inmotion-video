@@ -27,6 +27,8 @@ U = 100      # SVG units per inch
 M = 0.25     # margin around each design, inches
 STEM = {'Bold': 0.141, 'Black': 0.188}  # vertical stem of 'l', in em
 NAME_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789._-'
+CAPS_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,·’\'&-/#:'
+ROUTE = {'line': 0.22, 'size': 10.0, 'cap': 0.085, 'detail': 0.66, 'gap': 0.35}  # shared with the page's route maker
 
 _fonts = {}
 def font(w):
@@ -117,6 +119,53 @@ def circle(cx, cy, rad, n=360):
     t = np.linspace(0, 2 * math.pi, n, endpoint=False)
     return np.stack([cx + rad * np.cos(t), cy + rad * np.sin(t)], 1)
 
+
+# ---------- routes (same rules as the page's route maker)
+def project(latlon):
+    a = np.array(latlon, float); lat0, lon0 = a[:, 0].mean(), a[:, 1].mean()
+    return np.stack([(a[:, 1] - lon0) * 111320 * math.cos(math.radians(lat0)), -(a[:, 0] - lat0) * 110540], 1)
+
+def route_outline(xy_units, line_in, ppi=300):
+    """Thick round-capped line along the track, as cut contours (units)."""
+    r = ppi / U; pad = line_in * U * 2
+    mn = xy_units.min(0) - pad; mx = xy_units.max(0) + pad
+    W, H = int((mx[0] - mn[0]) * r) + 1, int((mx[1] - mn[1]) * r) + 1
+    m = np.zeros((H, W), np.uint8)
+    pts = np.round((xy_units - mn) * r * 16).astype(np.int32)
+    t = max(1, int(round(line_in * ppi)))
+    cv2.polylines(m, [pts], False, 255, t, lineType=cv2.LINE_AA, shift=4)
+    for q in pts[::1]: cv2.circle(m, tuple(int(v) for v in q), t // 2, 255, -1, lineType=cv2.LINE_AA, shift=4)
+    k = int(0.07 * ppi) | 1  # close hairline gaps where the route passes close to itself
+    m = cv2.morphologyEx((m > 127).astype(np.uint8), cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
+    field = ndimage.gaussian_filter(m.astype(float), 1.0)
+    out = []
+    for c in measure.find_contours(np.pad(field, 1, constant_values=0), 0.5):
+        c = measure.approximate_polygon(c, 0.35)
+        if len(c) >= 4: out.append(np.stack([c[:, 1] - 1, c[:, 0] - 1], 1) / r + mn)
+    return out
+
+def route_stencil(file, title, group, desc, latlon, name, detail=None, size_in=ROUTE['size'], line_in=ROUTE['line']):
+    xy = project(latlon); ext = xy.max(0) - xy.min(0); k = size_in * U / ext.max()
+    xy = (xy - xy.min(0)) * k + (M + line_in / 2) * U
+    rings = route_outline(xy, line_in)
+    rx0 = min(p[:, 0].min() for p in rings); rx1 = max(p[:, 0].max() for p in rings)
+    ry1 = max(p[:, 1].max() for p in rings); rw = (rx1 - rx0) / U
+    f = font('Black'); upm = f['head'].unitsPerEm; cap = f['OS/2'].sCapHeight / upm
+    em = ROUTE['cap'] * rw / cap
+    _, bb, _ = text_block([name], 'Black', 0.05, em_in=em)
+    if (bb[2] - bb[0]) / U > rw: em *= rw * U / (bb[2] - bb[0])
+    cx = (rx0 + rx1) / 2
+    d1, bb1, _ = text_block([name], 'Black', 0.05, em_in=em)
+    d1, bb1, _ = text_block([name], 'Black', 0.05, em_in=em, x0=cx - (bb1[2] - bb1[0]) / 2, y0=ry1 + ROUTE['gap'] * U)
+    ds = [d1]; bottom = bb1[3]; right = bb1[2]; thin = STEM['Black'] * em
+    if detail:
+        e2 = em * ROUTE['detail']
+        d2, bb2, _ = text_block([detail], 'Black', 0.08, em_in=e2)
+        d2, bb2, _ = text_block([detail], 'Black', 0.08, em_in=e2, x0=cx - (bb2[2] - bb2[0]) / 2, y0=bottom + 0.25 * cap * em * U)
+        ds.append(d2); bottom = bb2[3]; right = max(right, bb2[2]); thin = STEM['Black'] * e2
+    d = poly_d(rings) + ' ' + ' '.join(ds)
+    add(file, title, group, desc, d, (M * U, M * U, max(rx1, right), bottom), evenodd=True, thin=round(min(line_in, thin), 2))
+
 # ---------- files
 def svg_doc(w_in, h_in, d, title, evenodd=False):
     rule = ' fill-rule="evenodd"' if evenodd else ''
@@ -191,6 +240,13 @@ def main():
             f'Ring and the two waves, one color (bleach can’t do the navy, gold and teal). Ring {t:.2f}" thick.',
             poly_d(rings) + ' ' + poly_d(waves), (M * U, M * U, M * U + dia * U, M * U + dia * U), evenodd=True, thin=round(t, 2))
 
+
+    # Routes
+    pim = json.load(open(os.path.join(TOOL, 'routes', 'pain-in-moraine-loop.json')))
+    route_stencil('route-pain-in-moraine-10in.svg', 'Route — Pain in Moraine', 'route',
+                  'One 9.9 km loop at Moraine State Park, with the race name and 100K · SEP 2026. 10" on the long side.',
+                  pim, 'PAIN IN MORAINE', '100K · SEP 2026')
+
     # Small solid waves
     polys, size = fit_polys(logo_waves(), 2.75, M * U, M * U)
     add('waves-small-2.75in.svg', 'Waves mark', 'small', '2.75" wide, solid. Sleeve, pocket or hat.',
@@ -201,16 +257,17 @@ def main():
     for w in ('Bold', 'Black'):
         f = font(w); cmap = f.getBestCmap(); gs = f.getGlyphSet(); hm = f['hmtx']
         table = {}
-        for ch in NAME_CHARS:
+        for ch in sorted(set(NAME_CHARS + (CAPS_CHARS if w == 'Black' else ''))):
             g = cmap[ord(ch)]
             pen = SVGPathPen(gs, ntos=fnum); bp = BoundsPen(gs)
             gs[g].draw(TransformPen(pen, (1, 0, 0, -1, 0, 0))); gs[g].draw(TransformPen(bp, (1, 0, 0, -1, 0, 0)))
             table[ch] = {'d': pen.getCommands(), 'adv': hm[g][0], 'bb': [round(v) for v in bp.bounds] if bp.bounds else None}
-        glyphs[w] = {'upm': f['head'].unitsPerEm, 'stem': STEM[w], 'glyphs': table}
+        glyphs[w] = {'upm': f['head'].unitsPerEm, 'stem': STEM[w], 'cap': f['OS/2'].sCapHeight, 'glyphs': table}
 
     tpl = open(os.path.join(TOOL, 'template.html')).read()
     page = (tpl.replace('/*__GLYPHS__*/null', json.dumps(glyphs, separators=(',', ':')))
-               .replace('/*__FILES__*/[]', json.dumps(FILES, ensure_ascii=False, separators=(',', ':'))))
+               .replace('/*__FILES__*/[]', json.dumps(FILES, ensure_ascii=False, separators=(',', ':')))
+               .replace('/*__ROUTE__*/null', json.dumps({**ROUTE, 'preset': {'name': 'PAIN IN MORAINE', 'detail': '100K · SEP 2026', 'points': pim}}, ensure_ascii=False, separators=(',', ':'))))
     open(os.path.join(TOOL, 'index.html'), 'w').write(page)
     for f in FILES: print(f"{f['file']:42s} {f['size'][0]:5.2f} x {f['size'][1]:5.2f} in  thin {f['thin']}")
 

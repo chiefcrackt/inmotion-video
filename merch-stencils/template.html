@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="../shared/fonts.css?v=70017a07" />
     <link rel="stylesheet" href="../shared/responsive.css?v=bb296b12" />
     <link rel="stylesheet" href="../shared/studio-bar.css?v=30ec331d" />
-    <script type="module" src="../shared/studio-bar.mjs?v=9498deac"></script>
+    <script type="module" src="../shared/studio-bar.mjs?v=720c3b72"></script>
     <script src="../shared/save.js?v=39954a84"></script>
     <style>
       :root {
@@ -75,6 +75,15 @@
       .seg button { flex: 1 1 auto; }
       .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
 
+      label.check { display: flex; align-items: center; gap: 10px; min-height: 40px; color: var(--paper); font-size: 15px; }
+      label.check input { width: 20px; height: 20px; accent-color: var(--gold); }
+      label.field span { float: right; }
+      input[type='range'] { width: 100%; accent-color: var(--teal); min-height: 36px; }
+      .filebtn { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px;
+        background: var(--gold); color: var(--navy); font-weight: 700; cursor: pointer; }
+      .filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+      .filebtn:focus-within { outline: 3px solid var(--paper); outline-offset: 3px; }
+
       /* Library */
       .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
       .files { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
@@ -107,8 +116,8 @@
         <p class="eyebrow">T.im / merch</p>
         <h1>Merch Stencils</h1>
         <p class="muted" style="margin-top:8px">
-          Cricut cut files for bleach-stencil shirts. Each one imports at true size, uses Barlow Condensed or the traced
-          waves, and is cut from adhesive vinyl, so don't mirror it.
+          Cricut cut files for bleach-stencil shirts: your name, your race routes and the brand marks. Each one imports at true
+          size and is cut from adhesive vinyl, so don't mirror it.
         </p>
       </header>
 
@@ -161,12 +170,70 @@
         </div>
       </section>
 
+
+      <section aria-labelledby="route-h">
+        <h2 id="route-h">Route maker</h2>
+        <p class="muted">Load a GPX, FIT or TCX file to turn the route into a cut file, with the race name underneath. The file is read on this device and never uploaded.</p>
+        <div class="studio">
+          <div>
+            <div class="shirt" id="rShirt" aria-label="Route preview"></div>
+            <div class="stats">
+              <span>Size <b id="rSz">–</b></span>
+              <span>Thinnest line <b id="rStem">–</b></span>
+              <span>Route <b id="rSrc">–</b></span>
+            </div>
+            <p class="note" id="rNote" aria-live="polite"></p>
+          </div>
+          <div class="controls">
+            <fieldset>
+              <legend>Route</legend>
+              <div class="row" style="margin-top:0">
+                <label class="filebtn"><input id="rFile" type="file" accept=".gpx,.fit,.tcx" /><span>Load GPX / FIT / TCX</span></label>
+                <button type="button" id="rPreset">Pain in Moraine</button>
+              </div>
+              <label class="check"><input id="rLoop" type="checkbox" /> First loop only (for loop races)</label>
+              <label class="field">Rotate <span><b id="rRotOut">0°</b></span>
+                <input id="rRot" type="range" min="-180" max="180" step="5" value="0" />
+              </label>
+            </fieldset>
+            <fieldset>
+              <legend>Text</legend>
+              <label class="field">Race name
+                <input id="rName" type="text" autocomplete="off" maxlength="32" />
+              </label>
+              <label class="check"><input id="rShowDetail" type="checkbox" checked /> Distance and date line</label>
+              <label class="field" id="rDetailRow">Distance and date
+                <input id="rDetail" type="text" autocomplete="off" maxlength="32" />
+              </label>
+            </fieldset>
+            <fieldset>
+              <legend>Size</legend>
+              <label class="field">Long side (inches)
+                <input id="rSize" type="number" min="3" max="14" step="0.5" value="10" inputmode="decimal" />
+              </label>
+              <label class="field">Line weight <span><b id="rLineOut">0.22"</b></span>
+                <input id="rLine" type="range" min="0.14" max="0.4" step="0.01" value="0.22" />
+              </label>
+              <div class="seg" id="rLook" role="group" aria-label="Look">
+                <button type="button" data-look="dark" aria-pressed="true">Dark design</button>
+                <button type="button" data-look="light" aria-pressed="false">Light design</button>
+              </div>
+            </fieldset>
+            <div class="row" style="margin-top:0">
+              <button class="primary" id="rSave" type="button">Save SVG</button>
+              <span class="small muted" id="rSaveNote" aria-live="polite"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section aria-labelledby="lib-h">
         <h2 id="lib-h">Stencil library</h2>
         <div class="chips seg" id="filter" role="group" aria-label="Filter">
           <button type="button" data-group="all" aria-pressed="true">All</button>
           <button type="button" data-group="front" aria-pressed="false">Front</button>
           <button type="button" data-group="back" aria-pressed="false">Back</button>
+          <button type="button" data-group="route" aria-pressed="false">Routes</button>
           <button type="button" data-group="small" aria-pressed="false">Small marks</button>
         </div>
         <div class="files" id="files"></div>
@@ -403,6 +470,257 @@
         const b = e.target.closest('button'); if (!b) return;
         state.group = b.dataset.group; press($('filter'), 'group', state.group); renderFiles(); remember();
       });
+
+
+      // ---------- Route maker
+      const ROUTE = /*__ROUTE__*/null;
+      const CAPS_OK = new Set(Object.keys(GLYPHS.Black.glyphs));
+      const capsText = (v) => [...v.toUpperCase().replace(/'/g, '’')].filter((c) => CAPS_OK.has(c)).join('');
+      const R = { name: ROUTE.preset.name, detail: ROUTE.preset.detail, showDetail: true, loop: false, rot: 0,
+                  size: ROUTE.size, line: ROUTE.line, look: 'dark', src: 'Pain in Moraine (one loop)' };
+      try { const saved = JSON.parse(localStorage.getItem(STORE + '-route') || '{}'); ['size', 'line', 'look', 'showDetail'].forEach((k) => { if (k in saved) R[k] = saved[k]; }); } catch (e) {}
+      let routePts = ROUTE.preset.points; // [[lat, lon], ...]
+
+      function project(pts) {
+        let la = 0, lo = 0; pts.forEach((p) => { la += p[0]; lo += p[1]; }); la /= pts.length; lo /= pts.length;
+        const kx = 111320 * Math.cos((la * Math.PI) / 180), ky = 110540;
+        const out = []; let last = null;
+        for (const p of pts) {
+          const q = [(p[1] - lo) * kx, -(p[0] - la) * ky];
+          if (!last || Math.hypot(q[0] - last[0], q[1] - last[1]) >= 4) { out.push(q); last = q; }
+        }
+        return out;
+      }
+      function firstLoop(xy) {
+        let dist = 0, best = -1, bestD = Infinity;
+        for (let i = 1; i < xy.length; i++) {
+          dist += Math.hypot(xy[i][0] - xy[i - 1][0], xy[i][1] - xy[i - 1][1]);
+          if (dist < 1000) continue;
+          const d = Math.hypot(xy[i][0] - xy[0][0], xy[i][1] - xy[0][1]);
+          if (d < 100 && d < bestD) { best = i; bestD = d; }
+          else if (best > 0 && d > 150) break;
+        }
+        return best > 0 ? xy.slice(0, best + 1) : xy;
+      }
+
+      // Marching squares on a W×H field (border cells must be 0), iso 0.5. Returns closed contours in field pixels.
+      function contours(f, W, H) {
+        const segs = [], pts = new Map();
+        const val = (x, y) => f[y * W + x];
+        const lerp = (a, b) => (0.5 - a) / (b - a);
+        const H_ = (x, y, a, b) => { const k = 'h' + x + ',' + y; if (!pts.has(k)) pts.set(k, [x + lerp(a, b), y]); return k; };
+        const V_ = (x, y, a, b) => { const k = 'v' + x + ',' + y; if (!pts.has(k)) pts.set(k, [x, y + lerp(a, b)]); return k; };
+        for (let y = 0; y < H - 1; y++) for (let x = 0; x < W - 1; x++) {
+          const tl = val(x, y), tr = val(x + 1, y), br = val(x + 1, y + 1), bl = val(x, y + 1);
+          const c = (tl > 0.5 ? 8 : 0) | (tr > 0.5 ? 4 : 0) | (br > 0.5 ? 2 : 0) | (bl > 0.5 ? 1 : 0);
+          if (c === 0 || c === 15) continue;
+          const T = () => H_(x, y, tl, tr), B = () => H_(x, y + 1, bl, br), L = () => V_(x, y, tl, bl), Rt = () => V_(x + 1, y, tr, br);
+          const mid = (tl + tr + br + bl) / 4 > 0.5;
+          switch (c) {
+            case 1: case 14: segs.push([L(), B()]); break;
+            case 2: case 13: segs.push([B(), Rt()]); break;
+            case 3: case 12: segs.push([L(), Rt()]); break;
+            case 4: case 11: segs.push([T(), Rt()]); break;
+            case 6: case 9: segs.push([T(), B()]); break;
+            case 7: case 8: segs.push([L(), T()]); break;
+            case 5: if (mid) segs.push([L(), T()], [B(), Rt()]); else segs.push([T(), Rt()], [L(), B()]); break;
+            case 10: if (mid) segs.push([T(), Rt()], [L(), B()]); else segs.push([L(), T()], [B(), Rt()]); break;
+          }
+        }
+        const at = new Map();
+        segs.forEach((s, i) => s.forEach((k) => { if (!at.has(k)) at.set(k, []); at.get(k).push(i); }));
+        const used = new Uint8Array(segs.length), loops = [];
+        for (let i = 0; i < segs.length; i++) {
+          if (used[i]) continue;
+          used[i] = 1; const start = segs[i][0]; let cur = segs[i][1]; const loop = [pts.get(start)];
+          let guard = segs.length;
+          while (cur !== start && guard--) {
+            loop.push(pts.get(cur));
+            const next = (at.get(cur) || []).find((j) => !used[j]);
+            if (next === undefined) break;
+            used[next] = 1; cur = segs[next][0] === cur ? segs[next][1] : segs[next][0];
+          }
+          if (loop.length >= 4) loops.push(loop);
+        }
+        return loops;
+      }
+      function simplify(pts, tol) { // Douglas–Peucker on a closed loop
+        if (pts.length < 5) return pts;
+        const keep = new Uint8Array(pts.length); keep[0] = keep[pts.length - 1] = 1;
+        const stack = [[0, pts.length - 1]];
+        while (stack.length) {
+          const [a, b] = stack.pop(); let best = -1, bd = tol;
+          const [ax, ay] = pts[a], [bx, by] = pts[b], dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy) || 1;
+          for (let i = a + 1; i < b; i++) {
+            const d = Math.abs((pts[i][0] - ax) * dy - (pts[i][1] - ay) * dx) / len;
+            if (d > bd) { bd = d; best = i; }
+          }
+          if (best > 0) { keep[best] = 1; stack.push([a, best], [best, b]); }
+        }
+        return pts.filter((_, i) => keep[i]);
+      }
+
+      function placeLine(text, emIn, track, cx, top) {
+        const t = GLYPHS.Black, m = measureLine(text, t, track), s = (emIn * U) / t.upm;
+        const w = (m.x1 - m.x0) * s, ox = cx - w / 2 - m.x0 * s, oy = top - m.y0 * s;
+        return { d: m.parts.map(([d, gx]) => bake(d, s, ox + gx * s, oy)).join(' '), x0: cx - w / 2, x1: cx + w / 2, y1: top + (m.y1 - m.y0) * s, w };
+      }
+
+      let rCurrent = null;
+      function renderRoute() {
+        let xy = project(routePts);
+        if (R.loop) xy = firstLoop(xy);
+        const a = (R.rot * Math.PI) / 180, ca = Math.cos(a), sa = Math.sin(a);
+        xy = xy.map(([x, y]) => [x * ca - y * sa, x * sa + y * ca]);
+        let mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
+        xy.forEach(([x, y]) => { mnx = Math.min(mnx, x); mny = Math.min(mny, y); mxx = Math.max(mxx, x); mxy = Math.max(mxy, y); });
+        const k = (R.size * U) / Math.max(mxx - mnx, mxy - mny, 1);
+        const off = (MARGIN + R.line / 2) * U;
+        const P = xy.map(([x, y]) => [(x - mnx) * k + off, (y - mny) * k + off]);
+        const rw = (mxx - mnx) * k, rh = (mxy - mny) * k;
+
+        // Rasterize the thick line, close hairline gaps with a light blur, trace the outline.
+        const PPI = 80, px = PPI / U, pad = 4;
+        const W = Math.ceil((rw + 2 * off) * px) + 2 * pad, Hh = Math.ceil((rh + 2 * off) * px) + 2 * pad;
+        const cv = document.createElement('canvas'); cv.width = W; cv.height = Hh;
+        const g = cv.getContext('2d', { willReadFrequently: true });
+        try { g.filter = `blur(${(0.025 * PPI).toFixed(2)}px)`; } catch (e) {}
+        g.lineWidth = R.line * PPI; g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = '#000';
+        g.beginPath(); P.forEach(([x, y], i) => (i ? g.lineTo : g.moveTo).call(g, x * px + pad, y * px + pad)); g.stroke();
+        const img = g.getImageData(0, 0, W, Hh).data, f = new Float32Array(W * Hh);
+        for (let i = 0; i < W * Hh; i++) f[i] = img[i * 4 + 3] / 255;
+        for (let x = 0; x < W; x++) { f[x] = 0; f[(Hh - 1) * W + x] = 0; }
+        for (let y = 0; y < Hh; y++) { f[y * W] = 0; f[y * W + W - 1] = 0; }
+        const loops = contours(f, W, Hh).map((l) => simplify(l, 0.25).map(([x, y]) => [(x - pad) / px, (y - pad) / px]));
+        let ry1 = 0, rx0 = Infinity, rx1 = 0;
+        loops.forEach((l) => l.forEach(([x, y]) => { ry1 = Math.max(ry1, y); rx0 = Math.min(rx0, x); rx1 = Math.max(rx1, x); }));
+        const routeD = loops.map((l) => 'M' + l.map(([x, y]) => num(x) + ',' + num(y)).join(' L') + ' Z').join(' ');
+
+        // Text: same rules as tools/build-merch-stencils.py
+        const t = GLYPHS.Black, capR = t.cap / t.upm, cx = (rx0 + rx1) / 2, routeW = (rx1 - rx0) / U;
+        let em = (ROUTE.cap * routeW) / capR, textD = '', bottom = ry1, right = rx1, thin = R.line;
+        if (R.name) {
+          let l1 = placeLine(R.name, em, 0.05, cx, 0);
+          if (l1.w / U > routeW) em *= (routeW * U) / l1.w;
+          l1 = placeLine(R.name, em, 0.05, cx, ry1 + ROUTE.gap * U);
+          textD = l1.d; bottom = l1.y1; right = Math.max(right, l1.x1); thin = Math.min(thin, t.stem * em);
+          if (R.showDetail && R.detail) {
+            const e2 = em * ROUTE.detail;
+            const l2 = placeLine(R.detail, e2, 0.08, cx, bottom + 0.25 * capR * em * U);
+            textD += ' ' + l2.d; bottom = l2.y1; right = Math.max(right, l2.x1); thin = Math.min(thin, t.stem * e2);
+          }
+        }
+        const Wd = right / U + MARGIN, Hd = bottom / U + MARGIN;
+        rCurrent = { routeD, textD, W: Wd, H: Hd, thin };
+
+        const r = { d: routeD + ' ' + textD, W: Wd, H: Hd };
+        $('rShirt').innerHTML = shirtSvg(r, R.look).replace('<path style', '<path fill-rule="evenodd" style');
+        $('rSz').textContent = `${(Wd - 2 * MARGIN).toFixed(1)}" × ${(Hd - 2 * MARGIN).toFixed(1)}"`;
+        $('rStem').textContent = `${thin.toFixed(2)}"`;
+        $('rSrc').textContent = R.src + (R.loop ? ', first loop' : '');
+        $('rRotOut').textContent = R.rot + '°'; $('rLineOut').textContent = R.line.toFixed(2) + '"';
+        $('rDetailRow').hidden = !R.showDetail;
+        const n = $('rNote');
+        if (thin < 0.12) { n.className = 'note warn'; n.textContent = 'Some lines are too thin for spraying. Make it bigger, raise the line weight or shorten the text.'; }
+        else if (thin < 0.16) { n.className = 'note warn'; n.textContent = 'Workable but tight. Burnish the edges well and mist lightly.'; }
+        else { n.className = 'note'; n.textContent = 'Line weight is comfortable for bleach.'; }
+        try { localStorage.setItem(STORE + '-route', JSON.stringify({ size: R.size, line: R.line, look: R.look, showDetail: R.showDetail })); } catch (e) {}
+      }
+      function routeSvgDoc(c, title) {
+        return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${c.W.toFixed(3)}in" height="${c.H.toFixed(3)}in" viewBox="0 0 ${num(c.W * U)} ${num(c.H * U)}">\n` +
+          `<title>${title.replace(/[<&]/g, '')}</title>\n<path fill="#000" fill-rule="evenodd" d="${c.routeD}"/>\n` +
+          (c.textD ? `<path fill="#000" d="${c.textD}"/>\n` : '') + '</svg>\n';
+      }
+
+      // Reading files: the Activity Studio reader on the site (GPX, FIT, TCX); GPX/TCX in the page otherwise.
+      function readInPage(text, ext) {
+        const doc = new DOMParser().parseFromString(text, 'application/xml');
+        const pts = []; let name = '', date = null;
+        if (ext === 'gpx') {
+          for (const p of doc.getElementsByTagName('trkpt')) pts.push([+p.getAttribute('lat'), +p.getAttribute('lon')]);
+          const n = doc.querySelector('trk > name'); name = n ? n.textContent : '';
+          const t = doc.querySelector('trkpt > time'); date = t ? t.textContent : null;
+        } else {
+          for (const p of doc.getElementsByTagName('Trackpoint')) {
+            const la = p.getElementsByTagName('LatitudeDegrees')[0], lo = p.getElementsByTagName('LongitudeDegrees')[0];
+            if (la && lo) pts.push([+la.textContent, +lo.textContent]);
+          }
+          const id = doc.getElementsByTagName('Id')[0]; date = id ? id.textContent : null;
+        }
+        return { points: pts.filter((p) => isFinite(p[0]) && isFinite(p[1])), name, date, distance: null };
+      }
+      function readWithWorker(buffer, ext) {
+        return new Promise((resolve, reject) => {
+          let wk;
+          try { wk = new Worker('../activity-studio/worker.js?v=d558eba9'); } catch (e) { return reject(e); }
+          const timer = setTimeout(() => { wk.terminate(); reject(Error('Reading took too long.')); }, 90000);
+          wk.onmessage = (m) => {
+            clearTimeout(timer); wk.terminate();
+            if (m.data.error) return reject(Error(m.data.error));
+            const act = m.data.activity || {};
+            resolve({
+              points: (act.points || []).filter((p) => isFinite(p.lat) && isFinite(p.lon)).map((p) => [p.lat, p.lon]),
+              name: act.metadata && act.metadata.name !== 'Untitled activity' ? act.metadata.name : '',
+              date: (act.metadata && act.metadata.date) || null, distance: act.summary ? act.summary.distance : null,
+            });
+          };
+          wk.onerror = () => { clearTimeout(timer); wk.terminate(); reject(Error('reader unavailable')); };
+          wk.postMessage({ buffer, format: ext }, [buffer]);
+        });
+      }
+      function pathLength(pts) {
+        const xy = project(pts); let d = 0;
+        for (let i = 1; i < xy.length; i++) d += Math.hypot(xy[i][0] - xy[i - 1][0], xy[i][1] - xy[i - 1][1]);
+        return d;
+      }
+      $('rFile').addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0]; e.target.value = '';
+        if (!file) return;
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        const n = $('rNote');
+        if (!['gpx', 'fit', 'tcx'].includes(ext)) { n.className = 'note warn'; n.textContent = 'Choose a GPX, FIT or TCX file.'; return; }
+        n.className = 'note'; n.textContent = 'Reading ' + file.name + ' on this device…';
+        let act = null;
+        try { act = await readWithWorker(await file.arrayBuffer(), ext); }
+        catch (err) {
+          if (ext === 'fit') { n.className = 'note warn'; n.textContent = err.message === 'reader unavailable' ? 'FIT files need the T.IM Studio site. Export a GPX instead.' : err.message; return; }
+          try { act = readInPage(await file.text(), ext); } catch (e2) { n.className = 'note warn'; n.textContent = 'Couldn’t read that file.'; return; }
+        }
+        if (!act || act.points.length < 2) { n.className = 'note warn'; n.textContent = 'That file has no GPS route.'; return; }
+        routePts = act.points;
+        const traced = pathLength(routePts);
+        const meters = act.distance && Math.abs(act.distance - traced) < traced * 0.2 ? act.distance : traced, miles = meters / 1609.344;
+        const when = act.date ? new Date(act.date) : null;
+        const month = when && !isNaN(when) ? when.toLocaleString('en-US', { month: 'short' }).toUpperCase() + ' ' + when.getFullYear() : '';
+        R.detail = capsText((miles >= 10 ? miles.toFixed(1) : miles.toFixed(2)).replace(/\.?0+$/, '') + ' MI' + (month ? ' · ' + month : ''));
+        R.name = capsText(act.name || file.name.replace(/\.[^.]+$/, ''));
+        R.src = file.name; R.loop = false; R.rot = 0;
+        syncRoute(); renderRoute();
+        n.textContent = 'Loaded ' + file.name + '. Nothing was uploaded. Edit the name and distance line to match the race.';
+      });
+      $('rPreset').addEventListener('click', () => {
+        routePts = ROUTE.preset.points; R.name = ROUTE.preset.name; R.detail = ROUTE.preset.detail;
+        R.src = 'Pain in Moraine (one loop)'; R.loop = false; R.rot = 0; syncRoute(); renderRoute();
+      });
+      function syncRoute() {
+        $('rName').value = R.name; $('rDetail').value = R.detail; $('rShowDetail').checked = R.showDetail; $('rLoop').checked = R.loop;
+        $('rRot').value = R.rot; $('rSize').value = R.size; $('rLine').value = R.line; press($('rLook'), 'look', R.look);
+      }
+      $('rName').addEventListener('input', (e) => { const c = capsText(e.target.value); if (c !== e.target.value) e.target.value = c; R.name = c; renderRoute(); });
+      $('rDetail').addEventListener('input', (e) => { const c = capsText(e.target.value); if (c !== e.target.value) e.target.value = c; R.detail = c; renderRoute(); });
+      $('rShowDetail').addEventListener('change', (e) => { R.showDetail = e.target.checked; renderRoute(); });
+      $('rLoop').addEventListener('change', (e) => { R.loop = e.target.checked; renderRoute(); });
+      $('rRot').addEventListener('input', (e) => { R.rot = +e.target.value; renderRoute(); });
+      $('rSize').addEventListener('input', (e) => { const v = parseFloat(e.target.value); if (v >= 3 && v <= 14) { R.size = v; renderRoute(); } });
+      $('rLine').addEventListener('input', (e) => { R.line = +e.target.value; renderRoute(); });
+      $('rLook').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; R.look = b.dataset.look; press($('rLook'), 'look', R.look); renderRoute(); });
+      $('rSave').addEventListener('click', () => {
+        if (!rCurrent) return;
+        const base = (R.name || 'route').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'route';
+        saveSvg(`route-${base}-${String(R.size).replace('.', '_')}in.svg`, routeSvgDoc(rCurrent, R.name || 'Route'), $('rSaveNote'));
+      });
+      syncRoute(); renderRoute();
 
       if (!PLACES[state.place]) state.place = 'center';
       syncControls(); render(); renderFiles();
